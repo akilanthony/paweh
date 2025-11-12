@@ -262,6 +262,61 @@ tdt_required_trios <- function(power, alpha, df,
   ))
 }
 
+#' Required Number of Trios in the Transmission Disequilibrium Test (TDT) with Misclassification
+#'
+#' Computes the expected transmissions (\eqn{gT^*}) and non-transmissions (\eqn{gNT^*})
+#' as well as the required number of trios (\eqn{N^*}) for a specified non-centrality parameter
+#' (\eqn{\lambda^*}) under a misclassification model. Implements Equations 5.26-5.28
+#' and Equation 5.27b from *Gordon et al. (2020), Heterogeneity in Statistical Genetics*.
+#'
+#' @param lambda_star Numeric. Non-centrality parameter (\eqn{\lambda^*}) derived from
+#' desired power (e.g., from \code{tdt_required_trios()}).
+#' @param pd Numeric. Frequency of the disease-associated allele.
+#' @param prev Numeric. Disease prevalence (\eqn{\phi_1}).
+#' @param R1 Numeric. Relative risk for heterozygotes.
+#' @param R2 Numeric. Relative risk for homozygotes.
+#' @param delta_prime Numeric. Linkage disequilibrium scale parameter (\eqn{D'}) (default = 1).
+#' @param pi01 Numeric. False-positive (misclassification) rate for controls (default = 0).
+#' @param digits Integer. Number of digits to round intermediate printed results (default = 5).
+#'
+#' @details
+#' This function adjusts the Transmission Disequilibrium Test (TDT) for possible
+#' phenotype misclassification. When \eqn{\pi_{01} > 0}, a fraction of unaffected
+#' individuals are incorrectly classified as affected, inflating the apparent
+#' transmission probability. The expected transmission (\eqn{gT^*}) and non-transmission
+#' (\eqn{gNT^*}) are calculated as:
+#'
+#' \deqn{gT^* = p_d p_+ + \frac{D(p_T - \theta_1)C(1 - \pi_{01})}{\phi_1 + \pi_{01}\phi_0}}
+#' \deqn{gNT^* = p_d p_+ + \frac{D(p_A - \theta_1)C(\pi_{01} - 1)}{\phi_1 + \pi_{01}\phi_0}}
+#'
+#' The required number of trios is then:
+#' \deqn{N^* = \frac{\lambda^* (gT^* + gNT^*)}{2 (gT^* - gNT^*)^2}}
+#'
+#' Setting \eqn{\pi_{01} = 0} reproduces the standard (non-misclassified) TDT.
+#'
+#' @return A list containing:
+#' \item{gT_star}{Expected transmission probability.}
+#' \item{gNT_star}{Expected non-transmission probability.}
+#' \item{N_required}{Required number of trios (\eqn{N^*}).}
+#' \item{lambda_star}{Non-centrality parameter.}
+#' \item{C, f0, f1, f2}{Intermediate derived values used in Eq. 5.26-5.28.}
+#'
+#' @examples
+#' # Example: Compute N* with misclassification adjustment (pi01 = 0.1)
+#' tdt_required_trios_misclass(
+#'   lambda_star = 7.8488,
+#'   pd = 0.25, prev = 0.005,
+#'   R1 = 2, R2 = 2,
+#'   delta_prime = 1,
+#'   pi01 = 0.1
+#' )
+#'
+#' @references
+#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
+#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#'
+#' @importFrom stats pchisq qchisq uniroot
+#' @export
 
 tdt_required_trios_misclass <- function(
     lambda_star,

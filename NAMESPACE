@@ -3,6 +3,7 @@
 export(tdt_power_from_ET_ENT)
 export(tdt_power_from_model)
 export(tdt_required_trios)
+export(tdt_required_trios_misclass)
 importFrom(stats,pchisq)
 importFrom(stats,qchisq)
 importFrom(stats,uniroot)
