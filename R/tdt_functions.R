@@ -159,6 +159,56 @@ tdt_power_from_model <- function(pd, N, delta_prime,
 }
 
 
+#' Required Number of Trios for Desired Power in the Transmission Disequilibrium Test (TDT)
+#'
+#' Computes the required number of affected trios (\eqn{N^*}) needed to achieve
+#' a specified statistical power in the Transmission Disequilibrium Test (TDT),
+#' given model parameters for allele frequency, relative risks, disease prevalence,
+#' and heterogeneity. Implements Equation 5.34b from
+#' *Gordon et al. (2020), Heterogeneity in Statistical Genetics*.
+#'
+#' @param power Numeric. Desired power (e.g., 0.8).
+#' @param alpha Numeric. Significance level (e.g., 0.05).
+#' @param df Integer. Degrees of freedom (typically 1 for TDT).
+#' @param pd Numeric. Frequency of the disease-associated allele.
+#' @param prev Numeric. Disease prevalence.
+#' @param R1 Numeric. Relative risk for heterozygotes.
+#' @param R2 Numeric. Relative risk for homozygotes.
+#' @param delta_prime Numeric. Linkage disequilibrium (LD) scale factor (default = 1).
+#' @param pi Numeric. Heterogeneity parameter, where 1 represents full homogeneity
+#' and values between 0–1 allow for mixed genetic effects (default = 1).
+#'
+#' @details
+#' This function determines the non-centrality parameter (\eqn{\lambda^*}) via
+#' root-finding (\code{uniroot}) such that the test power equals the desired level.
+#' It then computes the expected transmission (\eqn{gT^*}) and non-transmission
+#' (\eqn{gNT^*}) probabilities, followed by the required number of trios using:
+#' \deqn{N^* = \frac{\lambda^*}{2} \frac{(gT^* + gNT^*)}{(gT^* - gNT^*)^2}}
+#'
+#' The expected transmission and non-transmission components are calculated
+#' under allele frequency and penetrance model assumptions (see Eq. 5.34b).
+#'
+#' @return A list containing:
+#' \item{lambda_star}{Non-centrality parameter (\eqn{\lambda^*}).}
+#' \item{gT_star}{Expected transmission probability.}
+#' \item{gNT_star}{Expected non-transmission probability.}
+#' \item{N_star}{Required number of trios.}
+#'
+#' @examples
+#' # Example: compute required trios for 80% power at alpha = 0.05
+#' tdt_required_trios(
+#'   power = 0.8, alpha = 0.05, df = 1,
+#'   pd = 0.25, prev = 0.005, R1 = 2, R2 = 2,
+#'   delta_prime = 1, pi = 1
+#' )
+#'
+#' @references
+#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
+#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#'
+#' @importFrom stats pchisq qchisq uniroot
+#' @export
+
 tdt_required_trios <- function(power, alpha, df,
                                pd, prev, R1, R2,
                                delta_prime = 1,
