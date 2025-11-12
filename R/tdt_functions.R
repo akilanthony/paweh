@@ -57,6 +57,55 @@ tdt_power_from_ET_ENT <- function(ET, ENT, alpha = 0.05) {
 }
 
 
+#' Transmission Disequilibrium Test (TDT) Power from Genetic Model Parameters
+#'
+#' Computes the statistical power of the Transmission Disequilibrium Test (TDT)
+#' using genetic model parameters such as allele frequency, relative risks,
+#' disease prevalence, and the number of affected trios. Implements Equation 1.25
+#' from *Gordon et al. (2020), Heterogeneity in Statistical Genetics*.
+#'
+#' @param pd Numeric. Frequency of the disease-associated allele.
+#' @param N Numeric. Number of affected trios.
+#' @param delta_prime Numeric. Linkage disequilibrium (LD) scale factor (default = 1).
+#' @param f0,f1,f2 Optional. Penetrances for genotypes with 0, 1, and 2 risk alleles.
+#'   If not provided, they are computed internally using \code{prev}, \code{R1}, and \code{R2}.
+#' @param prev Numeric. Disease prevalence.
+#' @param R1 Numeric. Relative risk for heterozygotes.
+#' @param R2 Numeric. Relative risk for homozygotes.
+#' @param alpha Numeric. Significance level (default = 0.05).
+#'
+#' @details
+#' When penetrances (\code{f0}, \code{f1}, \code{f2}) are not provided, they are
+#' derived from the model parameters using:
+#' \deqn{f0 = prev / Z, \quad f1 = R1 * f0, \quad f2 = R2 * f0}
+#' where
+#' \deqn{Z = (1 - p_d)^2 + 2 * p_d * (1 - p_d) * R1 + p_d^2 * R2.}
+#'
+#' Expected transmission (\eqn{ET}) and non-transmission (\eqn{ENT}) counts are
+#' computed based on the allele frequency and penetrance model, and the power
+#' is derived from the non-central chi-square distribution with 1 degree of freedom.
+#'
+#' @return A list containing:
+#' \item{lambda}{Non-centrality parameter.}
+#' \item{power}{Computed power at the given significance level.}
+#' \item{ET}{Expected transmissions.}
+#' \item{ENT}{Expected non-transmissions.}
+#' \item{Penetrances}{Vector of computed penetrances (f0, f1, f2).}
+#'
+#' @examples
+#' # Example: model-based power computation
+#' tdt_power_from_model(
+#'   pd = 0.25, N = 10000, delta_prime = 1,
+#'   prev = 0.05, R1 = 1, R2 = 1.1, alpha = 0.05
+#' )
+#'
+#' @references
+#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
+#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#'
+#' @importFrom stats pchisq qchisq
+#' @export
+
 tdt_power_from_model <- function(pd, N, delta_prime,
                                  f0 = NULL, f1 = NULL, f2 = NULL,
                                  prev = NULL, R1 = NULL, R2 = NULL,
@@ -284,7 +333,7 @@ tdt_expected_gT <- function(pd, prev, R1, R2,
 
 tdt_expected_gNT <- function(pd, prev, R1, R2,
                              delta_prime = 1,
-                             pi01 = 0,        # misclassification rate
+                             pi01 = 0,       # misclassification rate
                              theta1 = NULL,   # population allele freq (defaults to pd)
                              digits = 6,
                              verbose = TRUE) {
