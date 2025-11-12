@@ -1,4 +1,35 @@
+#' Transmission Disequilibrium Test (TDT) Power from Expected Transmissions and Non-Transmissions
+#'
+#' Computes the statistical power of the Transmission Disequilibrium Test (TDT)
+#' given the expected number of transmissions (ET) and non-transmissions (ENT)
+#' under a specified significance level. Implements Equation 1.25 from
+#' "Gordon et al. (2020), Heterogeneity in Statistical Genetics."
+
+#' @param ET Numeric. Expected number of transmissions.
+#'
+#' @param ENT Numeric. Expected number of non-transmissions.
+#'
+#' @param alpha Numeric. Significance level (default = 0.05).
+#'
+#'
+#' @return A list containing:
+#' \item{lambda}{Non-centrality parameter.}
+#' \item{power}{Computed power at the given alpha level.}
+#' \item{ET}{Expected transmissions.}
+#' \item{ENT}{Expected non-transmissions.}
+#'
+#'
 #' @importFrom stats pchisq qchisq uniroot
+#'
+#' @examples
+#' # Example: compute power for ET = 140 and ENT = 100
+#' tdt_power_from_ET_ENT(ET = 140, ENT = 100, alpha = 0.05)
+#'
+#' @references
+#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
+#' "Heterogeneity in Statistical Genetics". Springer Nature.
+#'
+#' @export
 
 tdt_power_from_ET_ENT <- function(ET, ENT, alpha = 0.05) {
   lambda <- (ET - ENT)^2 / (ET + ENT)
