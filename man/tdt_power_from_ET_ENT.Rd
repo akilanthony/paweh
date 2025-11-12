@@ -26,6 +26,16 @@ given the expected number of transmissions (ET) and non-transmissions (ENT)
 under a specified significance level. Implements Equation 1.25 from
 \emph{Gordon et al. (2020), Heterogeneity in Statistical Genetics}.
 }
+\details{
+The function calculates the non-centrality parameter and statistical power for the TDT
+using the chi-square distribution with 1 degree of freedom.
+
+The non-centrality parameter is computed as:
+\deqn{\lambda = \frac{(ET - ENT)^2}{ET + ENT}}
+
+Power is then obtained as:
+\deqn{1 - P(\chi^2_{1,\lambda} < q_{\chi^2_{1,1-\alpha}})}
+}
 \examples{
 # Example: compute power for ET = 140 and ENT = 100
 tdt_power_from_ET_ENT(ET = 140, ENT = 100, alpha = 0.05)
