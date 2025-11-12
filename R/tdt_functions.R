@@ -3,7 +3,7 @@
 #' Computes the statistical power of the Transmission Disequilibrium Test (TDT)
 #' given the expected number of transmissions (ET) and non-transmissions (ENT)
 #' under a specified significance level. Implements Equation 1.25 from
-#' "Gordon et al. (2020), Heterogeneity in Statistical Genetics."
+#' *Gordon et al. (2020), Heterogeneity in Statistical Genetics*.
 
 #' @param ET Numeric. Expected number of transmissions.
 #'
@@ -27,7 +27,7 @@
 #'
 #' @references
 #' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' "Heterogeneity in Statistical Genetics". Springer Nature.
+#' *Heterogeneity in Statistical Genetics*. Springer Nature.
 #'
 #' @export
 
