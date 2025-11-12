@@ -1,3 +1,5 @@
+#' @importFrom stats pchisq qchisq uniroot
+
 tdt_power_from_ET_ENT <- function(ET, ENT, alpha = 0.05) {
   lambda <- (ET - ENT)^2 / (ET + ENT)
   thr <- qchisq(1 - alpha, df = 1)
@@ -154,7 +156,7 @@ tdt_required_trios_misclass <- function(
   N_star <- (lambda_star * (gT_star + gNT_star)) / (2 * (gT_star - gNT_star)^2)
 
   message("\n--- Transmission Disequilibrium Test (Trios) with Misclassification ---")
-  message("Implements Eqs. 5.26–5.28 (gT_star, gNT_star) and Eq. 5.27b for N_star")
+  message("Implements Eqs. 5.26-5.28 (gT_star, gNT_star) and Eq. 5.27b for N_star")
   message("-----------------------------------------------------------------------")
   message("Parameters")
   message(sprintf("%-38s %10.3f", "False-Positive Rate (pi01):", pi01))
@@ -338,7 +340,7 @@ tdt_expected_transmissions <- function(N_star, pd, prev, R1, R2,
 
   if (isTRUE(verbose)) {
     message("\n--- Transmission Disequilibrium Test: Expected ET* and ENT* ---")
-    message("Implements Equations 5.31–5.32 (Heterogeneity model)")
+    message("Implements Equations 5.31-5.32 (Heterogeneity model)")
     message("-----------------------------------------------------------")
     message(sprintf("%-38s %10.0f", "Number of Trios (N*):", N_star))
     message(sprintf("%-38s %10.6f", "Allele Frequency (p_d):", pd))
