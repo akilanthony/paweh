@@ -2,6 +2,7 @@
 
 export(tdt_expected_gNT)
 export(tdt_expected_gT)
+export(tdt_expected_transmissions)
 export(tdt_power_from_ET_ENT)
 export(tdt_power_from_model)
 export(tdt_required_trios)
