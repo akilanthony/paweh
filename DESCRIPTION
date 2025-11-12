@@ -2,7 +2,7 @@ Package: genmixr
 Title: Computational Toolkit for Heterogeneity in Statistical Genetics
 Version: 0.0.0.9000
 Authors@R: 
-    person("Akil", "Anthony", "akilanthony19@gmail.com", role = c("aut", "cre"))
+    person(given = "Akil", family = "Anthony", email = "akilanthony19@gmail.com", role = c("aut", "cre"))
 Description: Provides a collection of R functions implementing statistical models, equations, and power or sample size calculations described in Gordon et al. (2020), "Heterogeneity in Statistical Genetics". The package reproduces and extends analytical results from the textbook, covering Transmission Disequilibrium Tests (TDT), likelihood ratio tests, trend tests, misclassification models, and other approaches for evaluating heterogeneity in genetic association studies. Functions return structured outputs and print clear, aligned ASCII summaries for teaching, research, and validation.
 License: MIT + file LICENSE
 Encoding: UTF-8
