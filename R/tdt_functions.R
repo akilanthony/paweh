@@ -262,6 +262,7 @@ tdt_required_trios <- function(power, alpha, df,
   ))
 }
 
+
 #' Required Number of Trios in the Transmission Disequilibrium Test (TDT) with Misclassification
 #'
 #' Computes the expected transmissions (\eqn{gT^*}) and non-transmissions (\eqn{gNT^*})
@@ -443,6 +444,69 @@ tdt_expected_gT <- function(pd, prev, R1, R2,
   ))
 }
 
+
+#' Expected Non-Transmission Probability (gNT*) in the Transmission Disequilibrium Test (TDT)
+#'
+#' Computes the expected non-transmission probability (\eqn{g_{NT}^*}) for the
+#' Transmission Disequilibrium Test (TDT) under a general model including linkage
+#' disequilibrium (LD), relative risks, and phenotype misclassification.
+#' Implements Equation 5.25 from *Gordon et al.* (2020),
+#' *Heterogeneity in Statistical Genetics*.
+#'
+#' @param pd Numeric. Frequency of the disease-associated allele.
+#' @param prev Numeric. Disease prevalence (\eqn{\phi_1}).
+#' @param R1 Numeric. Relative risk for heterozygotes.
+#' @param R2 Numeric. Relative risk for homozygotes.
+#' @param delta_prime Numeric. Linkage disequilibrium scale parameter (\eqn{D'}) (default = 1).
+#' @param pi01 Numeric. False-positive (misclassification) rate (default = 0).
+#' @param theta1 Numeric. Population allele frequency (defaults to `pd` if `NULL`).
+#' @param digits Integer. Number of digits for printing (default = 6).
+#' @param verbose Logical. If `TRUE`, prints intermediate quantities (default = TRUE).
+#'
+#' @details
+#' The function derives intermediate penetrance-weighted frequencies \eqn{f_0,f_1,f_2}
+#' and the contrast term \eqn{C}, which captures differences in genotype contributions.
+#' Linkage disequilibrium is represented by \eqn{D = D' p_d p_+}.
+#' The expected non-transmission probability is then:
+#'
+#' \deqn{
+#' g_{NT}^* =
+#' \frac{
+#'   p_d p_+ \phi_1 +
+#'   D(\theta_1 - p_d)C +
+#'   \pi_{01}(p_d p_+ \phi_0 + D(p_d - \theta_1)C)
+#' }{\phi_1 + \pi_{01}\phi_0}
+#' }
+#'
+#' When \eqn{\pi_{01}=0}, this reduces to the standard non-misclassified case.
+#'
+#' @return A list containing:
+#' \item{gNT_star}{Expected non-transmission probability (\eqn{g_{NT}^*}).}
+#' \item{C, D}{Contrast and LD terms.}
+#' \item{f0, f1, f2}{Derived penetrance frequencies.}
+#' \item{pd, phi1, phi0, theta1}{Input and derived parameters.}
+#'
+#' @examples
+#' # Example: compute gNT* under no misclassification
+#' tdt_expected_gNT(
+#'   pd = 0.25, prev = 0.005,
+#'   R1 = 2, R2 = 2,
+#'   delta_prime = 1, pi01 = 0
+#' )
+#'
+#' # Example: with 10% misclassification
+#' tdt_expected_gNT(
+#'   pd = 0.25, prev = 0.005,
+#'   R1 = 2, R2 = 2,
+#'   delta_prime = 1, pi01 = 0.1
+#' )
+#'
+#' @references
+#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
+#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#'
+#' @importFrom stats pchisq qchisq uniroot
+#' @export
 
 tdt_expected_gNT <- function(pd, prev, R1, R2,
                              delta_prime = 1,
