@@ -37,7 +37,6 @@
 #' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
 #' *Heterogeneity in Statistical Genetics*. Springer Nature.
 #'
-#' @export
 
 tdt_power_from_ET_ENT <- function(ET, ENT, alpha = 0.05) {
   lambda <- (ET - ENT)^2 / (ET + ENT)
@@ -112,7 +111,6 @@ tdt_power_from_ET_ENT <- function(ET, ENT, alpha = 0.05) {
 #' *Heterogeneity in Statistical Genetics*. Springer Nature.
 #'
 #' @importFrom stats pchisq qchisq
-#' @export
 
 tdt_power_from_model <- function(pd, N, delta_prime,
                                  f0 = NULL, f1 = NULL, f2 = NULL,
@@ -215,7 +213,6 @@ tdt_power_from_model <- function(pd, N, delta_prime,
 #' *Heterogeneity in Statistical Genetics*. Springer Nature.
 #'
 #' @importFrom stats pchisq qchisq uniroot
-#' @export
 
 tdt_required_trios <- function(power, alpha, df,
                                pd, prev, R1, R2,
@@ -317,7 +314,6 @@ tdt_required_trios <- function(power, alpha, df,
 #' *Heterogeneity in Statistical Genetics*. Springer Nature.
 #'
 #' @importFrom stats pchisq qchisq uniroot
-#' @export
 
 tdt_required_trios_misclass <- function(
     lambda_star,
@@ -449,7 +445,6 @@ tdt_required_trios_misclass <- function(
 #' *Heterogeneity in Statistical Genetics*. Springer Nature.
 #'
 #' @importFrom stats pchisq qchisq uniroot
-#' @export
 
 tdt_expected_gT <- function(pd, prev, R1, R2,
                             delta_prime = 1,
@@ -570,7 +565,6 @@ tdt_expected_gT <- function(pd, prev, R1, R2,
 #' *Heterogeneity in Statistical Genetics*. Springer Nature.
 #'
 #' @importFrom stats pchisq qchisq uniroot
-#' @export
 
 tdt_expected_gNT <- function(pd, prev, R1, R2,
                              delta_prime = 1,
@@ -695,7 +689,6 @@ tdt_expected_gNT <- function(pd, prev, R1, R2,
 #' *Heterogeneity in Statistical Genetics*. Springer Nature.
 #'
 #' @importFrom stats pchisq qchisq uniroot
-#' @export
 
 tdt_expected_transmissions <- function(N_star, pd, prev, R1, R2,
                                        delta_prime = 1, pi = 1,
