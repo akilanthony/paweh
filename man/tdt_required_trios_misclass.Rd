@@ -29,7 +29,7 @@ desired power (e.g., from \code{tdt_required_trios()}).}
 
 \item{delta_prime}{Numeric. Linkage disequilibrium scale parameter (\eqn{D'}) (default = 1).}
 
-\item{pi01}{Numeric. False-positive (misclassification) rate for controls (default = 0).}
+\item{pi01}{Numeric. Misclassification rate for controls (default = 0).}
 
 \item{digits}{Integer. Number of digits to round intermediate printed results (default = 5).}
 }

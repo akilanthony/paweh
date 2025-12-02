@@ -27,7 +27,7 @@ tdt_expected_gNT(
 
 \item{delta_prime}{Numeric. Linkage disequilibrium scale parameter (\eqn{D'}) (default = 1).}
 
-\item{pi01}{Numeric. False-positive (misclassification) rate (default = 0).}
+\item{pi01}{Numeric. Misclassification rate (default = 0).}
 
 \item{theta1}{Numeric. Population allele frequency (defaults to \code{pd} if \code{NULL}).}
 
