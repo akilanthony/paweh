@@ -85,7 +85,6 @@ tdt_plot_sample_size(
   misclass_fixed = 0
 )
 }
-
 }
 \seealso{
 \code{\link[=tdt_required_trios_full]{tdt_required_trios_full()}}, \code{\link[=tdt_power_full]{tdt_power_full()}}
