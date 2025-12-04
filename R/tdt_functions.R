@@ -1564,7 +1564,7 @@ tdt_required_trios_full <- function(
 #'   misclass_fixed = 0
 #' )
 #' }
-#'
+#' @importFrom ggplot2 ggplot geom_line geom_point facet_wrap labs theme_bw aes
 #' @export
 tdt_plot_power <- function(
     pd, prev, R1, R2,
@@ -1693,7 +1693,7 @@ tdt_plot_power <- function(
 #'   misclass_fixed = 0
 #' )
 #' }
-#'
+#' @importFrom ggplot2 ggplot geom_line geom_point facet_wrap labs theme_bw aes
 #' @export
 tdt_plot_sample_size <- function(
     pd, prev, R1, R2,
