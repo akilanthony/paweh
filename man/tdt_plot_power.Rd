@@ -47,9 +47,6 @@ varying \code{misclass_seq} in the misclassification panel (typically \code{0}).
 
 \item{misclass_fixed}{Numeric scalar. Misclassification rate to hold fixed
 while varying \code{heter_seq} in the heterogeneity panel (typically \code{0}).}
-
-\item{point_every}{Integer. Plot a point every \code{point_every} grid steps
-along each curve (used to mimic publication–style markers).}
 }
 \value{
 A \code{ggplot}/\code{patchwork} object showing two panels side–by–side:

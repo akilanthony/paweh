@@ -1534,8 +1534,6 @@ tdt_required_trios_full <- function(
 #'   varying `misclass_seq` in the misclassification panel (typically `0`).
 #' @param misclass_fixed Numeric scalar. Misclassification rate to hold fixed
 #'   while varying `heter_seq` in the heterogeneity panel (typically `0`).
-#' @param point_every Integer. Plot a point every `point_every` grid steps
-#'   along each curve (used to mimic publication–style markers).
 #'
 #' @details
 #' In the left panel, each value of `misclass_seq` is passed to
@@ -1665,8 +1663,6 @@ tdt_plot_power <- function(
 #'   varying `misclass_seq` in the misclassification panel (typically `0`).
 #' @param misclass_fixed Numeric scalar. Misclassification rate to hold fixed
 #'   while varying `heter_seq` in the heterogeneity panel (typically `0`).
-#' @param point_every Integer. Plot a point every `point_every` grid steps
-#'   along each curve (used to mimic publication–style markers).
 #'
 #' @details
 #' In the left panel, each value of `misclass_seq` is passed to
