@@ -1504,9 +1504,271 @@ tdt_required_trios_full <- function(
   invisible(out)
 }
 
+#' Power sensitivity to misclassification and heterogeneity
+#'
+#' Create a 1×2 panel plot showing how TDT power changes as a function of
+#' phenotype misclassification and locus heterogeneity, for a fixed design.
+#' The left panel varies the misclassification rate with heterogeneity held
+#' fixed; the right panel varies the heterogeneity rate with misclassification
+#' held fixed.
+#'
+#' This function is a graphical wrapper around [tdt_power_full()], looping
+#' over user–supplied grids of error rates and extracting the power under
+#' misclassification and heterogeneity.
+#'
+#' @param N Integer. Number of affected trios in the design.
+#' @param pd Numeric in (0, 1). High–risk allele frequency at the marker.
+#' @param prev Numeric in (0, 1). Disease prevalence \eqn{\phi_1}.
+#' @param R1,R2 Numeric. Genotype relative risks for the heterozygote and
+#'   homozygote, respectively.
+#' @param alpha Numeric. Type I error rate for the TDT (default `0.05`).
+#' @param delta_prime Numeric. Linkage disequilibrium scale parameter
+#'   \eqn{\delta'} (default `1`).
+#' @param misclass_seq Numeric vector. Sequence of phenotype
+#'   misclassification rates (pi01) to use on the x–axis of the
+#'   misclassification panel.
+#' @param heter_seq Numeric vector. Sequence of heterogeneity rates
+#'   (proportion of trios not due to the locus, \eqn{1-\pi}) to use on the
+#'   x–axis of the heterogeneity panel.
+#' @param heter_fixed Numeric scalar. Heterogeneity rate to hold fixed while
+#'   varying `misclass_seq` in the misclassification panel (typically `0`).
+#' @param misclass_fixed Numeric scalar. Misclassification rate to hold fixed
+#'   while varying `heter_seq` in the heterogeneity panel (typically `0`).
+#' @param point_every Integer. Plot a point every `point_every` grid steps
+#'   along each curve (used to mimic publication–style markers).
+#'
+#' @details
+#' In the left panel, each value of `misclass_seq` is passed to
+#' [tdt_power_full()] via the `misclass_rate` argument, with
+#' `heter_rate = heter_fixed`. The right panel does the reverse, passing
+#' `heter_seq` into `heter_rate` with `misclass_rate = misclass_fixed`.
+#'
+#' @return A `ggplot`/`patchwork` object showing two panels side–by–side:
+#'   power vs. misclassification and power vs. heterogeneity. The function is
+#'   mainly called for its side–effect of plotting.
+#'
+#' @seealso [tdt_power_full()], [tdt_required_trios_full()]
+#'
+#' @examples
+#' \donttest{
+#' # Basic example: power sensitivity for a design with 600 trios
+#' tdt_plot_power(
+#'   N    = 600,
+#'   pd   = 0.30,
+#'   prev = 0.05,
+#'   R1   = 1.5,
+#'   R2   = 2.25,
+#'   alpha = 0.05,
+#'   delta_prime = 1,
+#'   misclass_seq  = seq(0, 0.15, by = 0.01),
+#'   heter_seq     = seq(0, 0.50, by = 0.05),
+#'   heter_fixed   = 0,
+#'   misclass_fixed = 0,
+#'   point_every   = 2
+#' )
+#' }
+#'
+#' @export
+tdt_plot_power <- function(
+    pd, prev, R1, R2,
+    alpha = 0.05,
+    delta_prime = 1,
+    N,
+    misclass_seq  = seq(0, 0.15, by = 0.01),
+    heter_seq     = seq(0, 0.50, by = 0.05),
+    heter_fixed   = 0,      # heterogeneity when varying misclassification
+    misclass_fixed = 0,     # misclassification when varying heterogeneity
+    title = "TDT power under misclassification and heterogeneity"
+) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package 'ggplot2' is required for this plot.", call. = FALSE)
+  }
+
+  power_mis <- vapply(misclass_seq, function(mis) {
+    res <- tdt_power_full(
+      N = N,
+      pd = pd, prev = prev, R1 = R1, R2 = R2,
+      alpha = alpha, delta_prime = delta_prime,
+      misclass_rate = mis,
+      heter_rate   = heter_fixed,
+      verbose = FALSE
+    )
+    res$power$misclassification
+  }, numeric(1))
+
+  df_mis <- data.frame(
+    error_type = "Misclassification (pi01)",
+    error_rate = misclass_seq,
+    power      = power_mis
+  )
+
+  power_het <- vapply(heter_seq, function(h) {
+    res <- tdt_power_full(
+      N = N,
+      pd = pd, prev = prev, R1 = R1, R2 = R2,
+      alpha = alpha, delta_prime = delta_prime,
+      misclass_rate = misclass_fixed,
+      heter_rate   = h,
+      verbose = FALSE
+    )
+    res$power$heterogeneity
+  }, numeric(1))
+
+  df_het <- data.frame(
+    error_type = "Heterogeneity (1 - pi)",
+    error_rate = heter_seq,
+    power      = power_het
+  )
+
+  df_all <- rbind(df_mis, df_het)
+
+  p <- ggplot2::ggplot(df_all, ggplot2::aes(x = error_rate, y = power)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_point() +
+    ggplot2::facet_wrap(~ error_type, nrow = 1, scales = "free_x") +
+    ggplot2::labs(
+      x = "Error rate",
+      y = "Power",
+      title = title
+    ) +
+    ggplot2::theme_bw()
+
+  print(p)
+  invisible(p)
+}
 
 
+#' Required sample size sensitivity to misclassification and heterogeneity
+#'
+#' Create a 1×2 panel plot showing how the required number of trios changes
+#' as a function of phenotype misclassification and locus heterogeneity,
+#' for a fixed target power.
+#'
+#' This function is a graphical wrapper around [tdt_required_trios_full()],
+#' looping over user–supplied grids of error rates and extracting the
+#' required sample size under misclassification and heterogeneity.
+#'
+#' @param target_power Numeric in (0, 1). Desired power for the TDT.
+#' @param pd Numeric in (0, 1). High–risk allele frequency at the marker.
+#' @param prev Numeric in (0, 1). Disease prevalence \eqn{\phi_1}.
+#' @param R1,R2 Numeric. Genotype relative risks for the heterozygote and
+#'   homozygote, respectively.
+#' @param alpha Numeric. Type I error rate for the TDT (default `0.05`).
+#' @param delta_prime Numeric. Linkage disequilibrium scale parameter
+#'   \eqn{\delta'} (default `1`).
+#' @param misclass_seq Numeric vector. Sequence of phenotype
+#'   misclassification rates (pi01) to use on the x–axis of the
+#'   misclassification panel.
+#' @param heter_seq Numeric vector. Sequence of heterogeneity rates
+#'   (proportion of trios not due to the locus, \eqn{1-\pi}) to use on the
+#'   x–axis of the heterogeneity panel.
+#' @param heter_fixed Numeric scalar. Heterogeneity rate to hold fixed while
+#'   varying `misclass_seq` in the misclassification panel (typically `0`).
+#' @param misclass_fixed Numeric scalar. Misclassification rate to hold fixed
+#'   while varying `heter_seq` in the heterogeneity panel (typically `0`).
+#' @param point_every Integer. Plot a point every `point_every` grid steps
+#'   along each curve (used to mimic publication–style markers).
+#'
+#' @details
+#' In the left panel, each value of `misclass_seq` is passed to
+#' [tdt_required_trios_full()] via the `misclass_rate` argument, with
+#' `heter_rate = heter_fixed`. The right panel does the reverse, passing
+#' `heter_seq` into `heter_rate` with `misclass_rate = misclass_fixed`.
+#'
+#' @return A `ggplot`/`patchwork` object showing two panels side–by–side:
+#'   required trios vs. misclassification and required trios vs. heterogeneity.
+#'   The function is mainly called for its side–effect of plotting.
+#'
+#' @seealso [tdt_required_trios_full()], [tdt_power_full()]
+#'
+#' @examples
+#' \donttest{
+#' # Sample size sensitivity for power 0.80
+#' tdt_plot_sample_size(
+#'   target_power = 0.80,
+#'   pd   = 0.30,
+#'   prev = 0.05,
+#'   R1   = 1.5,
+#'   R2   = 2.25,
+#'   alpha = 0.05,
+#'   delta_prime = 1,
+#'   misclass_seq  = seq(0, 0.15, by = 0.01),
+#'   heter_seq     = seq(0, 0.50, by = 0.05),
+#'   heter_fixed   = 0,
+#'   misclass_fixed = 0,
+#'   point_every   = 2
+#' )
+#' }
+#'
+#' @export
+tdt_plot_sample_size <- function(
+    pd, prev, R1, R2,
+    alpha = 0.05,
+    delta_prime = 1,
+    target_power,
+    misclass_seq  = seq(0, 0.15, by = 0.01),
+    heter_seq     = seq(0, 0.50, by = 0.05),
+    heter_fixed   = 0,
+    misclass_fixed = 0,
+    title = "Required trios under misclassification and heterogeneity"
+) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package 'ggplot2' is required for this plot.", call. = FALSE)
+  }
 
+  N_mis <- vapply(misclass_seq, function(mis) {
+    res <- tdt_required_trios_full(
+      target_power = target_power,
+      pd = pd, prev = prev, R1 = R1, R2 = R2,
+      alpha = alpha, delta_prime = delta_prime,
+      misclass_rate = mis,
+      heter_rate   = heter_fixed,
+      verbose = FALSE
+    )
+    res$N$misclassification
+  }, numeric(1))
+
+  df_mis <- data.frame(
+    error_type = "Misclassification (pi01)",
+    error_rate = misclass_seq,
+    N_required = N_mis
+  )
+
+  N_het <- vapply(heter_seq, function(h) {
+    res <- tdt_required_trios_full(
+      target_power = target_power,
+      pd = pd, prev = prev, R1 = R1, R2 = R2,
+      alpha = alpha, delta_prime = delta_prime,
+      misclass_rate = misclass_fixed,
+      heter_rate   = h,
+      verbose = FALSE
+    )
+    res$N$heterogeneity
+  }, numeric(1))
+
+  df_het <- data.frame(
+    error_type = "Heterogeneity (1 - pi)",
+    error_rate = heter_seq,
+    N_required = N_het
+  )
+
+  df_all <- rbind(df_mis, df_het)
+
+  p <- ggplot2::ggplot(df_all,
+                       ggplot2::aes(x = error_rate, y = N_required)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_point() +
+    ggplot2::facet_wrap(~ error_type, nrow = 1, scales = "free_x") +
+    ggplot2::labs(
+      x = "Error rate",
+      y = "Required number of trios",
+      title = title
+    ) +
+    ggplot2::theme_bw()
+
+  print(p)
+  invisible(p)
+}
 
 
 
