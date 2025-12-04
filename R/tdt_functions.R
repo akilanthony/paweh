@@ -1563,8 +1563,7 @@ tdt_required_trios_full <- function(
 #'   misclass_seq  = seq(0, 0.15, by = 0.01),
 #'   heter_seq     = seq(0, 0.50, by = 0.05),
 #'   heter_fixed   = 0,
-#'   misclass_fixed = 0,
-#'   point_every   = 2
+#'   misclass_fixed = 0
 #' )
 #' }
 #'
@@ -1695,8 +1694,7 @@ tdt_plot_power <- function(
 #'   misclass_seq  = seq(0, 0.15, by = 0.01),
 #'   heter_seq     = seq(0, 0.50, by = 0.05),
 #'   heter_fixed   = 0,
-#'   misclass_fixed = 0,
-#'   point_every   = 2
+#'   misclass_fixed = 0
 #' )
 #' }
 #'
