@@ -47,6 +47,8 @@ varying \code{misclass_seq} in the misclassification panel (typically \code{0}).
 
 \item{misclass_fixed}{Numeric scalar. Misclassification rate to hold fixed
 while varying \code{heter_seq} in the heterogeneity panel (typically \code{0}).}
+
+\item{title}{Character. Title to use for the combined plot.}
 }
 \value{
 A \code{ggplot}/\code{patchwork} object showing two panels side–by–side:
@@ -85,7 +87,9 @@ tdt_plot_sample_size(
   misclass_fixed = 0
 )
 }
+
 }
 \seealso{
 \code{\link[=tdt_required_trios_full]{tdt_required_trios_full()}}, \code{\link[=tdt_power_full]{tdt_power_full()}}
 }
+\keyword{internal}

@@ -1534,6 +1534,7 @@ tdt_required_trios_full <- function(
 #'   varying `misclass_seq` in the misclassification panel (typically `0`).
 #' @param misclass_fixed Numeric scalar. Misclassification rate to hold fixed
 #'   while varying `heter_seq` in the heterogeneity panel (typically `0`).
+#' @param title Character. Title to use for the combined plot.
 #'
 #' @details
 #' In the left panel, each value of `misclass_seq` is passed to
@@ -1619,7 +1620,10 @@ tdt_plot_power <- function(
 
   df_all <- rbind(df_mis, df_het)
 
-  p <- ggplot2::ggplot(df_all, ggplot2::aes(x = error_rate, y = power)) +
+  p <- ggplot2::ggplot(
+    df_all,
+    ggplot2::aes(x = .data$error_rate, y = .data$power)
+  ) +
     ggplot2::geom_line() +
     ggplot2::geom_point() +
     ggplot2::facet_wrap(~ error_type, nrow = 1, scales = "free_x") +
@@ -1629,6 +1633,7 @@ tdt_plot_power <- function(
       title = title
     ) +
     ggplot2::theme_bw()
+
 
   print(p)
   invisible(p)
@@ -1663,6 +1668,7 @@ tdt_plot_power <- function(
 #'   varying `misclass_seq` in the misclassification panel (typically `0`).
 #' @param misclass_fixed Numeric scalar. Misclassification rate to hold fixed
 #'   while varying `heter_seq` in the heterogeneity panel (typically `0`).
+#' @param title Character. Title to use for the combined plot.
 #'
 #' @details
 #' In the left panel, each value of `misclass_seq` is passed to
@@ -1693,6 +1699,9 @@ tdt_plot_power <- function(
 #'   misclass_fixed = 0
 #' )
 #' }
+#'
+#' @keywords internal
+#' @importFrom rlang .data
 #' @importFrom ggplot2 ggplot geom_line geom_point facet_wrap labs theme_bw aes
 #' @export
 tdt_plot_sample_size <- function(
@@ -1748,8 +1757,10 @@ tdt_plot_sample_size <- function(
 
   df_all <- rbind(df_mis, df_het)
 
-  p <- ggplot2::ggplot(df_all,
-                       ggplot2::aes(x = error_rate, y = N_required)) +
+  p <- ggplot2::ggplot(
+    df_all,
+    ggplot2::aes(x = .data$error_rate, y = .data$N_required)
+  ) +
     ggplot2::geom_line() +
     ggplot2::geom_point() +
     ggplot2::facet_wrap(~ error_type, nrow = 1, scales = "free_x") +
@@ -1759,6 +1770,7 @@ tdt_plot_sample_size <- function(
       title = title
     ) +
     ggplot2::theme_bw()
+
 
   print(p)
   invisible(p)
