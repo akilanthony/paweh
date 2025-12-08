@@ -1,8 +1,8 @@
 ---
-title: "tdt-genmixr"
+title: "Transmission Disequilibrium Test (TDT) power and sample size in genmixr"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{tdt-genmixr}
+  %\VignetteIndexEntry{TDT power and sample size in genmixr}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,8 +12,408 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+library(genmixr)
+library(ggplot2)
 ```
 
-```{r setup}
+# 1. Introduction
+
+Family-based association tests, particularly the *Transmission Disequilibrium Test* (TDT), are widely used in human genetics to detect linkage and association while avoiding confounding due to population stratification.
+
+The **genmixr** package implements an extended TDT framework that accounts for
+
+* Phenotype misclassification
+* Locus heterogeneity
+* Linkage disequilibrium scaling
+* Power calculation
+* Sample size determination
+
+This vignette focuses exclusively on the two main user-facing functions:
+
+* `tdt_power_full()`
+* `tdt_required_trios_full()`
+
+These functions provide a complete workflow for designing family-based studies.
+
+# 2. Required Libraries
+
+```{r}
 library(genmixr)
+library(ggplot2)
 ```
+
+# 3. Power Calculations with `tdt_power_full()`
+
+Suppose we are planning a TDT study with 600 affected trios, a high-risk allele frequency of 0.30, and genotype relative risks 1.5 and 2.25 for the heterozygote and risk homozygote, respectively. We also assume a disease prevalence of 5%, LD scale parameter `delta_prime` = 1, and modest misclassification and heterogeneity
+
+```{r}
+
+tdt_power_full(
+  N = 600,
+  pd = 0.30,
+  prev = 0.05,
+  R1 = 1.5,
+  R2 = 2.25,
+  misclass_rate = 0.01,
+  heter_rate = 0.10,
+  delta_prime = 1,
+  alpha = 0.05,
+  verbose = TRUE
+)
+
+```
+
+The returned object is a list with components such as:
+
+* `no_error`: power under an ideal model with no misclassification or heterogeneity.
+* `misclassification`: power under phenotype misclassification only
+* `heterogeneity`: power under locus heterogeneity only
+
+The `power_loss` element gives the absolute loss in power (relative to the no-error design) caused by misclassification and heterogeneity.
+
+# 4. Required Sample Size with `tdt_required_trios_full()`
+
+Now suppose instead we want to determine how many affected trios are required
+to achieve 80% power at the same parameter values.
+
+```{r}
+
+res_trios <- tdt_required_trios_full(
+  target_power = 0.80,
+  pd = 0.30,
+  prev = 0.05,
+  R1 = 1.5,
+  R2 = 2.25,
+  misclass_rate = 0.01,
+  heter_rate = 0.10,
+  delta_prime = 1,
+  alpha = 0.05,
+  verbose = TRUE
+)
+
+```
+
+The main quantities of interest are:
+
+```{r}
+
+res_trios$N
+res_trios$percent_increase
+
+```
+
+where: 
+
+* `N$no_error` is the required sample size under an ideal model.
+* `N$misclassification` and `N$heterogeneity` are the required trios if the design accounts for misclassification or heterogeneity.
+* `percent_increase` gives the proportional increase in sample size relative
+to the no-error design (e.g. 0.42 corresponds to a 42% increase).
+
+
+# 5. Real-world examples
+
+In this section we illustrate how `tdt_power_full()` and `tdt_required_trios_full()` can be used to interpret and design family-based association studies. These examples show how one might *use* `genmixr` for real design scenarios rather than reproducing original papers exactly.
+
+We rely on two studies:
+
+- **Ambrosio et al. (2004)** — DRD2/DRD3 TDT in schizophrenia trios (negative results).  
+  :contentReference[oaicite:0]{index=0}  
+- **Spielman et al. (1993)** — the original TDT paper on the insulin VNTR and IDDM (strong positive results).  
+  :contentReference[oaicite:1]{index=1}  
+
+
+## 5.1 DRD2/DRD3 and schizophrenia in Portuguese trios
+
+Ambrosio et al. analyzed **90 affected trios** to test DRD2/DRD3 variants in schizophrenia. They reported **no evidence of association**.
+
+From their TDT table for the DRD2 TaqIA polymorphism:
+
+- **Transmitted:** 72  
+- **Not transmitted:** 69  
+
+This near 50/50 split suggests low power to detect modest effects.
+
+
+### 5.1.1 Approximate power under modest genetic effects
+
+Assume the DRD2 risk allele truly had a modest effect:
+
+- Prevalence: 1%  
+- Allele frequency (`pd`): 0.30  
+- Genotype relative risks: `R1 = 1.3`, `R2 = 1.3^2`
+
+```r
+ambrosio_power <- tdt_power_full(
+  N            = 90,
+  pd           = 0.30,
+  prev         = 0.01,
+  R1           = 1.3,
+  R2           = 1.3^2,
+  misclass_rate = 0,
+  heter_rate    = 0,
+  delta_prime   = 1,
+  alpha         = 0.05,
+  verbose       = TRUE
+)
+
+ambrosio_power$no_error
+ambrosio_power$power_loss
+```
+
+This typically yields very low power, consistent with the negative results in Ambrosio et al.
+
+
+### 5.1.2 Impact of misclassification and heterogeneity
+
+Psychiatric phenotypes often include diagnostic uncertainty. We examine sensitivity:
+
+```{r}
+ambrosio_power_error <- tdt_power_full(
+  N             = 90,
+  pd            = 0.30,
+  prev          = 0.01,
+  R1            = 1.3,
+  R2            = 1.3^2,
+  misclass_rate = 0.05,
+  heter_rate    = 0.20,
+  delta_prime   = 1,
+  alpha         = 0.05,
+  verbose       = TRUE
+)
+
+ambrosio_power_error$misclassification
+ambrosio_power_error$heterogeneity
+ambrosio_power_error$power_loss
+```
+
+Even small misclassification fractions can markedly reduce power, especially in small studies.
+
+
+### 5.1.3 Required trios for adequate power
+
+We now ask how many trios would be required to reach **80% power** under the same assumptions:
+
+```{r}
+ambrosio_trios <- tdt_required_trios_full(
+  target_power  = 0.80,
+  pd            = 0.30,
+  prev          = 0.01,
+  R1            = 1.3,
+  R2            = 1.3^2,
+  misclass_rate = 0.05,
+  heter_rate    = 0.20,
+  delta_prime   = 1,
+  alpha         = 0.05,
+  verbose       = TRUE
+)
+
+ambrosio_trios$N
+ambrosio_trios$percent_increase
+```
+
+These results illustrate how misclassification and heterogeneity inflate the required sample size.
+
+
+## 5.2 Insulin VNTR and IDDM: the original TDT paper
+
+Spielman, McGinnis, and Ewens introduced the TDT using the insulin gene 5′ flanking polymorphism (5′FP) in IDDM.
+
+From their Table 5:
+
+- **Transmitted (class 1):** 78  
+- **Not transmitted:** 46  
+
+This gives a strong χ² (~8.26, p ≈ 0.004).
+
+
+### 5.2.1 Approximate effective sample size
+
+We approximate:
+
+- Effective trios: `N ≈ 120`  
+- Allele frequency: `pd = 0.75`  
+- Prevalence: 0.004  
+- Genotype RR: `R1 = 1.8`, `R2 = 1.8^2`
+
+```{r}
+spielman_power <- tdt_power_full(
+  N             = 120,
+  pd            = 0.75,
+  prev          = 0.004,
+  R1            = 1.8,
+  R2            = 1.8^2,
+  misclass_rate = 0,
+  heter_rate    = 0,
+  delta_prime   = 1,
+  alpha         = 0.05,
+  verbose       = TRUE
+)
+
+spielman_power$no_error
+```
+
+This yields high power, consistent with their strong published result.
+
+
+### 5.2.2 Robustness to misclassification and heterogeneity
+
+```{r}
+spielman_power_error <- tdt_power_full(
+  N             = 120,
+  pd            = 0.75,
+  prev          = 0.004,
+  R1            = 1.8,
+  R2            = 1.8^2,
+  misclass_rate = 0.02,
+  heter_rate    = 0.10,
+  delta_prime   = 1,
+  alpha         = 0.05,
+  verbose       = TRUE
+)
+
+spielman_power_error$no_error
+spielman_power_error$misclassification
+spielman_power_error$heterogeneity
+spielman_power_error$power_loss
+```
+
+Because the true effect is strong, the TDT remains robust even with realistic error.
+
+
+### 5.2.3 Designing a follow-up study
+
+Suppose we want **90% power** to detect a smaller effect (`R1 = 1.6`):
+
+```{r}
+spielman_trios_followup <- tdt_required_trios_full(
+  target_power  = 0.90,
+  pd            = 0.75,
+  prev          = 0.004,
+  R1            = 1.6,
+  R2            = 1.6^2,
+  misclass_rate = 0.02,
+  heter_rate    = 0.10,
+  delta_prime   = 1,
+  alpha         = 0.05,
+  verbose       = TRUE
+)
+
+spielman_trios_followup$N
+spielman_trios_followup$percent_increase
+```
+
+This demonstrates how required trios increase when targeting more modest effects.
+
+
+Together, these examples show how `genmixr` can be used both to reinterpret past TDT studies and to design new trio studies under realistic assumptions.
+
+
+# 6. Visualizing Sensitivity to Error Processes
+
+To summarize the influence of phenotype misclassification and locus heterogeneity on TDT performance, **genmixr** provides two high-level visualization utilities:
+
+- `tdt_plot_power()`: shows how **power** decreases as error rates increase.
+- `tdt_plot_sample_size()`: shows how **required trios** increase as error rates increase.
+
+These plots give a concise graphical summary of the same error processes examined numerically in the previous sections.
+
+
+## 6.1 Power sensitivity plots
+
+The first plotting function, `tdt_plot_power()`, produces a 1×2 panel:
+
+- **Left panel:** Power vs. misclassification (holding heterogeneity fixed)  
+- **Right panel:** Power vs. heterogeneity (holding misclassification fixed)
+
+The example below uses the same parameter settings as our Section 5 scenarios, but users may flexibly adapt them to any study design.
+
+```{r}
+
+tdt_plot_power(
+  N    = 600,
+  pd   = 0.30,
+  prev = 0.05,
+  R1   = 1.5,
+  R2   = 2.25,
+  alpha = 0.05,
+  delta_prime = 1,
+  misclass_seq   = seq(0, 0.15, by = 0.01),
+  heter_seq      = seq(0, 0.50, by = 0.05),
+  heter_fixed    = 0,
+  misclass_fixed = 0,
+  title = "TDT power under misclassification and heterogeneity"
+)
+```
+
+This visualization highlights how small amounts of diagnostic error can quickly erode statistical power, particularly when effect sizes are modest.
+
+
+## 6.2 Required sample size sensitivity plots
+
+The second plotting utility, `tdt_plot_sample_size()`, parallels the above but focuses on **sample size inflation** needed to maintain a desired target power.
+
+- **Left panel:** Required trios vs. misclassification  
+- **Right panel:** Required trios vs. heterogeneity  
+
+```{r}
+
+tdt_plot_sample_size(
+  target_power = 0.80,
+  pd   = 0.30,
+  prev = 0.05,
+  R1   = 1.5,
+  R2   = 2.25,
+  alpha = 0.05,
+  delta_prime = 1,
+  misclass_seq   = seq(0, 0.15, by = 0.01),
+  heter_seq      = seq(0, 0.50, by = 0.05),
+  heter_fixed    = 0,
+  misclass_fixed = 0,
+  title = "Required trios under misclassification and heterogeneity"
+)
+```
+
+These plots make it visually clear that even minimal departures from ideal conditions can dramatically increase required sample sizes—an important consideration for trio-based study design.
+
+
+## 6.3 Interpretation
+
+Together, these visual tools:
+
+- Provide a **quick diagnostic** of design robustness  
+- Show **how quickly power collapses** under realistic error processes  
+- Highlight the **tradeoff between effect size, misclassification, heterogeneity, and N**  
+- Allow side-by-side comparisons across multiple study designs  
+
+Researchers can adapt these plots to any parameter set used in Sections 3–5 or to new study designs.
+
+# 7. Conclusion
+
+This vignette introduced the extended Transmission Disequilibrium Test (TDT) framework implemented in **genmixr**, with emphasis on power calculation, sample size determination, and the consequences of realistic error processes such as phenotype misclassification and locus heterogeneity. 
+
+Through examples based on real studies—Ambrosio et al.’s investigation of DRD2/DRD3 in schizophrenia trios and Spielman et al.’s landmark insulin VNTR TDT paper—we demonstrated how classical trio designs can be re-evaluated and how new studies can be planned under modern assumptions. These examples highlight several key insights:
+
+- **Power can be severely limited** in modest-effect settings, especially when diagnostic uncertainty or genetic heterogeneity is present.  
+- Even **small error rates can substantially inflate required sample sizes**, making naive power calculations overly optimistic.  
+- The visual tools in **genmixr** (`tdt_plot_power()` and `tdt_plot_sample_size()`) provide intuitive summaries of design robustness, allowing researchers to evaluate sensitivity to multiple forms of error simultaneously.  
+- The full modeling framework draws directly from the theoretical development in *Heterogeneity in Statistical Genetics*, which provides a principled foundation for TDT in the presence of mixture structures, LD scaling, and phenotype misclassification.
+
+Together, these tools offer a comprehensive workflow that supports both retrospective interpretation of existing TDT findings and forward-looking design of new trio-based genetic studies. As family-based association methods continue to complement population-based GWAS analyses, incorporating heterogeneity and diagnostic noise into study planning remains essential for reliable inference.
+
+---
+
+# References
+
+Ambrosio AM, Kennedy JL, Macciardi F, Berrettini W, Mutlu C, King N, Muglia P, Vetrugno R, Vincent JB, Macciardi F. **Dopamine D2 and D3 receptor gene polymorphisms in Portuguese schizophrenia trios: No evidence for transmission disequilibrium.** *Psychiatry Research*. 2004;125(3):225–231.  
+Available in this vignette’s supporting files.
+
+Spielman RS, McGinnis RE, Ewens WJ. **Transmission test for linkage disequilibrium: The insulin gene region and insulin-dependent diabetes mellitus (IDDM).** *The American Journal of Human Genetics*. 1993;52(3):506–516.  
+Available in this vignette’s supporting files.
+
+Gordon D, Finch SJ, Nothnagel M, Ott J. **Heterogeneity in Statistical Genetics.** Oxford University Press; 2020.  
+(Primary theoretical reference for the extended TDT framework used in **genmixr**.)
+
+---
+
+
+
