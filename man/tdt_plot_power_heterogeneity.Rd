@@ -18,10 +18,26 @@ tdt_plot_power_heterogeneity(
 )
 }
 \arguments{
+\item{pd}{Disease allele frequency.}
+
+\item{prev}{Disease prevalence.}
+
+\item{R1}{Genotype relative risk for heterozygotes.}
+
+\item{R2}{Genotype relative risk for risk homozygotes.}
+
+\item{alpha}{Significance level.}
+
+\item{delta_prime}{Linkage disequilibrium scaling parameter.}
+
+\item{N}{Number of affected trios.}
+
 \item{heter_seq}{Numeric vector. Sequence of heterogeneity rates.}
 
 \item{misclass_fixed}{Numeric. Misclassification rate held fixed (default 0).
 (Other params same meaning as in tdt_plot_power_misclassification.)}
+
+\item{title}{Plot title.}
 }
 \value{
 A ggplot object (invisibly). Prints the plot.

@@ -1586,7 +1586,14 @@ tdt_plot_power_misclassification <- function(
 #'
 #' Plot TDT power vs locus heterogeneity rate (1 - pi),
 #' holding misclassification fixed.
-#'
+#' @param N Number of affected trios.
+#' @param pd Disease allele frequency.
+#' @param prev Disease prevalence.
+#' @param R1 Genotype relative risk for heterozygotes.
+#' @param R2 Genotype relative risk for risk homozygotes.
+#' @param alpha Significance level.
+#' @param delta_prime Linkage disequilibrium scaling parameter.
+#' @param title Plot title.
 #' @param heter_seq Numeric vector. Sequence of heterogeneity rates.
 #' @param misclass_fixed Numeric. Misclassification rate held fixed (default 0).
 #' (Other params same meaning as in tdt_plot_power_misclassification.)
@@ -1658,7 +1665,13 @@ tdt_plot_power_heterogeneity <- function(
 #'
 #' Plot required number of trios vs misclassification rate (pi01),
 #' holding heterogeneity fixed.
-#'
+#' @param pd Disease allele frequency.
+#' @param prev Disease prevalence.
+#' @param R1 Genotype relative risk for heterozygotes.
+#' @param R2 Genotype relative risk for risk homozygotes.
+#' @param alpha Significance level.
+#' @param delta_prime Linkage disequilibrium scaling parameter.
+#' @param title Plot title.
 #' @param target_power Numeric. Desired power for sample size calculation.
 #' @param misclass_seq Numeric vector. Sequence of misclassification rates.
 #' @param heter_fixed Numeric. Heterogeneity rate held fixed (default 0).
@@ -1731,7 +1744,14 @@ tdt_plot_sample_size_misclassification <- function(
 #'
 #' Plot required number of trios vs heterogeneity rate (1 - pi),
 #' holding misclassification fixed.
-#'
+#' @param target_power Desired statistical power.
+#' @param pd Disease allele frequency.
+#' @param prev Disease prevalence.
+#' @param R1 Genotype relative risk for heterozygotes.
+#' @param R2 Genotype relative risk for risk homozygotes.
+#' @param alpha Significance level.
+#' @param delta_prime Linkage disequilibrium scaling parameter.
+#' @param title Plot title.
 #' @param heter_seq Numeric vector. Sequence of heterogeneity rates.
 #' @param misclass_fixed Numeric. Misclassification rate held fixed (default 0).
 #' (Other params same meaning as in tdt_plot_power_misclassification.)

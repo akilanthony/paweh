@@ -18,12 +18,26 @@ tdt_plot_sample_size_misclassification(
 )
 }
 \arguments{
+\item{pd}{Disease allele frequency.}
+
+\item{prev}{Disease prevalence.}
+
+\item{R1}{Genotype relative risk for heterozygotes.}
+
+\item{R2}{Genotype relative risk for risk homozygotes.}
+
+\item{alpha}{Significance level.}
+
+\item{delta_prime}{Linkage disequilibrium scaling parameter.}
+
 \item{target_power}{Numeric. Desired power for sample size calculation.}
 
 \item{misclass_seq}{Numeric vector. Sequence of misclassification rates.}
 
 \item{heter_fixed}{Numeric. Heterogeneity rate held fixed (default 0).
 (Other params same meaning as in tdt_plot_power_misclassification.)}
+
+\item{title}{Plot title.}
 }
 \value{
 A ggplot object (invisibly). Prints the plot.
