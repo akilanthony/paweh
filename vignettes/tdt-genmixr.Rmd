@@ -375,7 +375,7 @@ tdt_plot_sample_size_misclassification(
 )
 ```
 
-## 6.4
+## 6.4 Required trios: heterogeneity
 
 ```{r}
 tdt_plot_sample_size_heterogeneity(
@@ -392,8 +392,26 @@ tdt_plot_sample_size_heterogeneity(
 )
 ```
 
+# 7. 3D Sensitivity Surfaces (optional)
 
-# 7. Conclusion
+In addition to 2D sensitivity plots, **genmixr** provides optional interactive
+3D visualization tools using the `plotly` package.
+
+These functions are only available if `plotly` is installed.
+
+```{r, eval=requireNamespace("plotly", quietly=TRUE)}
+tdt_plot3d_power_heterogeneity(
+  pd_seq = seq(0.05, 0.80, by = 0.05),
+  heter_seq = seq(0, 0.50, by = 0.05),
+  N = 600,
+  prev = 0.05,
+  R1 = 1.5,
+  R2 = 2.25
+)
+```
+
+
+# 8. Conclusion
 
 This vignette introduced the extended Transmission Disequilibrium Test (TDT) framework implemented in **genmixr**, with emphasis on power calculation, sample size determination, and the consequences of realistic error processes such as phenotype misclassification and locus heterogeneity. 
 
