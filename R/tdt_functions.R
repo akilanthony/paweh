@@ -1798,3 +1798,310 @@ tdt_plot_sample_size_heterogeneity <- function(
   invisible(p)
 }
 
+#' 3D surface: TDT power vs allele frequency and misclassification
+#'
+#' This function requires the optional package \pkg{plotly}.
+#' @param pd_seq Vector of allele frequencies.
+#' @param misclass_seq Vector of misclassification rates (pi01).
+#' @param N Number of affected trios.
+#' @param prev Disease prevalence.
+#' @param R1,R2 Genotype relative risks.
+#' @param alpha Significance level.
+#' @param delta_prime LD scale.
+#' @param heter_rate Heterogeneity rate to hold fixed while varying misclassification.
+#' @param title Plot title.
+#'
+#' @return A plotly htmlwidget.
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' tdt_plot3d_power_misclassification(
+#'   pd_seq = seq(0.05, 0.80, by = 0.02),
+#'   misclass_seq = seq(0, 0.20, by = 0.01),
+#'   N = 600,
+#'   prev = 0.05,
+#'   R1 = 1.5, R2 = 2.25,
+#'   alpha = 0.05,
+#'   delta_prime = 1,
+#'   heter_rate = 0
+#' )
+#' }
+tdt_plot3d_power_misclassification <- function(
+    pd_seq,
+    misclass_seq,
+    N,
+    prev,
+    R1, R2,
+    alpha = 0.05,
+    delta_prime = 1,
+    heter_rate = 0,
+    title = "TDT power vs allele frequency and misclassification"
+) {
+  if (!requireNamespace("plotly", quietly = TRUE)) {
+    stop("Package 'plotly' is required for this plot.", call. = FALSE)
+  }
+
+  z <- vapply(misclass_seq, function(mis) {
+    vapply(pd_seq, function(pd) {
+      res <- tdt_power_full(
+        N = N, pd = pd, prev = prev, R1 = R1, R2 = R2,
+        alpha = alpha, delta_prime = delta_prime,
+        misclass_rate = mis,
+        heter_rate = heter_rate,
+        verbose = FALSE
+      )
+      res$power$misclassification
+    }, numeric(1))
+  }, numeric(length(pd_seq)))
+
+  z <- matrix(z, nrow = length(misclass_seq), ncol = length(pd_seq), byrow = TRUE)
+
+  plotly::plot_ly(
+    x = pd_seq,
+    y = misclass_seq,
+    z = z,
+    type = "surface"
+  ) |>
+    plotly::layout(
+      title = list(text = title),
+      scene = list(
+        xaxis = list(title = "Allele frequency (p_d)"),
+        yaxis = list(title = "Misclassification rate (pi01)"),
+        zaxis = list(title = "Power")
+      )
+    )
+}
+
+
+#' 3D surface: TDT power vs allele frequency and heterogeneity
+#' This function requires the optional package \pkg{plotly}.
+#' @param pd_seq Vector of allele frequencies.
+#' @param heter_seq Vector of heterogeneity rates (1 - pi).
+#' @param N Number of affected trios.
+#' @param prev Disease prevalence.
+#' @param R1,R2 Genotype relative risks.
+#' @param alpha Significance level.
+#' @param delta_prime LD scale.
+#' @param misclass_rate Misclassification rate to hold fixed while varying heterogeneity.
+#' @param title Plot title.
+#'
+#' @return A plotly htmlwidget.
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' tdt_plot3d_power_heterogeneity(
+#'   pd_seq = seq(0.05, 0.80, by = 0.02),
+#'   heter_seq = seq(0, 0.60, by = 0.03),
+#'   N = 600,
+#'   prev = 0.05,
+#'   R1 = 1.5, R2 = 2.25,
+#'   alpha = 0.05,
+#'   delta_prime = 1,
+#'   misclass_rate = 0
+#' )
+#' }
+tdt_plot3d_power_heterogeneity <- function(
+    pd_seq,
+    heter_seq,
+    N,
+    prev,
+    R1, R2,
+    alpha = 0.05,
+    delta_prime = 1,
+    misclass_rate = 0,
+    title = "TDT power vs allele frequency and heterogeneity"
+) {
+  if (!requireNamespace("plotly", quietly = TRUE)) {
+    stop("Package 'plotly' is required for this plot.", call. = FALSE)
+  }
+
+  z <- vapply(heter_seq, function(h) {
+    vapply(pd_seq, function(pd) {
+      res <- tdt_power_full(
+        N = N, pd = pd, prev = prev, R1 = R1, R2 = R2,
+        alpha = alpha, delta_prime = delta_prime,
+        misclass_rate = misclass_rate,
+        heter_rate = h,
+        verbose = FALSE
+      )
+      res$power$heterogeneity
+    }, numeric(1))
+  }, numeric(length(pd_seq)))
+
+  z <- matrix(z, nrow = length(heter_seq), ncol = length(pd_seq), byrow = TRUE)
+
+  plotly::plot_ly(
+    x = pd_seq,
+    y = heter_seq,
+    z = z,
+    type = "surface"
+  ) |>
+    plotly::layout(
+      title = list(text = title),
+      scene = list(
+        xaxis = list(title = "Allele frequency (p_d)"),
+        yaxis = list(title = "Heterogeneity rate (1 - pi)"),
+        zaxis = list(title = "Power")
+      )
+    )
+}
+
+
+#' 3D surface: Required trios vs allele frequency and heterogeneity
+#' This function requires the optional package \pkg{plotly}.
+#' @param pd_seq Vector of allele frequencies.
+#' @param heter_seq Vector of heterogeneity rates (1 - pi).
+#' @param target_power Desired power.
+#' @param prev Disease prevalence.
+#' @param R1,R2 Genotype relative risks.
+#' @param alpha Significance level.
+#' @param delta_prime LD scale.
+#' @param misclass_rate Misclassification rate held fixed.
+#' @param ceiling_N Logical; if TRUE (default) plots ceiling(N).
+#' @param title Plot title.
+#'
+#' @return A plotly htmlwidget.
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' tdt_plot3d_requiredN_heterogeneity(
+#'   pd_seq = seq(0.05, 0.80, by = 0.02),
+#'   heter_seq = seq(0, 0.60, by = 0.03),
+#'   target_power = 0.80,
+#'   prev = 0.05,
+#'   R1 = 1.5, R2 = 2.25,
+#'   alpha = 0.05,
+#'   delta_prime = 1,
+#'   misclass_rate = 0
+#' )
+#' }
+tdt_plot3d_requiredN_heterogeneity <- function(
+    pd_seq,
+    heter_seq,
+    target_power,
+    prev,
+    R1, R2,
+    alpha = 0.05,
+    delta_prime = 1,
+    misclass_rate = 0,
+    ceiling_N = TRUE,
+    title = "Required trios vs allele frequency and heterogeneity"
+) {
+  if (!requireNamespace("plotly", quietly = TRUE)) {
+    stop("Package 'plotly' is required for this plot.", call. = FALSE)
+  }
+
+  z <- vapply(heter_seq, function(h) {
+    vapply(pd_seq, function(pd) {
+      res <- tdt_required_trios_full(
+        target_power = target_power,
+        pd = pd, prev = prev, R1 = R1, R2 = R2,
+        alpha = alpha, delta_prime = delta_prime,
+        misclass_rate = misclass_rate,
+        heter_rate = h,
+        verbose = FALSE
+      )
+      n <- res$N$heterogeneity
+      if (isTRUE(ceiling_N)) ceiling(n) else n
+    }, numeric(1))
+  }, numeric(length(pd_seq)))
+
+  z <- matrix(z, nrow = length(heter_seq), ncol = length(pd_seq), byrow = TRUE)
+
+  plotly::plot_ly(
+    x = pd_seq,
+    y = heter_seq,
+    z = z,
+    type = "surface"
+  ) |>
+    plotly::layout(
+      title = list(text = title),
+      scene = list(
+        xaxis = list(title = "Allele frequency (p_d)"),
+        yaxis = list(title = "Heterogeneity rate (1 - pi)"),
+        zaxis = list(title = "Required number of trios (N*)")
+      )
+    )
+}
+
+#' 3D surface: Required trios vs allele frequency and misclassification
+#' This function requires the optional package \pkg{plotly}.
+#' @param pd_seq Vector of allele frequencies.
+#' @param misclass_seq Vector of misclassification rates (pi01).
+#' @param target_power Desired power.
+#' @param prev Disease prevalence.
+#' @param R1,R2 Genotype relative risks.
+#' @param alpha Significance level.
+#' @param delta_prime LD scale.
+#' @param heter_rate Heterogeneity rate held fixed.
+#' @param ceiling_N Logical; if TRUE (default) plots ceiling(N).
+#' @param title Plot title.
+#'
+#' @return A plotly htmlwidget.
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' tdt_plot3d_requiredN_misclassification(
+#'   pd_seq = seq(0.05, 0.80, by = 0.02),
+#'   misclass_seq = seq(0, 0.20, by = 0.01),
+#'   target_power = 0.80,
+#'   prev = 0.05,
+#'   R1 = 1.5, R2 = 2.25,
+#'   alpha = 0.05,
+#'   delta_prime = 1,
+#'   heter_rate = 0
+#' )
+#' }
+tdt_plot3d_requiredN_misclassification <- function(
+    pd_seq,
+    misclass_seq,
+    target_power,
+    prev,
+    R1, R2,
+    alpha = 0.05,
+    delta_prime = 1,
+    heter_rate = 0,
+    ceiling_N = TRUE,
+    title = "Required trios vs allele frequency and misclassification"
+) {
+  if (!requireNamespace("plotly", quietly = TRUE)) {
+    stop("Package 'plotly' is required for this plot.", call. = FALSE)
+  }
+
+  z <- vapply(misclass_seq, function(mis) {
+    vapply(pd_seq, function(pd) {
+      res <- tdt_required_trios_full(
+        target_power = target_power,
+        pd = pd, prev = prev, R1 = R1, R2 = R2,
+        alpha = alpha, delta_prime = delta_prime,
+        misclass_rate = mis,
+        heter_rate = heter_rate,
+        verbose = FALSE
+      )
+      n <- res$N$misclassification
+      if (isTRUE(ceiling_N)) ceiling(n) else n
+    }, numeric(1))
+  }, numeric(length(pd_seq)))
+
+  z <- matrix(z, nrow = length(misclass_seq), ncol = length(pd_seq), byrow = TRUE)
+
+  plotly::plot_ly(
+    x = pd_seq,
+    y = misclass_seq,
+    z = z,
+    type = "surface"
+  ) |>
+    plotly::layout(
+      title = list(text = title),
+      scene = list(
+        xaxis = list(title = "Allele frequency (p_d)"),
+        yaxis = list(title = "Misclassification rate (pi01)"),
+        zaxis = list(title = "Required number of trios (N*)")
+      )
+    )
+}
+
