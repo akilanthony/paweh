@@ -2,3 +2,38 @@ url: ~
 template:
   bootstrap: 5
 
+reference:
+- title: "Case-control: full functions"
+  contents:
+  - cc_mssn_conditional_full
+  - cc_power_conditional_full
+- title: "Case-control: specialized functions"
+  contents:
+  - cc_mssn_genotypes_conditional_misclass
+  - cc_power_genotypes_conditional_misclass
+  - cc_mssn_genotypes_conditional_misclass_2p
+  - cc_power_genotypes_conditional_misclass_2p
+  - cc_mssn_genotypes_conditional_misclass_3p
+  - cc_power_genotypes_conditional_misclass_3p
+  - cc_mssn_genotypes_conditional_diffmisclass
+  - cc_power_genotypes_conditional_diffmisclass
+  - cc_mssn_locus_het_genotypes
+  - cc_power_locus_het_genotypes
+  - cc_mssn_locus_het_alleles
+  - cc_power_locus_het_alleles
+  - cc_mssn_locus_het_trend
+  - cc_power_locus_het_trend
+- title: Transmission Disequilibrium Test Functions
+  contents:
+  - starts_with("tdt_")
+
+articles:
+- title: Case-control
+  navbar: Case-control
+  contents:
+  - case-control-full
+  - case-control-specialized
+- title: Transmission Disequilibrium Test
+  navbar: TDT
+  contents:
+  - tdt-genmixr
