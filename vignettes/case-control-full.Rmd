@@ -1,0 +1,189 @@
+---
+title: "Case-control full functions in genmixr"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Case-control full functions in genmixr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(genmixr)
+```
+
+# Draft note
+
+Draft vignette. Equation/page references will be finalized after textbook verification.
+
+TODO: Add exact textbook equation numbers and pages after verification.
+
+# Overview
+
+The full case-control interface has two main functions:
+
+- `cc_power_conditional_full()` computes power for fixed case/control sample sizes.
+- `cc_mssn_conditional_full()` computes minimum sample size necessary (MSSN) for a target power.
+
+Both functions follow the same workflow:
+
+1. Construct baseline case and control genotype frequencies.
+2. Optionally apply locus heterogeneity.
+3. Optionally apply genotype misclassification.
+4. Compute genotype chi-square, optional allelic chi-square, and genotype trend calculations.
+
+The examples below use a small model-free setup:
+
+```{r}
+g_case <- c(0.25, 0.50, 0.25)
+g_ctrl <- c(0.36, 0.48, 0.16)
+```
+
+# Model-free, no locus heterogeneity, no misclassification
+
+This evaluated example verifies that the vignette runs.
+
+```{r}
+cc_power_conditional_full(
+  N_case = 200,
+  alpha = 0.05,
+  input_mode = "model_free",
+  g1 = g_case,
+  g0 = g_ctrl,
+  geno_misclass = "none",
+  verbose = FALSE
+)$tests$genotypes$power
+```
+
+# Model-free with locus heterogeneity
+
+```{r, eval = FALSE}
+cc_power_conditional_full(
+  N_case = 200,
+  alpha = 0.05,
+  input_mode = "model_free",
+  g1 = g_case,
+  g0 = g_ctrl,
+  locus_het = TRUE,
+  pi = 0.80,
+  verbose = FALSE
+)
+```
+
+# Model-free with locus heterogeneity and 3p misclassification
+
+```{r, eval = FALSE}
+cc_power_conditional_full(
+  N_case = 200,
+  alpha = 0.05,
+  input_mode = "model_free",
+  g1 = g_case,
+  g0 = g_ctrl,
+  locus_het = TRUE,
+  pi = 0.80,
+  geno_misclass = "3p",
+  e01 = 0.02,
+  e02 = 0.01,
+  e03 = 0.005,
+  verbose = FALSE
+)
+```
+
+# Model-based with locus heterogeneity and 3p misclassification
+
+```{r, eval = FALSE}
+cc_power_conditional_full(
+  N_case = 200,
+  alpha = 0.05,
+  input_mode = "model_based",
+  prev = 0.05,
+  pd = 0.30,
+  R2 = 1.80,
+  MOI = "M",
+  locus_het = TRUE,
+  pi = 0.80,
+  geno_misclass = "3p",
+  e01 = 0.02,
+  e02 = 0.01,
+  e03 = 0.005,
+  verbose = FALSE
+)
+```
+
+# MSSN example
+
+```{r, eval = FALSE}
+cc_mssn_conditional_full(
+  power = 0.80,
+  alpha = 0.05,
+  input_mode = "model_free",
+  g1 = g_case,
+  g0 = g_ctrl,
+  locus_het = TRUE,
+  pi = 0.80,
+  geno_misclass = "3p",
+  e01 = 0.02,
+  e02 = 0.01,
+  e03 = 0.005,
+  verbose = FALSE
+)
+```
+
+# Differential 3p, explicit parameters
+
+```{r, eval = FALSE}
+cc_power_conditional_full(
+  N_case = 200,
+  alpha = 0.05,
+  input_mode = "model_free",
+  g1 = g_case,
+  g0 = g_ctrl,
+  geno_misclass = "diff3p",
+  diff_source = "explicit",
+  case_e01 = 0.02,
+  case_e02 = 0.01,
+  case_e03 = 0.005,
+  ctrl_e01 = 0.01,
+  ctrl_e02 = 0.005,
+  ctrl_e03 = 0.002,
+  verbose = FALSE
+)
+```
+
+# Differential 3p, multiplier from case parameters
+
+```{r, eval = FALSE}
+cc_power_conditional_full(
+  N_case = 200,
+  alpha = 0.05,
+  input_mode = "model_free",
+  g1 = g_case,
+  g0 = g_ctrl,
+  geno_misclass = "diff3p",
+  diff_source = "case",
+  diff_multiplier = 0.50,
+  case_e01 = 0.02,
+  case_e02 = 0.01,
+  case_e03 = 0.005,
+  verbose = FALSE
+)
+```
+
+# Omitting the allelic test
+
+Set `include_allelic = FALSE` when only genotype and trend results are needed.
+
+```{r, eval = FALSE}
+cc_power_conditional_full(
+  N_case = 200,
+  alpha = 0.05,
+  input_mode = "model_free",
+  g1 = g_case,
+  g0 = g_ctrl,
+  include_allelic = FALSE,
+  verbose = FALSE
+)$tests$alleles
+```
