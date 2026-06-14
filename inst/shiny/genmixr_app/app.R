@@ -11,6 +11,34 @@ if (!requireNamespace("genmixr", quietly = TRUE)) {
   stop("The 'genmixr' package must be installed to run this app.", call. = FALSE)
 }
 
+app_file <- tryCatch(sys.frame(1)$ofile, error = function(e) NULL)
+app_dir <- if (!is.null(app_file)) {
+  normalizePath(dirname(app_file), mustWork = FALSE)
+} else {
+  getwd()
+}
+pkg_root <- normalizePath(file.path(app_dir, "../../.."), mustWork = FALSE)
+local_pkg_available <- file.exists(file.path(pkg_root, "DESCRIPTION")) &&
+  file.exists(file.path(pkg_root, "R", "case_control.R"))
+
+if (local_pkg_available &&
+    !"cc_power_conditional_full" %in% getNamespaceExports("genmixr") &&
+    requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(pkg_root, quiet = TRUE)
+}
+
+if (!"cc_power_conditional_full" %in% getNamespaceExports("genmixr") ||
+    !"cc_mssn_conditional_full" %in% getNamespaceExports("genmixr")) {
+  stop(
+    paste(
+      "The loaded genmixr package does not export cc_power_conditional_full()",
+      "and cc_mssn_conditional_full(). Install this branch or run",
+      "devtools::load_all() before launching the app."
+    ),
+    call. = FALSE
+  )
+}
+
 library(shiny)
 
 fmt_num <- function(x, digits = 5) {

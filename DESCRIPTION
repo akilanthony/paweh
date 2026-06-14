@@ -13,6 +13,7 @@ Suggests:
     DT,
     knitr,
     plotly,
+    pkgload,
     rmarkdown,
     shiny,
     testthat (>= 3.0.0)
