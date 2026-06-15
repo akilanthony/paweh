@@ -23,6 +23,8 @@ reference:
   - cc_power_locus_het_alleles
   - cc_mssn_locus_het_trend
   - cc_power_locus_het_trend
+  - cc_pheno_power_test
+  - cc_pheno_mssn_test
 - title: Transmission Disequilibrium Test Functions
   contents:
   - starts_with("tdt_")
