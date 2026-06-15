@@ -16,6 +16,9 @@ cc_mssn_conditional_full(
   g0 = NULL,
   locus_het = FALSE,
   pi = 1,
+  pheno_misclass = FALSE,
+  theta = 0,
+  phi = 0,
   k = 1,
   w = c(0, 1, 2),
   include_allelic = TRUE,
@@ -63,10 +66,19 @@ for recessive.}
 genotype frequencies, each ordered as \code{c(g0, g1, g2)} and summing to 1.}
 
 \item{locus_het}{Logical. If \code{TRUE}, applies locus heterogeneity to the
-case genotype frequencies before misclassification.}
+case genotype frequencies before phenotype and genotype misclassification.}
 
 \item{pi}{Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
 \code{locus_het = TRUE}.}
+
+\item{pheno_misclass}{Logical. If \code{TRUE}, applies phenotype
+misclassification before genotype misclassification.}
+
+\item{theta}{Numeric in \eqn{[0,1)}. Probability that a truly affected
+individual is classified as a control.}
+
+\item{phi}{Numeric in \eqn{[0,1)}. Probability that a truly unaffected
+individual is classified as a case.}
 
 \item{k}{Numeric \eqn{> 0}. Control-to-case sample size ratio
 \eqn{N_{ctrl} / N_{case}}.}
@@ -108,6 +120,8 @@ An object of class \code{"cc_mssn_conditional_full"}: a nested list
 with components \code{alpha}, \code{target_power}, \code{input_mode},
 \code{k}, \code{w}, \code{include_allelic}, \code{locus_het},
 \code{errors}, \code{model_info}, \code{tests}, and \code{freqs}.
+\code{errors$phenotype_misclass} stores the phenotype-misclassification
+settings and post-phenotype-misclassification frequencies.
 \code{tests$genotypes} and \code{tests$trend} contain test labels, degrees
 of freedom, target non-centrality parameters, internal \code{S} components,
 and MSSN case/control/total values. \code{tests$alleles} has the same MSSN
@@ -119,8 +133,9 @@ allele frequencies.
 Computes the minimum sample size necessary (MSSN) for case-control association
 tests using conditional genotype frequencies. The function supports
 model-based genotype frequencies, model-free genotype frequencies, optional
-locus heterogeneity, optional genotype misclassification, genotype
-chi-square tests, optional allelic chi-square tests, and genotype trend tests.
+locus heterogeneity, optional phenotype misclassification, optional genotype
+misclassification, genotype chi-square tests, optional allelic chi-square
+tests, and genotype trend tests.
 }
 \details{
 The workflow is:
@@ -129,8 +144,11 @@ The workflow is:
 controls.
 \item Optionally apply locus heterogeneity to cases as
 \eqn{g_{case,true} = \pi g_{case,base} + (1 - \pi) g_{ctrl,base}}.
-\item Optionally apply genotype misclassification matrices to the true case
-and control genotype frequencies.
+\item Optionally apply phenotype misclassification, where
+\code{theta = Pr(affected -> control)} and
+\code{phi = Pr(unaffected -> case)}.
+\item Optionally apply genotype misclassification matrices to the resulting
+case and control genotype frequencies.
 \item Compute genotype chi-square, optional allelic chi-square, and genotype
 trend-test MSSN values from the observed genotype frequencies.
 }
@@ -138,7 +156,15 @@ trend-test MSSN values from the observed genotype frequencies.
 With \code{input_mode = "model_based"}, conditional case and control genotype
 frequencies are derived from \code{prev}, \code{pd}, \code{R2}, and
 \code{MOI}. With \code{input_mode = "model_free"}, the user supplies
-\code{g1} and \code{g0} directly.
+\code{g1} and \code{g0} directly; when phenotype misclassification is
+enabled, \code{g1} is treated as the true affected genotype distribution and
+\code{g0} is treated as the true unaffected genotype distribution.
+
+Phenotype misclassification requires \code{prev} in both input modes because
+disease prevalence is used to mix the true affected and unaffected genotype
+distributions into observed case and control genotype distributions. It is
+applied after optional locus heterogeneity and before optional genotype
+misclassification.
 
 The genotype misclassification models are:
 \code{"none"} for identity matrices, \code{"1p"} for one symmetric error
@@ -192,6 +218,16 @@ cc_mssn_conditional_full(
   input_mode = "model_free",
   g1 = c(0.25, 0.50, 0.25),
   g0 = c(0.36, 0.48, 0.16),
+  prev = 0.05,
+  pheno_misclass = TRUE, theta = 0.05, phi = 0.01,
+  verbose = FALSE
+)
+
+cc_mssn_conditional_full(
+  power = 0.8, alpha = 0.05,
+  input_mode = "model_free",
+  g1 = c(0.25, 0.50, 0.25),
+  g0 = c(0.36, 0.48, 0.16),
   include_allelic = FALSE,
   verbose = FALSE
 )
@@ -200,6 +236,11 @@ cc_mssn_conditional_full(
 \references{
 Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
 \emph{Heterogeneity in Statistical Genetics}. Springer Nature.
+
+Edwards, B. J., Haynes, C., Levenstien, M. A., Finch, S. J., & Gordon, D.
+(2005). Power and sample size calculations in the presence of phenotype
+errors for case/control genetic association studies. \emph{BMC Genetics},
+6, 18.
 
 TODO: Provide exact textbook equation numbers/pages for the case-control
 genotype, allelic, trend, locus-heterogeneity, and genotype-misclassification
