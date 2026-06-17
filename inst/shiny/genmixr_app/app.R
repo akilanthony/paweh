@@ -1,12 +1,7 @@
 if (!requireNamespace("shiny", quietly = TRUE)) {
   stop("The 'shiny' package is required to run this app.", call. = FALSE)
 }
-if (!requireNamespace("bslib", quietly = TRUE)) {
-  stop("The 'bslib' package is required to run this app.", call. = FALSE)
-}
-if (!requireNamespace("DT", quietly = TRUE)) {
-  stop("The 'DT' package is required to run this app.", call. = FALSE)
-}
+
 if (!requireNamespace("genmixr", quietly = TRUE)) {
   stop("The 'genmixr' package must be installed to run this app.", call. = FALSE)
 }
@@ -21,19 +16,31 @@ pkg_root <- normalizePath(file.path(app_dir, "../../.."), mustWork = FALSE)
 local_pkg_available <- file.exists(file.path(pkg_root, "DESCRIPTION")) &&
   file.exists(file.path(pkg_root, "R", "case_control.R"))
 
+required_exports <- c(
+  "cc_power_conditional_full",
+  "cc_mssn_conditional_full",
+  "cc_plot_power",
+  "cc_plot_mssn",
+  "tdt_power_full",
+  "tdt_required_trios_full",
+  "tdt_plot_power",
+  "tdt_plot_mssn"
+)
+
+missing_exports <- setdiff(required_exports, getNamespaceExports("genmixr"))
 if (local_pkg_available &&
-    !"cc_power_conditional_full" %in% getNamespaceExports("genmixr") &&
+    length(missing_exports) > 0 &&
     requireNamespace("pkgload", quietly = TRUE)) {
   pkgload::load_all(pkg_root, quiet = TRUE)
+  missing_exports <- setdiff(required_exports, getNamespaceExports("genmixr"))
 }
 
-if (!"cc_power_conditional_full" %in% getNamespaceExports("genmixr") ||
-    !"cc_mssn_conditional_full" %in% getNamespaceExports("genmixr")) {
+if (length(missing_exports) > 0) {
   stop(
     paste(
-      "The loaded genmixr package does not export cc_power_conditional_full()",
-      "and cc_mssn_conditional_full(). Install this branch or run",
-      "devtools::load_all() before launching the app."
+      "The loaded genmixr package is missing required Shiny app exports:",
+      paste(missing_exports, collapse = ", "),
+      "Install this branch or run devtools::load_all() before launching the app."
     ),
     call. = FALSE
   )
@@ -41,505 +48,1211 @@ if (!"cc_power_conditional_full" %in% getNamespaceExports("genmixr") ||
 
 library(shiny)
 
-fmt_num <- function(x, digits = 5) {
-  ifelse(is.na(x), NA, signif(as.numeric(x), digits))
+`%||%` <- function(x, y) {
+  if (is.null(x)) y else x
 }
 
-capture_function_output <- function(fun, args) {
-  printed <- capture.output(
-    result <- do.call(fun, args),
-    type = "message"
+test_label_map <- c(
+  genotypes = "Genotype chi-square",
+  alleles = "Allelic chi-square",
+  trend = "Trend test"
+)
+
+scenario_label_map <- c(
+  no_error = "No error",
+  misclassification = "Misclassification",
+  heterogeneity = "Heterogeneity",
+  auto = "Auto"
+)
+
+choice_card <- function(id, title, subtitle = NULL) {
+  actionButton(
+    inputId = id,
+    label = tagList(
+      div(class = "choice-title", title),
+      if (!is.null(subtitle)) div(class = "choice-subtitle", subtitle)
+    ),
+    class = "choice-card"
   )
-  list(result = result, printed = printed)
 }
 
-case_control_summary <- function(out) {
-  is_power <- inherits(out, "cc_power_conditional_full")
-  rows <- list()
+card_grid <- function(...) {
+  div(class = "choice-grid", ...)
+}
 
-  add_power_row <- function(label, test) {
-    if (is.null(test)) return(NULL)
-    data.frame(
-      Test = label,
-      Power = fmt_num(test$power),
-      MSSN_case = NA_real_,
-      MSSN_ctrl = NA_real_,
-      MSSN_total = NA_real_,
-      N_case = fmt_num(out$N_case),
-      N_ctrl = fmt_num(out$N_ctrl),
-      N_total = fmt_num(out$N_total),
-      Lambda = fmt_num(test$lambda),
-      stringsAsFactors = FALSE
-    )
+section_card <- function(title, ..., class = NULL) {
+  div(
+    class = paste(c("panel-card", class), collapse = " "),
+    h3(title),
+    ...
+  )
+}
+
+nav_controls <- function() {
+  div(
+    class = "nav-controls",
+    actionButton("back_btn", "Back", class = "secondary-btn"),
+    actionButton("reset_btn", "Start over", class = "secondary-btn")
+  )
+}
+
+advanced_panel <- function(title, ...) {
+  tags$details(
+    class = "advanced-panel",
+    tags$summary(HTML(paste0("&#9881; ", title))),
+    div(class = "advanced-body", ...)
+  )
+}
+
+fmt_num <- function(x, digits = 4) {
+  if (is.null(x) || length(x) == 0 || is.na(x)) {
+    return(NA_character_)
   }
-
-  add_mssn_row <- function(label, test) {
-    if (is.null(test)) return(NULL)
-    data.frame(
-      Test = label,
-      Power = NA_real_,
-      MSSN_case = fmt_num(test$MSSN_case),
-      MSSN_ctrl = fmt_num(test$MSSN_ctrl),
-      MSSN_total = fmt_num(test$MSSN_total),
-      N_case = NA_real_,
-      N_ctrl = NA_real_,
-      N_total = NA_real_,
-      Lambda = fmt_num(test$lambda_star),
-      stringsAsFactors = FALSE
-    )
+  if (!is.finite(x)) {
+    return(as.character(x))
   }
+  if (abs(x) >= 1000) {
+    formatC(x, format = "f", digits = 0, big.mark = ",")
+  } else {
+    formatC(x, format = "f", digits = digits)
+  }
+}
 
-  if (is_power) {
-    rows <- list(
-      add_power_row("Genotypes", out$tests$genotypes),
-      add_power_row("Alleles", out$tests$alleles),
-      add_power_row("Trend", out$tests$trend)
+nonempty_tests <- function(x) {
+  if (is.null(x) || length(x) == 0) {
+    stop("Select at least one case-control test.")
+  }
+  x
+}
+
+make_range <- function(min_value, max_value, step_size) {
+  if (!is.numeric(min_value) || !is.numeric(max_value) || !is.numeric(step_size) ||
+      any(!is.finite(c(min_value, max_value, step_size)))) {
+    stop("Plot range values must be finite numbers.")
+  }
+  if (step_size <= 0) {
+    stop("Step size must be positive.")
+  }
+  if (max_value <= min_value) {
+    stop("Maximum must be greater than minimum.")
+  }
+  values <- seq(min_value, max_value, by = step_size)
+  if (length(values) < 2) {
+    stop("The plot range must produce at least two x-axis values.")
+  }
+  values
+}
+
+safe_call <- function(expr) {
+  tryCatch(
+    list(result = force(expr), error = NULL),
+    error = function(e) list(result = NULL, error = conditionMessage(e))
+  )
+}
+
+render_error_or_table <- function(payload, table) {
+  if (!is.null(payload$error)) {
+    return(data.frame(Message = payload$error))
+  }
+  table
+}
+
+tdt_power_table <- function(out) {
+  data.frame(
+    Scenario = c("No error", "Misclassification", "Heterogeneity"),
+    Power = vapply(out$power, fmt_num, character(1), digits = 5),
+    Lambda = vapply(out$lambda, fmt_num, character(1), digits = 4),
+    `Power loss` = c(
+      NA_character_,
+      fmt_num(out$power_loss$misclassification, 5),
+      fmt_num(out$power_loss$heterogeneity, 5)
+    ),
+    check.names = FALSE
+  )
+}
+
+tdt_mssn_table <- function(out) {
+  data.frame(
+    Scenario = c("No error", "Misclassification", "Heterogeneity"),
+    `Required trios` = vapply(out$N, fmt_num, character(1), digits = 1),
+    `Percent increase` = c(
+      NA_character_,
+      fmt_num(100 * out$percent_increase$misclassification, 2),
+      fmt_num(100 * out$percent_increase$heterogeneity, 2)
+    ),
+    `Power at no-error N` = vapply(out$power_at_N_no_error, fmt_num, character(1), digits = 5),
+    check.names = FALSE
+  )
+}
+
+cc_power_table <- function(out, selected_tests) {
+  rows <- lapply(selected_tests, function(test) {
+    result <- out$tests[[test]]
+    if (is.null(result)) {
+      return(NULL)
+    }
+    data.frame(
+      Test = unname(test_label_map[test]),
+      Power = fmt_num(result$power, 5),
+      Lambda = fmt_num(result$lambda, 4),
+      check.names = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+cc_mssn_table <- function(out, selected_tests) {
+  rows <- lapply(selected_tests, function(test) {
+    result <- out$tests[[test]]
+    if (is.null(result)) {
+      return(NULL)
+    }
+    data.frame(
+      Test = unname(test_label_map[test]),
+      MSSN_case = result$MSSN_case,
+      MSSN_ctrl = result$MSSN_ctrl,
+      MSSN_total = result$MSSN_total,
+      check.names = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+mode_specific_cc_ui <- function(input_mode) {
+  if (identical(input_mode, "model_based")) {
+    tagList(
+      sliderInput("cc_prev", "Disease prevalence (prev)", min = 0.001, max = 0.50, value = 0.05, step = 0.001),
+      sliderInput("cc_pd", "Disease allele frequency (pd)", min = 0.01, max = 0.99, value = 0.30, step = 0.01),
+      numericInput("cc_R2", "Homozygote relative risk (R2)", 1.80, min = 0.0001, step = 0.1),
+      selectInput("cc_MOI", "Mode of inheritance (MOI)", choices = c("M", "D", "Rec"))
     )
   } else {
-    rows <- list(
-      add_mssn_row("Genotypes", out$tests$genotypes),
-      add_mssn_row("Alleles", out$tests$alleles),
-      add_mssn_row("Trend", out$tests$trend)
-    )
-  }
-
-  do.call(rbind, rows[!vapply(rows, is.null, logical(1))])
-}
-
-case_control_genotype_freqs <- function(out) {
-  data.frame(
-    Genotype = c("g0", "g1", "g2"),
-    Case = fmt_num(out$freqs$g_obs_case),
-    Control = fmt_num(out$freqs$g_obs_ctrl),
-    stringsAsFactors = FALSE
-  )
-}
-
-case_control_allele_freqs <- function(out) {
-  if (is.null(out$freqs$p_obs_case) || is.null(out$freqs$p_obs_ctrl)) {
-    return(data.frame(
-      Allele = character(),
-      Case = numeric(),
-      Control = numeric()
-    ))
-  }
-
-  data.frame(
-    Allele = c("q", "p"),
-    Case = fmt_num(out$freqs$p_obs_case[c("q", "p")]),
-    Control = fmt_num(out$freqs$p_obs_ctrl[c("q", "p")]),
-    stringsAsFactors = FALSE
-  )
-}
-
-tdt_summary <- function(out, analysis_type) {
-  values <- unlist(out, use.names = TRUE)
-  data.frame(
-    Metric = names(values),
-    Value = fmt_num(values),
-    stringsAsFactors = FALSE
-  )
-}
-
-tdt_plot_args <- function(input) {
-  list(
-    pd = input$tdt_plot_pd,
-    prev = input$tdt_plot_prev,
-    R1 = input$tdt_plot_R1,
-    R2 = input$tdt_plot_R2,
-    alpha = input$tdt_plot_alpha,
-    delta_prime = input$tdt_plot_delta_prime,
-    N = input$tdt_plot_N,
-    misclass_seq = seq(
-      input$tdt_plot_misclass_range[1],
-      input$tdt_plot_misclass_range[2],
-      length.out = input$tdt_plot_points
-    ),
-    heter_fixed = input$tdt_plot_heter_fixed,
-    title = input$tdt_plot_title
-  )
-}
-
-tdt_plot_call_text <- function(args) {
-  paste0(
-    "genmixr::tdt_plot_power_misclassification(\n",
-    "  N = ", args$N, ",\n",
-    "  pd = ", args$pd, ",\n",
-    "  prev = ", args$prev, ",\n",
-    "  R1 = ", args$R1, ",\n",
-    "  R2 = ", args$R2, ",\n",
-    "  alpha = ", args$alpha, ",\n",
-    "  delta_prime = ", args$delta_prime, ",\n",
-    "  misclass_seq = seq(", min(args$misclass_seq), ", ", max(args$misclass_seq),
-    ", length.out = ", length(args$misclass_seq), "),\n",
-    "  heter_fixed = ", args$heter_fixed, ",\n",
-    "  title = ", deparse(args$title), "\n",
-    ")"
-  )
-}
-
-call_tdt_power_misclassification_plot <- function(args) {
-  tmp <- tempfile(fileext = ".pdf")
-  grDevices::pdf(tmp)
-  on.exit({
-    grDevices::dev.off()
-    unlink(tmp)
-  }, add = TRUE)
-
-  genmixr::tdt_plot_power_misclassification(
-    pd = args$pd,
-    prev = args$prev,
-    R1 = args$R1,
-    R2 = args$R2,
-    alpha = args$alpha,
-    delta_prime = args$delta_prime,
-    N = args$N,
-    misclass_seq = args$misclass_seq,
-    heter_fixed = args$heter_fixed,
-    title = args$title
-  )
-}
-
-ui <- bslib::page_navbar(
-  title = "genmixr draft app",
-  theme = bslib::bs_theme(version = 5, bootswatch = "flatly"),
-
-  bslib::nav_panel(
-    "Help",
-    bslib::layout_columns(
-      col_widths = c(8, 4),
-      bslib::card(
-        bslib::card_header("Draft Shiny interface"),
-        p("This is a draft Shiny interface for genetic association power and sample size functions in genmixr."),
-        p("The app is intended for local exploration and teaching. It prioritizes runnable examples and simple output over final visual design."),
-        tags$ul(
-          tags$li("Use the Case-control tab for unified case-control power and MSSN calculations."),
-          tags$li("Use the TDT tab for a small first-draft interface to selected TDT functions."),
-          tags$li("Inputs are validated with friendly error messages where possible.")
+    tagList(
+      div(class = "input-note", "If phenotype misclassification is enabled, g1 is true affected and g0 is true unaffected."),
+      fluidRow(
+        column(
+          6,
+          h4("g1 frequencies"),
+          numericInput("cc_g1_0", "g1: genotype 0", 0.25, min = 0, max = 1, step = 0.01),
+          numericInput("cc_g1_1", "g1: genotype 1", 0.50, min = 0, max = 1, step = 0.01),
+          numericInput("cc_g1_2", "g1: genotype 2", 0.25, min = 0, max = 1, step = 0.01)
+        ),
+        column(
+          6,
+          h4("g0 frequencies"),
+          numericInput("cc_g0_0", "g0: genotype 0", 0.36, min = 0, max = 1, step = 0.01),
+          numericInput("cc_g0_1", "g0: genotype 1", 0.48, min = 0, max = 1, step = 0.01),
+          numericInput("cc_g0_2", "g0: genotype 2", 0.16, min = 0, max = 1, step = 0.01)
         )
       ),
-      bslib::card(
-        bslib::card_header("About equations"),
-        p("TODO: Finalize textbook equation and page references after verification."),
-        p("No equations are implemented in the app itself; the app calls exported genmixr package functions.")
+      sliderInput(
+        "cc_prev_model_free",
+        "Disease prevalence for phenotype misclassification",
+        min = 0.001,
+        max = 0.50,
+        value = 0.05,
+        step = 0.001
       )
     )
-  ),
+  }
+}
 
-  bslib::nav_panel(
-    "Case-control",
-    bslib::layout_sidebar(
-      sidebar = bslib::sidebar(
-        width = 360,
-        selectInput("cc_analysis", "Analysis type", c("Power", "MSSN")),
-        selectInput("cc_input_mode", "input_mode", c("model_free", "model_based")),
+cc_advanced_ui <- function() {
+  advanced_panel(
+    "Advanced heterogeneity and error settings",
+    checkboxInput("cc_locus_het", "Enable locus heterogeneity", FALSE),
+    sliderInput("cc_locus_het_rate", "Locus heterogeneity rate", min = 0, max = 1, value = 0.20, step = 0.01),
+    checkboxInput("cc_pheno_misclass", "Enable phenotype misclassification", FALSE),
+    sliderInput("cc_theta", "theta: affected classified as control", min = 0, max = 0.50, value = 0, step = 0.01),
+    sliderInput("cc_phi", "phi: unaffected classified as case", min = 0, max = 0.50, value = 0, step = 0.01),
+    selectInput("cc_geno_misclass", "Genotype misclassification model", c("none", "1p", "2p", "3p", "diff3p")),
+    uiOutput("cc_geno_error_ui")
+  )
+}
 
-        conditionalPanel(
-          "input.cc_input_mode == 'model_free'",
-          tags$strong("Model-free genotype frequencies"),
-          numericInput("cc_g1_0", "Case g0", 0.25, min = 0, max = 1, step = 0.01),
-          numericInput("cc_g1_1", "Case g1", 0.50, min = 0, max = 1, step = 0.01),
-          numericInput("cc_g1_2", "Case g2", 0.25, min = 0, max = 1, step = 0.01),
-          numericInput("cc_g0_0", "Control g0", 0.36, min = 0, max = 1, step = 0.01),
-          numericInput("cc_g0_1", "Control g1", 0.48, min = 0, max = 1, step = 0.01),
-          numericInput("cc_g0_2", "Control g2", 0.16, min = 0, max = 1, step = 0.01)
-        ),
+tdt_common_inputs <- function(include_N = FALSE, include_target_power = FALSE) {
+  tagList(
+    if (include_N) numericInput("tdt_N", "Number of affected trios (N)", 600, min = 1, step = 25),
+    if (include_target_power) sliderInput("tdt_target_power", "Target power", min = 0.50, max = 0.99, value = 0.80, step = 0.01),
+    sliderInput("tdt_pd", "Disease allele frequency (pd)", min = 0.01, max = 0.99, value = 0.30, step = 0.01),
+    sliderInput("tdt_prev", "Disease prevalence (prev)", min = 0.001, max = 0.50, value = 0.05, step = 0.001),
+    numericInput("tdt_R1", "Heterozygote relative risk (R1)", 1.50, min = 0.0001, step = 0.1),
+    numericInput("tdt_R2", "Homozygote relative risk (R2)", 2.25, min = 0.0001, step = 0.1),
+    selectInput("tdt_alpha", "Significance level (alpha)", choices = c(0.10, 0.05, 0.01, 0.001), selected = 0.05),
+    sliderInput("tdt_delta_prime", "LD scale parameter (delta_prime)", min = 0, max = 1, value = 1, step = 0.01),
+    sliderInput("tdt_misclass_rate", "Phenotype misclassification rate", min = 0, max = 0.20, value = 0.01, step = 0.005),
+    sliderInput("tdt_heter_rate", "Heterogeneity rate", min = 0, max = 0.80, value = 0.10, step = 0.01)
+  )
+}
 
-        conditionalPanel(
-          "input.cc_input_mode == 'model_based'",
-          tags$strong("Model-based inputs"),
-          numericInput("cc_prev", "prev", 0.05, min = 0.0001, max = 0.999, step = 0.01),
-          numericInput("cc_pd", "pd", 0.30, min = 0.0001, max = 0.999, step = 0.01),
-          numericInput("cc_R2", "R2", 1.80, min = 0.0001, step = 0.1),
-          selectInput("cc_MOI", "MOI", c("M", "D", "Rec"))
-        ),
+plot_settings_ui <- function(prefix) {
+  advanced_panel(
+    "Advanced plot settings",
+    textInput(paste0(prefix, "_title"), "Custom title", ""),
+    textInput(paste0(prefix, "_x_label"), "Custom x-axis label", ""),
+    textInput(paste0(prefix, "_y_label"), "Custom y-axis label", "")
+  )
+}
 
-        conditionalPanel(
-          "input.cc_analysis == 'Power'",
-          numericInput("cc_N_case", "N_case", 200, min = 1, step = 10)
-        ),
-        conditionalPanel(
-          "input.cc_analysis == 'MSSN'",
-          numericInput("cc_target_power", "Target power", 0.80, min = 0.001, max = 0.999, step = 0.01)
-        ),
-        numericInput("cc_alpha", "alpha", 0.05, min = 1e-10, max = 0.999, step = 0.01),
-        numericInput("cc_k", "k", 1, min = 0.001, step = 0.1),
-
-        tags$strong("Trend weights"),
-        numericInput("cc_w0", "w0", 0, step = 1),
-        numericInput("cc_w1", "w1", 1, step = 1),
-        numericInput("cc_w2", "w2", 2, step = 1),
-        checkboxInput("cc_include_allelic", "include_allelic", TRUE),
-
-        tags$strong("Locus heterogeneity"),
-        checkboxInput("cc_locus_het", "locus_het", FALSE),
-        numericInput("cc_pi", "pi", 0.80, min = 0, max = 1, step = 0.05),
-
-        tags$strong("Genotype misclassification"),
-        selectInput("cc_geno_misclass", "geno_misclass", c("none", "1p", "2p", "3p", "diff3p")),
-        numericInput("cc_e", "e", 0.02, min = 0, max = 0.5, step = 0.005),
-        numericInput("cc_e1", "e1", 0.01, min = 0, max = 1, step = 0.005),
-        numericInput("cc_e2", "e2", 0.02, min = 0, max = 0.5, step = 0.005),
-        numericInput("cc_e01", "e01", 0.02, min = 0, max = 1, step = 0.005),
-        numericInput("cc_e02", "e02", 0.01, min = 0, max = 0.5, step = 0.005),
-        numericInput("cc_e03", "e03", 0.005, min = 0, max = 1, step = 0.005),
-
-        conditionalPanel(
-          "input.cc_geno_misclass == 'diff3p'",
-          tags$strong("Differential 3p controls"),
-          selectInput("cc_diff_source", "diff_source", c("explicit", "case", "ctrl")),
-          numericInput("cc_diff_multiplier", "diff_multiplier", 0.50, min = 0, step = 0.05),
-          numericInput("cc_case_e01", "case_e01", 0.02, min = 0, max = 1, step = 0.005),
-          numericInput("cc_case_e02", "case_e02", 0.01, min = 0, max = 0.5, step = 0.005),
-          numericInput("cc_case_e03", "case_e03", 0.005, min = 0, max = 1, step = 0.005),
-          numericInput("cc_ctrl_e01", "ctrl_e01", 0.01, min = 0, max = 1, step = 0.005),
-          numericInput("cc_ctrl_e02", "ctrl_e02", 0.005, min = 0, max = 0.5, step = 0.005),
-          numericInput("cc_ctrl_e03", "ctrl_e03", 0.002, min = 0, max = 1, step = 0.005)
-        ),
-        actionButton("run_cc", "Run case-control")
-      ),
-
-      h3("Case-control results"),
-      verbatimTextOutput("cc_error"),
-      h4("Clean function output"),
-      verbatimTextOutput("cc_printed"),
-      h4("Key results"),
-      DT::DTOutput("cc_summary"),
-      h4("Observed genotype frequencies"),
-      DT::DTOutput("cc_genotypes"),
-      h4("Risk allele frequencies"),
-      DT::DTOutput("cc_alleles")
+alpha_gate_ui <- function() {
+  div(
+    class = "alpha-gate",
+    div(
+      class = "alpha-box",
+      textInput("alpha_key", NULL, placeholder = "Enter alpha key"),
+      actionButton("alpha_key_submit", "Enter", class = "primary-btn alpha-submit"),
+      div(class = "alpha-error", textOutput("alpha_error", inline = TRUE))
     )
-  ),
+  )
+}
 
-  bslib::nav_panel(
-    "TDT",
-    bslib::layout_sidebar(
-      sidebar = bslib::sidebar(
-        width = 330,
-        selectInput("tdt_analysis", "TDT analysis", c("Power from ET/ENT", "Required trios")),
-        conditionalPanel(
-          "input.tdt_analysis == 'Power from ET/ENT'",
-          numericInput("tdt_ET", "Expected transmissions (ET)", 140, min = 0.001, step = 1),
-          numericInput("tdt_ENT", "Expected non-transmissions (ENT)", 100, min = 0.001, step = 1)
-        ),
-        conditionalPanel(
-          "input.tdt_analysis == 'Required trios'",
-          numericInput("tdt_target_power", "Target power", 0.80, min = 0.001, max = 0.999, step = 0.01),
-          numericInput("tdt_pd", "pd", 0.25, min = 0.0001, max = 0.999, step = 0.01),
-          numericInput("tdt_prev", "prev", 0.005, min = 0.0001, max = 0.999, step = 0.001),
-          numericInput("tdt_R1", "R1", 2, min = 0.0001, step = 0.1),
-          numericInput("tdt_R2", "R2", 2, min = 0.0001, step = 0.1),
-          numericInput("tdt_delta_prime", "delta_prime", 1, step = 0.1),
-          numericInput("tdt_pi", "pi", 1, min = 0, max = 1, step = 0.05)
-        ),
-        numericInput("tdt_alpha", "alpha", 0.05, min = 1e-10, max = 0.999, step = 0.01),
-        actionButton("run_tdt", "Run TDT")
-      ),
-
-      h3("TDT results"),
-      verbatimTextOutput("tdt_error"),
-      h4("Clean function output"),
-      verbatimTextOutput("tdt_printed"),
-      h4("Key results"),
-      DT::DTOutput("tdt_summary")
+landing_ui <- function() {
+  tagList(
+    div(class = "hero-card",
+        h2("Choose a study design"),
+        p("Start with the study family. The app will reveal only the settings needed for the selected workflow.")),
+    card_grid(
+      choice_card("choose_tdt", "TDT", "Transmission Disequilibrium Test workflows"),
+      choice_card("choose_cc", "Case-Control", "Case-control power, sample size, and plots")
     )
-  ),
+  )
+}
 
-  bslib::nav_panel(
-    "TDT Plots",
-    bslib::layout_sidebar(
-      sidebar = bslib::sidebar(
-        width = 330,
-        numericInput("tdt_plot_N", "Number of affected trios (N)", 600, min = 1, step = 50),
-        numericInput("tdt_plot_pd", "Disease allele frequency (pd)", 0.30, min = 0.0001, max = 0.999, step = 0.01),
-        numericInput("tdt_plot_prev", "Disease prevalence (prev)", 0.05, min = 0.0001, max = 0.999, step = 0.01),
-        numericInput("tdt_plot_R1", "Relative risk R1", 1.50, min = 0.0001, step = 0.1),
-        numericInput("tdt_plot_R2", "Relative risk R2", 2.25, min = 0.0001, step = 0.1),
-        numericInput("tdt_plot_alpha", "alpha", 0.05, min = 1e-10, max = 0.999, step = 0.01),
-        numericInput("tdt_plot_delta_prime", "delta_prime", 1, step = 0.1),
-        sliderInput("tdt_plot_misclass_range", "Misclassification range (pi01)", min = 0, max = 0.50, value = c(0, 0.15), step = 0.01),
-        numericInput("tdt_plot_points", "Grid points", 16, min = 2, max = 101, step = 1),
-        numericInput("tdt_plot_heter_fixed", "Fixed heterogeneity rate", 0, min = 0, max = 0.999, step = 0.01),
-        textInput("tdt_plot_title", "Plot title", "TDT power vs misclassification (pi01)"),
-        downloadButton("download_tdt_plot", "Download plot")
-      ),
-
-      h3("TDT power vs phenotype misclassification"),
-      p("This draft plot calls genmixr::tdt_plot_power_misclassification() and varies the phenotype misclassification rate pi01 while holding heterogeneity fixed."),
-      p("TODO: Finalize textbook equation/page references after verification."),
-      verbatimTextOutput("tdt_plot_error"),
-      plotOutput("tdt_power_misclass_plot", height = "480px"),
-      h4("Show function call"),
-      verbatimTextOutput("tdt_plot_call")
+tdt_choice_ui <- function() {
+  tagList(
+    nav_controls(),
+    div(class = "hero-card",
+        h2("TDT workflow"),
+        p("Choose whether to compute power, required trios, or make an exploratory plot.")),
+    card_grid(
+      choice_card("tdt_power_card", "Power", "Compute TDT power for a fixed number of affected trios"),
+      choice_card("tdt_mssn_card", "Sample Size", "Compute required affected trios for a target power"),
+      choice_card("tdt_plots_card", "Plots", "Sweep a parameter and plot the full TDT backend")
     )
+  )
+}
+
+cc_setup_ui <- function(input_mode) {
+  tagList(
+    nav_controls(),
+    div(class = "hero-card",
+        h2("Case-Control setup"),
+        p("Select the input type and one or more tests before choosing a workflow.")),
+    h3("Input type"),
+    card_grid(
+      choice_card("cc_mode_model_based", "Model-based", "Use prevalence, allele frequency, relative risk, and inheritance mode"),
+      choice_card("cc_mode_model_free", "Model-free", "Supply genotype frequencies directly")
+    ),
+    div(
+      class = "setup-panel",
+      strong("Current input type: "),
+      span(if (is.null(input_mode)) "Not selected" else if (input_mode == "model_based") "Model-based" else "Model-free")
+    ),
+    checkboxGroupInput(
+      "cc_tests",
+      "Tests to include",
+      choices = c(
+        "Genotype chi-square" = "genotypes",
+        "Allelic chi-square" = "alleles",
+        "Trend test" = "trend"
+      ),
+      selected = c("genotypes", "alleles", "trend")
+    ),
+    actionButton("cc_setup_continue", "Continue", class = "primary-btn")
+  )
+}
+
+cc_choice_ui <- function(input_mode, selected_tests) {
+  tagList(
+    nav_controls(),
+    div(class = "hero-card",
+        h2("Case-Control workflow"),
+        p(paste(
+          "Input:",
+          if (input_mode == "model_based") "model-based" else "model-free",
+          "| Tests:",
+          paste(unname(test_label_map[selected_tests]), collapse = ", ")
+        ))),
+    card_grid(
+      choice_card("cc_power_card", "Power", "Compute power for fixed case-control sample sizes"),
+      choice_card("cc_mssn_card", "Sample Size", "Compute minimum sample size for a target power"),
+      choice_card("cc_plots_card", "Plots", "Sweep a parameter using the full case-control plotting wrappers")
+    )
+  )
+}
+
+tdt_power_ui <- function() {
+  tagList(
+    nav_controls(),
+    div(class = "workflow-grid",
+        section_card(
+          "TDT power inputs",
+          tdt_common_inputs(include_N = TRUE),
+          selectInput(
+            "tdt_power_plot_scenario",
+            "Plot scenario",
+            choices = c("No error" = "no_error", "Misclassification" = "misclassification", "Heterogeneity" = "heterogeneity"),
+            selected = "no_error"
+          ),
+          actionButton("tdt_power_analyze", "Analyze", class = "primary-btn")
+        ),
+        section_card(
+          "Results",
+          tableOutput("tdt_power_table"),
+          plotOutput("tdt_power_plot", height = "360px")
+        )
+    )
+  )
+}
+
+tdt_mssn_ui <- function() {
+  tagList(
+    nav_controls(),
+    div(class = "workflow-grid",
+        section_card(
+          "TDT sample-size inputs",
+          tdt_common_inputs(include_target_power = TRUE),
+          selectInput(
+            "tdt_mssn_plot_scenario",
+            "Plot scenario",
+            choices = c("Misclassification" = "misclassification", "Heterogeneity" = "heterogeneity"),
+            selected = "heterogeneity"
+          ),
+          actionButton("tdt_mssn_analyze", "Analyze", class = "primary-btn")
+        ),
+        section_card(
+          "Results",
+          tableOutput("tdt_mssn_table"),
+          plotOutput("tdt_mssn_plot", height = "360px")
+        )
+    )
+  )
+}
+
+tdt_plots_ui <- function() {
+  tagList(
+    nav_controls(),
+    div(class = "workflow-grid",
+        section_card(
+          "TDT plot controls",
+          selectInput("tdt_plot_type", "Plot type", c("Power plot" = "power", "Sample-size plot" = "mssn")),
+          uiOutput("tdt_plot_xvar_ui"),
+          fluidRow(
+            column(4, numericInput("tdt_plot_xmin", "Minimum", 0, step = 0.01)),
+            column(4, numericInput("tdt_plot_xmax", "Maximum", 0.50, step = 0.01)),
+            column(4, numericInput("tdt_plot_xstep", "Step size", 0.05, min = 0.0001, step = 0.01))
+          ),
+          selectInput(
+            "tdt_plot_scenario",
+            "Scenario",
+            choices = c("Auto" = "auto", "No error" = "no_error", "Misclassification" = "misclassification", "Heterogeneity" = "heterogeneity"),
+            selected = "auto"
+          ),
+          conditionalPanel(
+            "input.tdt_plot_type == 'power'",
+            numericInput("tdt_plot_N", "Number of affected trios (N)", 600, min = 1, step = 25)
+          ),
+          conditionalPanel(
+            "input.tdt_plot_type == 'mssn'",
+            sliderInput("tdt_plot_target_power", "Target power", min = 0.50, max = 0.99, value = 0.80, step = 0.01)
+          ),
+          sliderInput("tdt_plot_pd", "Disease allele frequency (pd)", min = 0.01, max = 0.99, value = 0.30, step = 0.01),
+          sliderInput("tdt_plot_prev", "Disease prevalence (prev)", min = 0.001, max = 0.50, value = 0.05, step = 0.001),
+          numericInput("tdt_plot_R1", "Heterozygote relative risk (R1)", 1.50, min = 0.0001, step = 0.1),
+          numericInput("tdt_plot_R2", "Homozygote relative risk (R2)", 2.25, min = 0.0001, step = 0.1),
+          selectInput("tdt_plot_alpha", "Significance level (alpha)", choices = c(0.10, 0.05, 0.01, 0.001), selected = 0.05),
+          sliderInput("tdt_plot_delta_prime", "LD scale parameter (delta_prime)", min = 0, max = 1, value = 1, step = 0.01),
+          sliderInput("tdt_plot_misclass_rate", "Phenotype misclassification rate", min = 0, max = 0.20, value = 0.01, step = 0.005),
+          sliderInput("tdt_plot_heter_rate", "Heterogeneity rate", min = 0, max = 0.80, value = 0.10, step = 0.01),
+          plot_settings_ui("tdt_plot"),
+          actionButton("tdt_plot_generate", "Generate Plot", class = "primary-btn")
+        ),
+        section_card("Plot", plotOutput("tdt_free_plot", height = "460px"), tableOutput("tdt_plot_error"))
+    )
+  )
+}
+
+cc_power_ui <- function(input_mode, selected_tests) {
+  tagList(
+    nav_controls(),
+    div(class = "workflow-grid",
+        section_card(
+          "Case-control power inputs",
+          numericInput("cc_N_case", "Number of cases (N_case)", 250, min = 1, step = 25),
+          selectInput("cc_alpha", "Significance level (alpha)", choices = c(0.10, 0.05, 0.01, 0.001), selected = 0.05),
+          numericInput("cc_k", "Control-to-case ratio (k)", 1, min = 0.001, step = 0.1),
+          mode_specific_cc_ui(input_mode),
+          fluidRow(
+            column(4, numericInput("cc_w0", "Trend weight w0", 0, step = 1)),
+            column(4, numericInput("cc_w1", "Trend weight w1", 1, step = 1)),
+            column(4, numericInput("cc_w2", "Trend weight w2", 2, step = 1))
+          ),
+          cc_advanced_ui(),
+          div(class = "input-note", paste("Selected tests:", paste(unname(test_label_map[selected_tests]), collapse = ", "))),
+          actionButton("cc_power_analyze", "Analyze", class = "primary-btn")
+        ),
+        section_card(
+          "Results",
+          tableOutput("cc_power_table"),
+          plotOutput("cc_power_plot", height = "360px")
+        )
+    )
+  )
+}
+
+cc_mssn_ui <- function(input_mode, selected_tests) {
+  tagList(
+    nav_controls(),
+    div(class = "workflow-grid",
+        section_card(
+          "Case-control sample-size inputs",
+          sliderInput("cc_target_power", "Target power", min = 0.50, max = 0.99, value = 0.80, step = 0.01),
+          selectInput("cc_alpha", "Significance level (alpha)", choices = c(0.10, 0.05, 0.01, 0.001), selected = 0.05),
+          numericInput("cc_k", "Control-to-case ratio (k)", 1, min = 0.001, step = 0.1),
+          mode_specific_cc_ui(input_mode),
+          fluidRow(
+            column(4, numericInput("cc_w0", "Trend weight w0", 0, step = 1)),
+            column(4, numericInput("cc_w1", "Trend weight w1", 1, step = 1)),
+            column(4, numericInput("cc_w2", "Trend weight w2", 2, step = 1))
+          ),
+          cc_advanced_ui(),
+          div(class = "input-note", paste("Selected tests:", paste(unname(test_label_map[selected_tests]), collapse = ", "))),
+          actionButton("cc_mssn_analyze", "Analyze", class = "primary-btn")
+        ),
+        section_card(
+          "Results",
+          tableOutput("cc_mssn_table"),
+          plotOutput("cc_mssn_plot", height = "360px")
+        )
+    )
+  )
+}
+
+cc_plots_ui <- function(input_mode, selected_tests) {
+  tagList(
+    nav_controls(),
+    div(class = "workflow-grid",
+        section_card(
+          "Case-control plot controls",
+          selectInput("cc_plot_type", "Plot type", c("Power plot" = "power", "Sample-size plot" = "mssn")),
+          uiOutput("cc_plot_xvar_ui"),
+          fluidRow(
+            column(4, numericInput("cc_plot_xmin", "Minimum", 0, step = 0.01)),
+            column(4, numericInput("cc_plot_xmax", "Maximum", 0.10, step = 0.01)),
+            column(4, numericInput("cc_plot_xstep", "Step size", 0.01, min = 0.0001, step = 0.01))
+          ),
+          conditionalPanel(
+            "input.cc_plot_type == 'power'",
+            numericInput("cc_plot_N_case", "Number of cases (N_case)", 250, min = 1, step = 25)
+          ),
+          conditionalPanel(
+            "input.cc_plot_type == 'mssn'",
+            sliderInput("cc_plot_target_power", "Target power", min = 0.50, max = 0.99, value = 0.80, step = 0.01)
+          ),
+          selectInput("cc_plot_alpha", "Significance level (alpha)", choices = c(0.10, 0.05, 0.01, 0.001), selected = 0.05),
+          numericInput("cc_plot_k", "Control-to-case ratio (k)", 1, min = 0.001, step = 0.1),
+          mode_specific_cc_ui(input_mode),
+          fluidRow(
+            column(4, numericInput("cc_w0", "Trend weight w0", 0, step = 1)),
+            column(4, numericInput("cc_w1", "Trend weight w1", 1, step = 1)),
+            column(4, numericInput("cc_w2", "Trend weight w2", 2, step = 1))
+          ),
+          cc_advanced_ui(),
+          plot_settings_ui("cc_plot"),
+          div(class = "input-note", paste("Selected tests:", paste(unname(test_label_map[selected_tests]), collapse = ", "))),
+          actionButton("cc_plot_generate", "Generate Plot", class = "primary-btn")
+        ),
+        section_card("Plot", plotOutput("cc_free_plot", height = "460px"), tableOutput("cc_plot_error"))
+    )
+  )
+}
+
+ui <- fluidPage(
+  tags$head(
+    tags$style(HTML("
+      body {
+        background: #f5f7fb;
+        color: #172b4d;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+      .app-shell {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 28px 20px 56px;
+      }
+      .app-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+        margin-bottom: 20px;
+      }
+      .app-header h1 {
+        margin: 0 0 8px;
+        font-weight: 750;
+        letter-spacing: 0;
+      }
+      .alpha-gate {
+        min-height: 82vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .alpha-box {
+        width: min(340px, 92vw);
+      }
+      .alpha-box .form-group {
+        margin-bottom: 10px;
+      }
+      .alpha-box input {
+        height: 46px;
+        border-radius: 10px;
+        border: 1px solid #c8d2df;
+        font-size: 16px;
+      }
+      .alpha-submit {
+        width: 100%;
+        margin-top: 0 !important;
+      }
+      .alpha-error {
+        min-height: 24px;
+        margin-top: 12px;
+        color: #b42318;
+        font-weight: 700;
+        text-align: center;
+      }
+      .breadcrumb-line {
+        color: #52627a;
+        font-size: 15px;
+      }
+      .hero-card, .panel-card, .setup-panel {
+        background: #ffffff;
+        border: 1px solid #d9e2ec;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(23, 43, 77, 0.06);
+      }
+      .hero-card {
+        padding: 26px 30px;
+        margin-bottom: 22px;
+      }
+      .hero-card h2, .panel-card h3 {
+        margin-top: 0;
+      }
+      .choice-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+      }
+      .choice-card {
+        width: 100%;
+        min-height: 150px;
+        border: 1px solid #d9e2ec !important;
+        border-radius: 16px !important;
+        padding: 28px !important;
+        text-align: center;
+        cursor: pointer;
+        background: #ffffff !important;
+        color: #172b4d !important;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        white-space: normal;
+      }
+      .choice-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+        border-color: #2c7be5 !important;
+      }
+      .choice-card.selected {
+        border-color: #2c7be5 !important;
+        box-shadow: 0 10px 24px rgba(44,123,229,0.18);
+      }
+      .choice-title {
+        font-size: 26px;
+        font-weight: 750;
+        margin-bottom: 10px;
+      }
+      .choice-subtitle {
+        font-size: 15px;
+        color: #52627a;
+        line-height: 1.35;
+      }
+      .workflow-grid {
+        display: grid;
+        grid-template-columns: minmax(320px, 430px) minmax(360px, 1fr);
+        gap: 20px;
+        align-items: start;
+      }
+      .panel-card {
+        padding: 22px;
+      }
+      .setup-panel {
+        padding: 16px 18px;
+        margin: 16px 0;
+      }
+      .nav-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .primary-btn, .secondary-btn {
+        border-radius: 10px !important;
+        padding: 10px 16px !important;
+      }
+      .primary-btn {
+        background: #2c7be5 !important;
+        border-color: #2c7be5 !important;
+        color: #ffffff !important;
+        font-weight: 650;
+        margin-top: 12px;
+      }
+      .secondary-btn {
+        background: #ffffff !important;
+        border: 1px solid #c8d2df !important;
+        color: #29405f !important;
+      }
+      .advanced-panel {
+        margin: 18px 0;
+        padding: 12px 14px;
+        border: 1px solid #d9e2ec;
+        border-radius: 12px;
+        background: #fbfcfe;
+      }
+      .advanced-panel summary {
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .advanced-body {
+        padding-top: 12px;
+      }
+      .input-note {
+        font-size: 14px;
+        color: #52627a;
+        margin: 10px 0 14px;
+      }
+      table {
+        background: #ffffff;
+      }
+      .shiny-output-error {
+        color: #b42318;
+        white-space: normal;
+      }
+      @media (max-width: 900px) {
+        .app-header, .workflow-grid {
+          display: block;
+        }
+        .panel-card {
+          margin-bottom: 18px;
+        }
+      }
+    "))
+  ),
+  div(
+    class = "app-shell",
+    uiOutput("header_ui"),
+    uiOutput("main_ui")
   )
 )
 
 server <- function(input, output, session) {
-  cc_run <- eventReactive(input$run_cc, {
-    args <- list(
-      alpha = input$cc_alpha,
-      input_mode = input$cc_input_mode,
-      locus_het = input$cc_locus_het,
-      pi = input$cc_pi,
-      k = input$cc_k,
-      w = c(input$cc_w0, input$cc_w1, input$cc_w2),
-      include_allelic = input$cc_include_allelic,
-      geno_misclass = input$cc_geno_misclass,
-      e = input$cc_e,
-      e1 = input$cc_e1,
-      e2 = input$cc_e2,
-      e01 = input$cc_e01,
-      e02 = input$cc_e02,
-      e03 = input$cc_e03,
-      case_e01 = input$cc_case_e01,
-      case_e02 = input$cc_case_e02,
-      case_e03 = input$cc_case_e03,
-      ctrl_e01 = input$cc_ctrl_e01,
-      ctrl_e02 = input$cc_ctrl_e02,
-      ctrl_e03 = input$cc_ctrl_e03,
-      diff_source = input$cc_diff_source,
-      diff_multiplier = input$cc_diff_multiplier,
-      verbose = TRUE
-    )
+  rv <- reactiveValues(
+    authorized = FALSE,
+    alpha_error = "",
+    design = NULL,
+    analysis = NULL,
+    cc_input_mode = NULL,
+    cc_setup_done = FALSE,
+    cc_tests = c("genotypes", "alleles", "trend")
+  )
 
-    if (identical(input$cc_input_mode, "model_free")) {
-      args$g1 <- c(input$cc_g1_0, input$cc_g1_1, input$cc_g1_2)
-      args$g0 <- c(input$cc_g0_0, input$cc_g0_1, input$cc_g0_2)
+  reset_state <- function() {
+    rv$design <- NULL
+    rv$analysis <- NULL
+    rv$cc_input_mode <- NULL
+    rv$cc_setup_done <- FALSE
+    rv$cc_tests <- c("genotypes", "alleles", "trend")
+  }
+
+  observeEvent(input$alpha_key_submit, {
+    if (identical(input$alpha_key, "alpha_pawh")) {
+      rv$authorized <- TRUE
+      rv$alpha_error <- ""
+      updateTextInput(session, "alpha_key", value = "")
     } else {
+      rv$alpha_error <- "incorrect"
+    }
+  })
+
+  observeEvent(input$alpha_key, {
+    if (nzchar(rv$alpha_error)) {
+      rv$alpha_error <- ""
+    }
+  }, ignoreInit = TRUE)
+
+  observeEvent(input$choose_tdt, {
+    rv$design <- "tdt"
+    rv$analysis <- NULL
+  })
+
+  observeEvent(input$choose_cc, {
+    rv$design <- "cc"
+    rv$analysis <- NULL
+    rv$cc_setup_done <- FALSE
+  })
+
+  observeEvent(input$tdt_power_card, rv$analysis <- "power")
+  observeEvent(input$tdt_mssn_card, rv$analysis <- "mssn")
+  observeEvent(input$tdt_plots_card, rv$analysis <- "plots")
+  observeEvent(input$cc_power_card, rv$analysis <- "power")
+  observeEvent(input$cc_mssn_card, rv$analysis <- "mssn")
+  observeEvent(input$cc_plots_card, rv$analysis <- "plots")
+
+  observeEvent(input$cc_mode_model_based, rv$cc_input_mode <- "model_based")
+  observeEvent(input$cc_mode_model_free, rv$cc_input_mode <- "model_free")
+
+  observeEvent(input$cc_setup_continue, {
+    if (is.null(rv$cc_input_mode)) {
+      showNotification("Choose model-based or model-free input first.", type = "error")
+      return()
+    }
+    tests <- input$cc_tests
+    if (is.null(tests) || length(tests) == 0) {
+      showNotification("Select at least one case-control test.", type = "error")
+      return()
+    }
+    rv$cc_tests <- tests
+    rv$cc_setup_done <- TRUE
+  })
+
+  observeEvent(input$back_btn, {
+    if (!is.null(rv$analysis)) {
+      rv$analysis <- NULL
+    } else if (identical(rv$design, "cc") && isTRUE(rv$cc_setup_done)) {
+      rv$cc_setup_done <- FALSE
+    } else {
+      rv$design <- NULL
+      rv$cc_setup_done <- FALSE
+    }
+  })
+
+  observeEvent(input$reset_btn, reset_state())
+
+  output$alpha_error <- renderText(rv$alpha_error)
+
+  output$header_ui <- renderUI({
+    if (!isTRUE(rv$authorized)) {
+      return(NULL)
+    }
+    div(
+      class = "app-header",
+      div(
+        h1("Genetic Association Study Power Calculator"),
+        div(class = "breadcrumb-line", textOutput("breadcrumb", inline = TRUE))
+      )
+    )
+  })
+
+  output$breadcrumb <- renderText({
+    parts <- c("Study Design")
+    if (!is.null(rv$design)) {
+      parts <- c(parts, if (rv$design == "tdt") "TDT" else "Case-Control")
+    }
+    if (identical(rv$design, "cc") && !is.null(rv$cc_input_mode)) {
+      parts <- c(parts, if (rv$cc_input_mode == "model_based") "Model-Based" else "Model-Free")
+    }
+    if (!is.null(rv$analysis)) {
+      parts <- c(parts, switch(rv$analysis, power = "Power", mssn = "Sample Size", plots = "Plots"))
+    }
+    paste(parts, collapse = " > ")
+  })
+
+  output$main_ui <- renderUI({
+    if (!isTRUE(rv$authorized)) {
+      return(alpha_gate_ui())
+    }
+    if (is.null(rv$design)) {
+      return(landing_ui())
+    }
+    if (identical(rv$design, "tdt")) {
+      if (is.null(rv$analysis)) {
+        return(tdt_choice_ui())
+      }
+      return(switch(
+        rv$analysis,
+        power = tdt_power_ui(),
+        mssn = tdt_mssn_ui(),
+        plots = tdt_plots_ui()
+      ))
+    }
+    if (!isTRUE(rv$cc_setup_done)) {
+      return(cc_setup_ui(rv$cc_input_mode))
+    }
+    if (is.null(rv$analysis)) {
+      return(cc_choice_ui(rv$cc_input_mode, rv$cc_tests))
+    }
+    switch(
+      rv$analysis,
+      power = cc_power_ui(rv$cc_input_mode, rv$cc_tests),
+      mssn = cc_mssn_ui(rv$cc_input_mode, rv$cc_tests),
+      plots = cc_plots_ui(rv$cc_input_mode, rv$cc_tests)
+    )
+  })
+
+  output$cc_geno_error_ui <- renderUI({
+    model <- input$cc_geno_misclass
+    if (is.null(model) || model == "none") {
+      return(div(class = "input-note", "No genotype error parameters needed."))
+    }
+    if (model == "1p") {
+      return(sliderInput("cc_e", "e", min = 0, max = 0.50, value = 0.02, step = 0.005))
+    }
+    if (model == "2p") {
+      return(tagList(
+        sliderInput("cc_e1", "e1", min = 0, max = 1, value = 0.01, step = 0.005),
+        sliderInput("cc_e2", "e2", min = 0, max = 0.50, value = 0.02, step = 0.005)
+      ))
+    }
+    if (model == "3p") {
+      return(tagList(
+        sliderInput("cc_e01", "e01", min = 0, max = 1, value = 0.02, step = 0.005),
+        sliderInput("cc_e02", "e02", min = 0, max = 0.50, value = 0.01, step = 0.005),
+        sliderInput("cc_e03", "e03", min = 0, max = 1, value = 0.005, step = 0.005)
+      ))
+    }
+    tagList(
+      selectInput("cc_diff_source", "diff_source", c("explicit", "case", "ctrl")),
+      numericInput("cc_diff_multiplier", "diff_multiplier", 1, min = 0, step = 0.05),
+      fluidRow(
+        column(6, h4("Case errors"),
+               numericInput("cc_case_e01", "case_e01", 0.02, min = 0, max = 1, step = 0.005),
+               numericInput("cc_case_e02", "case_e02", 0.01, min = 0, max = 0.5, step = 0.005),
+               numericInput("cc_case_e03", "case_e03", 0.005, min = 0, max = 1, step = 0.005)),
+        column(6, h4("Control errors"),
+               numericInput("cc_ctrl_e01", "ctrl_e01", 0.01, min = 0, max = 1, step = 0.005),
+               numericInput("cc_ctrl_e02", "ctrl_e02", 0.005, min = 0, max = 0.5, step = 0.005),
+               numericInput("cc_ctrl_e03", "ctrl_e03", 0.002, min = 0, max = 1, step = 0.005))
+      )
+    )
+  })
+
+  output$tdt_plot_xvar_ui <- renderUI({
+    choices <- if (identical(input$tdt_plot_type, "mssn")) {
+      c("target_power", "alpha", "pd", "prev", "R1", "R2", "delta_prime", "misclass_rate", "heter_rate", "locus_het_rate")
+    } else {
+      c("N", "alpha", "pd", "prev", "R1", "R2", "delta_prime", "misclass_rate", "heter_rate", "locus_het_rate")
+    }
+    selectInput("tdt_plot_x_var", "x_var", choices = choices, selected = if ("heter_rate" %in% choices) "heter_rate" else choices[[1]])
+  })
+
+  output$cc_plot_xvar_ui <- renderUI({
+    choices <- if (identical(input$cc_plot_type, "mssn")) {
+      c("power", "alpha", "prev", "pd", "R2", "k", "pi", "locus_het_rate",
+        "theta", "phi", "pheno_error_multiplier", "e", "e1", "e2", "e01",
+        "e02", "e03", "geno_error_multiplier", "diff_multiplier")
+    } else {
+      c("N_case", "N_ctrl", "N_total", "alpha", "prev", "pd", "R2", "k", "pi",
+        "locus_het_rate", "theta", "phi", "pheno_error_multiplier", "e", "e1",
+        "e2", "e01", "e02", "e03", "geno_error_multiplier", "diff_multiplier")
+    }
+    selectInput("cc_plot_x_var", "x_var", choices = choices, selected = if (identical(input$cc_plot_type, "mssn")) "power" else "N_case")
+  })
+
+  tdt_args <- reactive({
+    list(
+      pd = input$tdt_pd,
+      prev = input$tdt_prev,
+      R1 = input$tdt_R1,
+      R2 = input$tdt_R2,
+      alpha = as.numeric(input$tdt_alpha),
+      delta_prime = input$tdt_delta_prime,
+      misclass_rate = input$tdt_misclass_rate,
+      heter_rate = input$tdt_heter_rate
+    )
+  })
+
+  tdt_power_result <- eventReactive(input$tdt_power_analyze, {
+    args <- c(list(N = input$tdt_N), tdt_args(), list(verbose = FALSE))
+    safe_call(do.call(genmixr::tdt_power_full, args))
+  }, ignoreInit = TRUE)
+
+  output$tdt_power_table <- renderTable({
+    payload <- tdt_power_result()
+    validate(need(!is.null(payload), "Click Analyze to run TDT power."))
+    render_error_or_table(payload, tdt_power_table(payload$result))
+  }, striped = TRUE, bordered = TRUE)
+
+  output$tdt_power_plot <- renderPlot({
+    payload <- tdt_power_result()
+    validate(
+      need(!is.null(payload), ""),
+      need(is.null(payload$error), payload$error)
+    )
+    n <- input$tdt_N
+    x_values <- unique(round(seq(max(1, 0.25 * n), 2 * n, length.out = 24)))
+    print(genmixr::tdt_plot_power(
+      x_var = "N",
+      x_values = x_values,
+      scenario = input$tdt_power_plot_scenario,
+      N = n,
+      pd = input$tdt_pd,
+      prev = input$tdt_prev,
+      R1 = input$tdt_R1,
+      R2 = input$tdt_R2,
+      alpha = as.numeric(input$tdt_alpha),
+      delta_prime = input$tdt_delta_prime,
+      misclass_rate = input$tdt_misclass_rate,
+      heter_rate = input$tdt_heter_rate
+    ))
+  })
+
+  tdt_mssn_result <- eventReactive(input$tdt_mssn_analyze, {
+    args <- c(list(target_power = input$tdt_target_power), tdt_args(), list(verbose = FALSE))
+    safe_call(do.call(genmixr::tdt_required_trios_full, args))
+  }, ignoreInit = TRUE)
+
+  output$tdt_mssn_table <- renderTable({
+    payload <- tdt_mssn_result()
+    validate(need(!is.null(payload), "Click Analyze to run TDT sample size."))
+    render_error_or_table(payload, tdt_mssn_table(payload$result))
+  }, striped = TRUE, bordered = TRUE)
+
+  output$tdt_mssn_plot <- renderPlot({
+    payload <- tdt_mssn_result()
+    validate(
+      need(!is.null(payload), ""),
+      need(is.null(payload$error), payload$error)
+    )
+    scenario <- input$tdt_mssn_plot_scenario
+    x_var <- if (scenario == "misclassification") "misclass_rate" else "heter_rate"
+    print(genmixr::tdt_plot_mssn(
+      x_var = x_var,
+      x_values = seq(0, if (x_var == "misclass_rate") 0.20 else 0.80, length.out = 24),
+      scenario = scenario,
+      target_power = input$tdt_target_power,
+      pd = input$tdt_pd,
+      prev = input$tdt_prev,
+      R1 = input$tdt_R1,
+      R2 = input$tdt_R2,
+      alpha = as.numeric(input$tdt_alpha),
+      delta_prime = input$tdt_delta_prime,
+      misclass_rate = input$tdt_misclass_rate,
+      heter_rate = input$tdt_heter_rate
+    ))
+  })
+
+  tdt_plot_result <- eventReactive(input$tdt_plot_generate, {
+    safe_call({
+      x_values <- make_range(input$tdt_plot_xmin, input$tdt_plot_xmax, input$tdt_plot_xstep)
+      common <- list(
+        x_var = input$tdt_plot_x_var,
+        x_values = x_values,
+        scenario = input$tdt_plot_scenario,
+        pd = input$tdt_plot_pd,
+        prev = input$tdt_plot_prev,
+        R1 = input$tdt_plot_R1,
+        R2 = input$tdt_plot_R2,
+        alpha = as.numeric(input$tdt_plot_alpha),
+        delta_prime = input$tdt_plot_delta_prime,
+        misclass_rate = input$tdt_plot_misclass_rate,
+        heter_rate = input$tdt_plot_heter_rate,
+        title = if (nzchar(input$tdt_plot_title)) input$tdt_plot_title else NULL,
+        x_label = if (nzchar(input$tdt_plot_x_label)) input$tdt_plot_x_label else NULL,
+        y_label = if (nzchar(input$tdt_plot_y_label)) input$tdt_plot_y_label else NULL
+      )
+      if (identical(input$tdt_plot_type, "power")) {
+        do.call(genmixr::tdt_plot_power, c(common, list(N = input$tdt_plot_N)))
+      } else {
+        do.call(genmixr::tdt_plot_mssn, c(common, list(target_power = input$tdt_plot_target_power)))
+      }
+    })
+  }, ignoreInit = TRUE)
+
+  output$tdt_free_plot <- renderPlot({
+    payload <- tdt_plot_result()
+    validate(
+      need(!is.null(payload), "Click Generate Plot."),
+      need(is.null(payload$error), payload$error)
+    )
+    print(payload$result)
+  })
+
+  output$tdt_plot_error <- renderTable({
+    payload <- tdt_plot_result()
+    if (is.null(payload) || is.null(payload$error)) {
+      return(NULL)
+    }
+    data.frame(Message = payload$error)
+  }, bordered = TRUE)
+
+  validate_cc_freqs <- function(g1, g0) {
+    if (any(!is.finite(c(g1, g0)))) {
+      stop("Genotype frequencies must be finite.")
+    }
+    if (any(c(g1, g0) < 0)) {
+      stop("Genotype frequencies cannot be negative.")
+    }
+    if (abs(sum(g1) - 1) > 1e-6) {
+      stop("g1 genotype frequencies must sum to 1.")
+    }
+    if (abs(sum(g0) - 1) > 1e-6) {
+      stop("g0 genotype frequencies must sum to 1.")
+    }
+  }
+
+  cc_args <- reactive({
+    selected_tests <- nonempty_tests(rv$cc_tests)
+    args <- list(
+      alpha = as.numeric(input$cc_alpha %||% input$cc_plot_alpha),
+      input_mode = rv$cc_input_mode,
+      k = input$cc_k %||% input$cc_plot_k,
+      w = c(input$cc_w0, input$cc_w1, input$cc_w2),
+      include_allelic = "alleles" %in% selected_tests,
+      locus_het = isTRUE(input$cc_locus_het),
+      pi = 1 - (input$cc_locus_het_rate %||% 0),
+      pheno_misclass = isTRUE(input$cc_pheno_misclass),
+      theta = input$cc_theta %||% 0,
+      phi = input$cc_phi %||% 0,
+      geno_misclass = input$cc_geno_misclass %||% "none",
+      e = input$cc_e %||% 0,
+      e1 = input$cc_e1 %||% 0,
+      e2 = input$cc_e2 %||% 0,
+      e01 = input$cc_e01 %||% 0,
+      e02 = input$cc_e02 %||% 0,
+      e03 = input$cc_e03 %||% 0,
+      case_e01 = input$cc_case_e01 %||% 0,
+      case_e02 = input$cc_case_e02 %||% 0,
+      case_e03 = input$cc_case_e03 %||% 0,
+      ctrl_e01 = input$cc_ctrl_e01 %||% 0,
+      ctrl_e02 = input$cc_ctrl_e02 %||% 0,
+      ctrl_e03 = input$cc_ctrl_e03 %||% 0,
+      diff_source = input$cc_diff_source %||% "explicit",
+      diff_multiplier = input$cc_diff_multiplier %||% 1
+    )
+    if (identical(rv$cc_input_mode, "model_based")) {
       args$prev <- input$cc_prev
       args$pd <- input$cc_pd
       args$R2 <- input$cc_R2
       args$MOI <- input$cc_MOI
-    }
-
-    if (identical(input$cc_analysis, "Power")) {
-      args$N_case <- input$cc_N_case
-      fun <- genmixr::cc_power_conditional_full
     } else {
-      args$power <- input$cc_target_power
-      fun <- genmixr::cc_mssn_conditional_full
+      g1 <- c(input$cc_g1_0, input$cc_g1_1, input$cc_g1_2)
+      g0 <- c(input$cc_g0_0, input$cc_g0_1, input$cc_g0_2)
+      validate_cc_freqs(g1, g0)
+      args$g1 <- g1
+      args$g0 <- g0
+      args$prev <- input$cc_prev_model_free
     }
+    args
+  })
 
-    tryCatch(
-      capture_function_output(fun, args),
-      error = function(e) list(error = conditionMessage(e))
+  cc_power_result <- eventReactive(input$cc_power_analyze, {
+    safe_call({
+      args <- c(cc_args(), list(N_case = input$cc_N_case, verbose = FALSE))
+      do.call(genmixr::cc_power_conditional_full, args)
+    })
+  }, ignoreInit = TRUE)
+
+  output$cc_power_table <- renderTable({
+    payload <- cc_power_result()
+    validate(need(!is.null(payload), "Click Analyze to run case-control power."))
+    render_error_or_table(payload, cc_power_table(payload$result, rv$cc_tests))
+  }, striped = TRUE, bordered = TRUE)
+
+  output$cc_power_plot <- renderPlot({
+    payload <- cc_power_result()
+    validate(
+      need(!is.null(payload), ""),
+      need(is.null(payload$error), payload$error)
     )
-  }, ignoreInit = FALSE)
-
-  output$cc_error <- renderText({
-    payload <- cc_run()
-    if (!is.null(payload$error)) payload$error else ""
+    n <- input$cc_N_case
+    args <- cc_args()
+    x_values <- unique(round(seq(max(1, 0.25 * n), 2 * n, length.out = 24)))
+    plot_args <- c(
+      list(
+        x_var = "N_case",
+        x_values = x_values,
+        compare_tests = length(rv$cc_tests) > 1,
+        test = rv$cc_tests[[1]],
+        N_case = n
+      ),
+      args
+    )
+    print(do.call(genmixr::cc_plot_power, plot_args))
   })
 
-  output$cc_printed <- renderPrint({
-    payload <- cc_run()
-    validate(need(is.null(payload$error), payload$error))
-    cat(paste(payload$printed, collapse = "\n"))
+  cc_mssn_result <- eventReactive(input$cc_mssn_analyze, {
+    safe_call({
+      args <- c(cc_args(), list(power = input$cc_target_power, verbose = FALSE))
+      do.call(genmixr::cc_mssn_conditional_full, args)
+    })
+  }, ignoreInit = TRUE)
+
+  output$cc_mssn_table <- renderTable({
+    payload <- cc_mssn_result()
+    validate(need(!is.null(payload), "Click Analyze to run case-control sample size."))
+    render_error_or_table(payload, cc_mssn_table(payload$result, rv$cc_tests))
+  }, striped = TRUE, bordered = TRUE)
+
+  output$cc_mssn_plot <- renderPlot({
+    payload <- cc_mssn_result()
+    validate(
+      need(!is.null(payload), ""),
+      need(is.null(payload$error), payload$error)
+    )
+    args <- cc_args()
+    plot_args <- c(
+      list(
+        x_var = "power",
+        x_values = seq(0.50, 0.95, length.out = 24),
+        compare_tests = length(rv$cc_tests) > 1,
+        test = rv$cc_tests[[1]],
+        power = input$cc_target_power
+      ),
+      args
+    )
+    print(do.call(genmixr::cc_plot_mssn, plot_args))
   })
 
-  output$cc_summary <- DT::renderDT({
-    payload <- cc_run()
-    validate(need(is.null(payload$error), payload$error))
-    DT::datatable(case_control_summary(payload$result), rownames = FALSE, options = list(dom = "t"))
-  })
-
-  output$cc_genotypes <- DT::renderDT({
-    payload <- cc_run()
-    validate(need(is.null(payload$error), payload$error))
-    DT::datatable(case_control_genotype_freqs(payload$result), rownames = FALSE, options = list(dom = "t"))
-  })
-
-  output$cc_alleles <- DT::renderDT({
-    payload <- cc_run()
-    validate(need(is.null(payload$error), payload$error))
-    tab <- case_control_allele_freqs(payload$result)
-    validate(need(nrow(tab) > 0, "Allelic output is unavailable when include_allelic = FALSE."))
-    DT::datatable(tab, rownames = FALSE, options = list(dom = "t"))
-  })
-
-  tdt_run <- eventReactive(input$run_tdt, {
-    if (identical(input$tdt_analysis, "Power from ET/ENT")) {
-      fun <- genmixr::tdt_power_from_ET_ENT
-      args <- list(ET = input$tdt_ET, ENT = input$tdt_ENT, alpha = input$tdt_alpha)
-    } else {
-      fun <- genmixr::tdt_required_trios
-      args <- list(
-        power = input$tdt_target_power,
-        alpha = input$tdt_alpha,
-        df = 1,
-        pd = input$tdt_pd,
-        prev = input$tdt_prev,
-        R1 = input$tdt_R1,
-        R2 = input$tdt_R2,
-        delta_prime = input$tdt_delta_prime,
-        pi = input$tdt_pi
+  cc_plot_result <- eventReactive(input$cc_plot_generate, {
+    safe_call({
+      selected_tests <- nonempty_tests(rv$cc_tests)
+      x_values <- make_range(input$cc_plot_xmin, input$cc_plot_xmax, input$cc_plot_xstep)
+      args <- cc_args()
+      args$alpha <- as.numeric(input$cc_plot_alpha)
+      args$k <- input$cc_plot_k
+      common <- c(
+        list(
+          x_var = input$cc_plot_x_var,
+          x_values = x_values,
+          compare_tests = length(selected_tests) > 1,
+          test = selected_tests[[1]],
+          title = if (nzchar(input$cc_plot_title)) input$cc_plot_title else NULL,
+          x_label = if (nzchar(input$cc_plot_x_label)) input$cc_plot_x_label else NULL,
+          y_label = if (nzchar(input$cc_plot_y_label)) input$cc_plot_y_label else NULL
+        ),
+        args
       )
-    }
+      if (identical(input$cc_plot_type, "power")) {
+        do.call(genmixr::cc_plot_power, c(common, list(N_case = input$cc_plot_N_case)))
+      } else {
+        do.call(genmixr::cc_plot_mssn, c(common, list(power = input$cc_plot_target_power)))
+      }
+    })
+  }, ignoreInit = TRUE)
 
-    tryCatch(
-      capture_function_output(fun, args),
-      error = function(e) list(error = conditionMessage(e))
+  output$cc_free_plot <- renderPlot({
+    payload <- cc_plot_result()
+    validate(
+      need(!is.null(payload), "Click Generate Plot."),
+      need(is.null(payload$error), payload$error)
     )
-  }, ignoreInit = FALSE)
-
-  output$tdt_error <- renderText({
-    payload <- tdt_run()
-    if (!is.null(payload$error)) payload$error else ""
+    print(payload$result)
   })
 
-  output$tdt_printed <- renderPrint({
-    payload <- tdt_run()
-    validate(need(is.null(payload$error), payload$error))
-    cat(paste(payload$printed, collapse = "\n"))
-  })
-
-  output$tdt_summary <- DT::renderDT({
-    payload <- tdt_run()
-    validate(need(is.null(payload$error), payload$error))
-    DT::datatable(tdt_summary(payload$result, input$tdt_analysis), rownames = FALSE, options = list(dom = "t"))
-  })
-
-  tdt_plot_payload <- reactive({
-    args <- tdt_plot_args(input)
-    tryCatch(
-      {
-        plot_obj <- suppressMessages(suppressWarnings(
-          call_tdt_power_misclassification_plot(args)
-        ))
-        list(args = args, plot = plot_obj)
-      },
-      error = function(e) list(args = args, error = conditionMessage(e))
-    )
-  })
-
-  output$tdt_plot_error <- renderText({
-    payload <- tdt_plot_payload()
-    if (!is.null(payload$error)) payload$error else ""
-  })
-
-  output$tdt_power_misclass_plot <- renderPlot({
-    payload <- tdt_plot_payload()
-    validate(need(is.null(payload$error), payload$error))
-    validate(need(inherits(payload$plot, "ggplot"), "The plotting function did not return a ggplot object."))
-    print(payload$plot)
-  })
-
-  output$tdt_plot_call <- renderText({
-    tdt_plot_call_text(tdt_plot_args(input))
-  })
-
-  output$download_tdt_plot <- downloadHandler(
-    filename = function() {
-      "tdt-power-misclassification.png"
-    },
-    content = function(file) {
-      payload <- tdt_plot_payload()
-      validate(need(is.null(payload$error), payload$error))
-      ggplot2::ggsave(file, plot = payload$plot, width = 7, height = 5, dpi = 150)
+  output$cc_plot_error <- renderTable({
+    payload <- cc_plot_result()
+    if (is.null(payload) || is.null(payload$error)) {
+      return(NULL)
     }
-  )
+    data.frame(Message = payload$error)
+  }, bordered = TRUE)
 }
 
 shinyApp(ui, server)
