@@ -69,6 +69,16 @@
   c("N_case", "N_ctrl", "N_total")
 )
 
+.plot_allowed_tdt_power_x <- c(
+  "N", "alpha", "pd", "prev", "R1", "R2", "delta_prime", "misclass_rate",
+  "heter_rate", "locus_het_rate", "pheno_error_multiplier"
+)
+
+.plot_allowed_tdt_mssn_x <- setdiff(
+  c("target_power", .plot_allowed_tdt_power_x),
+  "N"
+)
+
 .plot_label <- function(name) {
   labels <- c(
     # sample size / study design
@@ -255,6 +265,22 @@
   args
 }
 
+.plot_apply_tdt_x <- function(args, x_var, x) {
+  if (x_var == "locus_het_rate") {
+    args$heter_rate <- x
+    return(args)
+  }
+
+  if (x_var == "pheno_error_multiplier") {
+    misclass_rate_base <- .plot_get_arg(args, "misclass_rate_base", .plot_get_arg(args, "misclass_rate", 0))
+    args$misclass_rate <- misclass_rate_base * x
+    return(args)
+  }
+
+  args[[x_var]] <- x
+  args
+}
+
 .plot_cc_extract_power <- function(out, test) {
   if (test == "genotypes") return(out$tests$genotypes$power)
   if (test == "trend") return(out$tests$trend$power)
@@ -277,6 +303,22 @@
     total = result$MSSN_total,
     stop("Unknown sample_size: ", sample_size)
   )
+}
+
+.plot_tdt_auto_scenario <- function(x_var) {
+  if (x_var %in% c("misclass_rate", "pheno_error_multiplier")) return("misclassification")
+  if (x_var %in% c("heter_rate", "locus_het_rate")) return("heterogeneity")
+  "no_error"
+}
+
+.plot_tdt_extract_power <- function(out, scenario) {
+  if (is.null(out$power[[scenario]])) stop("Unknown TDT scenario: ", scenario)
+  out$power[[scenario]]
+}
+
+.plot_tdt_extract_mssn <- function(out, scenario) {
+  if (is.null(out$N[[scenario]])) stop("Unknown TDT scenario: ", scenario)
+  out$N[[scenario]]
 }
 
 .plot_make_line <- function(dat, x_label, y_label, title, subtitle = NULL) {
@@ -593,5 +635,191 @@ cc_plot_mssn <- function(
     x_label = .plot_axis_label(x_var, x_label),
     y_label = if (!is.null(y_label)) y_label else .plot_sample_size_label(sample_size),
     title = .plot_title("Case-control sample size", x_var, suffix = .plot_test_label(tests), override = title)
+  )
+}
+
+#' Plot TDT Power from the Full TDT Function
+#'
+#' Sweeps one x-axis parameter and repeatedly calls
+#' \code{\link{tdt_power_full}()} to plot Transmission Disequilibrium Test
+#' (TDT) power.
+#'
+#' @param x_var Character. Parameter to vary on the x-axis.
+#' @param x_values Numeric vector of x-axis values.
+#' @param scenario One of \code{"auto"}, \code{"no_error"},
+#'   \code{"misclassification"}, or \code{"heterogeneity"}.
+#' @param title Optional character title override.
+#' @param x_label Optional x-axis label override.
+#' @param y_label Optional y-axis label override.
+#' @param return_data Logical. If TRUE, return the data frame instead of a ggplot.
+#' @param ... Arguments passed to \code{tdt_power_full()}.
+#'
+#' @details
+#' \code{scenario} selects the component of the full TDT backend output:
+#' \code{"no_error"}, \code{"misclassification"}, or \code{"heterogeneity"}.
+#' With \code{scenario = "auto"}, the wrapper chooses misclassification for
+#' \code{x_var = "misclass_rate"} or \code{"pheno_error_multiplier"},
+#' heterogeneity for \code{x_var = "heter_rate"} or \code{"locus_het_rate"},
+#' and no error otherwise. This wrapper does not include a compare-scenarios
+#' mode.
+#'
+#' @return A ggplot object, or a data frame if \code{return_data = TRUE}.
+#'
+#' @examples
+#' \dontrun{
+#' tdt_plot_power(
+#'   x_var = "heter_rate",
+#'   x_values = seq(0, 0.50, by = 0.05),
+#'   scenario = "heterogeneity",
+#'   N = 600,
+#'   pd = 0.30,
+#'   prev = 0.05,
+#'   R1 = 1.5,
+#'   R2 = 2.25,
+#'   alpha = 0.05,
+#'   delta_prime = 1
+#' )
+#' }
+#'
+#' @export
+tdt_plot_power <- function(
+    x_var,
+    x_values,
+    scenario = c("auto", "no_error", "misclassification", "heterogeneity"),
+    title = NULL,
+    x_label = NULL,
+    y_label = NULL,
+    return_data = FALSE,
+    ...
+) {
+  scenario <- match.arg(scenario)
+  .plot_check_x_values(x_values)
+  .plot_check_x_var(x_var, .plot_allowed_tdt_power_x, "tdt_plot_power()")
+
+  scenario <- if (scenario == "auto") .plot_tdt_auto_scenario(x_var) else scenario
+
+  args0 <- list(...)
+  args0$verbose <- FALSE
+
+  y <- vapply(x_values, function(x) {
+    args <- .plot_apply_tdt_x(args0, x_var, x)
+    args <- .plot_drop_helper_args(args)
+    out <- do.call(tdt_power_full, args)
+    .plot_tdt_extract_power(out, scenario)
+  }, numeric(1))
+
+  plot_dat <- data.frame(
+    x = x_values,
+    scenario = scenario,
+    y = y,
+    stringsAsFactors = FALSE
+  )
+
+  if (isTRUE(return_data)) {
+    out_dat <- .plot_pretty_data(plot_dat)
+    names(out_dat) <- c(x_var, "scenario", "power")
+    return(out_dat)
+  }
+
+  .plot_make_line(
+    data.frame(x = plot_dat$x, y = plot_dat$y),
+    x_label = .plot_axis_label(x_var, x_label),
+    y_label = if (!is.null(y_label)) y_label else "Power",
+    title = .plot_title("TDT power", x_var, suffix = .plot_scenario_label(scenario), override = title)
+  )
+}
+
+#' Plot TDT Required Trios from the Full TDT Sample Size Function
+#'
+#' Sweeps one x-axis parameter and repeatedly calls
+#' \code{\link{tdt_required_trios_full}()} to plot the required number of
+#' affected trios.
+#'
+#' @param x_var Character. Parameter to vary on the x-axis.
+#' @param x_values Numeric vector of x-axis values.
+#' @param scenario One of \code{"auto"}, \code{"no_error"},
+#'   \code{"misclassification"}, or \code{"heterogeneity"}.
+#' @param title Optional character title override.
+#' @param x_label Optional x-axis label override.
+#' @param y_label Optional y-axis label override.
+#' @param return_data Logical. If TRUE, return the data frame instead of a ggplot.
+#' @param ... Arguments passed to \code{tdt_required_trios_full()}.
+#'
+#' @details
+#' \code{scenario} selects the component of the full TDT backend output:
+#' \code{"no_error"}, \code{"misclassification"}, or \code{"heterogeneity"}.
+#' With \code{scenario = "auto"}, the wrapper chooses the scenario from
+#' \code{x_var} using the same rules as \code{\link{tdt_plot_power}()}. This
+#' wrapper does not include a compare-scenarios mode. \code{x_var = "N"} is not
+#' allowed because required trios are the output; use \code{"target_power"} to
+#' sweep target power.
+#'
+#' @return A ggplot object, or a data frame if \code{return_data = TRUE}.
+#'
+#' @examples
+#' \dontrun{
+#' tdt_plot_mssn(
+#'   x_var = "misclass_rate",
+#'   x_values = seq(0, 0.10, by = 0.01),
+#'   scenario = "misclassification",
+#'   target_power = 0.80,
+#'   pd = 0.30,
+#'   prev = 0.05,
+#'   R1 = 1.5,
+#'   R2 = 2.25,
+#'   alpha = 0.05,
+#'   delta_prime = 1
+#' )
+#' }
+#'
+#' @export
+tdt_plot_mssn <- function(
+    x_var,
+    x_values,
+    scenario = c("auto", "no_error", "misclassification", "heterogeneity"),
+    title = NULL,
+    x_label = NULL,
+    y_label = NULL,
+    return_data = FALSE,
+    ...
+) {
+  scenario <- match.arg(scenario)
+  .plot_check_x_values(x_values)
+  .plot_check_x_var(x_var, .plot_allowed_tdt_mssn_x, "tdt_plot_mssn()")
+
+  if (x_var == "N") {
+    stop("N is not valid for TDT MSSN plots because required N is the output. Use x_var='target_power' to vary target power.")
+  }
+
+  scenario <- if (scenario == "auto") .plot_tdt_auto_scenario(x_var) else scenario
+
+  args0 <- list(...)
+  args0$verbose <- FALSE
+
+  y <- vapply(x_values, function(x) {
+    args <- .plot_apply_tdt_x(args0, x_var, x)
+    args <- .plot_drop_helper_args(args)
+    out <- do.call(tdt_required_trios_full, args)
+    .plot_tdt_extract_mssn(out, scenario)
+  }, numeric(1))
+
+  plot_dat <- data.frame(
+    x = x_values,
+    scenario = scenario,
+    y = y,
+    stringsAsFactors = FALSE
+  )
+
+  if (isTRUE(return_data)) {
+    out_dat <- .plot_pretty_data(plot_dat)
+    names(out_dat) <- c(x_var, "scenario", "required_trios")
+    return(out_dat)
+  }
+
+  .plot_make_line(
+    data.frame(x = plot_dat$x, y = plot_dat$y),
+    x_label = .plot_axis_label(x_var, x_label),
+    y_label = if (!is.null(y_label)) y_label else "Required trios",
+    title = .plot_title("TDT required trios", x_var, suffix = .plot_scenario_label(scenario), override = title)
   )
 }

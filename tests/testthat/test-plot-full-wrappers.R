@@ -43,6 +43,37 @@ test_that("cc_plot_mssn returns ggplot for model-based genotype error sweep", {
   expect_s3_class(p, "ggplot")
 })
 
+test_that("TDT full wrappers return ggplot objects", {
+  power_plot <- tdt_plot_power(
+    x_var = "heter_rate",
+    x_values = c(0, 0.05, 0.10),
+    scenario = "heterogeneity",
+    N = 600,
+    pd = 0.30,
+    prev = 0.05,
+    R1 = 1.5,
+    R2 = 2.25,
+    alpha = 0.05,
+    delta_prime = 1
+  )
+
+  mssn_plot <- tdt_plot_mssn(
+    x_var = "misclass_rate",
+    x_values = c(0, 0.01, 0.02),
+    scenario = "misclassification",
+    target_power = 0.80,
+    pd = 0.30,
+    prev = 0.05,
+    R1 = 1.5,
+    R2 = 2.25,
+    alpha = 0.05,
+    delta_prime = 1
+  )
+
+  expect_s3_class(power_plot, "ggplot")
+  expect_s3_class(mssn_plot, "ggplot")
+})
+
 test_that("cc_plot_power compare_tests returns plot and readable data labels", {
   x_values <- c(0, 0.01, 0.02)
 
@@ -112,6 +143,19 @@ test_that("return_data TRUE returns simple data frames", {
 })
 
 test_that("plot wrappers use clear default labels", {
+  tdt_p <- tdt_plot_power(
+    x_var = "heter_rate",
+    x_values = c(0, 0.05),
+    scenario = "heterogeneity",
+    N = 600,
+    pd = 0.30,
+    prev = 0.05,
+    R1 = 1.5,
+    R2 = 2.25,
+    alpha = 0.05,
+    delta_prime = 1
+  )
+
   cc_p <- cc_plot_power(
     x_var = "phi",
     x_values = c(0, 0.01),
@@ -127,6 +171,7 @@ test_that("plot wrappers use clear default labels", {
     k = 1
   )
 
+  expect_equal(tdt_p$labels$x, "Heterogeneity rate")
   expect_match(cc_p$labels$x, "Phenotype misclassification")
 })
 
@@ -150,6 +195,14 @@ test_that("plot wrappers report unsupported arguments clearly", {
     "'arg' should be one of"
   )
 
+  expect_error(
+    tdt_plot_power(
+      x_var = "heter_rate",
+      x_values = c(0, 0.1),
+      scenario = "bad_scenario"
+    ),
+    "'arg' should be one of"
+  )
 })
 
 test_that("plot wrappers support genotype and phenotype error multipliers", {

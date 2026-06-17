@@ -27,6 +27,8 @@ reference:
   contents:
   - cc_plot_power
   - cc_plot_mssn
+  - tdt_plot_power
+  - tdt_plot_mssn
 - title: Transmission Disequilibrium Test Functions
   contents:
   - starts_with("tdt_")
