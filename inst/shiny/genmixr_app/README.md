@@ -1,7 +1,7 @@
-# genmixr draft Shiny app
+# genmixr alpha-test Shiny app
 
-This is a draft Shiny interface for exploring selected `genmixr` case-control
-and TDT power/sample-size functions.
+This is a draft stepwise Shiny interface for exploring `genmixr`
+case-control and TDT power/sample-size workflows.
 
 Draft note: equation/page references will be finalized after textbook
 verification.
@@ -20,22 +20,25 @@ During package development, you can also run the app from the repository root:
 shiny::runApp("inst/shiny/genmixr_app")
 ```
 
-## Current scope
+## Workflow
 
-- Case-control tab: calls `cc_power_conditional_full()` and
-  `cc_mssn_conditional_full()`.
-- TDT tab: calls `tdt_power_from_ET_ENT()` and `tdt_required_trios()`.
-- TDT Plots tab: calls `tdt_plot_power_misclassification()` with sliders for
-  misclassification-rate sensitivity plots and a simple PNG download.
-- Results panels show captured clean console output, key summary tables,
-  observed genotype frequencies, and allele frequencies when available.
+The app starts with two large cards:
 
-## TODOs
+- TDT
+- Case-Control
 
-- Finalize textbook equation and page references.
-- Refine UI labels and layout after manual review.
-- Add additional TDT functions if needed.
-- Add additional TDT plotting functions if useful.
-- Decide whether any app-specific automated tests should be added later.
+The TDT path then offers Power, Sample Size, and Plots workflows.
+
+The Case-Control path first asks for model-based or model-free input and a
+checklist of tests, then offers Power, Sample Size, and Plots workflows.
+
+## Backend functions
+
+- TDT Power: `tdt_power_full()`
+- TDT Sample Size: `tdt_required_trios_full()`
+- TDT Plots: `tdt_plot_power()` and `tdt_plot_mssn()`
+- Case-Control Power: `cc_power_conditional_full()`
+- Case-Control Sample Size: `cc_mssn_conditional_full()`
+- Case-Control Plots: `cc_plot_power()` and `cc_plot_mssn()`
 
 No deployment credentials, tokens, or secrets are included.
