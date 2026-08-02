@@ -1,989 +1,968 @@
 # ==============================================================================
-# Generalized conditional TDT framework
+# Conditional TDT framework
 #
-# This file is the family-based analogue of the generalized case-control
-# framework in R/case_control.R. It provides a single computational backend for
-# TDT power and minimum-sample-size-necessary (MSSN) calculations:
+# tdt_power_conditional_full()  is a copy of tdt_power_full()        (R/tdt_functions.R)
+# tdt_mssn_conditional_full()   is a copy of tdt_required_trios_full() (R/tdt_functions.R)
 #
-#   tdt_power_conditional_full()   -- power for a fixed number of affected trios
-#   tdt_mssn_conditional_full()    -- MSSN (required trios) for a target power
+# Every argument name, default, formula, and the three-scenario reporting
+# (no error / misclassification / heterogeneity) from those two functions is
+# kept identical. The only addition is input_mode = c("model_based",
+# "model_free"):
 #
-# Both functions accept input_mode = "model_based" or input_mode = "model_free",
-# mirroring cc_power_conditional_full() and cc_mssn_conditional_full().
+#   - "model_based" (default) reproduces the copied function exactly.
+#   - "model_free" lets a user who already has expected transmission and
+#     non-transmission counts (ET, ENT) supply them directly instead of
+#     prev/R1/R2. gT = ET / (2 * n_trios), gNT = ENT / (2 * n_trios), where
+#     n_trios is N itself for the power function (ET/ENT are assumed to be
+#     for the same N trios power is computed for) and a separate n_trios
+#     argument for the MSSN function (ET/ENT are absolute counts that embed
+#     a sample size, which need not equal the N* being solved for).
 #
-# Scope of this version: the standard TDT only. The transmission pipeline in
-# .tdt_transmission_pipeline() is staged so that locus heterogeneity, phenotype
-# misclassification, and genotype misclassification can be added later without
-# changing the surrounding architecture or the returned object layout.
+# heter_rate and misclass_rate apply in both modes. In model_free mode they
+# use closed-form identities (verified algebraically equivalent to the
+# calc_gTgNT_heter()/calc_gTgNT_misclass() helpers copied from
+# R/tdt_functions.R) in terms of gT, gNT, pd, and prev alone -- see the
+# roxygen details below. R1/R2 are never used in model_free mode.
+#
+# Do not modify R/tdt_functions.R; it is the reference implementation these
+# two functions are copied from.
 # ==============================================================================
 
 
-# ---- internal helpers --------------------------------------------------------
-
-#' Target non-centrality parameter for a chi-square test
+#' Family-Based (TDT) Power for a Fixed Number of Trios (Conditional)
 #'
-#' @param power Numeric in (0,1). Target power.
-#' @param alpha Numeric in (0,1). Significance level.
-#' @param df Integer. Degrees of freedom.
+#' Computes power for the transmission disequilibrium test (TDT) at a fixed
+#' number of affected trios under three scenarios: (i) no error, (ii)
+#' phenotype misclassification only, and (iii) locus heterogeneity only. This
+#' is a copy of \code{\link{tdt_power_full}} with one addition:
+#' \code{input_mode} lets the transmission probabilities come either from a
+#' genetic model (\code{"model_based"}, the default, numerically identical to
+#' \code{\link{tdt_power_full}}) or directly from user-supplied expected
+#' transmission and non-transmission counts (\code{"model_free"}).
 #'
-#' @return Numeric non-centrality parameter achieving \code{power} at
-#'   \code{alpha}.
-#'
-#' @importFrom stats pchisq qchisq uniroot
-#' @noRd
-.tdt_chisq_ncp_target <- function(power, alpha, df = 1) {
-  crit <- qchisq(1 - alpha, df = df)
-  f <- function(lambda) {
-    pchisq(crit, df = df, ncp = lambda, lower.tail = FALSE) - power
-  }
-  uniroot(f, lower = 0, upper = 1e6)$root
-}
-
-
-#' Validate a single number lying in an interval
-#'
-#' @param x Value to check.
-#' @param name Character. Argument name used in the error message.
-#' @param lower,upper Numeric bounds.
-#' @param strict Logical. If \code{TRUE}, the bounds are exclusive.
-#'
-#' @return Invisibly \code{TRUE}; called for its side effect of stopping.
-#'
-#' @noRd
-.tdt_check_scalar <- function(x, name, lower = -Inf, upper = Inf,
-                              strict = FALSE) {
-  if (!is.numeric(x) || length(x) != 1 || !is.finite(x))
-    stop(name, " must be a single finite number.")
-  if (strict) {
-    if (x <= lower || x >= upper)
-      stop(name, " must be a single number in (", lower, ",", upper, ").")
-  } else {
-    if (x < lower || x > upper)
-      stop(name, " must be a single number in [", lower, ",", upper, "].")
-  }
-  invisible(TRUE)
-}
-
-
-#' Resolve the heterozygote relative risk from a mode of inheritance
-#'
-#' Mirrors the mode-of-inheritance handling in
-#' \code{cc_power_conditional_full()} and \code{cc_mssn_conditional_full()}:
-#' multiplicative gives \eqn{R_1 = \sqrt{R_2}}, dominant gives \eqn{R_1 = R_2},
-#' and recessive gives \eqn{R_1 = 1}. An explicitly supplied \code{R1}
-#' overrides the mode of inheritance.
-#'
-#' @param R1 Numeric or \code{NULL}. Heterozygote relative risk.
-#' @param R2 Numeric. Homozygote relative risk.
-#' @param MOI Character. One of \code{"M"}, \code{"D"}, or \code{"Rec"}.
-#'
-#' @return A list with \code{R1}, \code{R2}, \code{MOI}, and \code{R1_source}.
-#'
-#' @noRd
-.tdt_resolve_relative_risks <- function(R1, R2, MOI) {
-  if (is.null(R2))
-    stop("For input_mode='model_based', R2 must be supplied.")
-
-  .tdt_check_scalar(R2, "R2", lower = 0, strict = TRUE)
-
-  if (is.null(R1)) {
-    R1 <- if (MOI == "M") sqrt(R2) else if (MOI == "D") R2 else 1
-    R1_source <- paste0("derived from MOI='", MOI, "'")
-  } else {
-    .tdt_check_scalar(R1, "R1", lower = 0, strict = TRUE)
-    R1_source <- "supplied explicitly (MOI ignored)"
-  }
-
-  list(R1 = R1, R2 = R2, MOI = MOI, R1_source = R1_source)
-}
-
-
-#' Expected transmission and non-transmission probabilities from a genetic model
-#'
-#' Implements the model-based components of Equation 1.25 of Gordon et al.
-#' (2020). Penetrances follow Equations 1.6 and 1.7:
-#' \deqn{f_0 = \phi_1 / (p_+^2 + 2 R_1 p_+ p_d + R_2 p_d^2),\quad
-#'       f_1 = R_1 f_0,\quad f_2 = R_2 f_0.}
-#' The transmission probabilities per heterozygous parent are
-#' \deqn{g_T^* = p_d p_+ + \delta p_+ C / \phi_1,\quad
-#'       g_{NT}^* = p_d p_+ - \delta p_d C / \phi_1,}
-#' with \eqn{C = p_d f_2 + (1 - 2 p_d) f_1 - p_+ f_0} and
-#' \eqn{\delta = \delta' p_d p_+}. Expected counts over \eqn{N} affected trios
-#' are \eqn{ET = 2 N g_T^*} and \eqn{ENT = 2 N g_{NT}^*}.
-#'
-#' @param prev Numeric in (0,1). Disease prevalence \eqn{\phi_1}.
-#' @param pd Numeric in (0,1). Disease-allele frequency.
-#' @param R1,R2 Numeric > 0. Heterozygote and homozygote relative risks.
-#' @param delta_prime Numeric in \eqn{[0,1]}. Scaled linkage disequilibrium
-#'   parameter.
-#'
-#' @return A list with \code{gT}, \code{gNT}, penetrances, \code{C},
-#'   \code{delta}, and \code{phi1_check}.
-#'
-#' @noRd
-.tdt_model_transmission_probs <- function(prev, pd, R1, R2, delta_prime) {
-  p_plus <- 1 - pd
-
-  # Eq. 1.6 / 1.7: penetrances from prevalence and genotype relative risks.
-  Z  <- p_plus^2 + 2 * R1 * pd * p_plus + R2 * pd^2
-  f0 <- prev / Z
-  f1 <- R1 * f0
-  f2 <- R2 * f0
-
-  if (f1 > 1 || f2 > 1)
-    warning("Computed penetrances f1 or f2 exceed 1; check prev, R1, and R2.")
-
-  # Eq. 1.25 components.
-  C     <- pd * f2 + (1 - 2 * pd) * f1 - p_plus * f0
-  delta <- delta_prime * pd * p_plus
-
-  # phi1 recomputed from the penetrances; algebraically identical to prev and
-  # retained as an internal consistency check.
-  phi1_check <- pd^2 * f2 + 2 * pd * p_plus * f1 + p_plus^2 * f0
-
-  gT  <- pd * p_plus + delta * p_plus * C / phi1_check
-  gNT <- pd * p_plus - delta * pd     * C / phi1_check
-
-  list(
-    gT = gT,
-    gNT = gNT,
-    penetrances = c(f0 = f0, f1 = f1, f2 = f2),
-    C = C,
-    delta = delta,
-    p_plus = p_plus,
-    phi1_check = phi1_check
-  )
-}
-
-
-#' Transmission-probability pipeline for the conditional TDT framework
-#'
-#' Produces the expected transmission and non-transmission probabilities per
-#' heterozygous parent that determine the TDT non-centrality parameter. The
-#' pipeline is the family-based analogue of the case-control genotype-frequency
-#' pipeline: a baseline stage followed by optional heterogeneity modifiers.
-#'
-#' Stage 1 (implemented) builds baseline \eqn{g_T^*} and \eqn{g_{NT}^*} either
-#' from a genetic model or from user-supplied \eqn{ET} and \eqn{ENT}.
-#'
-#' Stage 2 (implemented) mixes the baseline transmission probabilities with a
-#' locus-heterogeneity null term, following Gordon et al. (2020), Sect. 5.3.3,
-#' Eqs. 5.30-5.34b (pp. 293-294), based on Chen et al.'s NCP for the TDT in the
-#' presence of locus heterogeneity. \code{locus_het = TRUE} requires
-#' \code{input_mode = "model_based"}, because the null term depends on
-#' \eqn{p_+}, \eqn{p_d}, \eqn{C}, and \eqn{\delta}, which are not recoverable
-#' from user-supplied \eqn{ET}/\eqn{ENT} alone.
-#'
-#' Stages 3 and 4 are reserved for phenotype misclassification and genotype
-#' misclassification. They currently pass the stage-2 values through unchanged
-#' and record disabled modifier slots, so that the returned object layout is
-#' stable across future versions.
-#'
-#' @param input_mode Character. \code{"model_based"} or \code{"model_free"}.
-#' @param prev,pd,R1,R2,delta_prime Model-based inputs. See
-#'   \code{.tdt_model_transmission_probs()}.
-#' @param ET,ENT Numeric. Model-free expected transmission and non-transmission
-#'   counts.
-#' @param n_trios Numeric. Number of affected trios the model-free \code{ET} and
-#'   \code{ENT} correspond to.
-#' @param locus_het Logical. If \code{TRUE}, mixes the baseline transmission
-#'   probabilities with the locus-heterogeneity null term using \code{pi}.
-#'   Requires \code{input_mode = "model_based"}.
-#' @param pi Numeric in \eqn{[0,1]}. Probability that a trio is linked to the
-#'   disease locus (locus-homogeneity fraction). \code{pi = 1} reproduces the
-#'   stage-1 baseline exactly.
-#'
-#' @return A list with baseline and final \code{gT}/\code{gNT}, a
-#'   \code{model_info} block, a \code{locus_het} block, and an \code{errors}
-#'   block.
-#'
-#' @noRd
-.tdt_transmission_pipeline <- function(input_mode,
-                                       prev, pd, R1, R2, MOI, delta_prime,
-                                       ET, ENT, n_trios,
-                                       locus_het = FALSE, pi = 1) {
-
-  if (isTRUE(locus_het) && input_mode != "model_based")
-    stop("locus_het=TRUE requires input_mode='model_based': the locus-",
-         "heterogeneity null term depends on p_plus, p_d, C, and delta, which ",
-         "are not available when transmission probabilities are supplied ",
-         "directly as ET/ENT.")
-
-  # ---- stage 1: baseline transmission probabilities ----
-  if (input_mode == "model_based") {
-
-    .tdt_check_scalar(prev, "prev", lower = 0, upper = 1, strict = TRUE)
-    .tdt_check_scalar(pd, "pd", lower = 0, upper = 1, strict = TRUE)
-    .tdt_check_scalar(delta_prime, "delta_prime", lower = 0, upper = 1)
-
-    rr <- .tdt_resolve_relative_risks(R1 = R1, R2 = R2, MOI = MOI)
-
-    mod <- .tdt_model_transmission_probs(
-      prev = prev, pd = pd,
-      R1 = rr$R1, R2 = rr$R2,
-      delta_prime = delta_prime
-    )
-
-    gT_base  <- mod$gT
-    gNT_base <- mod$gNT
-
-    model_info <- list(
-      input_mode = "model_based",
-      prev = prev,
-      pd = pd,
-      qd = mod$p_plus,
-      R1 = rr$R1,
-      R2 = rr$R2,
-      MOI = rr$MOI,
-      R1_source = rr$R1_source,
-      delta_prime = delta_prime,
-      delta = mod$delta,
-      C = mod$C,
-      penetrances = mod$penetrances,
-      phi1_check = mod$phi1_check
-    )
-
-  } else {
-
-    if (is.null(ET) || is.null(ENT))
-      stop("For input_mode='model_free', ET and ENT must both be supplied.")
-
-    .tdt_check_scalar(ET, "ET", lower = 0)
-    .tdt_check_scalar(ENT, "ENT", lower = 0)
-
-    if (ET + ENT <= 0)
-      stop("ET + ENT must be positive.")
-
-    # ET and ENT are counts accumulated over n_trios affected trios, each
-    # contributing two parental transmissions: ET = 2 * n_trios * gT.
-    gT_base  <- ET  / (2 * n_trios)
-    gNT_base <- ENT / (2 * n_trios)
-
-    model_info <- list(
-      input_mode = "model_free",
-      ET_supplied = ET,
-      ENT_supplied = ENT,
-      n_trios_supplied = n_trios
-    )
-  }
-
-  # ---- stage 2: locus heterogeneity ----
-  # Gordon et al. (2020), Sect. 5.3.3, Eq. 5.33 (p. 294): gT/gNT mix the
-  # baseline (pi = 1) term with a null term for trios unlinked to this locus.
-  if (isTRUE(locus_het)) {
-    null_gT  <- mod$delta * (mod$p_plus - 0.5) * mod$C / prev + pd * mod$p_plus
-    null_gNT <- mod$delta * (0.5 - pd) * mod$C / prev + pd * mod$p_plus
-
-    gT  <- pi * gT_base  + (1 - pi) * null_gT
-    gNT <- pi * gNT_base + (1 - pi) * null_gNT
-  } else {
-    gT  <- gT_base
-    gNT <- gNT_base
-  }
-
-  locus_het_info <- list(
-    enabled = locus_het,
-    pi = pi,
-    gT_before_locus_het = gT_base,
-    gNT_before_locus_het = gNT_base,
-    gT_after_locus_het = gT,
-    gNT_after_locus_het = gNT
-  )
-
-  # ---- stage 3: phenotype misclassification (not implemented) ----
-  # TODO: Gordon et al. (2020) Sect. 5.2.6.
-  pheno_misclass_info <- list(
-    enabled = FALSE,
-    model = "none",
-    gT_after_pheno_misclass = gT,
-    gNT_after_pheno_misclass = gNT
-  )
-
-  # ---- stage 4: genotype misclassification (not implemented) ----
-  # TODO: Gordon et al. (2020) Sect. 5.2.5, including type I error inflation.
-  geno_misclass_info <- list(
-    enabled = FALSE,
-    model = "none"
-  )
-
-  list(
-    gT_base = gT_base,
-    gNT_base = gNT_base,
-    gT = gT,
-    gNT = gNT,
-    model_info = model_info,
-    locus_het = locus_het_info,
-    errors = list(
-      phenotype_misclass = pheno_misclass_info,
-      genotype_misclass = geno_misclass_info
-    )
-  )
-}
-
-
-#' Validate transmission probabilities before computing the NCP
-#'
-#' @param gT,gNT Numeric transmission and non-transmission probabilities.
-#' @param context Character. \code{"power"} or \code{"mssn"}; controls whether a
-#'   null effect is a warning or an error.
-#'
-#' @return Invisibly \code{TRUE}.
-#'
-#' @noRd
-.tdt_check_transmission_probs <- function(gT, gNT, context = c("power", "mssn")) {
-  context <- match.arg(context)
-
-  if (!is.finite(gT) || !is.finite(gNT))
-    stop("Transmission probabilities are not finite; check inputs.")
-  if (gT < 0 || gNT < 0)
-    stop("Transmission probabilities cannot be negative; check pd, delta_prime, ",
-         "and the relative risks.")
-  if (gT + gNT <= 0)
-    stop("gT + gNT must be positive; check inputs.")
-
-  if (abs(gT - gNT) < 1e-12) {
-    if (context == "mssn") {
-      stop("gT equals gNT, so the non-centrality parameter is 0 and no finite ",
-           "sample size attains the target power. This happens when there is ",
-           "no linkage disequilibrium (delta_prime = 0) or no genotype effect ",
-           "(R1 = R2 = 1).")
-    } else {
-      warning("gT equals gNT, so the non-centrality parameter is 0 and power ",
-              "equals alpha.")
-    }
-  }
-
-  invisible(TRUE)
-}
-
-
-#' Format helpers for clean console output
-#' @noRd
-.tdt_fmt_f <- function(x, digits = 3) formatC(x, format = "f", digits = digits)
-
-#' @noRd
-.tdt_fmt_e <- function(x, digits = 2) formatC(x, format = "e", digits = digits)
-
-
-#' Print the shared input block for the conditional TDT summaries
-#' @noRd
-.tdt_print_inputs <- function(pipe, input_mode, alpha) {
-  fmt2 <- "%-32s %12s  |  %-28s %12s"
-  mi <- pipe$model_info
-
-  message(sprintf(
-    fmt2,
-    "Input Mode:", input_mode,
-    "Significance Level (alpha):", .tdt_fmt_e(alpha, 2)
-  ))
-
-  if (input_mode == "model_based") {
-    message(sprintf(
-      fmt2,
-      "Disease Prevalence (phi1):", .tdt_fmt_f(mi$prev, 4),
-      "Risk Allele Freq (p_d):", .tdt_fmt_f(mi$pd, 4)
-    ))
-    message(sprintf(
-      fmt2,
-      "MOI:", mi$MOI,
-      "Relative Risks (R1,R2):",
-      paste0(.tdt_fmt_f(mi$R1, 3), ",", .tdt_fmt_f(mi$R2, 3))
-    ))
-    message(sprintf(
-      "%-32s %12s",
-      "LD parameter (delta_prime):", .tdt_fmt_f(mi$delta_prime, 4)
-    ))
-  } else {
-    message("Model-free input: user-supplied ET and ENT")
-    message(sprintf(
-      fmt2,
-      "Expected Transmissions (ET):", .tdt_fmt_f(mi$ET_supplied, 4),
-      "Expected Non-Transm. (ENT):", .tdt_fmt_f(mi$ENT_supplied, 4)
-    ))
-    message(sprintf(
-      "%-32s %12s",
-      "Trios for supplied ET/ENT:", format(mi$n_trios_supplied)
-    ))
-  }
-
-  if (isTRUE(pipe$locus_het$enabled)) {
-    message(sprintf(
-      "%-32s %12s",
-      "Locus heterogeneity:", paste0("enabled, pi=", .tdt_fmt_f(pipe$locus_het$pi, 3))
-    ))
-  } else {
-    message(sprintf("%-32s %12s", "Locus heterogeneity:", "none"))
-  }
-  message(sprintf("%-32s %12s", "Phenotype misclassification:", "none"))
-  message(sprintf("%-32s %12s", "Genotype misclassification:", "none"))
-
-  invisible(NULL)
-}
-
-
-# ---- exported functions ------------------------------------------------------
-
-#' Family-Based (TDT) Power for Conditional Transmission Probabilities
-#'
-#' Computes power for the transmission disequilibrium test at a fixed number of
-#' affected trios. This is the family-based analogue of
-#' \code{\link{cc_power_conditional_full}}: it accepts either a genetic model or
-#' user-supplied expected transmission counts through a single generalized
-#' interface, and returns a structured object with the same overall layout.
-#'
-#' @param n_trios Numeric \eqn{> 0}. Number of affected trios.
-#' @param alpha Numeric in \eqn{(0,1)}. Significance level.
-#' @param input_mode Character. One of \code{"model_based"} or
+#' @param N Numeric \eqn{> 0}. Number of affected trios.
+#' @param input_mode Character. One of \code{"model_based"} (default) or
 #'   \code{"model_free"}. See Details.
-#' @param prev Numeric in \eqn{(0,1)}. Disease prevalence \eqn{\phi_1} for
-#'   \code{input_mode = "model_based"}.
-#' @param pd Numeric in \eqn{(0,1)}. Disease-allele frequency for
-#'   \code{input_mode = "model_based"}.
-#' @param R1 Numeric \eqn{> 0} or \code{NULL}. Heterozygote relative risk. When
-#'   \code{NULL}, it is derived from \code{MOI}.
-#' @param R2 Numeric \eqn{> 0}. Homozygote relative risk for
-#'   \code{input_mode = "model_based"}.
-#' @param MOI Character. Mode of inheritance used to derive \code{R1} when
-#'   \code{R1} is \code{NULL}: \code{"M"} for multiplicative, \code{"D"} for
-#'   dominant, or \code{"Rec"} for recessive.
-#' @param delta_prime Numeric in \eqn{[0,1]}. Scaled linkage disequilibrium
-#'   parameter \eqn{\delta'} between the marker and trait loci.
-#' @param ET,ENT Numeric \eqn{\ge 0} for \code{input_mode = "model_free"}.
-#'   Expected transmission and non-transmission counts accumulated over
-#'   \code{n_trios} affected trios.
-#' @param locus_het Logical. If \code{TRUE}, mixes the baseline transmission
-#'   probabilities with a locus-heterogeneity null term via \code{pi}.
-#'   Requires \code{input_mode = "model_based"}.
-#' @param pi Numeric in \eqn{[0,1]}. Probability that a trio is linked to the
-#'   disease locus (locus-homogeneity fraction) when \code{locus_het = TRUE}.
-#'   \code{pi = 1} is full homogeneity and reproduces the no-heterogeneity
-#'   result exactly.
-#' @param verbose Logical. If \code{TRUE}, prints a clean formatted summary.
+#' @param pd Numeric in (0,1). Frequency of the disease/high-risk allele at
+#'   the marker locus. Required for \code{input_mode = "model_based"}.
+#'   Optional for \code{"model_free"}: required only if \code{heter_rate} or
+#'   \code{misclass_rate} is non-zero, and if omitted in that case it is
+#'   solved from \code{ET}/\code{ENT} (see Details).
+#' @param prev Numeric in (0,1). Disease prevalence (\eqn{\phi_1}). Required
+#'   for \code{input_mode = "model_based"}. Required for \code{"model_free"}
+#'   only if \code{misclass_rate} is non-zero.
+#' @param R1 Numeric \eqn{> 0}. Genotype relative risk for heterozygotes.
+#'   Required for \code{input_mode = "model_based"}; unused for
+#'   \code{"model_free"}.
+#' @param R2 Numeric \eqn{> 0}. Genotype relative risk for homozygotes.
+#'   Required for \code{input_mode = "model_based"}; unused for
+#'   \code{"model_free"}.
+#' @param alpha Numeric in (0,1). Significance level for the TDT
+#'   (default \code{0.05}).
+#' @param delta_prime Numeric. Linkage disequilibrium scale parameter
+#'   \eqn{D'} (default \code{1}). Used for \code{input_mode = "model_based"}
+#'   only.
+#' @param misclass_rate Numeric in \eqn{[0,1)}. Phenotype misclassification
+#'   rate for controls (\eqn{\pi_{01}}). A value of \code{0} corresponds to
+#'   no misclassification.
+#' @param heter_rate Numeric in \eqn{[0,1)}. Proportion of trios whose
+#'   affection status is \emph{not} due to the locus of interest
+#'   (\eqn{1 - \pi}). A value of \code{0} corresponds to complete
+#'   homogeneity.
+#' @param ET,ENT Numeric \eqn{\ge 0}. Expected transmission and
+#'   non-transmission counts for \code{input_mode = "model_free"}, assumed to
+#'   be accumulated over the same \code{N} trios that power is computed for.
+#' @param verbose Logical. If \code{TRUE} (default), prints a formatted
+#'   summary of non-centrality parameters, power, and expected transmission
+#'   probabilities.
 #'
 #' @details
-#' The workflow is:
-#' \enumerate{
-#' \item Construct baseline expected transmission probabilities \eqn{g_T^*} and
-#' \eqn{g_{NT}^*} per heterozygous parent.
-#' \item Optionally mix with a locus-heterogeneity null term when
-#' \code{locus_het = TRUE} (see below).
-#' \item Reserved for phenotype misclassification (not implemented).
-#' \item Reserved for genotype misclassification (not implemented).
-#' \item Compute the non-centrality parameter and power from the resulting
-#' expected counts.
-#' }
+#' With \code{input_mode = "model_based"}, this function is a direct copy of
+#' \code{\link{tdt_power_full}}: penetrances \eqn{f_0, f_1, f_2} are derived
+#' from \code{prev}, \code{R1}, \code{R2}, and \code{pd}, and the expected
+#' transmission and non-transmission probabilities under each of the three
+#' scenarios are computed exactly as in that function (misclassification via
+#' Equations 5.26-5.28, heterogeneity via Equation 5.34).
 #'
-#' With \code{input_mode = "model_based"}, penetrances are derived from
-#' \code{prev}, \code{pd}, \code{R1}, and \code{R2} using Equations 1.6 and 1.7,
-#' and expected counts follow Equation 1.25:
-#' \deqn{ET = 2 N [p_d p_+ + \delta p_+ C / \phi_1], \quad
-#'       ENT = 2 N [p_d p_+ - \delta p_d C / \phi_1],}
-#' where \eqn{C = p_d f_2 + (1 - 2 p_d) f_1 - p_+ f_0} and
-#' \eqn{\delta = \delta' p_d p_+}.
+#' With \code{input_mode = "model_free"}, the no-error scenario uses
+#' \eqn{g_T = ET / (2N)} and \eqn{g_{NT} = ENT / (2N)} directly. The
+#' misclassification and heterogeneity scenarios are then computed from the
+#' following identities, which are algebraically equivalent to the
+#' calc_gTgNT_heter() and calc_gTgNT_misclass() helpers copied from
+#' \code{\link{tdt_power_full}}. Let \eqn{A = g_T - g_{NT}} (no-error) and
+#' \eqn{p_+ = 1 - p_d}:
+#' \deqn{\text{heterogeneity: } g_T = p_d p_+ + A (p_+ - 0.5 \times
+#'   \text{heter\_rate}), \quad
+#'   g_{NT} = p_d p_+ + A (-p_d + 0.5 \times \text{heter\_rate}),}
+#' \deqn{\text{misclassification: } m = \frac{\phi_1 (1 - \pi_{01})}
+#'   {\phi_1 + \pi_{01} (1 - \phi_1)}, \quad
+#'   g_T = p_d p_+ + p_+ A m, \quad g_{NT} = p_d p_+ - p_d A m.}
+#' A scenario is only computed from these identities when its rate is
+#' non-zero; at a rate of exactly \code{0} the scenario reuses the no-error
+#' \eqn{g_T}/\eqn{g_{NT}} directly, so \code{pd} is not required unless at
+#' least one rate is non-zero, and \code{prev} is not required unless
+#' \code{misclass_rate} is non-zero.
 #'
-#' With \code{input_mode = "model_free"}, the user supplies \code{ET} and
-#' \code{ENT} directly. Unlike the case-control framework, whose model-free
-#' inputs are case and control genotype frequencies, the natural model-free
-#' inputs here are the expected transmission counts, because they completely
-#' determine the TDT non-centrality parameter. No genotype frequencies are
-#' involved.
+#' If \code{pd} is needed but not supplied, it is solved from \code{ET} and
+#' \code{ENT} via \eqn{2 p_d^2 - 2 p_d (1 - A) + (g_T + g_{NT} - A) = 0}. This
+#' quadratic has two roots summing to \eqn{1 - A}; the root in \eqn{(0, 0.5)}
+#' is used, with a message reporting the derived value. An error is raised if
+#' no such unique root exists -- supplying \code{pd} directly is preferred.
 #'
-#' When \code{locus_het = TRUE}, the transmission probabilities are mixed with
-#' a null term for trios not linked to the locus of interest, following Gordon
-#' et al. (2020), Sect. 5.3.3, Eq. 5.33 (p. 294), based on the NCP derived by
-#' Chen et al. (2009):
-#' \deqn{g_T^* = \pi g_T + (1 - \pi)
-#'   \left[\delta (p_+ - 0.5) C / \phi_1 + p_d p_+\right], \quad
-#'   g_{NT}^* = \pi g_{NT} + (1 - \pi)
-#'   \left[\delta (0.5 - p_d) C / \phi_1 + p_d p_+\right],}
-#' where \eqn{g_T} and \eqn{g_{NT}} are the stage-1 baseline transmission
-#' probabilities and \eqn{\pi} is the locus-homogeneity fraction. This modifier
-#' requires \code{input_mode = "model_based"}, because the null term depends on
-#' \eqn{p_+}, \eqn{p_d}, \eqn{C}, and \eqn{\delta}, which are not recoverable
-#' from user-supplied \eqn{ET}/\eqn{ENT} alone.
-#'
-#' In both modes the non-centrality parameter is
-#' \deqn{\lambda = (ET - ENT)^2 / (ET + ENT),}
-#' and the TDT statistic follows a central chi-square distribution with 1 degree
-#' of freedom under the null and a non-central chi-square distribution with 1
-#' degree of freedom under the alternative (Table 1.5).
-#'
-#' The \code{errors} component of the returned object is always present and
-#' currently reports disabled modifiers, so that downstream wrappers and
-#' plotting functions can rely on a stable layout as phenotype and genotype
-#' misclassification are added.
-#'
-#' @return An object of class \code{"tdt_power_conditional_full"}: a nested list
-#' with components \code{alpha}, \code{n_trios}, \code{input_mode},
-#' \code{delta_prime}, \code{locus_het}, \code{errors}, \code{model_info},
-#' \code{tests}, and \code{transmissions}. \code{tests$tdt} contains the test
-#' label, degrees of freedom, non-centrality parameter, internal \code{S}
-#' component, and \code{power}. \code{transmissions} stores baseline and
-#' observed \code{gT}/\code{gNT} probabilities and \code{ET}/\code{ENT} counts.
-#' \code{locus_het} reports whether the modifier was applied, \code{pi}, and the
-#' \code{gT}/\code{gNT} values before and after the modifier.
+#' @return
+#' An object of class \code{"tdt_power_conditional_full"}: a list with the
+#' same components as \code{\link{tdt_power_full}} (\code{alpha}, \code{N},
+#' \code{lambda}, \code{power}, \code{power_loss}, \code{gT_star},
+#' \code{gNT_star}, \code{ET}, \code{ENT}, \code{model_parameters}), plus
+#' \code{input_mode}.
 #'
 #' @examples
+#' # model_based: identical to tdt_power_full()
 #' tdt_power_conditional_full(
-#'   n_trios = 10000, alpha = 0.05,
-#'   input_mode = "model_based",
-#'   prev = 0.05, pd = 0.25, R1 = 1, R2 = 1.1,
-#'   delta_prime = 1,
+#'   N = 600, input_mode = "model_based",
+#'   pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+#'   misclass_rate = 0.01, heter_rate = 0.10,
 #'   verbose = FALSE
-#' )
+#' )$power$no_error
 #'
+#' # model_free: supply expected transmissions/non-transmissions directly
 #' tdt_power_conditional_full(
-#'   n_trios = 500, alpha = 0.05,
-#'   input_mode = "model_based",
-#'   prev = 0.005, pd = 0.25, R2 = 2, MOI = "D",
-#'   delta_prime = 1,
-#'   verbose = FALSE
-#' )
-#'
-#' tdt_power_conditional_full(
-#'   n_trios = 120, alpha = 0.05,
-#'   input_mode = "model_free",
+#'   N = 600, input_mode = "model_free",
 #'   ET = 140, ENT = 100,
+#'   pd = 0.30, prev = 0.05,
+#'   misclass_rate = 0.01, heter_rate = 0.10,
 #'   verbose = FALSE
-#' )
-#'
-#' tdt_power_conditional_full(
-#'   n_trios = 500, alpha = 0.05,
-#'   input_mode = "model_based",
-#'   prev = 0.005, pd = 0.25, R1 = 2, R2 = 2,
-#'   delta_prime = 1,
-#'   locus_het = TRUE, pi = 0.99,
-#'   verbose = FALSE
-#' )
+#' )$power$no_error
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Kim, W. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
-#' Equations 1.6, 1.7, and 1.25; Table 1.5; Sect. 5.3.3, Eqs. 5.30-5.34b
-#' (pp. 293-294).
+#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
+#' \emph{Heterogeneity in Statistical Genetics}. Springer Nature.
+#' Equations 5.26-5.28 (misclassification) and Equation 5.34
+#' (heterogeneity).
 #'
-#' Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
-#' for linkage disequilibrium: the insulin gene region and insulin-dependent
-#' diabetes mellitus (IDDM). \emph{American Journal of Human Genetics}, 52,
-#' 506-516.
-#'
-#' Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
-#' (2009). Transmission disequilibrium test power and sample size in the
-#' presence of locus heterogeneity. \emph{Statistical Applications in Genetics
-#' and Molecular Biology}, 8(44). \doi{10.2202/1544-6115.1501}
-#'
-#' Deng, H. W., & Chen, W. M. (2001). The power of the transmission
-#' disequilibrium test (TDT) with both case-parent and control-parent trios.
-#' \emph{Genetical Research}, 78(3), 289-302.
-#'
-#' @seealso \code{\link{tdt_mssn_conditional_full}} for the sample-size
-#'   counterpart, and \code{\link{cc_power_conditional_full}} for the
-#'   population-based analogue.
+#' @seealso \code{\link{tdt_power_full}}, the function this is copied from,
+#'   and \code{\link{tdt_mssn_conditional_full}} for the sample-size
+#'   counterpart.
 #'
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
 tdt_power_conditional_full <- function(
-    n_trios, alpha,
-
+    N,
     input_mode = c("model_based", "model_free"),
-
-    # model-based inputs
-    prev = NULL,
     pd   = NULL,
+    prev = NULL,
     R1   = NULL,
     R2   = NULL,
-    MOI  = c("M", "D", "Rec"),
+    alpha = 0.05,
     delta_prime = 1,
-
-    # model-free inputs
+    misclass_rate = 0.01,
+    heter_rate   = 0.01,
     ET  = NULL,
     ENT = NULL,
-
-    # locus heterogeneity modifier
-    locus_het = FALSE,
-    pi = 1,
-
     verbose = TRUE
 ) {
-
   input_mode <- match.arg(input_mode)
-  MOI <- match.arg(MOI)
 
-  # ---- checks ----
-  .tdt_check_scalar(n_trios, "n_trios", lower = 0, strict = TRUE)
-  .tdt_check_scalar(alpha, "alpha", lower = 0, upper = 1, strict = TRUE)
-  if (!is.logical(locus_het) || length(locus_het) != 1)
-    stop("locus_het must be TRUE or FALSE.")
-  if (!is.numeric(pi) || length(pi) != 1 || pi < 0 || pi > 1)
-    stop("pi must be a single number in [0,1].")
+  ## ---- basic argument checks ----
+  if (misclass_rate < 0 || misclass_rate >= 1)
+    stop("misclass_rate must be in [0, 1).")
+  if (heter_rate < 0 || heter_rate >= 1)
+    stop("heter_rate must be in [0, 1).")
 
-  # ---- transmission pipeline ----
-  pipe <- .tdt_transmission_pipeline(
-    input_mode = input_mode,
-    prev = prev, pd = pd, R1 = R1, R2 = R2, MOI = MOI,
-    delta_prime = delta_prime,
-    ET = ET, ENT = ENT, n_trios = n_trios,
-    locus_het = locus_het, pi = pi
-  )
+  if (input_mode == "model_based") {
+    if (is.null(pd) || is.null(prev) || is.null(R1) || is.null(R2))
+      stop("For input_mode='model_based', pd, prev, R1, and R2 must all be supplied.")
+  } else {
+    if (is.null(ET) || is.null(ENT))
+      stop("For input_mode='model_free', ET and ENT must both be supplied.")
+    if (misclass_rate != 0 && is.null(prev))
+      stop("For input_mode='model_free' with misclass_rate != 0, prev must be supplied.")
+  }
 
-  gT  <- pipe$gT
-  gNT <- pipe$gNT
+  ## ---------- internal helper: gT* and gNT* with misclassification (Eq. 5.28a,b) ----------
+  calc_gTgNT_misclass <- function(pd, prev, R1, R2,
+                                  delta_prime, pi01) {
+    p_plus <- 1 - pd
+    phi1   <- prev
+    phi0   <- 1 - phi1
 
-  .tdt_check_transmission_probs(gT, gNT, context = "power")
+    Z  <- p_plus^2 + 2 * pd * p_plus * R1 + R2 * pd^2
+    f0 <- prev / Z
+    f1 <- R1 * f0
+    f2 <- R2 * f0
 
-  # ---- expected counts and non-centrality parameter ----
-  ET_obs  <- 2 * n_trios * gT
-  ENT_obs <- 2 * n_trios * gNT
+    if (f1 > 1 || f2 > 1) {
+      warning("Computed penetrances f1 or f2 exceed 1; check prev/R1/R2 inputs.")
+    }
 
-  # S is the per-trio effect size; lambda = 2 * n_trios * S. Retained for
-  # validation and for the MSSN counterpart, but not printed.
-  S <- (gT - gNT)^2 / (gT + gNT)
-  lambda <- 2 * n_trios * S
+    C  <- pd * f2 + (1 - 2 * pd) * f1 - p_plus * f0
 
-  crit  <- qchisq(1 - alpha, df = 1)
-  power <- pchisq(crit, df = 1, ncp = lambda, lower.tail = FALSE)
+    D   <- delta_prime * pd * p_plus
+    DpT <- D * p_plus
+    DpA <- D * pd
 
-  # ---- output ----
+    denom <- phi1 + pi01 * phi0
+
+    gT_star  <- (pd * p_plus) + (DpT * C * (1 - pi01)) / denom
+    gNT_star <- (pd * p_plus) + (DpA * C * (pi01 - 1)) / denom
+
+    list(
+      gT_star = gT_star,
+      gNT_star = gNT_star,
+      p_plus = p_plus,
+      phi1 = phi1,
+      phi0 = phi0,
+      C = C,
+      D = D,
+      f0 = f0,
+      f1 = f1,
+      f2 = f2
+    )
+  }
+
+  ## ---------- internal helper: gT* and gNT* with heterogeneity (Eq. 5.34) ----------
+  calc_gTgNT_heter <- function(pd, prev, R1, R2,
+                               delta_prime, heter_rate) {
+    p_plus <- 1 - pd
+    Z  <- p_plus^2 + 2 * pd * p_plus * R1 + R2 * pd^2
+    f0 <- prev / Z
+    f1 <- R1 * f0
+    f2 <- R2 * f0
+
+    if (f1 > 1 || f2 > 1) {
+      warning("Computed penetrances f1 or f2 exceed 1; check prev/R1/R2 inputs.")
+    }
+
+    C  <- pd * f2 + (1 - 2 * pd) * f1 - p_plus * f0
+    delta <- delta_prime * pd * p_plus
+
+    # pi = fraction of trios truly due to this locus
+    pi <- 1 - heter_rate
+
+    gT_star  <- pi * ( p_plus * ( delta * C / prev + pd ) ) +
+      (1 - pi) * ( delta * (p_plus - 0.5) * C / prev + pd * p_plus )
+
+    gNT_star <- pi * ( pd * ( p_plus - delta * C / prev ) ) +
+      (1 - pi) * ( delta * (0.5 - pd) * C / prev + pd * p_plus )
+
+    list(
+      gT_star = gT_star,
+      gNT_star = gNT_star,
+      p_plus = p_plus,
+      C = C,
+      f0 = f0,
+      f1 = f1,
+      f2 = f2,
+      delta = delta,
+      pi = pi
+    )
+  }
+
+  ## ---------- internal helper: solve pd from gT, gNT when not supplied ----------
+  solve_pd_from_gTgNT <- function(gT, gNT) {
+    A <- gT - gNT
+    qa <- 2
+    qb <- -2 * (1 - A)
+    qc <- gT + gNT - A
+    disc <- qb^2 - 4 * qa * qc
+    if (!is.finite(disc) || disc < 0)
+      stop("Cannot solve for pd from the supplied ET/ENT: no real root exists. ",
+           "Supply pd directly.")
+    roots <- (-qb + c(1, -1) * sqrt(disc)) / (2 * qa)
+    candidates <- roots[roots > 0 & roots < 0.5]
+    if (length(candidates) != 1)
+      stop("Cannot uniquely determine pd in (0, 0.5) from the supplied ET/ENT; ",
+           "supply pd directly.")
+    message(
+      "pd not supplied for input_mode='model_free'; using pd = ",
+      formatC(candidates, format = "f", digits = 6),
+      " solved from the supplied ET/ENT (root in (0, 0.5))."
+    )
+    candidates
+  }
+
+  lambda_from_gTgNT <- function(N, gT_star, gNT_star) {
+    2 * N * (gT_star - gNT_star)^2 / (gT_star + gNT_star)
+  }
+
+  crit <- qchisq(1 - alpha, df = 1)
+
+  if (input_mode == "model_based") {
+
+    ## ===== (1) NO MISCLASSIFICATION, NO HETEROGENEITY =====
+    p_plus <- 1 - pd
+    Z  <- p_plus^2 + 2 * pd * p_plus * R1 + R2 * pd^2
+    f0 <- prev / Z
+    f1 <- R1 * f0
+    f2 <- R2 * f0
+
+    if (f1 > 1 || f2 > 1) {
+      warning("Computed penetrances f1 or f2 exceed 1; check prev/R1/R2 inputs.")
+    }
+
+    C  <- pd * f2 + (1 - 2 * pd) * f1 - p_plus * f0
+    prev_ <- pd^2 * f2 + 2 * pd * p_plus * f1 + p_plus^2 * f0
+    delta <- delta_prime * pd * p_plus
+
+    ET_nomisc  <- 2 * N * (pd * p_plus + delta * p_plus * C / prev_)
+    ENT_nomisc <- 2 * N * (pd * p_plus - delta * pd    * C / prev_)
+
+    lambda_nomisc <- (ET_nomisc - ENT_nomisc)^2 / (ET_nomisc + ENT_nomisc)
+    power_nomisc  <- 1 - pchisq(crit, df = 1, ncp = lambda_nomisc)
+
+    gT_nomisc  <- ET_nomisc  / (2 * N)
+    gNT_nomisc <- ENT_nomisc / (2 * N)
+
+    ## ===== (2) MISCLASSIFICATION ONLY =====
+    g_misc <- calc_gTgNT_misclass(
+      pd = pd, prev = prev, R1 = R1, R2 = R2,
+      delta_prime = delta_prime,
+      pi01 = misclass_rate
+    )
+    gT_misc  <- g_misc$gT_star
+    gNT_misc <- g_misc$gNT_star
+
+    lambda_misc <- lambda_from_gTgNT(N, gT_misc, gNT_misc)
+    power_misc  <- 1 - pchisq(crit, df = 1, ncp = lambda_misc)
+    ET_misc     <- 2 * N * gT_misc
+    ENT_misc    <- 2 * N * gNT_misc
+
+    ## ===== (3) HETEROGENEITY ONLY =====
+    g_het <- calc_gTgNT_heter(
+      pd = pd, prev = prev, R1 = R1, R2 = R2,
+      delta_prime = delta_prime,
+      heter_rate = heter_rate
+    )
+    gT_het  <- g_het$gT_star
+    gNT_het <- g_het$gNT_star
+
+    lambda_het <- lambda_from_gTgNT(N, gT_het, gNT_het)
+    power_het  <- 1 - pchisq(crit, df = 1, ncp = lambda_het)
+    ET_het     <- 2 * N * gT_het
+    ENT_het    <- 2 * N * gNT_het
+
+  } else {
+
+    ## ===== model-free: (1) NO MISCLASSIFICATION, NO HETEROGENEITY =====
+    ET_nomisc  <- ET
+    ENT_nomisc <- ENT
+    gT_nomisc  <- ET  / (2 * N)
+    gNT_nomisc <- ENT / (2 * N)
+
+    lambda_nomisc <- (ET_nomisc - ENT_nomisc)^2 / (ET_nomisc + ENT_nomisc)
+    power_nomisc  <- 1 - pchisq(crit, df = 1, ncp = lambda_nomisc)
+
+    A <- gT_nomisc - gNT_nomisc
+
+    if (is.null(pd) && (heter_rate != 0 || misclass_rate != 0)) {
+      pd <- solve_pd_from_gTgNT(gT_nomisc, gNT_nomisc)
+    }
+
+    ## ===== (2) MISCLASSIFICATION ONLY =====
+    if (misclass_rate == 0) {
+      gT_misc  <- gT_nomisc
+      gNT_misc <- gNT_nomisc
+    } else {
+      p_plus <- 1 - pd
+      m <- prev * (1 - misclass_rate) / (prev + misclass_rate * (1 - prev))
+      gT_misc  <- pd * p_plus + p_plus * A * m
+      gNT_misc <- pd * p_plus - pd     * A * m
+    }
+
+    lambda_misc <- lambda_from_gTgNT(N, gT_misc, gNT_misc)
+    power_misc  <- 1 - pchisq(crit, df = 1, ncp = lambda_misc)
+    ET_misc     <- 2 * N * gT_misc
+    ENT_misc    <- 2 * N * gNT_misc
+
+    ## ===== (3) HETEROGENEITY ONLY =====
+    if (heter_rate == 0) {
+      gT_het  <- gT_nomisc
+      gNT_het <- gNT_nomisc
+    } else {
+      p_plus <- 1 - pd
+      gT_het  <- pd * p_plus + A * (p_plus - 0.5 * heter_rate)
+      gNT_het <- pd * p_plus + A * (-pd    + 0.5 * heter_rate)
+    }
+
+    lambda_het <- lambda_from_gTgNT(N, gT_het, gNT_het)
+    power_het  <- 1 - pchisq(crit, df = 1, ncp = lambda_het)
+    ET_het     <- 2 * N * gT_het
+    ENT_het    <- 2 * N * gNT_het
+  }
+
+  ## ----- Losses -----
+  power_loss_misc <- power_nomisc - power_misc
+  power_loss_het  <- power_nomisc - power_het
+
+  # ----- Printed summary -----
+  if (isTRUE(verbose)) {
+    message("\nPOWER FOR A FIXED SAMPLE SIZE\n")
+
+    # nice two-column header with aligned right-hand values
+    fmt_two_col <- "%-32s %10s  |  %-28s %10s"
+    message(sprintf(
+      fmt_two_col,
+      "Number of Trios (N):",
+      formatC(N, format = "d"),
+      "Significance Level (alpha):",
+      formatC(alpha, format = "f", digits = 3)
+    ))
+    message(sprintf("%-32s %10s", "Input Mode:", input_mode))
+    if (!is.null(pd) && !is.null(prev)) {
+      message(sprintf(
+        fmt_two_col,
+        "Allele Frequency (p_d):",
+        formatC(pd, format = "f", digits = 3),
+        "Prevalence (phi1):",
+        formatC(prev, format = "f", digits = 3)
+      ))
+    } else if (!is.null(pd)) {
+      message(sprintf("%-32s %10s", "Allele Frequency (p_d):",
+                      formatC(pd, format = "f", digits = 3)))
+    }
+    if (!is.null(R1) && !is.null(R2)) {
+      message(sprintf("%-32s %10s", "Relative Risks (R1,R2):",
+                      paste0(R1, ", ", R2)))
+    }
+    message(sprintf("%-32s %10.3f", "LD scale (delta_prime):", delta_prime))
+    message(sprintf("%-32s %10.3f", "Misclassification Rate (pi01):", misclass_rate))
+    message(sprintf("%-32s %10.3f\n", "Heterogeneity Rate (1 - pi):", heter_rate))
+
+    message("Non-Centrality Parameters (lambda)")
+    message("---------------------------------------------------------------")
+    message(sprintf("  %-18s %10.4f", "No error:",        lambda_nomisc))
+    message(sprintf("  %-18s %10.4f", "Misclassification:", lambda_misc))
+    message(sprintf("  %-18s %10.4f\n", "Heterogeneity:",    lambda_het))
+
+    message("Power")
+    message(sprintf("  %-18s %10.3f", "No error:",        power_nomisc))
+    message(sprintf("  %-18s %10.3f  (loss = %6.3f)",
+                    "Misclassification:", power_misc, power_loss_misc))
+    message(sprintf("  %-18s %10.3f  (loss = %6.3f)\n",
+                    "Heterogeneity:",    power_het,  power_loss_het))
+
+    message("Expected transmission/non-transmission probabilities (gT*, gNT*)")
+    fmt_g <- "  %-18s %10.5f  |  %-18s %10.5f"
+    message(sprintf(fmt_g,
+                    "gT* (no error):", gT_nomisc,
+                    "gNT* (no error):", gNT_nomisc))
+    message(sprintf(fmt_g,
+                    "gT* (misclass):", gT_misc,
+                    "gNT* (misclass):", gNT_misc))
+    message(sprintf(fmt_g,
+                    "gT* (heter):", gT_het,
+                    "gNT* (heter):", gNT_het))
+  }
+
+  # ----- Clean return object -----
   out <- list(
     alpha = alpha,
-    n_trios = n_trios,
+    N = N,
     input_mode = input_mode,
-    delta_prime = if (input_mode == "model_based") delta_prime else NA_real_,
-    locus_het = pipe$locus_het,
-    errors = pipe$errors,
-    model_info = pipe$model_info,
-    tests = list(
-      tdt = list(
-        test = "transmission disequilibrium test",
-        df = 1,
-        lambda = lambda,
-        S = S,
-        power = power
-      )
+    lambda = list(
+      no_error = lambda_nomisc,
+      misclassification = lambda_misc,
+      heterogeneity = lambda_het
     ),
-    transmissions = list(
-      gT_base = pipe$gT_base,
-      gNT_base = pipe$gNT_base,
-      gT_obs = gT,
-      gNT_obs = gNT,
-      ET = ET_obs,
-      ENT = ENT_obs
+    power = list(
+      no_error = power_nomisc,
+      misclassification = power_misc,
+      heterogeneity = power_het
+    ),
+    power_loss = list(
+      misclassification = power_loss_misc,
+      heterogeneity = power_loss_het
+    ),
+    gT_star = list(
+      no_error = gT_nomisc,
+      misclassification = gT_misc,
+      heterogeneity = gT_het
+    ),
+    gNT_star = list(
+      no_error = gNT_nomisc,
+      misclassification = gNT_misc,
+      heterogeneity = gNT_het
+    ),
+    ET = list(
+      no_error = ET_nomisc,
+      misclassification = ET_misc,
+      heterogeneity = ET_het
+    ),
+    ENT = list(
+      no_error = ENT_nomisc,
+      misclassification = ENT_misc,
+      heterogeneity = ENT_het
+    ),
+    model_parameters = list(
+      pd = pd,
+      qd = if (!is.null(pd)) 1 - pd else NA_real_,
+      prev = prev,
+      R1 = R1,
+      R2 = R2,
+      delta_prime = delta_prime,
+      misclass_rate = misclass_rate,
+      heter_rate = heter_rate
     )
   )
 
   class(out) <- "tdt_power_conditional_full"
-
-  # ---- clean printed output ----
-  if (isTRUE(verbose)) {
-
-    message("\n--- Family-Based (TDT): Power for Fixed Number of Trios ---")
-    message("Equation: 1.25  |  Test: transmission disequilibrium test (df = 1)")
-    message("--------------------------------------------------------------------------")
-
-    message(sprintf(
-      "%-32s %12s  |  %-28s %12s",
-      "Number of Trios (N):", format(n_trios),
-      "Test Degrees of Freedom:", "1"
-    ))
-
-    .tdt_print_inputs(pipe, input_mode, alpha)
-
-    message("--------------------------------------------------------------------------")
-    message("Power")
-    message(sprintf(
-      "  %-16s lambda=%10.4f  |  power=%8.4f",
-      "TDT:", lambda, power
-    ))
-
-    message("--------------------------------------------------------------------------")
-    message("Expected transmissions and non-transmissions")
-    message(sprintf("  %-28s %12.4f", "ET:", ET_obs))
-    message(sprintf("  %-28s %12.4f", "ENT:", ENT_obs))
-    message(sprintf("  %-28s %12.6f", "gT  (per parent):", gT))
-    message(sprintf("  %-28s %12.6f", "gNT (per parent):", gNT))
-
-    message("--------------------------------------------------------------------------")
-  }
-
   invisible(out)
 }
 
 
-#' Family-Based (TDT) Minimum Sample Size for Conditional Transmission Probabilities
+#' Family-Based (TDT) Minimum Sample Size for a Fixed Power (Conditional)
 #'
-#' Computes the minimum sample size necessary (MSSN), expressed as a number of
-#' affected trios, for the transmission disequilibrium test to attain a target
-#' power. This is the family-based analogue of
-#' \code{\link{cc_mssn_conditional_full}} and shares its interface, workflow,
-#' and returned-object layout.
+#' Computes the minimum number of affected trios required to achieve a
+#' specified power for the transmission disequilibrium test (TDT) under three
+#' scenarios: (i) no error, (ii) phenotype misclassification only, and (iii)
+#' locus heterogeneity only. This is a copy of
+#' \code{\link{tdt_required_trios_full}} with one addition: \code{input_mode}
+#' lets the transmission probabilities come either from a genetic model
+#' (\code{"model_based"}, the default, numerically identical to
+#' \code{\link{tdt_required_trios_full}}) or directly from user-supplied
+#' expected transmission and non-transmission counts (\code{"model_free"}).
 #'
-#' @param power Numeric in \eqn{(0,1)}. Desired target power.
-#' @param alpha Numeric in \eqn{(0,1)}. Significance level.
-#' @param input_mode Character. One of \code{"model_based"} or
+#' @param target_power Numeric in (0,1). Desired power for the TDT.
+#' @param input_mode Character. One of \code{"model_based"} (default) or
 #'   \code{"model_free"}. See Details.
-#' @param prev Numeric in \eqn{(0,1)}. Disease prevalence \eqn{\phi_1} for
-#'   \code{input_mode = "model_based"}.
-#' @param pd Numeric in \eqn{(0,1)}. Disease-allele frequency for
-#'   \code{input_mode = "model_based"}.
-#' @param R1 Numeric \eqn{> 0} or \code{NULL}. Heterozygote relative risk. When
-#'   \code{NULL}, it is derived from \code{MOI}.
-#' @param R2 Numeric \eqn{> 0}. Homozygote relative risk for
-#'   \code{input_mode = "model_based"}.
-#' @param MOI Character. Mode of inheritance used to derive \code{R1} when
-#'   \code{R1} is \code{NULL}: \code{"M"} for multiplicative, \code{"D"} for
-#'   dominant, or \code{"Rec"} for recessive.
-#' @param delta_prime Numeric in \eqn{[0,1]}. Scaled linkage disequilibrium
-#'   parameter \eqn{\delta'} between the marker and trait loci.
-#' @param ET,ENT Numeric \eqn{\ge 0} for \code{input_mode = "model_free"}.
-#'   Expected transmission and non-transmission counts accumulated over
-#'   \code{n_trios} affected trios.
-#' @param n_trios Numeric \eqn{> 0}. Number of affected trios that the supplied
-#'   \code{ET} and \code{ENT} correspond to. Required for
-#'   \code{input_mode = "model_free"} and ignored otherwise. See Details.
-#' @param locus_het Logical. If \code{TRUE}, mixes the baseline transmission
-#'   probabilities with a locus-heterogeneity null term via \code{pi}.
-#'   Requires \code{input_mode = "model_based"}.
-#' @param pi Numeric in \eqn{[0,1]}. Probability that a trio is linked to the
-#'   disease locus (locus-homogeneity fraction) when \code{locus_het = TRUE}.
-#'   \code{pi = 1} is full homogeneity and reproduces the no-heterogeneity
-#'   result exactly.
-#' @param verbose Logical. If \code{TRUE}, prints a clean formatted summary.
+#' @param pd Numeric in (0,1). Frequency of the disease (high-risk) allele at
+#'   the marker locus. Required for \code{input_mode = "model_based"}.
+#'   Optional for \code{"model_free"}: required only if \code{heter_rate} or
+#'   \code{misclass_rate} is non-zero, and if omitted in that case it is
+#'   solved from \code{ET}/\code{ENT} (see Details).
+#' @param prev Numeric in (0,1). Disease prevalence (\eqn{\phi_1}). Required
+#'   for \code{input_mode = "model_based"}. Required for \code{"model_free"}
+#'   only if \code{misclass_rate} is non-zero.
+#' @param R1 Numeric \eqn{> 0}. Genotype relative risk for heterozygotes.
+#'   Required for \code{input_mode = "model_based"}; unused for
+#'   \code{"model_free"}.
+#' @param R2 Numeric \eqn{> 0}. Genotype relative risk for homozygotes.
+#'   Required for \code{input_mode = "model_based"}; unused for
+#'   \code{"model_free"}.
+#' @param alpha Numeric in (0,1). Significance level for the TDT
+#'   (default \code{0.05}).
+#' @param delta_prime Numeric. Linkage disequilibrium scale parameter
+#'   \eqn{D'} (default \code{1}). Used for \code{input_mode = "model_based"}
+#'   only.
+#' @param misclass_rate Numeric in \eqn{[0,1)}. Phenotype misclassification
+#'   rate for controls (\eqn{\pi_{01}}) in the misclassification scenario.
+#' @param heter_rate Numeric in \eqn{[0,1)}. Proportion of trios whose
+#'   affection status is not due to the locus of interest (\eqn{1 - \pi})
+#'   in the heterogeneity scenario.
+#' @param ET,ENT Numeric \eqn{\ge 0}. Expected transmission and
+#'   non-transmission counts for \code{input_mode = "model_free"}.
+#' @param n_trios Numeric \eqn{> 0}. Number of affected trios that the
+#'   supplied \code{ET} and \code{ENT} correspond to. Required for
+#'   \code{input_mode = "model_free"} (unlike the power function, there is no
+#'   \code{N} argument here to reuse, since this function solves for the
+#'   required number of trios).
+#' @param verbose Logical. If \code{TRUE} (default), prints a formatted
+#'   summary of the required numbers of trios, percent inflation, and the
+#'   resulting power when the no-error design is used.
 #'
 #' @details
-#' The workflow mirrors \code{\link{tdt_power_conditional_full}}: baseline
-#' transmission probabilities are constructed, optionally mixed with a
-#' locus-heterogeneity null term when \code{locus_het = TRUE} (see
-#' \code{\link{tdt_power_conditional_full}} for the formula), and the MSSN is
-#' computed from the resulting per-trio effect size. Reserved phenotype- and
-#' genotype-misclassification stages pass the values through unchanged in this
-#' version.
+#' With \code{input_mode = "model_based"}, this function is a direct copy of
+#' \code{\link{tdt_required_trios_full}}: penetrances are derived from
+#' \code{prev}, \code{R1}, \code{R2}, and \code{pd} as in that function, and
+#' \deqn{N^* = \frac{\lambda^* (g_T^* + g_{NT}^*)}{2 (g_T^* - g_{NT}^*)^2}}
+#' is computed for each of the three scenarios.
 #'
-#' Because \eqn{ET = 2 N g_T^*} and \eqn{ENT = 2 N g_{NT}^*} are both
-#' proportional to the number of trios, the non-centrality parameter is linear
-#' in \eqn{N}:
-#' \deqn{\lambda = 2 N (g_T^* - g_{NT}^*)^2 / (g_T^* + g_{NT}^*).}
-#' The MSSN therefore has a closed form and requires no simulation:
-#' \deqn{N^* = \left\lceil \frac{\lambda^*}{2}
-#'   \frac{g_T^* + g_{NT}^*}{(g_T^* - g_{NT}^*)^2} \right\rceil,}
-#' where \eqn{\lambda^*} is the non-centrality parameter attaining the target
-#' power at the given significance level with 1 degree of freedom. This holds
-#' whether or not \code{locus_het} is applied, because the modifier keeps
-#' \eqn{g_T^*} and \eqn{g_{NT}^*} independent of \eqn{N}.
+#' With \code{input_mode = "model_free"}, the no-error scenario uses
+#' \eqn{g_T = ET / (2\,n_{trios})} and \eqn{g_{NT} = ENT / (2\,n_{trios})}.
+#' The misclassification and heterogeneity scenarios then use the same
+#' closed-form identities as \code{\link{tdt_power_conditional_full}} (see its
+#' Details for the formulas and the \code{pd}-solving fallback), applied to
+#' this no-error \eqn{g_T}/\eqn{g_{NT}} pair.
 #'
-#' With \code{input_mode = "model_free"}, \code{ET} and \code{ENT} are absolute
-#' counts that already embed a sample size, so \code{n_trios} must also be
-#' supplied to recover the per-parent probabilities
-#' \eqn{g_T^* = ET / (2 n_{trios})} and \eqn{g_{NT}^* = ENT / (2 n_{trios})}
-#' before rescaling to \eqn{N^*}. This requirement has no case-control
-#' counterpart, because model-free genotype frequencies are already normalized.
-#' \code{locus_het = TRUE} is not supported with \code{input_mode =
-#' "model_free"}; see \code{\link{tdt_power_conditional_full}} for why.
-#'
-#' @return An object of class \code{"tdt_mssn_conditional_full"}: a nested list
-#' with components \code{alpha}, \code{target_power}, \code{input_mode},
-#' \code{delta_prime}, \code{locus_het}, \code{errors}, \code{model_info},
-#' \code{tests}, and \code{transmissions}. \code{tests$tdt} contains the test
-#' label, degrees of freedom, target non-centrality parameter
-#' \code{lambda_star}, internal \code{S} component, and \code{MSSN_trios}.
-#' \code{transmissions} stores baseline and observed \code{gT}/\code{gNT}
-#' probabilities and the \code{ET}/\code{ENT} counts implied at the MSSN.
-#' \code{locus_het} reports whether the modifier was applied, \code{pi}, and
-#' the \code{gT}/\code{gNT} values before and after the modifier.
+#' @return
+#' An object of class \code{"tdt_mssn_conditional_full"}: a list with the
+#' same components as \code{\link{tdt_required_trios_full}} (\code{alpha},
+#' \code{target_power}, \code{lambda_star}, \code{N}, \code{percent_increase},
+#' \code{power_at_N_no_error}, \code{power_loss_at_N_no_error},
+#' \code{gT_star}, \code{gNT_star}, \code{model_parameters}), plus
+#' \code{input_mode}.
 #'
 #' @examples
+#' # model_based: identical to tdt_required_trios_full()
 #' tdt_mssn_conditional_full(
-#'   power = 0.8, alpha = 0.05,
-#'   input_mode = "model_based",
-#'   prev = 0.005, pd = 0.25, R1 = 2, R2 = 2,
-#'   delta_prime = 1,
+#'   target_power = 0.80, input_mode = "model_based",
+#'   pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
 #'   verbose = FALSE
-#' )
+#' )$N$no_error
 #'
+#' # model_free: supply expected transmissions/non-transmissions directly
 #' tdt_mssn_conditional_full(
-#'   power = 0.8, alpha = 0.05,
-#'   input_mode = "model_based",
-#'   prev = 0.05, pd = 0.25, R2 = 1.5, MOI = "M",
-#'   delta_prime = 0.8,
-#'   verbose = FALSE
-#' )
-#'
-#' tdt_mssn_conditional_full(
-#'   power = 0.8, alpha = 0.05,
-#'   input_mode = "model_free",
+#'   target_power = 0.80, input_mode = "model_free",
 #'   ET = 140, ENT = 100, n_trios = 120,
+#'   pd = 0.30, prev = 0.05,
 #'   verbose = FALSE
-#' )
-#'
-#' tdt_mssn_conditional_full(
-#'   power = 0.8, alpha = 0.05,
-#'   input_mode = "model_based",
-#'   prev = 0.005, pd = 0.25, R1 = 2, R2 = 2,
-#'   delta_prime = 1,
-#'   locus_het = TRUE, pi = 0.99,
-#'   verbose = FALSE
-#' )
+#' )$N$no_error
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Kim, W. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
-#' Equations 1.6, 1.7, and 1.25; Table 1.5; Sect. 5.3.3, Eqs. 5.30-5.34b
-#' (pp. 293-294).
+#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
+#' \emph{Heterogeneity in Statistical Genetics}. Springer Nature.
 #'
-#' Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
-#' for linkage disequilibrium: the insulin gene region and insulin-dependent
-#' diabetes mellitus (IDDM). \emph{American Journal of Human Genetics}, 52,
-#' 506-516.
-#'
-#' Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
-#' (2009). Transmission disequilibrium test power and sample size in the
-#' presence of locus heterogeneity. \emph{Statistical Applications in Genetics
-#' and Molecular Biology}, 8(44). \doi{10.2202/1544-6115.1501}
-#'
-#' Deng, H. W., & Chen, W. M. (2001). The power of the transmission
-#' disequilibrium test (TDT) with both case-parent and control-parent trios.
-#' \emph{Genetical Research}, 78(3), 289-302.
-#'
-#' @seealso \code{\link{tdt_power_conditional_full}} for the power counterpart,
-#'   and \code{\link{cc_mssn_conditional_full}} for the population-based
-#'   analogue.
+#' @seealso \code{\link{tdt_required_trios_full}}, the function this is
+#'   copied from, and \code{\link{tdt_power_conditional_full}} for the power
+#'   counterpart.
 #'
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
 tdt_mssn_conditional_full <- function(
-    power, alpha,
-
+    target_power,
     input_mode = c("model_based", "model_free"),
-
-    # model-based inputs
-    prev = NULL,
     pd   = NULL,
+    prev = NULL,
     R1   = NULL,
     R2   = NULL,
-    MOI  = c("M", "D", "Rec"),
+    alpha = 0.05,
     delta_prime = 1,
-
-    # model-free inputs
+    misclass_rate = 0.01,
+    heter_rate   = 0.01,
     ET  = NULL,
     ENT = NULL,
     n_trios = NULL,
-
-    # locus heterogeneity modifier
-    locus_het = FALSE,
-    pi = 1,
-
     verbose = TRUE
 ) {
-
   input_mode <- match.arg(input_mode)
-  MOI <- match.arg(MOI)
 
-  # ---- checks ----
-  .tdt_check_scalar(power, "power", lower = 0, upper = 1, strict = TRUE)
-  .tdt_check_scalar(alpha, "alpha", lower = 0, upper = 1, strict = TRUE)
-  if (!is.logical(locus_het) || length(locus_het) != 1)
-    stop("locus_het must be TRUE or FALSE.")
-  if (!is.numeric(pi) || length(pi) != 1 || pi < 0 || pi > 1)
-    stop("pi must be a single number in [0,1].")
+  ## ---- basic argument checks ----
+  if (misclass_rate < 0 || misclass_rate >= 1)
+    stop("misclass_rate must be in [0, 1).")
+  if (heter_rate < 0 || heter_rate >= 1)
+    stop("heter_rate must be in [0, 1).")
 
-  if (input_mode == "model_free") {
+  if (input_mode == "model_based") {
+    if (is.null(pd) || is.null(prev) || is.null(R1) || is.null(R2))
+      stop("For input_mode='model_based', pd, prev, R1, and R2 must all be supplied.")
+  } else {
+    if (is.null(ET) || is.null(ENT))
+      stop("For input_mode='model_free', ET and ENT must both be supplied.")
     if (is.null(n_trios))
       stop("For input_mode='model_free', n_trios must be supplied: it is the ",
            "number of affected trios that the given ET and ENT correspond to.")
-    .tdt_check_scalar(n_trios, "n_trios", lower = 0, strict = TRUE)
-  } else {
-    # Any value works here; the pipeline normalizes by it only in model-free
-    # mode, and MSSN output does not depend on it.
-    n_trios <- 1
+    if (misclass_rate != 0 && is.null(prev))
+      stop("For input_mode='model_free' with misclass_rate != 0, prev must be supplied.")
   }
 
-  # ---- transmission pipeline ----
-  pipe <- .tdt_transmission_pipeline(
-    input_mode = input_mode,
-    prev = prev, pd = pd, R1 = R1, R2 = R2, MOI = MOI,
-    delta_prime = delta_prime,
-    ET = ET, ENT = ENT, n_trios = n_trios,
-    locus_het = locus_het, pi = pi
-  )
+  ## ---------- internal helper: gT* and gNT* with misclassification (Eq. 5.28a,b) ----------
+  calc_gTgNT_misclass <- function(pd, prev, R1, R2,
+                                  delta_prime, pi01) {
+    p_plus <- 1 - pd
+    phi1   <- prev
+    phi0   <- 1 - phi1
 
-  gT  <- pipe$gT
-  gNT <- pipe$gNT
+    Z  <- p_plus^2 + 2 * pd * p_plus * R1 + R2 * pd^2
+    f0 <- prev / Z
+    f1 <- R1 * f0
+    f2 <- R2 * f0
+    if (any(c(f0, f1, f2) < 0) || any(c(f1, f2) > 1)) {
+      stop("Invalid penetrances in misclassification component: f0,f1,f2 must be in [0,1]. Check prev, R1, R2, and pd.")
+    }
+    C  <- pd * f2 + (1 - 2 * pd) * f1 - p_plus * f0
 
-  .tdt_check_transmission_probs(gT, gNT, context = "mssn")
+    D   <- delta_prime * pd * p_plus
+    DpT <- D * p_plus
+    DpA <- D * pd
 
-  # ---- target non-centrality parameter and MSSN ----
-  lambda_star <- .tdt_chisq_ncp_target(power = power, alpha = alpha, df = 1)
+    denom <- phi1 + pi01 * phi0
 
-  S <- (gT - gNT)^2 / (gT + gNT)
+    gT_star  <- (pd * p_plus) + (DpT * C * (1 - pi01)) / denom
+    gNT_star <- (pd * p_plus) + (DpA * C * (pi01 - 1)) / denom
 
-  if (!is.finite(S) || S <= 0)
-    stop("TDT S <= 0; check inputs.")
+    list(
+      gT_star = gT_star,
+      gNT_star = gNT_star,
+      p_plus = p_plus,
+      phi1 = phi1,
+      phi0 = phi0,
+      C = C,
+      D = D,
+      f0 = f0,
+      f1 = f1,
+      f2 = f2
+    )
+  }
 
-  MSSN_trios <- ceiling(lambda_star / (2 * S))
+  ## ---------- internal helper: gT* and gNT* with heterogeneity (Eq. 5.34) ----------
+  calc_gTgNT_heter <- function(pd, prev, R1, R2,
+                               delta_prime, heter_rate) {
+    p_plus <- 1 - pd
+    Z  <- p_plus^2 + 2 * pd * p_plus * R1 + R2 * pd^2
+    f0 <- prev / Z
+    f1 <- R1 * f0
+    f2 <- R2 * f0
+    if (any(c(f0, f1, f2) < 0) || any(c(f1, f2) > 1)) {
+      stop("Invalid penetrances in heterogeneity component: f0,f1,f2 must be in [0,1]. Check prev, R1, R2, and pd.")
+    }
+    C  <- pd * f2 + (1 - 2 * pd) * f1 - p_plus * f0
+    delta <- delta_prime * pd * p_plus
 
-  ET_at_mssn  <- 2 * MSSN_trios * gT
-  ENT_at_mssn <- 2 * MSSN_trios * gNT
+    # pi = fraction of trios truly due to this locus
+    pi <- 1 - heter_rate
 
-  # ---- output ----
+    gT_star  <- pi * ( p_plus * ( delta * C / prev + pd ) ) +
+      (1 - pi) * ( delta * (p_plus - 0.5) * C / prev + pd * p_plus )
+
+    gNT_star <- pi * ( pd * ( p_plus - delta * C / prev ) ) +
+      (1 - pi) * ( delta * (0.5 - pd) * C / prev + pd * p_plus )
+
+    list(
+      gT_star = gT_star,
+      gNT_star = gNT_star,
+      p_plus = p_plus,
+      C = C,
+      f0 = f0,
+      f1 = f1,
+      f2 = f2,
+      delta = delta,
+      pi = pi
+    )
+  }
+
+  ## ---------- internal helper: solve pd from gT, gNT when not supplied ----------
+  solve_pd_from_gTgNT <- function(gT, gNT) {
+    A <- gT - gNT
+    qa <- 2
+    qb <- -2 * (1 - A)
+    qc <- gT + gNT - A
+    disc <- qb^2 - 4 * qa * qc
+    if (!is.finite(disc) || disc < 0)
+      stop("Cannot solve for pd from the supplied ET/ENT: no real root exists. ",
+           "Supply pd directly.")
+    roots <- (-qb + c(1, -1) * sqrt(disc)) / (2 * qa)
+    candidates <- roots[roots > 0 & roots < 0.5]
+    if (length(candidates) != 1)
+      stop("Cannot uniquely determine pd in (0, 0.5) from the supplied ET/ENT; ",
+           "supply pd directly.")
+    message(
+      "pd not supplied for input_mode='model_free'; using pd = ",
+      formatC(candidates, format = "f", digits = 6),
+      " solved from the supplied ET/ENT (root in (0, 0.5))."
+    )
+    candidates
+  }
+
+  ## ---------- helper: N from lambda* and gT*, gNT* ----------
+  N_from_lambda <- function(lambda_star, gT_star, gNT_star) {
+    (lambda_star * (gT_star + gNT_star)) /
+      (2 * (gT_star - gNT_star)^2)
+  }
+
+  ## ---------- solve for lambda_star from target power ----------
+  crit <- qchisq(1 - alpha, df = 1)
+  f_lambda <- function(lambda) {
+    1 - pchisq(crit, df = 1, ncp = lambda) - target_power
+  }
+  lambda_star <- uniroot(f_lambda, c(0, 1e4))$root
+
+  if (input_mode == "model_based") {
+
+    ## ===== (1) NO MISCLASSIFICATION, NO HETEROGENEITY =====
+    p_plus <- 1 - pd
+    Z  <- p_plus^2 + 2 * pd * p_plus * R1 + R2 * pd^2
+    f0 <- prev / Z
+    f1 <- R1 * f0
+    f2 <- R2 * f0
+    if (any(c(f0, f1, f2) < 0) || any(c(f1, f2) > 1)) {
+      stop("Invalid penetrances in no-error component: f0,f1,f2 must be in [0,1]. Check prev, R1, R2, and pd.")
+    }
+    C  <- pd * f2 + (1 - 2 * pd) * f1 - p_plus * f0
+    prev_ <- pd^2 * f2 + 2 * pd * p_plus * f1 + p_plus^2 * f0
+    delta <- delta_prime * pd * p_plus
+
+    # gT* and gNT* implied by the no-error ET/ENT formulas in tdt_power_full
+    gT_nomisc  <- (pd * p_plus + delta * p_plus * C / prev_)
+    gNT_nomisc <- (pd * p_plus - delta * pd    * C / prev_)
+
+    N_nomisc <- N_from_lambda(lambda_star, gT_nomisc, gNT_nomisc)
+
+    ## ===== (2) MISCLASSIFICATION ONLY =====
+    g_misc <- calc_gTgNT_misclass(
+      pd = pd, prev = prev, R1 = R1, R2 = R2,
+      delta_prime = delta_prime,
+      pi01 = misclass_rate
+    )
+    gT_misc  <- g_misc$gT_star
+    gNT_misc <- g_misc$gNT_star
+
+    N_misc <- N_from_lambda(lambda_star, gT_misc, gNT_misc)
+
+    ## ===== (3) HETEROGENEITY ONLY =====
+    g_het <- calc_gTgNT_heter(
+      pd = pd, prev = prev, R1 = R1, R2 = R2,
+      delta_prime = delta_prime,
+      heter_rate = heter_rate
+    )
+    gT_het  <- g_het$gT_star
+    gNT_het <- g_het$gNT_star
+
+    N_het <- N_from_lambda(lambda_star, gT_het, gNT_het)
+
+  } else {
+
+    ## ===== model-free: (1) NO MISCLASSIFICATION, NO HETEROGENEITY =====
+    gT_nomisc  <- ET  / (2 * n_trios)
+    gNT_nomisc <- ENT / (2 * n_trios)
+
+    N_nomisc <- N_from_lambda(lambda_star, gT_nomisc, gNT_nomisc)
+
+    A <- gT_nomisc - gNT_nomisc
+
+    if (is.null(pd) && (heter_rate != 0 || misclass_rate != 0)) {
+      pd <- solve_pd_from_gTgNT(gT_nomisc, gNT_nomisc)
+    }
+
+    ## ===== (2) MISCLASSIFICATION ONLY =====
+    if (misclass_rate == 0) {
+      gT_misc  <- gT_nomisc
+      gNT_misc <- gNT_nomisc
+    } else {
+      p_plus <- 1 - pd
+      m <- prev * (1 - misclass_rate) / (prev + misclass_rate * (1 - prev))
+      gT_misc  <- pd * p_plus + p_plus * A * m
+      gNT_misc <- pd * p_plus - pd     * A * m
+    }
+
+    N_misc <- N_from_lambda(lambda_star, gT_misc, gNT_misc)
+
+    ## ===== (3) HETEROGENEITY ONLY =====
+    if (heter_rate == 0) {
+      gT_het  <- gT_nomisc
+      gNT_het <- gNT_nomisc
+    } else {
+      p_plus <- 1 - pd
+      gT_het  <- pd * p_plus + A * (p_plus - 0.5 * heter_rate)
+      gNT_het <- pd * p_plus + A * (-pd    + 0.5 * heter_rate)
+    }
+
+    N_het <- N_from_lambda(lambda_star, gT_het, gNT_het)
+  }
+
+  ## ===== Percent increase relative to no-error N =====
+  infl_misc <- N_misc / N_nomisc
+  infl_het  <- N_het  / N_nomisc
+  perc_increase_misc <- infl_misc - 1
+  perc_increase_het  <- infl_het  - 1
+
+  ## ===== Power loss if you DON'T inflate N (design at N_nomisc) =====
+  lambda_nomisc_fixed <- 2 * N_nomisc * (gT_nomisc - gNT_nomisc)^2 /
+    (gT_nomisc + gNT_nomisc)
+  power_nomisc_fixed <- 1 - pchisq(crit, df = 1, ncp = lambda_nomisc_fixed)
+
+  lambda_misc_fixed <- 2 * N_nomisc * (gT_misc - gNT_misc)^2 /
+    (gT_misc + gNT_misc)
+  power_misc_fixed <- 1 - pchisq(crit, df = 1, ncp = lambda_misc_fixed)
+
+  lambda_het_fixed <- 2 * N_nomisc * (gT_het - gNT_het)^2 /
+    (gT_het + gNT_het)
+  power_het_fixed <- 1 - pchisq(crit, df = 1, ncp = lambda_het_fixed)
+
+  power_loss_misc <- power_nomisc_fixed - power_misc_fixed
+  power_loss_het  <- power_nomisc_fixed - power_het_fixed
+
+  if (isTRUE(verbose)) {
+    message("\nMINIMUM SAMPLE SIZE NECESSARY FOR A FIXED POWER\n")
+
+    message(sprintf("%-38s %10.3f  |  %s %6.3f",
+                    "Desired Power:", target_power,
+                    "Significance Level (alpha):", alpha))
+    message(sprintf("%-38s %10s", "Input Mode:", input_mode))
+    if (!is.null(pd) && !is.null(prev)) {
+      message(sprintf("%-38s %10.3f  |  %s %6.3f",
+                      "Allele Frequency (p_d):", pd,
+                      "Prevalence (phi1):", prev))
+    } else if (!is.null(pd)) {
+      message(sprintf("%-38s %10.3f", "Allele Frequency (p_d):", pd))
+    }
+    if (!is.null(R1) && !is.null(R2)) {
+      message(sprintf("%-38s %10s",
+                      "Relative Risks (R1,R2):", paste0(R1, ", ", R2)))
+    }
+    message(sprintf("%-38s %10.3f",
+                    "LD scale (delta_prime):", delta_prime))
+    message(sprintf("%-38s %10.3f",
+                    "Misclassification Rate (pi01):", misclass_rate))
+    message(sprintf("%-38s %10.3f\n",
+                    "Heterogeneity Rate (1 - pi):", heter_rate))
+
+    message(sprintf("%-38s %10.4f",
+                    "Non-Centrality Parameter (lambda_star):", lambda_star))
+    message("-----------------------------------------------------------")
+    message(sprintf("%-38s %10.0f",
+                    "Required Trios (no error):", ceiling(N_nomisc)))
+    message(sprintf("%-38s %10.0f  |  Percent Increase: %8.3f",
+                    "Required Trios (misclassification):",
+                    ceiling(N_misc), perc_increase_misc))
+    message(sprintf("%-38s %10.0f  |  Percent Increase: %8.3f\n",
+                    "Required Trios (heterogeneity):",
+                    ceiling(N_het), perc_increase_het))
+
+    message("Power at N(no-error design):")
+    fmt_pow  <- "  %-18s %7.3f"
+    fmt_loss <- "  %-18s %7.3f  (loss = %6.3f)"
+    message(sprintf(fmt_pow,  "No error:",        power_nomisc_fixed))
+    message(sprintf(fmt_loss, "Misclassification:", power_misc_fixed, power_loss_misc))
+    message(sprintf(fmt_loss, "Heterogeneity:",     power_het_fixed,  power_loss_het))
+    message("")
+
+    message("Expected transmission/non-transmission probabilities (gT*, gNT*)")
+    message(sprintf("%-18s %10.5f  |  %s %10.5f",
+                    "gT* (no error):", gT_nomisc,
+                    "gNT* (no error):", gNT_nomisc))
+    message(sprintf("%-18s %10.5f  |  %s %10.5f",
+                    "gT* (misclass):", gT_misc,
+                    "gNT* (misclass):", gNT_misc))
+    message(sprintf("%-18s %10.5f  |  %s %10.5f",
+                    "gT* (heter):",    gT_het,
+                    "gNT* (heter):",   gNT_het))
+  }
+
   out <- list(
     alpha = alpha,
-    target_power = power,
+    target_power = target_power,
     input_mode = input_mode,
-    delta_prime = if (input_mode == "model_based") delta_prime else NA_real_,
-    locus_het = pipe$locus_het,
-    errors = pipe$errors,
-    model_info = pipe$model_info,
-    tests = list(
-      tdt = list(
-        test = "transmission disequilibrium test",
-        df = 1,
-        lambda_star = lambda_star,
-        S = S,
-        MSSN_trios = MSSN_trios
-      )
+    lambda_star = lambda_star,
+    N = list(
+      no_error = N_nomisc,
+      misclassification = N_misc,
+      heterogeneity = N_het
     ),
-    transmissions = list(
-      gT_base = pipe$gT_base,
-      gNT_base = pipe$gNT_base,
-      gT_obs = gT,
-      gNT_obs = gNT,
-      ET_at_mssn = ET_at_mssn,
-      ENT_at_mssn = ENT_at_mssn
+    percent_increase = list(
+      misclassification = perc_increase_misc,
+      heterogeneity = perc_increase_het
+    ),
+    power_at_N_no_error = list(
+      no_error = power_nomisc_fixed,
+      misclassification = power_misc_fixed,
+      heterogeneity = power_het_fixed
+    ),
+    power_loss_at_N_no_error = list(
+      misclassification = power_loss_misc,
+      heterogeneity = power_loss_het
+    ),
+    gT_star = list(
+      no_error = gT_nomisc,
+      misclassification = gT_misc,
+      heterogeneity = gT_het
+    ),
+    gNT_star = list(
+      no_error = gNT_nomisc,
+      misclassification = gNT_misc,
+      heterogeneity = gNT_het
+    ),
+    model_parameters = list(
+      pd = pd,
+      qd = if (!is.null(pd)) 1 - pd else NA_real_,
+      prev = prev,
+      R1 = R1,
+      R2 = R2,
+      delta_prime = delta_prime,
+      misclass_rate = misclass_rate,
+      heter_rate = heter_rate
     )
   )
 
   class(out) <- "tdt_mssn_conditional_full"
-
-  # ---- clean printed output ----
-  if (isTRUE(verbose)) {
-
-    message("\n--- Family-Based (TDT): Minimum Sample Size Necessary (MSSN) ---")
-    message("Equation: 1.25  |  Test: transmission disequilibrium test (df = 1)")
-    message("--------------------------------------------------------------------------")
-
-    message(sprintf(
-      "%-32s %12s  |  %-28s %12s",
-      "Target Power:", .tdt_fmt_f(power, 3),
-      "Test Degrees of Freedom:", "1"
-    ))
-
-    .tdt_print_inputs(pipe, input_mode, alpha)
-
-    message("--------------------------------------------------------------------------")
-    message("Minimum Sample Size Necessary")
-    message(sprintf(
-      "  %-16s MSSN_trios=%8d  |  MSSN_parents=%8d",
-      "TDT:", MSSN_trios, 2 * MSSN_trios
-    ))
-
-    message("--------------------------------------------------------------------------")
-    message("Expected transmissions and non-transmissions at the MSSN")
-    message(sprintf("  %-28s %12.4f", "ET:", ET_at_mssn))
-    message(sprintf("  %-28s %12.4f", "ENT:", ENT_at_mssn))
-    message(sprintf("  %-28s %12.6f", "gT  (per parent):", gT))
-    message(sprintf("  %-28s %12.6f", "gNT (per parent):", gNT))
-
-    message("--------------------------------------------------------------------------")
-  }
-
   invisible(out)
 }
