@@ -8,8 +8,8 @@
 # Required backend functions:
 #   cc_power_conditional_full()
 #   cc_mssn_conditional_full()
-#   tdt_power_full()
-#   tdt_required_trios_full()
+#   tdt_power_conditional_full()
+#   tdt_mssn_conditional_full()
 #
 # Requires ggplot2 for plotting.
 # -------------------------------------------------------------------
@@ -71,13 +71,78 @@
 
 .plot_allowed_tdt_power_x <- c(
   "N", "alpha", "pd", "prev", "R1", "R2", "delta_prime", "misclass_rate",
-  "heter_rate", "locus_het_rate", "pheno_error_multiplier"
+  "heter_rate", "locus_het_rate", "pheno_error_multiplier",
+  "ET", "ENT"
 )
 
-.plot_allowed_tdt_mssn_x <- setdiff(
-  c("target_power", .plot_allowed_tdt_power_x),
-  "N"
+.plot_allowed_tdt_mssn_x <- c(
+  setdiff(c("target_power", .plot_allowed_tdt_power_x), "N"),
+  "n_trios"
 )
+
+# x_var choices that only make sense for one TDT input_mode. Model-based
+# variables have no model-free counterpart in the conditional backend, and
+# vice versa for ET/ENT/n_trios.
+.plot_tdt_model_based_only_x <- c("pd", "prev", "R1", "R2", "delta_prime")
+.plot_tdt_model_free_only_x  <- c("ET", "ENT", "n_trios")
+
+.plot_check_tdt_input_mode_x <- function(x_var, input_mode, context) {
+  if (input_mode == "model_free" && x_var %in% .plot_tdt_model_based_only_x) {
+    stop(
+      "x_var='", x_var, "' requires input_mode='model_based' for ", context,
+      ". Use x_var='ET' or 'ENT' in input_mode='model_free', or keep '",
+      x_var, "' fixed via '...'."
+    )
+  }
+  if (input_mode == "model_based" && x_var %in% .plot_tdt_model_free_only_x) {
+    stop(
+      "x_var='", x_var, "' requires input_mode='model_free' for ", context,
+      ". It is not used by input_mode='model_based'."
+    )
+  }
+  invisible(TRUE)
+}
+
+# tdt_power_conditional_full()/tdt_mssn_conditional_full() default
+# heter_rate and misclass_rate to 0.01, not 0, so that model_based calls
+# reproduce tdt_power_full()/tdt_required_trios_full() exactly. In
+# input_mode='model_free' that default would silently require pd/prev (via
+# the backend's own validation) even for scenario='no_error', which is not
+# swept and not requested. Default both rates to 0 here, unless the caller
+# already fixed a value via '...' -- the sweep step below still overrides
+# whichever one is being swept.
+.plot_default_tdt_free_rates <- function(args0) {
+  if (is.null(args0$heter_rate))    args0$heter_rate    <- 0
+  if (is.null(args0$misclass_rate)) args0$misclass_rate <- 0
+  args0
+}
+
+# In input_mode='model_free', the conditional TDT backend needs pd (and, for
+# misclassification, prev) as fixed baseline arguments to apply heter_rate /
+# misclass_rate to the supplied ET/ENT. Check this once, up front, rather
+# than letting every iteration of the sweep hit the backend's own
+# pd-solving fallback and its accompanying message.
+.plot_check_tdt_free_scenario_args <- function(args0, scenario, context) {
+  if (scenario == "heterogeneity" && is.null(.plot_get_arg(args0, "pd"))) {
+    stop(
+      "scenario='heterogeneity' with input_mode='model_free' requires pd to ",
+      "be supplied for ", context, "."
+    )
+  }
+  if (scenario == "misclassification") {
+    missing_args <- character(0)
+    if (is.null(.plot_get_arg(args0, "pd")))   missing_args <- c(missing_args, "pd")
+    if (is.null(.plot_get_arg(args0, "prev"))) missing_args <- c(missing_args, "prev")
+    if (length(missing_args) > 0) {
+      stop(
+        "scenario='misclassification' with input_mode='model_free' requires ",
+        paste(missing_args, collapse = " and "), " to be supplied for ",
+        context, "."
+      )
+    }
+  }
+  invisible(TRUE)
+}
 
 .plot_label <- function(name) {
   labels <- c(
@@ -90,6 +155,11 @@
     power = "Target power",
     target_power = "Target power",
     alpha = "Significance level",
+
+    # model-free TDT inputs
+    ET = "Expected transmissions (ET)",
+    ENT = "Expected non-transmissions (ENT)",
+    n_trios = "Number of trios (for supplied ET/ENT)",
 
     # disease model
     prev = "Disease prevalence",
@@ -638,30 +708,52 @@ cc_plot_mssn <- function(
   )
 }
 
-#' Plot TDT Power from the Full TDT Function
+#' Plot TDT Power from the Conditional TDT Function
 #'
 #' Sweeps one x-axis parameter and repeatedly calls
-#' \code{\link{tdt_power_full}()} to plot Transmission Disequilibrium Test
-#' (TDT) power.
+#' \code{\link{tdt_power_conditional_full}()} to plot Transmission
+#' Disequilibrium Test (TDT) power. The wrapper supports both
+#' \code{input_mode = "model_based"} (numerically identical to
+#' \code{\link{tdt_power_full}()}) and \code{input_mode = "model_free"}.
 #'
 #' @param x_var Character. Parameter to vary on the x-axis.
 #' @param x_values Numeric vector of x-axis values.
 #' @param scenario One of \code{"auto"}, \code{"no_error"},
 #'   \code{"misclassification"}, or \code{"heterogeneity"}.
+#' @param input_mode One of \code{"model_based"} or \code{"model_free"}.
 #' @param title Optional character title override.
 #' @param x_label Optional x-axis label override.
 #' @param y_label Optional y-axis label override.
 #' @param return_data Logical. If TRUE, return the data frame instead of a ggplot.
-#' @param ... Arguments passed to \code{tdt_power_full()}.
+#' @param ... Arguments passed to \code{tdt_power_conditional_full()}.
 #'
 #' @details
-#' \code{scenario} selects the component of the full TDT backend output:
-#' \code{"no_error"}, \code{"misclassification"}, or \code{"heterogeneity"}.
-#' With \code{scenario = "auto"}, the wrapper chooses misclassification for
-#' \code{x_var = "misclass_rate"} or \code{"pheno_error_multiplier"},
-#' heterogeneity for \code{x_var = "heter_rate"} or \code{"locus_het_rate"},
-#' and no error otherwise. This wrapper does not include a compare-scenarios
-#' mode.
+#' \code{scenario} selects the component of the conditional TDT backend
+#' output: \code{"no_error"}, \code{"misclassification"}, or
+#' \code{"heterogeneity"}. With \code{scenario = "auto"}, the wrapper chooses
+#' misclassification for \code{x_var = "misclass_rate"} or
+#' \code{"pheno_error_multiplier"}, heterogeneity for \code{x_var =
+#' "heter_rate"} or \code{"locus_het_rate"}, and no error otherwise. This
+#' wrapper does not include a compare-scenarios mode.
+#'
+#' With \code{input_mode = "model_based"} (the default), this wrapper's
+#' \code{x_var} choices and output are numerically identical to sweeping
+#' \code{\link{tdt_power_full}()} directly. \code{"pd"}, \code{"prev"},
+#' \code{"R1"}, \code{"R2"}, and \code{"delta_prime"} are only valid
+#' \code{x_var} choices in this mode.
+#'
+#' With \code{input_mode = "model_free"}, sweep \code{"ET"} or \code{"ENT"}
+#' instead (or any of the shared \code{"misclass_rate"}, \code{"heter_rate"},
+#' \code{"locus_het_rate"}, or \code{"pheno_error_multiplier"} variables). A
+#' resolved \code{scenario = "heterogeneity"} requires a fixed \code{pd}
+#' argument, and \code{scenario = "misclassification"} requires fixed
+#' \code{pd} and \code{prev} arguments, because the conditional backend needs
+#' them to apply \code{heter_rate}/\code{misclass_rate} to the supplied
+#' \code{ET}/\code{ENT}. Unlike \code{\link{tdt_power_conditional_full}()}'s
+#' own default of \code{0.01}, \code{heter_rate} and \code{misclass_rate}
+#' default to \code{0} here in \code{input_mode = "model_free"} (unless fixed
+#' via \code{...} or swept via \code{x_var}), so \code{scenario = "no_error"}
+#' always works without \code{pd}/\code{prev}.
 #'
 #' @return A ggplot object, or a data frame if \code{return_data = TRUE}.
 #'
@@ -671,6 +763,7 @@ cc_plot_mssn <- function(
 #'   x_var = "heter_rate",
 #'   x_values = seq(0, 0.50, by = 0.05),
 #'   scenario = "heterogeneity",
+#'   input_mode = "model_based",
 #'   N = 600,
 #'   pd = 0.30,
 #'   prev = 0.05,
@@ -679,6 +772,17 @@ cc_plot_mssn <- function(
 #'   alpha = 0.05,
 #'   delta_prime = 1
 #' )
+#'
+#' tdt_plot_power(
+#'   x_var = "heter_rate",
+#'   x_values = seq(0, 0.50, by = 0.05),
+#'   scenario = "heterogeneity",
+#'   input_mode = "model_free",
+#'   N = 600,
+#'   ET = 160,
+#'   ENT = 100,
+#'   pd = 0.30
+#' )
 #' }
 #'
 #' @export
@@ -686,6 +790,7 @@ tdt_plot_power <- function(
     x_var,
     x_values,
     scenario = c("auto", "no_error", "misclassification", "heterogeneity"),
+    input_mode = c("model_based", "model_free"),
     title = NULL,
     x_label = NULL,
     y_label = NULL,
@@ -693,18 +798,26 @@ tdt_plot_power <- function(
     ...
 ) {
   scenario <- match.arg(scenario)
+  input_mode <- match.arg(input_mode)
   .plot_check_x_values(x_values)
   .plot_check_x_var(x_var, .plot_allowed_tdt_power_x, "tdt_plot_power()")
+  .plot_check_tdt_input_mode_x(x_var, input_mode, "tdt_plot_power()")
 
   scenario <- if (scenario == "auto") .plot_tdt_auto_scenario(x_var) else scenario
 
   args0 <- list(...)
+  args0$input_mode <- input_mode
   args0$verbose <- FALSE
+
+  if (input_mode == "model_free") {
+    args0 <- .plot_default_tdt_free_rates(args0)
+    .plot_check_tdt_free_scenario_args(args0, scenario, "tdt_plot_power()")
+  }
 
   y <- vapply(x_values, function(x) {
     args <- .plot_apply_tdt_x(args0, x_var, x)
     args <- .plot_drop_helper_args(args)
-    out <- do.call(tdt_power_full, args)
+    out <- do.call(tdt_power_conditional_full, args)
     .plot_tdt_extract_power(out, scenario)
   }, numeric(1))
 
@@ -729,30 +842,54 @@ tdt_plot_power <- function(
   )
 }
 
-#' Plot TDT Required Trios from the Full TDT Sample Size Function
+#' Plot TDT Required Trios from the Conditional TDT Sample Size Function
 #'
 #' Sweeps one x-axis parameter and repeatedly calls
-#' \code{\link{tdt_required_trios_full}()} to plot the required number of
-#' affected trios.
+#' \code{\link{tdt_mssn_conditional_full}()} to plot the required number of
+#' affected trios. The wrapper supports both \code{input_mode =
+#' "model_based"} (numerically identical to
+#' \code{\link{tdt_required_trios_full}()}) and \code{input_mode =
+#' "model_free"}.
 #'
 #' @param x_var Character. Parameter to vary on the x-axis.
 #' @param x_values Numeric vector of x-axis values.
 #' @param scenario One of \code{"auto"}, \code{"no_error"},
 #'   \code{"misclassification"}, or \code{"heterogeneity"}.
+#' @param input_mode One of \code{"model_based"} or \code{"model_free"}.
 #' @param title Optional character title override.
 #' @param x_label Optional x-axis label override.
 #' @param y_label Optional y-axis label override.
 #' @param return_data Logical. If TRUE, return the data frame instead of a ggplot.
-#' @param ... Arguments passed to \code{tdt_required_trios_full()}.
+#' @param ... Arguments passed to \code{tdt_mssn_conditional_full()}.
 #'
 #' @details
-#' \code{scenario} selects the component of the full TDT backend output:
-#' \code{"no_error"}, \code{"misclassification"}, or \code{"heterogeneity"}.
-#' With \code{scenario = "auto"}, the wrapper chooses the scenario from
-#' \code{x_var} using the same rules as \code{\link{tdt_plot_power}()}. This
-#' wrapper does not include a compare-scenarios mode. \code{x_var = "N"} is not
-#' allowed because required trios are the output; use \code{"target_power"} to
-#' sweep target power.
+#' \code{scenario} selects the component of the conditional TDT backend
+#' output: \code{"no_error"}, \code{"misclassification"}, or
+#' \code{"heterogeneity"}. With \code{scenario = "auto"}, the wrapper chooses
+#' the scenario from \code{x_var} using the same rules as
+#' \code{\link{tdt_plot_power}()}. This wrapper does not include a
+#' compare-scenarios mode. \code{x_var = "N"} is not allowed because required
+#' trios are the output; use \code{"target_power"} to sweep target power.
+#'
+#' With \code{input_mode = "model_based"} (the default), this wrapper's
+#' \code{x_var} choices and output are numerically identical to sweeping
+#' \code{\link{tdt_required_trios_full}()} directly. \code{"pd"},
+#' \code{"prev"}, \code{"R1"}, \code{"R2"}, and \code{"delta_prime"} are only
+#' valid \code{x_var} choices in this mode.
+#'
+#' With \code{input_mode = "model_free"}, sweep \code{"ET"}, \code{"ENT"}, or
+#' \code{"n_trios"} instead (or any of the shared \code{"misclass_rate"},
+#' \code{"heter_rate"}, \code{"locus_het_rate"}, or
+#' \code{"pheno_error_multiplier"} variables). A resolved \code{scenario =
+#' "heterogeneity"} requires a fixed \code{pd} argument, and \code{scenario =
+#' "misclassification"} requires fixed \code{pd} and \code{prev} arguments,
+#' because the conditional backend needs them to apply
+#' \code{heter_rate}/\code{misclass_rate} to the supplied \code{ET}/\code{ENT}.
+#' Unlike \code{\link{tdt_mssn_conditional_full}()}'s own default of
+#' \code{0.01}, \code{heter_rate} and \code{misclass_rate} default to
+#' \code{0} here in \code{input_mode = "model_free"} (unless fixed via
+#' \code{...} or swept via \code{x_var}), so \code{scenario = "no_error"}
+#' always works without \code{pd}/\code{prev}.
 #'
 #' @return A ggplot object, or a data frame if \code{return_data = TRUE}.
 #'
@@ -762,6 +899,7 @@ tdt_plot_power <- function(
 #'   x_var = "misclass_rate",
 #'   x_values = seq(0, 0.10, by = 0.01),
 #'   scenario = "misclassification",
+#'   input_mode = "model_based",
 #'   target_power = 0.80,
 #'   pd = 0.30,
 #'   prev = 0.05,
@@ -770,6 +908,16 @@ tdt_plot_power <- function(
 #'   alpha = 0.05,
 #'   delta_prime = 1
 #' )
+#'
+#' tdt_plot_mssn(
+#'   x_var = "misclass_rate",
+#'   x_values = seq(0, 0.10, by = 0.01),
+#'   scenario = "misclassification",
+#'   input_mode = "model_free",
+#'   target_power = 0.80,
+#'   ET = 140, ENT = 100, n_trios = 120,
+#'   pd = 0.30, prev = 0.05
+#' )
 #' }
 #'
 #' @export
@@ -777,6 +925,7 @@ tdt_plot_mssn <- function(
     x_var,
     x_values,
     scenario = c("auto", "no_error", "misclassification", "heterogeneity"),
+    input_mode = c("model_based", "model_free"),
     title = NULL,
     x_label = NULL,
     y_label = NULL,
@@ -784,8 +933,10 @@ tdt_plot_mssn <- function(
     ...
 ) {
   scenario <- match.arg(scenario)
+  input_mode <- match.arg(input_mode)
   .plot_check_x_values(x_values)
   .plot_check_x_var(x_var, .plot_allowed_tdt_mssn_x, "tdt_plot_mssn()")
+  .plot_check_tdt_input_mode_x(x_var, input_mode, "tdt_plot_mssn()")
 
   if (x_var == "N") {
     stop("N is not valid for TDT MSSN plots because required N is the output. Use x_var='target_power' to vary target power.")
@@ -794,12 +945,18 @@ tdt_plot_mssn <- function(
   scenario <- if (scenario == "auto") .plot_tdt_auto_scenario(x_var) else scenario
 
   args0 <- list(...)
+  args0$input_mode <- input_mode
   args0$verbose <- FALSE
+
+  if (input_mode == "model_free") {
+    args0 <- .plot_default_tdt_free_rates(args0)
+    .plot_check_tdt_free_scenario_args(args0, scenario, "tdt_plot_mssn()")
+  }
 
   y <- vapply(x_values, function(x) {
     args <- .plot_apply_tdt_x(args0, x_var, x)
     args <- .plot_drop_helper_args(args)
-    out <- do.call(tdt_required_trios_full, args)
+    out <- do.call(tdt_mssn_conditional_full, args)
     .plot_tdt_extract_mssn(out, scenario)
   }, numeric(1))
 
