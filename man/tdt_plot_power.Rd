@@ -2,12 +2,13 @@
 % Please edit documentation in R/plot_full_wrappers.R
 \name{tdt_plot_power}
 \alias{tdt_plot_power}
-\title{Plot TDT Power from the Full TDT Function}
+\title{Plot TDT Power from the Conditional TDT Function}
 \usage{
 tdt_plot_power(
   x_var,
   x_values,
   scenario = c("auto", "no_error", "misclassification", "heterogeneity"),
+  input_mode = c("model_based", "model_free"),
   title = NULL,
   x_label = NULL,
   y_label = NULL,
@@ -23,6 +24,8 @@ tdt_plot_power(
 \item{scenario}{One of \code{"auto"}, \code{"no_error"},
 \code{"misclassification"}, or \code{"heterogeneity"}.}
 
+\item{input_mode}{One of \code{"model_based"} or \code{"model_free"}.}
+
 \item{title}{Optional character title override.}
 
 \item{x_label}{Optional x-axis label override.}
@@ -31,24 +34,45 @@ tdt_plot_power(
 
 \item{return_data}{Logical. If TRUE, return the data frame instead of a ggplot.}
 
-\item{...}{Arguments passed to \code{tdt_power_full()}.}
+\item{...}{Arguments passed to \code{tdt_power_conditional_full()}.}
 }
 \value{
 A ggplot object, or a data frame if \code{return_data = TRUE}.
 }
 \description{
 Sweeps one x-axis parameter and repeatedly calls
-\code{\link{tdt_power_full}()} to plot Transmission Disequilibrium Test
-(TDT) power.
+\code{\link{tdt_power_conditional_full}()} to plot Transmission
+Disequilibrium Test (TDT) power. The wrapper supports both
+\code{input_mode = "model_based"} (numerically identical to
+\code{\link{tdt_power_full}()}) and \code{input_mode = "model_free"}.
 }
 \details{
-\code{scenario} selects the component of the full TDT backend output:
-\code{"no_error"}, \code{"misclassification"}, or \code{"heterogeneity"}.
-With \code{scenario = "auto"}, the wrapper chooses misclassification for
-\code{x_var = "misclass_rate"} or \code{"pheno_error_multiplier"},
-heterogeneity for \code{x_var = "heter_rate"} or \code{"locus_het_rate"},
-and no error otherwise. This wrapper does not include a compare-scenarios
-mode.
+\code{scenario} selects the component of the conditional TDT backend
+output: \code{"no_error"}, \code{"misclassification"}, or
+\code{"heterogeneity"}. With \code{scenario = "auto"}, the wrapper chooses
+misclassification for \code{x_var = "misclass_rate"} or
+\code{"pheno_error_multiplier"}, heterogeneity for \code{x_var =
+"heter_rate"} or \code{"locus_het_rate"}, and no error otherwise. This
+wrapper does not include a compare-scenarios mode.
+
+With \code{input_mode = "model_based"} (the default), this wrapper's
+\code{x_var} choices and output are numerically identical to sweeping
+\code{\link{tdt_power_full}()} directly. \code{"pd"}, \code{"prev"},
+\code{"R1"}, \code{"R2"}, and \code{"delta_prime"} are only valid
+\code{x_var} choices in this mode.
+
+With \code{input_mode = "model_free"}, sweep \code{"ET"} or \code{"ENT"}
+instead (or any of the shared \code{"misclass_rate"}, \code{"heter_rate"},
+\code{"locus_het_rate"}, or \code{"pheno_error_multiplier"} variables). A
+resolved \code{scenario = "heterogeneity"} requires a fixed \code{pd}
+argument, and \code{scenario = "misclassification"} requires fixed
+\code{pd} and \code{prev} arguments, because the conditional backend needs
+them to apply \code{heter_rate}/\code{misclass_rate} to the supplied
+\code{ET}/\code{ENT}. Unlike \code{\link{tdt_power_conditional_full}()}'s
+own default of \code{0.01}, \code{heter_rate} and \code{misclass_rate}
+default to \code{0} here in \code{input_mode = "model_free"} (unless fixed
+via \code{...} or swept via \code{x_var}), so \code{scenario = "no_error"}
+always works without \code{pd}/\code{prev}.
 }
 \examples{
 \dontrun{
@@ -56,6 +80,7 @@ tdt_plot_power(
   x_var = "heter_rate",
   x_values = seq(0, 0.50, by = 0.05),
   scenario = "heterogeneity",
+  input_mode = "model_based",
   N = 600,
   pd = 0.30,
   prev = 0.05,
@@ -63,6 +88,17 @@ tdt_plot_power(
   R2 = 2.25,
   alpha = 0.05,
   delta_prime = 1
+)
+
+tdt_plot_power(
+  x_var = "heter_rate",
+  x_values = seq(0, 0.50, by = 0.05),
+  scenario = "heterogeneity",
+  input_mode = "model_free",
+  N = 600,
+  ET = 160,
+  ENT = 100,
+  pd = 0.30
 )
 }
 
