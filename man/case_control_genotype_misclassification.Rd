@@ -177,8 +177,8 @@ chi-square test for one specific misclassification model.
 \details{
 These are specialized convenience functions retained for users who want a
 focused genotype-only calculation. The all-in-one case-control functions are
-recommended when combining model-free inputs, locus heterogeneity, allelic
-tests, trend tests, or multiple modifier choices in one call.
+recommended when combining model-free inputs, locus heterogeneity, trend
+tests, or multiple modifier choices in one call.
 
 The returned objects keep internal effect-size components such as \code{S}
 and, for differential misclassification, per-genotype components, for

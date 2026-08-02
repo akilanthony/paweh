@@ -79,7 +79,7 @@ probabilities. Here \code{theta = Pr(affected -> control)} and
 \code{phi = Pr(unaffected -> case)}. These specialized functions apply only
 phenotype misclassification; use the full case-control functions for
 combined phenotype misclassification, locus heterogeneity, genotype
-misclassification, allelic tests, or trend tests.
+misclassification, or trend tests.
 }
 \examples{
 g_aff <- c((1 - 0.05)^2, 2 * 0.05 * (1 - 0.05), 0.05^2)

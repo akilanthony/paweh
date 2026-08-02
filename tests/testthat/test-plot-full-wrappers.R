@@ -79,10 +79,10 @@ test_that("cc_plot_power compare_tests returns plot and readable data labels", {
 
   expect_s3_class(p, "ggplot")
   expect_s3_class(dat, "data.frame")
-  expect_equal(nrow(dat), length(x_values) * 3)
+  expect_equal(nrow(dat), length(x_values) * 2)
   expect_setequal(
     dat$test,
-    c("Genotype chi-square", "Allelic chi-square", "Trend test")
+    c("Genotype chi-square", "Trend test")
   )
 })
 

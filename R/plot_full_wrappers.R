@@ -124,7 +124,6 @@
 .plot_test_label <- function(test) {
   labels <- c(
     genotypes = "Genotype chi-square",
-    alleles = "Allelic chi-square",
     trend = "Trend test"
   )
   out <- unname(labels[test])
@@ -258,10 +257,6 @@
 
 .plot_cc_extract_power <- function(out, test) {
   if (test == "genotypes") return(out$tests$genotypes$power)
-  if (test == "alleles") {
-    if (is.null(out$tests$alleles)) stop("Allelic output is NULL. Set include_allelic=TRUE.")
-    return(out$tests$alleles$power)
-  }
   if (test == "trend") return(out$tests$trend$power)
   stop("Unknown test: ", test)
 }
@@ -270,11 +265,10 @@
   result <- switch(
     test,
     genotypes = out$tests$genotypes,
-    alleles = out$tests$alleles,
     trend = out$tests$trend,
     stop("Unknown test: ", test)
   )
-  if (is.null(result)) stop("Requested test output is NULL. For alleles, set include_allelic=TRUE.")
+  if (is.null(result)) stop("Requested test output is NULL.")
 
   switch(
     sample_size,
@@ -324,10 +318,10 @@
 #'
 #' @param x_var Character. Parameter to vary on the x-axis.
 #' @param x_values Numeric vector of x-axis values.
-#' @param test One of \code{"genotypes"}, \code{"alleles"}, or \code{"trend"}.
+#' @param test One of \code{"genotypes"} or \code{"trend"}.
 #' @param input_mode One of \code{"model_based"} or \code{"model_free"}.
-#' @param compare_tests Logical. If TRUE, plot genotype, allelic, and trend
-#'   tests together and ignore \code{test}.
+#' @param compare_tests Logical. If TRUE, plot genotype and trend tests
+#'   together and ignore \code{test}.
 #' @param title Optional character title override.
 #' @param x_label Optional x-axis label override.
 #' @param y_label Optional y-axis label override.
@@ -396,7 +390,7 @@
 cc_plot_power <- function(
     x_var,
     x_values,
-    test = c("genotypes", "alleles", "trend"),
+    test = c("genotypes", "trend"),
     input_mode = c("model_based", "model_free"),
     compare_tests = FALSE,
     title = NULL,
@@ -414,7 +408,7 @@ cc_plot_power <- function(
   }
 
   tests <- if (isTRUE(compare_tests)) {
-    c("genotypes", "alleles", "trend")
+    c("genotypes", "trend")
   } else {
     match.arg(test)
   }
@@ -422,7 +416,6 @@ cc_plot_power <- function(
   args0 <- list(...)
   args0$input_mode <- input_mode
   args0$verbose <- FALSE
-  if (isTRUE(compare_tests) || identical(tests, "alleles")) args0$include_allelic <- TRUE
 
   dat_list <- lapply(tests, function(test_i) {
     y <- vapply(x_values, function(x) {
@@ -474,11 +467,11 @@ cc_plot_power <- function(
 #'
 #' @param x_var Character. Parameter to vary on the x-axis.
 #' @param x_values Numeric vector of x-axis values.
-#' @param test One of \code{"genotypes"}, \code{"alleles"}, or \code{"trend"}.
+#' @param test One of \code{"genotypes"} or \code{"trend"}.
 #' @param input_mode One of \code{"model_based"} or \code{"model_free"}.
 #' @param sample_size One of \code{"total"}, \code{"case"}, or \code{"control"}.
-#' @param compare_tests Logical. If TRUE, plot genotype, allelic, and trend
-#'   tests together and ignore \code{test}.
+#' @param compare_tests Logical. If TRUE, plot genotype and trend tests
+#'   together and ignore \code{test}.
 #' @param title Optional character title override.
 #' @param x_label Optional x-axis label override.
 #' @param y_label Optional y-axis label override.
@@ -486,10 +479,9 @@ cc_plot_power <- function(
 #' @param ... Arguments passed to \code{cc_mssn_conditional_full()}.
 #'
 #' @details
-#' The supported \code{test} values are \code{"genotypes"}, \code{"alleles"},
-#' and \code{"trend"}. \code{sample_size} selects whether to plot required
-#' cases, controls, or total sample size. \code{compare_tests = TRUE} plots all
-#' three tests together.
+#' The supported \code{test} values are \code{"genotypes"} and \code{"trend"}.
+#' \code{sample_size} selects whether to plot required cases, controls, or
+#' total sample size. \code{compare_tests = TRUE} plots both tests together.
 #'
 #' Supported \code{x_var} values are the same heterogeneity and
 #' misclassification variables documented for \code{\link{cc_plot_power}()},
@@ -529,7 +521,7 @@ cc_plot_power <- function(
 cc_plot_mssn <- function(
     x_var,
     x_values,
-    test = c("genotypes", "alleles", "trend"),
+    test = c("genotypes", "trend"),
     input_mode = c("model_based", "model_free"),
     sample_size = c("total", "case", "control"),
     compare_tests = FALSE,
@@ -553,7 +545,7 @@ cc_plot_mssn <- function(
   }
 
   tests <- if (isTRUE(compare_tests)) {
-    c("genotypes", "alleles", "trend")
+    c("genotypes", "trend")
   } else {
     match.arg(test)
   }
@@ -561,7 +553,6 @@ cc_plot_mssn <- function(
   args0 <- list(...)
   args0$input_mode <- input_mode
   args0$verbose <- FALSE
-  if (isTRUE(compare_tests) || identical(tests, "alleles")) args0$include_allelic <- TRUE
 
   dat_list <- lapply(tests, function(test_i) {
     y <- vapply(x_values, function(x) {

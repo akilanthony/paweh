@@ -25,7 +25,6 @@ Functions:
 
 Tests implemented:
 - Genotype chi-square test of independence
-- Optional allelic chi-square test
 - Genotype trend test
 
 Model modifiers:
@@ -39,7 +38,6 @@ Model modifiers:
 
 Textbook mapping:
 - Genotype chi-square equation: TODO add textbook equation number/page
-- Allelic chi-square equation: TODO add textbook equation number/page
 - Trend test equation: TODO add textbook equation number/page
 - Locus heterogeneity equation or section: TODO add textbook equation number/page
 - Genotype misclassification equation or section: TODO add textbook equation number/page

@@ -14,7 +14,10 @@ test_that("cc_power_conditional_full returns expected structure and class", {
   expect_s3_class(out, "cc_power_conditional_full")
   expect_type(out$tests, "list")
   expect_type(out$freqs, "list")
-  expect_true(all(c("genotypes", "alleles", "trend") %in% names(out$tests)))
+  expect_named(out$tests, c("genotypes", "trend"))
+  expect_false("alleles" %in% names(out$tests))
+  obsolete_arg <- paste0("include_", "allel", "ic")
+  expect_false(obsolete_arg %in% names(out))
 })
 
 test_that("cc_mssn_conditional_full returns expected structure and class", {
@@ -30,7 +33,10 @@ test_that("cc_mssn_conditional_full returns expected structure and class", {
   expect_s3_class(out, "cc_mssn_conditional_full")
   expect_type(out$tests, "list")
   expect_type(out$freqs, "list")
-  expect_true(all(c("genotypes", "alleles", "trend") %in% names(out$tests)))
+  expect_named(out$tests, c("genotypes", "trend"))
+  expect_false("alleles" %in% names(out$tests))
+  obsolete_arg <- paste0("include_", "allel", "ic")
+  expect_false(obsolete_arg %in% names(out))
 })
 
 test_that("model_free and model_based inputs run without error", {
@@ -192,18 +198,19 @@ test_that("diff3p multiplier shortcut scales parameters from case or control", {
   )
 })
 
-test_that("include_allelic FALSE omits allelic result and printed output", {
+test_that("full functions no longer accept the obsolete allele-test argument or output", {
+  obsolete_arg <- paste0("include_", "allel", "ic")
   out <- cc_power_conditional_full(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
     g1 = cc_g_case,
     g0 = cc_g_ctrl,
-    include_allelic = FALSE,
     verbose = FALSE
   )
 
-  expect_null(out$tests$alleles)
+  expect_false("alleles" %in% names(out$tests))
+  expect_false(obsolete_arg %in% names(out))
 
   printed_power <- capture.output(
     cc_power_conditional_full(
@@ -212,14 +219,13 @@ test_that("include_allelic FALSE omits allelic result and printed output", {
       input_mode = "model_free",
       g1 = cc_g_case,
       g0 = cc_g_ctrl,
-      include_allelic = FALSE,
       verbose = TRUE
     ),
     type = "message"
   )
 
   expect_false(any(grepl("Alleles:", printed_power, fixed = TRUE)))
-  expect_false(any(grepl("allelic", printed_power, ignore.case = TRUE)))
+  expect_false(any(grepl("allel", printed_power, ignore.case = TRUE)))
 
   printed_mssn <- capture.output(
     cc_mssn_conditional_full(
@@ -228,14 +234,31 @@ test_that("include_allelic FALSE omits allelic result and printed output", {
       input_mode = "model_free",
       g1 = cc_g_case,
       g0 = cc_g_ctrl,
-      include_allelic = FALSE,
       verbose = TRUE
     ),
     type = "message"
   )
 
   expect_false(any(grepl("Alleles:", printed_mssn, fixed = TRUE)))
-  expect_false(any(grepl("allelic", printed_mssn, ignore.case = TRUE)))
+  expect_false(any(grepl("allel", printed_mssn, ignore.case = TRUE)))
+
+  expect_error(
+    do.call(
+      cc_power_conditional_full,
+      c(
+        list(
+          N_case = 500,
+          alpha = 0.05,
+          input_mode = "model_free",
+          g1 = cc_g_case,
+          g0 = cc_g_ctrl,
+          verbose = FALSE
+        ),
+        stats::setNames(list(FALSE), obsolete_arg)
+      )
+    ),
+    "unused argument"
+  )
 })
 
 test_that("invalid inputs throw errors", {

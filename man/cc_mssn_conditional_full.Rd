@@ -21,7 +21,6 @@ cc_mssn_conditional_full(
   phi = 0,
   k = 1,
   w = c(0, 1, 2),
-  include_allelic = TRUE,
   geno_misclass = c("none", "1p", "2p", "3p", "diff3p"),
   e = 0,
   e1 = 0,
@@ -86,9 +85,6 @@ individual is classified as a case.}
 \item{w}{Numeric vector of length 3. Genotype trend-test scores. The three
 weights cannot all be equal.}
 
-\item{include_allelic}{Logical. If \code{TRUE}, includes the allelic
-chi-square test in the returned object and verbose output.}
-
 \item{geno_misclass}{Character. Genotype misclassification model:
 \code{"none"}, \code{"1p"}, \code{"2p"}, \code{"3p"}, or \code{"diff3p"}.}
 
@@ -118,24 +114,21 @@ misclassification rates for \code{geno_misclass = "diff3p"}.}
 \value{
 An object of class \code{"cc_mssn_conditional_full"}: a nested list
 with components \code{alpha}, \code{target_power}, \code{input_mode},
-\code{k}, \code{w}, \code{include_allelic}, \code{locus_het},
-\code{errors}, \code{model_info}, \code{tests}, and \code{freqs}.
+\code{k}, \code{w}, \code{locus_het}, \code{errors}, \code{model_info},
+\code{tests}, and \code{freqs}.
 \code{errors$phenotype_misclass} stores the phenotype-misclassification
 settings and post-phenotype-misclassification frequencies.
 \code{tests$genotypes} and \code{tests$trend} contain test labels, degrees
 of freedom, target non-centrality parameters, internal \code{S} components,
-and MSSN case/control/total values. \code{tests$alleles} has the same MSSN
-fields when requested, otherwise it is \code{NULL}. \code{freqs} stores
-baseline, true, and observed case/control genotype frequencies and observed
-allele frequencies.
+and MSSN case/control/total values. \code{freqs} stores baseline, true, and
+observed case/control genotype frequencies.
 }
 \description{
 Computes the minimum sample size necessary (MSSN) for case-control association
 tests using conditional genotype frequencies. The function supports
 model-based genotype frequencies, model-free genotype frequencies, optional
 locus heterogeneity, optional phenotype misclassification, optional genotype
-misclassification, genotype chi-square tests, optional allelic chi-square
-tests, and genotype trend tests.
+misclassification, genotype chi-square tests, and genotype trend tests.
 }
 \details{
 The workflow is:
@@ -149,8 +142,8 @@ controls.
 \code{phi = Pr(unaffected -> case)}.
 \item Optionally apply genotype misclassification matrices to the resulting
 case and control genotype frequencies.
-\item Compute genotype chi-square, optional allelic chi-square, and genotype
-trend-test MSSN values from the observed genotype frequencies.
+\item Compute genotype chi-square and genotype trend-test MSSN values from
+the observed genotype frequencies.
 }
 
 With \code{input_mode = "model_based"}, conditional case and control genotype
@@ -179,10 +172,9 @@ the case parameters by \code{diff_multiplier}. With
 \code{diff_source = "ctrl"}, case parameters are computed by multiplying the
 control parameters by \code{diff_multiplier}.
 
-If \code{include_allelic = FALSE}, the allelic test is omitted and
-\code{tests$alleles} is \code{NULL}. Internal effect-size components
-\code{S} are retained in the returned object for validation and debugging,
-but are not printed in the clean verbose output.
+Internal effect-size components \code{S} are retained in the returned object
+for validation and debugging, but are not printed in the clean verbose
+output.
 }
 \examples{
 cc_mssn_conditional_full(
@@ -223,15 +215,6 @@ cc_mssn_conditional_full(
   verbose = FALSE
 )
 
-cc_mssn_conditional_full(
-  power = 0.8, alpha = 0.05,
-  input_mode = "model_free",
-  g1 = c(0.25, 0.50, 0.25),
-  g0 = c(0.36, 0.48, 0.16),
-  include_allelic = FALSE,
-  verbose = FALSE
-)
-
 }
 \references{
 Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
@@ -243,6 +226,6 @@ errors for case/control genetic association studies. \emph{BMC Genetics},
 6, 18.
 
 TODO: Provide exact textbook equation numbers/pages for the case-control
-genotype, allelic, trend, locus-heterogeneity, and genotype-misclassification
+genotype, trend, locus-heterogeneity, and genotype-misclassification
 calculations.
 }
