@@ -124,3 +124,25 @@ pd-solving helper, rather than sharing file-level helpers. This mirrors the
 duplication already present between the two copied source functions.
 
 Do not invent citations. If the exact citation is missing, leave a TODO.
+
+## Next steps / open questions
+
+- Genotype misclassification for the TDT (Sect. 5.2.5, pp. 277 and 281) is
+  not implemented anywhere in the package yet, for either input_mode. Unlike
+  phenotype misclassification and locus heterogeneity, there is no existing
+  calc_gTgNT_*()-style formula to copy from R/tdt_functions.R -- this is new
+  work, not a port, and needs its own derivation and citation before coding.
+- R/tdt_functions.R's own plotting functions (tdt_plot_power_misclassification,
+  tdt_plot_power_heterogeneity, tdt_plot_sample_size_misclassification,
+  tdt_plot_sample_size_heterogeneity, and the four tdt_plot3d_*() functions)
+  still call tdt_power_full()/tdt_required_trios_full() directly. Only the
+  wrappers in R/plot_full_wrappers.R (tdt_plot_power(), tdt_plot_mssn()) were
+  switched to call tdt_power_conditional_full()/tdt_mssn_conditional_full().
+  The two sets of plotting functions currently point at different backends.
+- As a result, the package carries two implementations of the same
+  heterogeneity/misclassification math side by side: the original
+  tdt_power_full()/tdt_required_trios_full() in R/tdt_functions.R, and the
+  conditional copies in R/tdt_conditional.R. Whether to eventually deprecate
+  the older tdt_*_full() functions (and their dedicated plotting functions)
+  in favor of the conditional ones is undecided -- do not remove or
+  deprecate them without an explicit instruction to do so.
