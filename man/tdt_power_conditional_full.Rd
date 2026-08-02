@@ -16,6 +16,8 @@ tdt_power_conditional_full(
   delta_prime = 1,
   ET = NULL,
   ENT = NULL,
+  locus_het = FALSE,
+  pi = 1,
   verbose = TRUE
 )
 }
@@ -50,6 +52,15 @@ parameter \eqn{\delta'} between the marker and trait loci.}
 Expected transmission and non-transmission counts accumulated over
 \code{n_trios} affected trios.}
 
+\item{locus_het}{Logical. If \code{TRUE}, mixes the baseline transmission
+probabilities with a locus-heterogeneity null term via \code{pi}.
+Requires \code{input_mode = "model_based"}.}
+
+\item{pi}{Numeric in \eqn{[0,1]}. Probability that a trio is linked to the
+disease locus (locus-homogeneity fraction) when \code{locus_het = TRUE}.
+\code{pi = 1} is full homogeneity and reproduces the no-heterogeneity
+result exactly.}
+
 \item{verbose}{Logical. If \code{TRUE}, prints a clean formatted summary.}
 }
 \value{
@@ -60,6 +71,8 @@ with components \code{alpha}, \code{n_trios}, \code{input_mode},
 label, degrees of freedom, non-centrality parameter, internal \code{S}
 component, and \code{power}. \code{transmissions} stores baseline and
 observed \code{gT}/\code{gNT} probabilities and \code{ET}/\code{ENT} counts.
+\code{locus_het} reports whether the modifier was applied, \code{pi}, and the
+\code{gT}/\code{gNT} values before and after the modifier.
 }
 \description{
 Computes power for the transmission disequilibrium test at a fixed number of
@@ -73,7 +86,8 @@ The workflow is:
 \enumerate{
 \item Construct baseline expected transmission probabilities \eqn{g_T^*} and
 \eqn{g_{NT}^*} per heterozygous parent.
-\item Reserved for locus heterogeneity (not implemented in this version).
+\item Optionally mix with a locus-heterogeneity null term when
+\code{locus_het = TRUE} (see below).
 \item Reserved for phenotype misclassification (not implemented).
 \item Reserved for genotype misclassification (not implemented).
 \item Compute the non-centrality parameter and power from the resulting
@@ -95,16 +109,30 @@ inputs here are the expected transmission counts, because they completely
 determine the TDT non-centrality parameter. No genotype frequencies are
 involved.
 
+When \code{locus_het = TRUE}, the transmission probabilities are mixed with
+a null term for trios not linked to the locus of interest, following Gordon
+et al. (2020), Sect. 5.3.3, Eq. 5.33 (p. 294), based on the NCP derived by
+Chen et al. (2009):
+\deqn{g_T^* = \pi g_T + (1 - \pi)
+  \left[\delta (p_+ - 0.5) C / \phi_1 + p_d p_+\right], \quad
+  g_{NT}^* = \pi g_{NT} + (1 - \pi)
+  \left[\delta (0.5 - p_d) C / \phi_1 + p_d p_+\right],}
+where \eqn{g_T} and \eqn{g_{NT}} are the stage-1 baseline transmission
+probabilities and \eqn{\pi} is the locus-homogeneity fraction. This modifier
+requires \code{input_mode = "model_based"}, because the null term depends on
+\eqn{p_+}, \eqn{p_d}, \eqn{C}, and \eqn{\delta}, which are not recoverable
+from user-supplied \eqn{ET}/\eqn{ENT} alone.
+
 In both modes the non-centrality parameter is
 \deqn{\lambda = (ET - ENT)^2 / (ET + ENT),}
 and the TDT statistic follows a central chi-square distribution with 1 degree
 of freedom under the null and a non-central chi-square distribution with 1
 degree of freedom under the alternative (Table 1.5).
 
-The \code{locus_het} and \code{errors} components of the returned object are
-always present and currently report disabled modifiers, so that downstream
-wrappers and plotting functions can rely on a stable layout as heterogeneity
-models are added.
+The \code{errors} component of the returned object is always present and
+currently reports disabled modifiers, so that downstream wrappers and
+plotting functions can rely on a stable layout as phenotype and genotype
+misclassification are added.
 }
 \examples{
 tdt_power_conditional_full(
@@ -130,16 +158,35 @@ tdt_power_conditional_full(
   verbose = FALSE
 )
 
+tdt_power_conditional_full(
+  n_trios = 500, alpha = 0.05,
+  input_mode = "model_based",
+  prev = 0.005, pd = 0.25, R1 = 2, R2 = 2,
+  delta_prime = 1,
+  locus_het = TRUE, pi = 0.99,
+  verbose = FALSE
+)
+
 }
 \references{
 Gordon, D., Finch, S. J., & Kim, W. (2020).
 \emph{Heterogeneity in Statistical Genetics}. Springer Nature.
-Equations 1.6, 1.7, and 1.25; Table 1.5.
+Equations 1.6, 1.7, and 1.25; Table 1.5; Sect. 5.3.3, Eqs. 5.30-5.34b
+(pp. 293-294).
 
 Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
 for linkage disequilibrium: the insulin gene region and insulin-dependent
 diabetes mellitus (IDDM). \emph{American Journal of Human Genetics}, 52,
 506-516.
+
+Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+(2009). Transmission disequilibrium test power and sample size in the
+presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+and Molecular Biology}, 8(44). \doi{10.2202/1544-6115.1501}
+
+Deng, H. W., & Chen, W. M. (2001). The power of the transmission
+disequilibrium test (TDT) with both case-parent and control-parent trios.
+\emph{Genetical Research}, 78(3), 289-302.
 }
 \seealso{
 \code{\link{tdt_mssn_conditional_full}} for the sample-size

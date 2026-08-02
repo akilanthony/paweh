@@ -17,6 +17,8 @@ tdt_mssn_conditional_full(
   ET = NULL,
   ENT = NULL,
   n_trios = NULL,
+  locus_het = FALSE,
+  pi = 1,
   verbose = TRUE
 )
 }
@@ -55,6 +57,15 @@ Expected transmission and non-transmission counts accumulated over
 \code{ET} and \code{ENT} correspond to. Required for
 \code{input_mode = "model_free"} and ignored otherwise. See Details.}
 
+\item{locus_het}{Logical. If \code{TRUE}, mixes the baseline transmission
+probabilities with a locus-heterogeneity null term via \code{pi}.
+Requires \code{input_mode = "model_based"}.}
+
+\item{pi}{Numeric in \eqn{[0,1]}. Probability that a trio is linked to the
+disease locus (locus-homogeneity fraction) when \code{locus_het = TRUE}.
+\code{pi = 1} is full homogeneity and reproduces the no-heterogeneity
+result exactly.}
+
 \item{verbose}{Logical. If \code{TRUE}, prints a clean formatted summary.}
 }
 \value{
@@ -66,6 +77,8 @@ label, degrees of freedom, target non-centrality parameter
 \code{lambda_star}, internal \code{S} component, and \code{MSSN_trios}.
 \code{transmissions} stores baseline and observed \code{gT}/\code{gNT}
 probabilities and the \code{ET}/\code{ENT} counts implied at the MSSN.
+\code{locus_het} reports whether the modifier was applied, \code{pi}, and
+the \code{gT}/\code{gNT} values before and after the modifier.
 }
 \description{
 Computes the minimum sample size necessary (MSSN), expressed as a number of
@@ -76,9 +89,12 @@ and returned-object layout.
 }
 \details{
 The workflow mirrors \code{\link{tdt_power_conditional_full}}: baseline
-transmission probabilities are constructed, reserved heterogeneity stages
-pass them through unchanged in this version, and the MSSN is computed from
-the resulting per-trio effect size.
+transmission probabilities are constructed, optionally mixed with a
+locus-heterogeneity null term when \code{locus_het = TRUE} (see
+\code{\link{tdt_power_conditional_full}} for the formula), and the MSSN is
+computed from the resulting per-trio effect size. Reserved phenotype- and
+genotype-misclassification stages pass the values through unchanged in this
+version.
 
 Because \eqn{ET = 2 N g_T^*} and \eqn{ENT = 2 N g_{NT}^*} are both
 proportional to the number of trios, the non-centrality parameter is linear
@@ -88,7 +104,9 @@ The MSSN therefore has a closed form and requires no simulation:
 \deqn{N^* = \left\lceil \frac{\lambda^*}{2}
   \frac{g_T^* + g_{NT}^*}{(g_T^* - g_{NT}^*)^2} \right\rceil,}
 where \eqn{\lambda^*} is the non-centrality parameter attaining the target
-power at the given significance level with 1 degree of freedom.
+power at the given significance level with 1 degree of freedom. This holds
+whether or not \code{locus_het} is applied, because the modifier keeps
+\eqn{g_T^*} and \eqn{g_{NT}^*} independent of \eqn{N}.
 
 With \code{input_mode = "model_free"}, \code{ET} and \code{ENT} are absolute
 counts that already embed a sample size, so \code{n_trios} must also be
@@ -96,6 +114,8 @@ supplied to recover the per-parent probabilities
 \eqn{g_T^* = ET / (2 n_{trios})} and \eqn{g_{NT}^* = ENT / (2 n_{trios})}
 before rescaling to \eqn{N^*}. This requirement has no case-control
 counterpart, because model-free genotype frequencies are already normalized.
+\code{locus_het = TRUE} is not supported with \code{input_mode =
+"model_free"}; see \code{\link{tdt_power_conditional_full}} for why.
 }
 \examples{
 tdt_mssn_conditional_full(
@@ -121,16 +141,35 @@ tdt_mssn_conditional_full(
   verbose = FALSE
 )
 
+tdt_mssn_conditional_full(
+  power = 0.8, alpha = 0.05,
+  input_mode = "model_based",
+  prev = 0.005, pd = 0.25, R1 = 2, R2 = 2,
+  delta_prime = 1,
+  locus_het = TRUE, pi = 0.99,
+  verbose = FALSE
+)
+
 }
 \references{
 Gordon, D., Finch, S. J., & Kim, W. (2020).
 \emph{Heterogeneity in Statistical Genetics}. Springer Nature.
-Equations 1.6, 1.7, and 1.25; Table 1.5.
+Equations 1.6, 1.7, and 1.25; Table 1.5; Sect. 5.3.3, Eqs. 5.30-5.34b
+(pp. 293-294).
 
 Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
 for linkage disequilibrium: the insulin gene region and insulin-dependent
 diabetes mellitus (IDDM). \emph{American Journal of Human Genetics}, 52,
 506-516.
+
+Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+(2009). Transmission disequilibrium test power and sample size in the
+presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+and Molecular Biology}, 8(44). \doi{10.2202/1544-6115.1501}
+
+Deng, H. W., & Chen, W. M. (2001). The power of the transmission
+disequilibrium test (TDT) with both case-parent and control-parent trios.
+\emph{Genetical Research}, 78(3), 289-302.
 }
 \seealso{
 \code{\link{tdt_power_conditional_full}} for the power counterpart,

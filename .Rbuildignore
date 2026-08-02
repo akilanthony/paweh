@@ -7,3 +7,4 @@
 ^docs$
 ^pkgdown$
 ^AGENTS\.md$
+^\.claude$

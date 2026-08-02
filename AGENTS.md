@@ -59,10 +59,17 @@ Tests implemented:
 - Standard transmission disequilibrium test (df = 1)
 
 Model modifiers:
-- None in this version. Stages 2-4 of .tdt_transmission_pipeline() are reserved
-  for locus heterogeneity, phenotype misclassification, and genotype
-  misclassification, and currently pass the baseline gT/gNT through unchanged
-  while recording disabled modifier slots in the returned object.
+- Locus heterogeneity (stage 2 of .tdt_transmission_pipeline(), implemented):
+  gT/gNT = pi * baseline + (1 - pi) * null_term, where pi is the probability a
+  trio is linked to the disease locus (pi = 1 is full homogeneity and
+  reproduces the stage-1 baseline exactly). Enabled via locus_het = TRUE and
+  pi in tdt_power_conditional_full() and tdt_mssn_conditional_full(). Requires
+  input_mode = "model_based", because the null term depends on p_plus, p_d, C,
+  and delta, which are not recoverable from user-supplied ET/ENT alone.
+- Stages 3-4 of .tdt_transmission_pipeline() are reserved for phenotype
+  misclassification and genotype misclassification, and currently pass the
+  stage-2 gT/gNT through unchanged while recording disabled modifier slots in
+  the returned object.
 
 Textbook mapping (Gordon, Finch, and Kim 2020):
 - Penetrances from prevalence and genotype relative risks: Eq. 1.6 and Eq. 1.7,
@@ -78,9 +85,13 @@ Textbook mapping (Gordon, Finch, and Kim 2020):
   and Sect. 1.4.2, pp. 13-14.
 - TDT statistic definition and transmitted/non-transmitted counts: Sect. 1.6.1.3
   and Table 1.4, p. 24.
+- Locus heterogeneity for the TDT, gT*/gNT* mixture and NCP: Sect. 5.3.3,
+  Eqs. 5.30-5.34b, pp. 293-294. The NCP under locus heterogeneity is due to
+  Chen, Yang, Buyske, Matise, Finch, and Gordon (2009), Statistical
+  Applications in Genetics and Molecular Biology, 8(44), building on Deng and
+  Chen (2001), Genetical Research, 78(3), 289-302.
 
 Reserved for future modifier stages:
-- Locus heterogeneity for family-based tests: Sect. 5.3.3, p. 293.
 - Phenotype misclassification for TDT: Sect. 5.2.6, p. 284.
 - Genotype misclassification for TDT, including type I error inflation:
   Sect. 5.2.5, pp. 277 and 281.
