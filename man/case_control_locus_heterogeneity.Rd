@@ -4,8 +4,6 @@
 \alias{case_control_locus_heterogeneity}
 \alias{cc_mssn_locus_het_genotypes}
 \alias{cc_power_locus_het_genotypes}
-\alias{cc_mssn_locus_het_alleles}
-\alias{cc_power_locus_het_alleles}
 \alias{cc_mssn_locus_het_trend}
 \alias{cc_power_locus_het_trend}
 \title{Specialized Case-Control Locus-Heterogeneity Functions}
@@ -21,26 +19,6 @@ cc_mssn_locus_het_genotypes(
 )
 
 cc_power_locus_het_genotypes(
-  N_case,
-  alpha,
-  g_case_assoc,
-  g_ctrl,
-  pi,
-  k = 1,
-  verbose = TRUE
-)
-
-cc_mssn_locus_het_alleles(
-  power,
-  alpha,
-  g_case_assoc,
-  g_ctrl,
-  pi,
-  k = 1,
-  verbose = TRUE
-)
-
-cc_power_locus_het_alleles(
   N_case,
   alpha,
   g_case_assoc,
@@ -102,16 +80,15 @@ A list with class matching the function name. MSSN functions include
 target non-centrality parameter, sample sizes, internal \code{S} values, and
 adjusted frequencies. Power functions include sample sizes,
 non-centrality parameter, power, internal \code{S} values, and adjusted
-frequencies. Allelic functions additionally return derived allele
-frequencies; trend functions additionally return the trend numerator and
+frequencies. Trend functions additionally return the trend numerator and
 denominator.
 }
 \description{
 Convenience functions for case-control association calculations under locus
-heterogeneity. These focused functions compute one test at a time:
-genotype chi-square, allelic chi-square, or genotype trend. The all-in-one
-case-control functions remain the recommended interface when multiple tests
-or modifiers are needed in one call.
+heterogeneity. These focused functions compute genotype chi-square or
+genotype trend calculations one test at a time. The all-in-one case-control
+functions remain the recommended interface when multiple tests or modifiers
+are needed in one call.
 }
 \examples{
 cc_mssn_locus_het_genotypes(

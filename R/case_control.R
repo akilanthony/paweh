@@ -4,8 +4,7 @@
 #' tests using conditional genotype frequencies. The function supports
 #' model-based genotype frequencies, model-free genotype frequencies, optional
 #' locus heterogeneity, optional phenotype misclassification, optional genotype
-#' misclassification, genotype chi-square tests, optional allelic chi-square
-#' tests, and genotype trend tests.
+#' misclassification, genotype chi-square tests, and genotype trend tests.
 #'
 #' @param power Numeric in \eqn{(0,1)}. Desired target power.
 #' @param alpha Numeric in \eqn{(0,1)}. Significance level.
@@ -37,8 +36,6 @@
 #'   \eqn{N_{ctrl} / N_{case}}.
 #' @param w Numeric vector of length 3. Genotype trend-test scores. The three
 #'   weights cannot all be equal.
-#' @param include_allelic Logical. If \code{TRUE}, includes the allelic
-#'   chi-square test in the returned object and verbose output.
 #' @param geno_misclass Character. Genotype misclassification model:
 #'   \code{"none"}, \code{"1p"}, \code{"2p"}, \code{"3p"}, or \code{"diff3p"}.
 #' @param e Numeric. Symmetric one-parameter misclassification rate for
@@ -69,8 +66,8 @@
 #' \code{phi = Pr(unaffected -> case)}.
 #' \item Optionally apply genotype misclassification matrices to the resulting
 #' case and control genotype frequencies.
-#' \item Compute genotype chi-square, optional allelic chi-square, and genotype
-#' trend-test MSSN values from the observed genotype frequencies.
+#' \item Compute genotype chi-square and genotype trend-test MSSN values from
+#' the observed genotype frequencies.
 #' }
 #'
 #' With \code{input_mode = "model_based"}, conditional case and control genotype
@@ -99,23 +96,20 @@
 #' \code{diff_source = "ctrl"}, case parameters are computed by multiplying the
 #' control parameters by \code{diff_multiplier}.
 #'
-#' If \code{include_allelic = FALSE}, the allelic test is omitted and
-#' \code{tests$alleles} is \code{NULL}. Internal effect-size components
-#' \code{S} are retained in the returned object for validation and debugging,
-#' but are not printed in the clean verbose output.
+#' Internal effect-size components \code{S} are retained in the returned object
+#' for validation and debugging, but are not printed in the clean verbose
+#' output.
 #'
 #' @return An object of class \code{"cc_mssn_conditional_full"}: a nested list
 #' with components \code{alpha}, \code{target_power}, \code{input_mode},
-#' \code{k}, \code{w}, \code{include_allelic}, \code{locus_het},
-#' \code{errors}, \code{model_info}, \code{tests}, and \code{freqs}.
+#' \code{k}, \code{w}, \code{locus_het}, \code{errors}, \code{model_info},
+#' \code{tests}, and \code{freqs}.
 #' \code{errors$phenotype_misclass} stores the phenotype-misclassification
 #' settings and post-phenotype-misclassification frequencies.
 #' \code{tests$genotypes} and \code{tests$trend} contain test labels, degrees
 #' of freedom, target non-centrality parameters, internal \code{S} components,
-#' and MSSN case/control/total values. \code{tests$alleles} has the same MSSN
-#' fields when requested, otherwise it is \code{NULL}. \code{freqs} stores
-#' baseline, true, and observed case/control genotype frequencies and observed
-#' allele frequencies.
+#' and MSSN case/control/total values. \code{freqs} stores baseline, true, and
+#' observed case/control genotype frequencies.
 #'
 #' @examples
 #' cc_mssn_conditional_full(
@@ -156,15 +150,6 @@
 #'   verbose = FALSE
 #' )
 #'
-#' cc_mssn_conditional_full(
-#'   power = 0.8, alpha = 0.05,
-#'   input_mode = "model_free",
-#'   g1 = c(0.25, 0.50, 0.25),
-#'   g0 = c(0.36, 0.48, 0.16),
-#'   include_allelic = FALSE,
-#'   verbose = FALSE
-#' )
-#'
 #' @references
 #' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
 #' *Heterogeneity in Statistical Genetics*. Springer Nature.
@@ -175,7 +160,7 @@
 #' 6, 18.
 #'
 #' TODO: Provide exact textbook equation numbers/pages for the case-control
-#' genotype, allelic, trend, locus-heterogeneity, and genotype-misclassification
+#' genotype, trend, locus-heterogeneity, and genotype-misclassification
 #' calculations.
 #'
 #' @importFrom stats pchisq qchisq uniroot
@@ -206,7 +191,6 @@ cc_mssn_conditional_full <- function(
 
     k = 1,
     w = c(0, 1, 2),
-    include_allelic = TRUE,
 
     # genotype misclassification controls
     geno_misclass = c("none", "1p", "2p", "3p", "diff3p"),
@@ -293,12 +277,6 @@ cc_mssn_conditional_full <- function(
       g_j1 = g_j1,
       g_j0 = g_j0
     )
-  }
-
-  cc_geno_to_allele_freqs <- function(gj) {
-    check_genotype_freqs(gj, "gj")
-    p <- gj[3] + 0.5 * gj[2]
-    c(q = 1 - p, p = p)
   }
 
   cc_apply_pheno_misclass <- function(g_aff, g_unaff, prev, theta, phi) {
@@ -434,8 +412,6 @@ cc_mssn_conditional_full <- function(
     stop("w must be a numeric vector of length 3.")
   if (length(unique(w)) == 1)
     stop("Trend weights w cannot all be equal.")
-  if (!is.logical(include_allelic) || length(include_allelic) != 1)
-    stop("include_allelic must be TRUE or FALSE.")
   if (!is.logical(locus_het) || length(locus_het) != 1)
     stop("locus_het must be TRUE or FALSE.")
   if (!is.numeric(pi) || length(pi) != 1 || pi < 0 || pi > 1)
@@ -627,9 +603,6 @@ cc_mssn_conditional_full <- function(
   g0_obs <- cc_apply_genotype_misclass(g0_true, M_ctrl)
   g0_obs <- g0_obs / sum(g0_obs)
 
-  p1_obs <- cc_geno_to_allele_freqs(g1_obs)
-  p0_obs <- cc_geno_to_allele_freqs(g0_obs)
-
   # ---- target lambdas ----
   lambda_star_g <- chisq_ncp_target(power = power, alpha = alpha, df = 2)
   lambda_star_1 <- chisq_ncp_target(power = power, alpha = alpha, df = 1)
@@ -642,30 +615,6 @@ cc_mssn_conditional_full <- function(
 
   MSSN_case_g <- ceiling(lambda_star_g / (k * S_g))
   MSSN_ctrl_g <- ceiling(k * MSSN_case_g)
-
-  # ---- allelic chi-square ----
-  allelic_result <- NULL
-
-  if (isTRUE(include_allelic)) {
-
-    S_a <- sum((p1_obs - p0_obs)^2 / (p1_obs + k * p0_obs))
-
-    if (!is.finite(S_a) || S_a <= 0)
-      stop("Allele S <= 0; check inputs.")
-
-    MSSN_case_a <- ceiling(lambda_star_1 / (2 * k * S_a))
-    MSSN_ctrl_a <- ceiling(k * MSSN_case_a)
-
-    allelic_result <- list(
-      test = "case-control chi-square test of independence for alleles",
-      df = 1,
-      lambda_star = lambda_star_1,
-      S = S_a,
-      MSSN_case = MSSN_case_a,
-      MSSN_ctrl = MSSN_ctrl_a,
-      MSSN_total = MSSN_case_a + MSSN_ctrl_a
-    )
-  }
 
   # ---- trend test ----
   num_t <- (sum(w * (g1_obs - g0_obs)))^2
@@ -691,7 +640,6 @@ cc_mssn_conditional_full <- function(
     input_mode = input_mode,
     k = k,
     w = w,
-    include_allelic = include_allelic,
     locus_het = locus_het_info,
     errors = list(
       phenotype_misclass = pheno_misclass_info,
@@ -708,7 +656,6 @@ cc_mssn_conditional_full <- function(
         MSSN_ctrl = MSSN_ctrl_g,
         MSSN_total = MSSN_case_g + MSSN_ctrl_g
       ),
-      alleles = allelic_result,
       trend = list(
         test = "trend test for genotypes",
         df = 1,
@@ -729,9 +676,7 @@ cc_mssn_conditional_full <- function(
       g_after_pheno_case = pheno$g_case_obs,
       g_after_pheno_ctrl = pheno$g_ctrl_obs,
       g_obs_case  = g1_obs,
-      g_obs_ctrl  = g0_obs,
-      p_obs_case  = p1_obs,
-      p_obs_ctrl  = p0_obs
+      g_obs_ctrl  = g0_obs
     )
   )
 
@@ -741,11 +686,7 @@ cc_mssn_conditional_full <- function(
   if (isTRUE(verbose)) {
 
     message("\n--- Case-Control: Minimum Sample Size Necessary (MSSN) ---")
-    if (isTRUE(include_allelic)) {
-      message("Outputs: Genotype chi-square, allelic chi-square, and genotype trend test")
-    } else {
-      message("Outputs: Genotype chi-square and genotype trend test")
-    }
+    message("Outputs: Genotype chi-square and genotype trend test")
     message("--------------------------------------------------------------------------")
 
     fmt2 <- "%-32s %12s  |  %-28s %12s"
@@ -857,13 +798,6 @@ if (geno_misclass == "none") {
       "Genotypes:", MSSN_case_g, MSSN_ctrl_g, MSSN_case_g + MSSN_ctrl_g
     ))
 
-    if (isTRUE(include_allelic)) {
-      message(sprintf(
-        "  %-16s MSSN_case=%8d  |  MSSN_ctrl=%8d  |  MSSN_total=%8d",
-        "Alleles:", MSSN_case_a, MSSN_ctrl_a, MSSN_case_a + MSSN_ctrl_a
-      ))
-    }
-
     message(sprintf(
       "  %-16s MSSN_case=%8d  |  MSSN_ctrl=%8d  |  MSSN_total=%8d",
       "Trend:", MSSN_case_t, MSSN_ctrl_t, MSSN_case_t + MSSN_ctrl_t
@@ -874,12 +808,6 @@ if (geno_misclass == "none") {
     message(sprintf("  g0: %6.3f vs %6.3f", g1_obs[1], g0_obs[1]))
     message(sprintf("  g1: %6.3f vs %6.3f", g1_obs[2], g0_obs[2]))
     message(sprintf("  g2: %6.3f vs %6.3f", g1_obs[3], g0_obs[3]))
-
-    if (isTRUE(include_allelic)) {
-      message("Observed risk-allele frequencies")
-      message(sprintf("  p_case: %6.3f", unname(p1_obs["p"])))
-      message(sprintf("  p_ctrl: %6.3f", unname(p0_obs["p"])))
-    }
 
     message("--------------------------------------------------------------------------")
   }
@@ -897,8 +825,7 @@ if (geno_misclass == "none") {
 #' frequencies. The function supports model-based genotype frequencies,
 #' model-free genotype frequencies, optional locus heterogeneity, optional
 #' phenotype misclassification, optional genotype misclassification, genotype
-#' chi-square tests, optional allelic chi-square tests, and genotype trend
-#' tests.
+#' chi-square tests and genotype trend tests.
 #'
 #' @param N_case Numeric \eqn{> 0}. Number of cases.
 #' @param alpha Numeric in \eqn{(0,1)}. Significance level.
@@ -930,8 +857,6 @@ if (geno_misclass == "none") {
 #'   \eqn{N_{ctrl} / N_{case}}.
 #' @param w Numeric vector of length 3. Genotype trend-test scores. The three
 #'   weights cannot all be equal.
-#' @param include_allelic Logical. If \code{TRUE}, includes the allelic
-#'   chi-square test in the returned object and verbose output.
 #' @param geno_misclass Character. Genotype misclassification model:
 #'   \code{"none"}, \code{"1p"}, \code{"2p"}, \code{"3p"}, or \code{"diff3p"}.
 #' @param e Numeric. Symmetric one-parameter misclassification rate for
@@ -962,9 +887,8 @@ if (geno_misclass == "none") {
 #' \code{phi = Pr(unaffected -> case)}.
 #' \item Optionally apply genotype misclassification matrices to the resulting
 #' case and control genotype frequencies.
-#' \item Compute genotype chi-square, optional allelic chi-square, and genotype
-#' trend-test non-centrality parameters and powers from the observed genotype
-#' frequencies.
+#' \item Compute genotype chi-square and genotype trend-test non-centrality
+#' parameters and powers from the observed genotype frequencies.
 #' }
 #'
 #' With \code{input_mode = "model_based"}, conditional case and control genotype
@@ -993,23 +917,20 @@ if (geno_misclass == "none") {
 #' \code{diff_source = "ctrl"}, case parameters are computed by multiplying the
 #' control parameters by \code{diff_multiplier}.
 #'
-#' If \code{include_allelic = FALSE}, the allelic test is omitted and
-#' \code{tests$alleles} is \code{NULL}. Internal effect-size components
-#' \code{S} are retained in the returned object for validation and debugging,
-#' but are not printed in the clean verbose output.
+#' Internal effect-size components \code{S} are retained in the returned object
+#' for validation and debugging, but are not printed in the clean verbose
+#' output.
 #'
 #' @return An object of class \code{"cc_power_conditional_full"}: a nested list
 #' with components \code{alpha}, \code{N_case}, \code{N_ctrl}, \code{N_total},
-#' \code{input_mode}, \code{k}, \code{w}, \code{include_allelic},
-#' \code{locus_het}, \code{errors}, \code{model_info}, \code{tests}, and
-#' \code{freqs}. \code{errors$phenotype_misclass} stores the
+#' \code{input_mode}, \code{k}, \code{w}, \code{locus_het}, \code{errors},
+#' \code{model_info}, \code{tests}, and \code{freqs}.
+#' \code{errors$phenotype_misclass} stores the
 #' phenotype-misclassification settings and post-phenotype-misclassification
 #' frequencies. \code{tests$genotypes} and \code{tests$trend} contain test
 #' labels, degrees of freedom, non-centrality parameters, internal \code{S}
-#' components, and power. \code{tests$alleles} has the same power fields when
-#' requested, otherwise it is \code{NULL}. \code{freqs} stores baseline, true,
-#' and observed case/control genotype frequencies and observed allele
-#' frequencies.
+#' components, and power. \code{freqs} stores baseline, true, and observed
+#' case/control genotype frequencies.
 #'
 #' @examples
 #' cc_power_conditional_full(
@@ -1080,15 +1001,6 @@ if (geno_misclass == "none") {
 #'   verbose = FALSE
 #' )
 #'
-#' cc_power_conditional_full(
-#'   N_case = 500, alpha = 0.05,
-#'   input_mode = "model_free",
-#'   g1 = c(0.25, 0.50, 0.25),
-#'   g0 = c(0.36, 0.48, 0.16),
-#'   include_allelic = FALSE,
-#'   verbose = FALSE
-#' )
-#'
 #' @references
 #' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
 #' *Heterogeneity in Statistical Genetics*. Springer Nature.
@@ -1099,7 +1011,7 @@ if (geno_misclass == "none") {
 #' 6, 18.
 #'
 #' TODO: Provide exact textbook equation numbers/pages for the case-control
-#' genotype, allelic, trend, locus-heterogeneity, and genotype-misclassification
+#' genotype, trend, locus-heterogeneity, and genotype-misclassification
 #' calculations.
 #'
 #' @importFrom stats pchisq qchisq
@@ -1130,7 +1042,6 @@ cc_power_conditional_full <- function(
 
     k = 1,
     w = c(0, 1, 2),
-    include_allelic = TRUE,
 
     # genotype misclassification controls
     geno_misclass = c("none", "1p", "2p", "3p", "diff3p"),
@@ -1209,12 +1120,6 @@ cc_power_conditional_full <- function(
       g_j1 = g_j1,
       g_j0 = g_j0
     )
-  }
-
-  cc_geno_to_allele_freqs <- function(gj) {
-    check_genotype_freqs(gj, "gj")
-    p <- gj[3] + 0.5 * gj[2]
-    c(q = 1 - p, p = p)
   }
 
   cc_apply_pheno_misclass <- function(g_aff, g_unaff, prev, theta, phi) {
@@ -1350,8 +1255,6 @@ cc_power_conditional_full <- function(
     stop("w must be a numeric vector of length 3.")
   if (length(unique(w)) == 1)
     stop("Trend weights w cannot all be equal.")
-  if (!is.logical(include_allelic) || length(include_allelic) != 1)
-    stop("include_allelic must be TRUE or FALSE.")
   if (!is.logical(locus_het) || length(locus_het) != 1)
     stop("locus_het must be TRUE or FALSE.")
   if (!is.numeric(pi) || length(pi) != 1 || pi < 0 || pi > 1)
@@ -1543,9 +1446,6 @@ cc_power_conditional_full <- function(
   g0_obs <- cc_apply_genotype_misclass(g0_true, M_ctrl)
   g0_obs <- g0_obs / sum(g0_obs)
 
-  p1_obs <- cc_geno_to_allele_freqs(g1_obs)
-  p0_obs <- cc_geno_to_allele_freqs(g0_obs)
-
   # ---- sample sizes ----
   N_ctrl <- k * N_case
 
@@ -1558,29 +1458,6 @@ cc_power_conditional_full <- function(
   lambda_g <- k * N_case * S_g
   crit_g <- qchisq(1 - alpha, df = 2)
   power_g <- pchisq(crit_g, df = 2, ncp = lambda_g, lower.tail = FALSE)
-
-  # ---- allelic chi-square ----
-  allelic_result <- NULL
-
-  if (isTRUE(include_allelic)) {
-
-    S_a <- sum((p1_obs - p0_obs)^2 / (p1_obs + k * p0_obs))
-
-    if (!is.finite(S_a) || S_a <= 0)
-      stop("Allele S <= 0; check inputs.")
-
-    lambda_a <- 2 * k * N_case * S_a
-    crit_1 <- qchisq(1 - alpha, df = 1)
-    power_a <- pchisq(crit_1, df = 1, ncp = lambda_a, lower.tail = FALSE)
-
-    allelic_result <- list(
-      test = "case-control chi-square test of independence for alleles",
-      df = 1,
-      lambda = lambda_a,
-      S = S_a,
-      power = power_a
-    )
-  }
 
   # ---- trend test ----
   num_t <- (sum(w * (g1_obs - g0_obs)))^2
@@ -1609,7 +1486,6 @@ cc_power_conditional_full <- function(
     input_mode = input_mode,
     k = k,
     w = w,
-    include_allelic = include_allelic,
     locus_het = locus_het_info,
     errors = list(
       phenotype_misclass = pheno_misclass_info,
@@ -1624,7 +1500,6 @@ cc_power_conditional_full <- function(
         S = S_g,
         power = power_g
       ),
-      alleles = allelic_result,
       trend = list(
         test = "trend test for genotypes",
         df = 1,
@@ -1643,9 +1518,7 @@ cc_power_conditional_full <- function(
       g_after_pheno_case = pheno$g_case_obs,
       g_after_pheno_ctrl = pheno$g_ctrl_obs,
       g_obs_case  = g1_obs,
-      g_obs_ctrl  = g0_obs,
-      p_obs_case  = p1_obs,
-      p_obs_ctrl  = p0_obs
+      g_obs_ctrl  = g0_obs
     )
   )
 
@@ -1655,11 +1528,7 @@ cc_power_conditional_full <- function(
   if (isTRUE(verbose)) {
 
     message("\n--- Case-Control: Power for Fixed Sample Size ---")
-    if (isTRUE(include_allelic)) {
-      message("Outputs: Genotype chi-square, allelic chi-square, and genotype trend test")
-    } else {
-      message("Outputs: Genotype chi-square and genotype trend test")
-    }
+    message("Outputs: Genotype chi-square and genotype trend test")
     message("--------------------------------------------------------------------------")
 
     fmt2 <- "%-32s %12s  |  %-28s %12s"
@@ -1772,13 +1641,6 @@ if (geno_misclass == "none") {
       "Genotypes:", power_g
     ))
 
-    if (isTRUE(include_allelic)) {
-      message(sprintf(
-        "  %-16s %12.6f",
-        "Alleles:", power_a
-      ))
-    }
-
     message(sprintf(
       "  %-16s %12.6f",
       "Trend:", power_t
@@ -1792,13 +1654,6 @@ if (geno_misclass == "none") {
       "Genotypes:", lambda_g, 2
     ))
 
-    if (isTRUE(include_allelic)) {
-      message(sprintf(
-        "  %-16s %12.5f  | df=%d",
-        "Alleles:", lambda_a, 1
-      ))
-    }
-
     message(sprintf(
       "  %-16s %12.5f  | df=%d",
       "Trend:", lambda_t, 1
@@ -1809,12 +1664,6 @@ if (geno_misclass == "none") {
     message(sprintf("  g0: %6.3f vs %6.3f", g1_obs[1], g0_obs[1]))
     message(sprintf("  g1: %6.3f vs %6.3f", g1_obs[2], g0_obs[2]))
     message(sprintf("  g2: %6.3f vs %6.3f", g1_obs[3], g0_obs[3]))
-
-    if (isTRUE(include_allelic)) {
-      message("Observed risk-allele frequencies")
-      message(sprintf("  p_case: %6.3f", unname(p1_obs["p"])))
-      message(sprintf("  p_ctrl: %6.3f", unname(p0_obs["p"])))
-    }
 
     message("--------------------------------------------------------------------------")
   }

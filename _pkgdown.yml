@@ -19,8 +19,6 @@ reference:
   - cc_power_genotypes_conditional_diffmisclass
   - cc_mssn_locus_het_genotypes
   - cc_power_locus_het_genotypes
-  - cc_mssn_locus_het_alleles
-  - cc_power_locus_het_alleles
   - cc_mssn_locus_het_trend
   - cc_power_locus_het_trend
   - cc_pheno_power_test
