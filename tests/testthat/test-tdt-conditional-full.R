@@ -317,7 +317,7 @@ test_that("power increases with trios and MSSN increases with target power", {
 })
 
 
-test_that("heterogeneity slots are present and disabled in this version", {
+test_that("locus heterogeneity is disabled by default", {
   out <- tdt_power_conditional_full(
     n_trios = 500, alpha = 0.05, input_mode = "model_based",
     prev = 0.05, pd = 0.25, R1 = 1.5, R2 = 2.25, verbose = FALSE
@@ -328,6 +328,184 @@ test_that("heterogeneity slots are present and disabled in this version", {
   expect_false(out$errors$genotype_misclass$enabled)
   expect_equal(out$transmissions$gT_base, out$transmissions$gT_obs)
   expect_equal(out$transmissions$gNT_base, out$transmissions$gNT_obs)
+})
+
+
+test_that("locus_het = TRUE, pi = 1 reproduces the no-heterogeneity baseline exactly", {
+  baseline <- tdt_power_conditional_full(
+    n_trios = 500, alpha = 0.05, input_mode = "model_based",
+    prev = tdt_pars$prev, pd = tdt_pars$pd,
+    R1 = tdt_pars$R1, R2 = tdt_pars$R2,
+    delta_prime = tdt_pars$delta_prime,
+    verbose = FALSE
+  )
+  het_homogeneous <- tdt_power_conditional_full(
+    n_trios = 500, alpha = 0.05, input_mode = "model_based",
+    prev = tdt_pars$prev, pd = tdt_pars$pd,
+    R1 = tdt_pars$R1, R2 = tdt_pars$R2,
+    delta_prime = tdt_pars$delta_prime,
+    locus_het = TRUE, pi = 1,
+    verbose = FALSE
+  )
+
+  expect_true(het_homogeneous$locus_het$enabled)
+  expect_equal(het_homogeneous$transmissions$gT_obs, baseline$transmissions$gT_obs)
+  expect_equal(het_homogeneous$transmissions$gNT_obs, baseline$transmissions$gNT_obs)
+  expect_equal(het_homogeneous$tests$tdt$power, baseline$tests$tdt$power)
+
+  mssn_baseline <- tdt_mssn_conditional_full(
+    power = 0.8, alpha = 0.05, input_mode = "model_based",
+    prev = tdt_pars$prev, pd = tdt_pars$pd,
+    R1 = tdt_pars$R1, R2 = tdt_pars$R2,
+    delta_prime = tdt_pars$delta_prime,
+    verbose = FALSE
+  )
+  mssn_het_homogeneous <- tdt_mssn_conditional_full(
+    power = 0.8, alpha = 0.05, input_mode = "model_based",
+    prev = tdt_pars$prev, pd = tdt_pars$pd,
+    R1 = tdt_pars$R1, R2 = tdt_pars$R2,
+    delta_prime = tdt_pars$delta_prime,
+    locus_het = TRUE, pi = 1,
+    verbose = FALSE
+  )
+
+  expect_equal(
+    mssn_het_homogeneous$tests$tdt$MSSN_trios,
+    mssn_baseline$tests$tdt$MSSN_trios
+  )
+})
+
+
+test_that("locus heterogeneity power matches tdt_power_full's heterogeneity branch", {
+  for (pi_val in c(1, 0.99, 0.95, 0.9, 0.7)) {
+    new <- tdt_power_conditional_full(
+      n_trios = 500, alpha = 0.05, input_mode = "model_based",
+      prev = tdt_pars$prev, pd = tdt_pars$pd,
+      R1 = tdt_pars$R1, R2 = tdt_pars$R2,
+      delta_prime = tdt_pars$delta_prime,
+      locus_het = TRUE, pi = pi_val,
+      verbose = FALSE
+    )
+
+    old <- suppressMessages(
+      tdt_power_full(
+        N = 500, pd = tdt_pars$pd, prev = tdt_pars$prev,
+        R1 = tdt_pars$R1, R2 = tdt_pars$R2,
+        alpha = 0.05, delta_prime = tdt_pars$delta_prime,
+        misclass_rate = 0, heter_rate = 1 - pi_val,
+        verbose = FALSE
+      )
+    )
+
+    expect_equal(
+      new$tests$tdt$power, old$power$heterogeneity,
+      tolerance = 1e-10, info = paste("pi =", pi_val)
+    )
+    expect_equal(
+      new$tests$tdt$lambda, old$lambda$heterogeneity,
+      tolerance = 1e-10, info = paste("pi =", pi_val)
+    )
+  }
+})
+
+
+test_that("locus heterogeneity MSSN matches ceiling(tdt_required_trios(pi = ...))", {
+  for (pi_val in c(1, 0.99, 0.95, 0.9, 0.7)) {
+    new <- tdt_mssn_conditional_full(
+      power = 0.8, alpha = 0.05, input_mode = "model_based",
+      prev = tdt_pars$prev, pd = tdt_pars$pd,
+      R1 = tdt_pars$R1, R2 = tdt_pars$R2,
+      delta_prime = tdt_pars$delta_prime,
+      locus_het = TRUE, pi = pi_val,
+      verbose = FALSE
+    )
+
+    old <- suppressMessages(
+      tdt_required_trios(
+        power = 0.8, alpha = 0.05, df = 1,
+        pd = tdt_pars$pd, prev = tdt_pars$prev,
+        R1 = tdt_pars$R1, R2 = tdt_pars$R2,
+        delta_prime = tdt_pars$delta_prime, pi = pi_val
+      )
+    )
+
+    expect_equal(
+      new$tests$tdt$MSSN_trios,
+      ceiling(old$`Required Number of Trios (N_star)`),
+      info = paste("pi =", pi_val)
+    )
+  }
+})
+
+
+test_that("locus_het = TRUE requires input_mode = 'model_based'", {
+  expect_error(
+    tdt_power_conditional_full(
+      n_trios = 500, alpha = 0.05, input_mode = "model_free",
+      ET = 140, ENT = 100,
+      locus_het = TRUE, pi = 0.9,
+      verbose = FALSE
+    ),
+    "model_based"
+  )
+
+  expect_error(
+    tdt_mssn_conditional_full(
+      power = 0.8, alpha = 0.05, input_mode = "model_free",
+      ET = 140, ENT = 100, n_trios = 120,
+      locus_het = TRUE, pi = 0.9,
+      verbose = FALSE
+    ),
+    "model_based"
+  )
+})
+
+
+test_that("locus heterogeneity argument validation rejects malformed arguments", {
+  expect_error(
+    tdt_power_conditional_full(
+      n_trios = 500, alpha = 0.05, input_mode = "model_based",
+      prev = 0.05, pd = 0.25, R2 = 1.5,
+      locus_het = "yes", pi = 0.9,
+      verbose = FALSE
+    ),
+    "locus_het"
+  )
+
+  expect_error(
+    tdt_power_conditional_full(
+      n_trios = 500, alpha = 0.05, input_mode = "model_based",
+      prev = 0.05, pd = 0.25, R2 = 1.5,
+      locus_het = TRUE, pi = 1.5,
+      verbose = FALSE
+    ),
+    "pi"
+  )
+
+  expect_error(
+    tdt_mssn_conditional_full(
+      power = 0.8, alpha = 0.05, input_mode = "model_based",
+      prev = 0.05, pd = 0.25, R2 = 1.5,
+      locus_het = TRUE, pi = -0.1,
+      verbose = FALSE
+    ),
+    "pi"
+  )
+})
+
+
+test_that("verbose output reports locus heterogeneity when enabled", {
+  expect_message(
+    tdt_power_conditional_full(
+      n_trios = 500, alpha = 0.05, input_mode = "model_based",
+      prev = tdt_pars$prev, pd = tdt_pars$pd,
+      R1 = tdt_pars$R1, R2 = tdt_pars$R2,
+      delta_prime = tdt_pars$delta_prime,
+      locus_het = TRUE, pi = 0.9,
+      verbose = TRUE
+    ),
+    "enabled, pi=0.900"
+  )
 })
 
 

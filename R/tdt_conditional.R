@@ -166,10 +166,18 @@
 #' Stage 1 (implemented) builds baseline \eqn{g_T^*} and \eqn{g_{NT}^*} either
 #' from a genetic model or from user-supplied \eqn{ET} and \eqn{ENT}.
 #'
-#' Stages 2 to 4 are reserved for locus heterogeneity, phenotype
-#' misclassification, and genotype misclassification. They currently pass the
-#' baseline values through unchanged and record disabled modifier slots, so that
-#' the returned object layout is stable across future versions.
+#' Stage 2 (implemented) mixes the baseline transmission probabilities with a
+#' locus-heterogeneity null term, following Gordon et al. (2020), Sect. 5.3.3,
+#' Eqs. 5.30-5.34b (pp. 293-294), based on Chen et al.'s NCP for the TDT in the
+#' presence of locus heterogeneity. \code{locus_het = TRUE} requires
+#' \code{input_mode = "model_based"}, because the null term depends on
+#' \eqn{p_+}, \eqn{p_d}, \eqn{C}, and \eqn{\delta}, which are not recoverable
+#' from user-supplied \eqn{ET}/\eqn{ENT} alone.
+#'
+#' Stages 3 and 4 are reserved for phenotype misclassification and genotype
+#' misclassification. They currently pass the stage-2 values through unchanged
+#' and record disabled modifier slots, so that the returned object layout is
+#' stable across future versions.
 #'
 #' @param input_mode Character. \code{"model_based"} or \code{"model_free"}.
 #' @param prev,pd,R1,R2,delta_prime Model-based inputs. See
@@ -178,6 +186,12 @@
 #'   counts.
 #' @param n_trios Numeric. Number of affected trios the model-free \code{ET} and
 #'   \code{ENT} correspond to.
+#' @param locus_het Logical. If \code{TRUE}, mixes the baseline transmission
+#'   probabilities with the locus-heterogeneity null term using \code{pi}.
+#'   Requires \code{input_mode = "model_based"}.
+#' @param pi Numeric in \eqn{[0,1]}. Probability that a trio is linked to the
+#'   disease locus (locus-homogeneity fraction). \code{pi = 1} reproduces the
+#'   stage-1 baseline exactly.
 #'
 #' @return A list with baseline and final \code{gT}/\code{gNT}, a
 #'   \code{model_info} block, a \code{locus_het} block, and an \code{errors}
@@ -186,7 +200,14 @@
 #' @noRd
 .tdt_transmission_pipeline <- function(input_mode,
                                        prev, pd, R1, R2, MOI, delta_prime,
-                                       ET, ENT, n_trios) {
+                                       ET, ENT, n_trios,
+                                       locus_het = FALSE, pi = 1) {
+
+  if (isTRUE(locus_het) && input_mode != "model_based")
+    stop("locus_het=TRUE requires input_mode='model_based': the locus-",
+         "heterogeneity null term depends on p_plus, p_d, C, and delta, which ",
+         "are not available when transmission probabilities are supplied ",
+         "directly as ET/ENT.")
 
   # ---- stage 1: baseline transmission probabilities ----
   if (input_mode == "model_based") {
@@ -246,16 +267,23 @@
     )
   }
 
-  # ---- stage 2: locus heterogeneity (not implemented in this version) ----
-  # TODO: apply the locus-heterogeneity mixture to gT/gNT, mirroring the
-  # case-control modifier g_case = pi * g_case + (1 - pi) * g_ctrl. See
-  # Gordon et al. (2020) Sect. 5.3.3.
-  gT  <- gT_base
-  gNT <- gNT_base
+  # ---- stage 2: locus heterogeneity ----
+  # Gordon et al. (2020), Sect. 5.3.3, Eq. 5.33 (p. 294): gT/gNT mix the
+  # baseline (pi = 1) term with a null term for trios unlinked to this locus.
+  if (isTRUE(locus_het)) {
+    null_gT  <- mod$delta * (mod$p_plus - 0.5) * mod$C / prev + pd * mod$p_plus
+    null_gNT <- mod$delta * (0.5 - pd) * mod$C / prev + pd * mod$p_plus
+
+    gT  <- pi * gT_base  + (1 - pi) * null_gT
+    gNT <- pi * gNT_base + (1 - pi) * null_gNT
+  } else {
+    gT  <- gT_base
+    gNT <- gNT_base
+  }
 
   locus_het_info <- list(
-    enabled = FALSE,
-    pi = 1,
+    enabled = locus_het,
+    pi = pi,
     gT_before_locus_het = gT_base,
     gNT_before_locus_het = gNT_base,
     gT_after_locus_het = gT,
@@ -378,7 +406,14 @@
     ))
   }
 
-  message(sprintf("%-32s %12s", "Locus heterogeneity:", "none"))
+  if (isTRUE(pipe$locus_het$enabled)) {
+    message(sprintf(
+      "%-32s %12s",
+      "Locus heterogeneity:", paste0("enabled, pi=", .tdt_fmt_f(pipe$locus_het$pi, 3))
+    ))
+  } else {
+    message(sprintf("%-32s %12s", "Locus heterogeneity:", "none"))
+  }
   message(sprintf("%-32s %12s", "Phenotype misclassification:", "none"))
   message(sprintf("%-32s %12s", "Genotype misclassification:", "none"))
 
@@ -416,6 +451,13 @@
 #' @param ET,ENT Numeric \eqn{\ge 0} for \code{input_mode = "model_free"}.
 #'   Expected transmission and non-transmission counts accumulated over
 #'   \code{n_trios} affected trios.
+#' @param locus_het Logical. If \code{TRUE}, mixes the baseline transmission
+#'   probabilities with a locus-heterogeneity null term via \code{pi}.
+#'   Requires \code{input_mode = "model_based"}.
+#' @param pi Numeric in \eqn{[0,1]}. Probability that a trio is linked to the
+#'   disease locus (locus-homogeneity fraction) when \code{locus_het = TRUE}.
+#'   \code{pi = 1} is full homogeneity and reproduces the no-heterogeneity
+#'   result exactly.
 #' @param verbose Logical. If \code{TRUE}, prints a clean formatted summary.
 #'
 #' @details
@@ -423,7 +465,8 @@
 #' \enumerate{
 #' \item Construct baseline expected transmission probabilities \eqn{g_T^*} and
 #' \eqn{g_{NT}^*} per heterozygous parent.
-#' \item Reserved for locus heterogeneity (not implemented in this version).
+#' \item Optionally mix with a locus-heterogeneity null term when
+#' \code{locus_het = TRUE} (see below).
 #' \item Reserved for phenotype misclassification (not implemented).
 #' \item Reserved for genotype misclassification (not implemented).
 #' \item Compute the non-centrality parameter and power from the resulting
@@ -445,16 +488,30 @@
 #' determine the TDT non-centrality parameter. No genotype frequencies are
 #' involved.
 #'
+#' When \code{locus_het = TRUE}, the transmission probabilities are mixed with
+#' a null term for trios not linked to the locus of interest, following Gordon
+#' et al. (2020), Sect. 5.3.3, Eq. 5.33 (p. 294), based on the NCP derived by
+#' Chen et al. (2009):
+#' \deqn{g_T^* = \pi g_T + (1 - \pi)
+#'   \left[\delta (p_+ - 0.5) C / \phi_1 + p_d p_+\right], \quad
+#'   g_{NT}^* = \pi g_{NT} + (1 - \pi)
+#'   \left[\delta (0.5 - p_d) C / \phi_1 + p_d p_+\right],}
+#' where \eqn{g_T} and \eqn{g_{NT}} are the stage-1 baseline transmission
+#' probabilities and \eqn{\pi} is the locus-homogeneity fraction. This modifier
+#' requires \code{input_mode = "model_based"}, because the null term depends on
+#' \eqn{p_+}, \eqn{p_d}, \eqn{C}, and \eqn{\delta}, which are not recoverable
+#' from user-supplied \eqn{ET}/\eqn{ENT} alone.
+#'
 #' In both modes the non-centrality parameter is
 #' \deqn{\lambda = (ET - ENT)^2 / (ET + ENT),}
 #' and the TDT statistic follows a central chi-square distribution with 1 degree
 #' of freedom under the null and a non-central chi-square distribution with 1
 #' degree of freedom under the alternative (Table 1.5).
 #'
-#' The \code{locus_het} and \code{errors} components of the returned object are
-#' always present and currently report disabled modifiers, so that downstream
-#' wrappers and plotting functions can rely on a stable layout as heterogeneity
-#' models are added.
+#' The \code{errors} component of the returned object is always present and
+#' currently reports disabled modifiers, so that downstream wrappers and
+#' plotting functions can rely on a stable layout as phenotype and genotype
+#' misclassification are added.
 #'
 #' @return An object of class \code{"tdt_power_conditional_full"}: a nested list
 #' with components \code{alpha}, \code{n_trios}, \code{input_mode},
@@ -463,6 +520,8 @@
 #' label, degrees of freedom, non-centrality parameter, internal \code{S}
 #' component, and \code{power}. \code{transmissions} stores baseline and
 #' observed \code{gT}/\code{gNT} probabilities and \code{ET}/\code{ENT} counts.
+#' \code{locus_het} reports whether the modifier was applied, \code{pi}, and the
+#' \code{gT}/\code{gNT} values before and after the modifier.
 #'
 #' @examples
 #' tdt_power_conditional_full(
@@ -488,15 +547,34 @@
 #'   verbose = FALSE
 #' )
 #'
+#' tdt_power_conditional_full(
+#'   n_trios = 500, alpha = 0.05,
+#'   input_mode = "model_based",
+#'   prev = 0.005, pd = 0.25, R1 = 2, R2 = 2,
+#'   delta_prime = 1,
+#'   locus_het = TRUE, pi = 0.99,
+#'   verbose = FALSE
+#' )
+#'
 #' @references
 #' Gordon, D., Finch, S. J., & Kim, W. (2020).
 #' *Heterogeneity in Statistical Genetics*. Springer Nature.
-#' Equations 1.6, 1.7, and 1.25; Table 1.5.
+#' Equations 1.6, 1.7, and 1.25; Table 1.5; Sect. 5.3.3, Eqs. 5.30-5.34b
+#' (pp. 293-294).
 #'
 #' Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
 #' for linkage disequilibrium: the insulin gene region and insulin-dependent
 #' diabetes mellitus (IDDM). \emph{American Journal of Human Genetics}, 52,
 #' 506-516.
+#'
+#' Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+#' (2009). Transmission disequilibrium test power and sample size in the
+#' presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+#' and Molecular Biology}, 8(44). \doi{10.2202/1544-6115.1501}
+#'
+#' Deng, H. W., & Chen, W. M. (2001). The power of the transmission
+#' disequilibrium test (TDT) with both case-parent and control-parent trios.
+#' \emph{Genetical Research}, 78(3), 289-302.
 #'
 #' @seealso \code{\link{tdt_mssn_conditional_full}} for the sample-size
 #'   counterpart, and \code{\link{cc_power_conditional_full}} for the
@@ -521,6 +599,10 @@ tdt_power_conditional_full <- function(
     ET  = NULL,
     ENT = NULL,
 
+    # locus heterogeneity modifier
+    locus_het = FALSE,
+    pi = 1,
+
     verbose = TRUE
 ) {
 
@@ -530,13 +612,18 @@ tdt_power_conditional_full <- function(
   # ---- checks ----
   .tdt_check_scalar(n_trios, "n_trios", lower = 0, strict = TRUE)
   .tdt_check_scalar(alpha, "alpha", lower = 0, upper = 1, strict = TRUE)
+  if (!is.logical(locus_het) || length(locus_het) != 1)
+    stop("locus_het must be TRUE or FALSE.")
+  if (!is.numeric(pi) || length(pi) != 1 || pi < 0 || pi > 1)
+    stop("pi must be a single number in [0,1].")
 
   # ---- transmission pipeline ----
   pipe <- .tdt_transmission_pipeline(
     input_mode = input_mode,
     prev = prev, pd = pd, R1 = R1, R2 = R2, MOI = MOI,
     delta_prime = delta_prime,
-    ET = ET, ENT = ENT, n_trios = n_trios
+    ET = ET, ENT = ENT, n_trios = n_trios,
+    locus_het = locus_het, pi = pi
   )
 
   gT  <- pipe$gT
@@ -653,13 +740,23 @@ tdt_power_conditional_full <- function(
 #' @param n_trios Numeric \eqn{> 0}. Number of affected trios that the supplied
 #'   \code{ET} and \code{ENT} correspond to. Required for
 #'   \code{input_mode = "model_free"} and ignored otherwise. See Details.
+#' @param locus_het Logical. If \code{TRUE}, mixes the baseline transmission
+#'   probabilities with a locus-heterogeneity null term via \code{pi}.
+#'   Requires \code{input_mode = "model_based"}.
+#' @param pi Numeric in \eqn{[0,1]}. Probability that a trio is linked to the
+#'   disease locus (locus-homogeneity fraction) when \code{locus_het = TRUE}.
+#'   \code{pi = 1} is full homogeneity and reproduces the no-heterogeneity
+#'   result exactly.
 #' @param verbose Logical. If \code{TRUE}, prints a clean formatted summary.
 #'
 #' @details
 #' The workflow mirrors \code{\link{tdt_power_conditional_full}}: baseline
-#' transmission probabilities are constructed, reserved heterogeneity stages
-#' pass them through unchanged in this version, and the MSSN is computed from
-#' the resulting per-trio effect size.
+#' transmission probabilities are constructed, optionally mixed with a
+#' locus-heterogeneity null term when \code{locus_het = TRUE} (see
+#' \code{\link{tdt_power_conditional_full}} for the formula), and the MSSN is
+#' computed from the resulting per-trio effect size. Reserved phenotype- and
+#' genotype-misclassification stages pass the values through unchanged in this
+#' version.
 #'
 #' Because \eqn{ET = 2 N g_T^*} and \eqn{ENT = 2 N g_{NT}^*} are both
 #' proportional to the number of trios, the non-centrality parameter is linear
@@ -669,7 +766,9 @@ tdt_power_conditional_full <- function(
 #' \deqn{N^* = \left\lceil \frac{\lambda^*}{2}
 #'   \frac{g_T^* + g_{NT}^*}{(g_T^* - g_{NT}^*)^2} \right\rceil,}
 #' where \eqn{\lambda^*} is the non-centrality parameter attaining the target
-#' power at the given significance level with 1 degree of freedom.
+#' power at the given significance level with 1 degree of freedom. This holds
+#' whether or not \code{locus_het} is applied, because the modifier keeps
+#' \eqn{g_T^*} and \eqn{g_{NT}^*} independent of \eqn{N}.
 #'
 #' With \code{input_mode = "model_free"}, \code{ET} and \code{ENT} are absolute
 #' counts that already embed a sample size, so \code{n_trios} must also be
@@ -677,6 +776,8 @@ tdt_power_conditional_full <- function(
 #' \eqn{g_T^* = ET / (2 n_{trios})} and \eqn{g_{NT}^* = ENT / (2 n_{trios})}
 #' before rescaling to \eqn{N^*}. This requirement has no case-control
 #' counterpart, because model-free genotype frequencies are already normalized.
+#' \code{locus_het = TRUE} is not supported with \code{input_mode =
+#' "model_free"}; see \code{\link{tdt_power_conditional_full}} for why.
 #'
 #' @return An object of class \code{"tdt_mssn_conditional_full"}: a nested list
 #' with components \code{alpha}, \code{target_power}, \code{input_mode},
@@ -686,6 +787,8 @@ tdt_power_conditional_full <- function(
 #' \code{lambda_star}, internal \code{S} component, and \code{MSSN_trios}.
 #' \code{transmissions} stores baseline and observed \code{gT}/\code{gNT}
 #' probabilities and the \code{ET}/\code{ENT} counts implied at the MSSN.
+#' \code{locus_het} reports whether the modifier was applied, \code{pi}, and
+#' the \code{gT}/\code{gNT} values before and after the modifier.
 #'
 #' @examples
 #' tdt_mssn_conditional_full(
@@ -711,15 +814,34 @@ tdt_power_conditional_full <- function(
 #'   verbose = FALSE
 #' )
 #'
+#' tdt_mssn_conditional_full(
+#'   power = 0.8, alpha = 0.05,
+#'   input_mode = "model_based",
+#'   prev = 0.005, pd = 0.25, R1 = 2, R2 = 2,
+#'   delta_prime = 1,
+#'   locus_het = TRUE, pi = 0.99,
+#'   verbose = FALSE
+#' )
+#'
 #' @references
 #' Gordon, D., Finch, S. J., & Kim, W. (2020).
 #' *Heterogeneity in Statistical Genetics*. Springer Nature.
-#' Equations 1.6, 1.7, and 1.25; Table 1.5.
+#' Equations 1.6, 1.7, and 1.25; Table 1.5; Sect. 5.3.3, Eqs. 5.30-5.34b
+#' (pp. 293-294).
 #'
 #' Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
 #' for linkage disequilibrium: the insulin gene region and insulin-dependent
 #' diabetes mellitus (IDDM). \emph{American Journal of Human Genetics}, 52,
 #' 506-516.
+#'
+#' Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+#' (2009). Transmission disequilibrium test power and sample size in the
+#' presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+#' and Molecular Biology}, 8(44). \doi{10.2202/1544-6115.1501}
+#'
+#' Deng, H. W., & Chen, W. M. (2001). The power of the transmission
+#' disequilibrium test (TDT) with both case-parent and control-parent trios.
+#' \emph{Genetical Research}, 78(3), 289-302.
 #'
 #' @seealso \code{\link{tdt_power_conditional_full}} for the power counterpart,
 #'   and \code{\link{cc_mssn_conditional_full}} for the population-based
@@ -745,6 +867,10 @@ tdt_mssn_conditional_full <- function(
     ENT = NULL,
     n_trios = NULL,
 
+    # locus heterogeneity modifier
+    locus_het = FALSE,
+    pi = 1,
+
     verbose = TRUE
 ) {
 
@@ -754,6 +880,10 @@ tdt_mssn_conditional_full <- function(
   # ---- checks ----
   .tdt_check_scalar(power, "power", lower = 0, upper = 1, strict = TRUE)
   .tdt_check_scalar(alpha, "alpha", lower = 0, upper = 1, strict = TRUE)
+  if (!is.logical(locus_het) || length(locus_het) != 1)
+    stop("locus_het must be TRUE or FALSE.")
+  if (!is.numeric(pi) || length(pi) != 1 || pi < 0 || pi > 1)
+    stop("pi must be a single number in [0,1].")
 
   if (input_mode == "model_free") {
     if (is.null(n_trios))
@@ -771,7 +901,8 @@ tdt_mssn_conditional_full <- function(
     input_mode = input_mode,
     prev = prev, pd = pd, R1 = R1, R2 = R2, MOI = MOI,
     delta_prime = delta_prime,
-    ET = ET, ENT = ENT, n_trios = n_trios
+    ET = ET, ENT = ENT, n_trios = n_trios,
+    locus_het = locus_het, pi = pi
   )
 
   gT  <- pipe$gT
