@@ -7,7 +7,7 @@
 cc_plot_mssn(
   x_var,
   x_values,
-  test = c("genotypes", "alleles", "trend"),
+  test = c("genotypes", "trend"),
   input_mode = c("model_based", "model_free"),
   sample_size = c("total", "case", "control"),
   compare_tests = FALSE,
@@ -23,14 +23,14 @@ cc_plot_mssn(
 
 \item{x_values}{Numeric vector of x-axis values.}
 
-\item{test}{One of \code{"genotypes"}, \code{"alleles"}, or \code{"trend"}.}
+\item{test}{One of \code{"genotypes"} or \code{"trend"}.}
 
 \item{input_mode}{One of \code{"model_based"} or \code{"model_free"}.}
 
 \item{sample_size}{One of \code{"total"}, \code{"case"}, or \code{"control"}.}
 
-\item{compare_tests}{Logical. If TRUE, plot genotype, allelic, and trend
-tests together and ignore \code{test}.}
+\item{compare_tests}{Logical. If TRUE, plot genotype and trend tests
+together and ignore \code{test}.}
 
 \item{title}{Optional character title override.}
 
@@ -51,10 +51,9 @@ Sweeps one x-axis parameter and repeatedly calls
 necessary (MSSN) for case-control tests.
 }
 \details{
-The supported \code{test} values are \code{"genotypes"}, \code{"alleles"},
-and \code{"trend"}. \code{sample_size} selects whether to plot required
-cases, controls, or total sample size. \code{compare_tests = TRUE} plots all
-three tests together.
+The supported \code{test} values are \code{"genotypes"} and \code{"trend"}.
+\code{sample_size} selects whether to plot required cases, controls, or
+total sample size. \code{compare_tests = TRUE} plots both tests together.
 
 Supported \code{x_var} values are the same heterogeneity and
 misclassification variables documented for \code{\link{cc_plot_power}()},

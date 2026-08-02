@@ -68,31 +68,6 @@ cc_mssn_genotypes_conditional_misclass(
 )
 ```
 
-# Allele chi-square functions
-
-Allelic locus-heterogeneity functions accept genotype frequencies and derive
-allele frequencies internally.
-
-```{r, eval = FALSE}
-cc_power_locus_het_alleles(
-  N_case = 200,
-  alpha = 0.05,
-  g_case_assoc = g_case,
-  g_ctrl = g_ctrl,
-  pi = 0.80,
-  verbose = FALSE
-)
-
-cc_mssn_locus_het_alleles(
-  power = 0.80,
-  alpha = 0.05,
-  g_case_assoc = g_case,
-  g_ctrl = g_ctrl,
-  pi = 0.80,
-  verbose = FALSE
-)
-```
-
 # Trend test functions
 
 Trend functions use genotype scores `w`, with the default scores

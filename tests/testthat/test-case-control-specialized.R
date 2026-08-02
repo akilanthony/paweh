@@ -192,35 +192,6 @@ test_that("locus heterogeneity specialized genotype functions adjust case freque
   expect_gt(power$power, 0)
 })
 
-test_that("locus heterogeneity specialized allele functions return allele frequencies", {
-  mssn <- cc_mssn_locus_het_alleles(
-    power = 0.80,
-    alpha = 0.05,
-    g_case_assoc = cc_spec_g_case,
-    g_ctrl = cc_spec_g_ctrl,
-    pi = 0.75,
-    verbose = FALSE
-  )
-
-  expect_s3_class(mssn, "cc_mssn_locus_het_alleles")
-  expect_named(mssn$freqs$p_case_het, c("q", "p"))
-  expect_named(mssn$freqs$p_ctrl_het, c("q", "p"))
-  expect_gt(mssn$N_case, 0)
-
-  power <- cc_power_locus_het_alleles(
-    N_case = mssn$N_case,
-    alpha = 0.05,
-    g_case_assoc = cc_spec_g_case,
-    g_ctrl = cc_spec_g_ctrl,
-    pi = 0.75,
-    verbose = FALSE
-  )
-
-  expect_s3_class(power, "cc_power_locus_het_alleles")
-  expect_gt(power$lambda, 0)
-  expect_gt(power$power, 0)
-})
-
 test_that("locus heterogeneity specialized trend functions return numerator and denominator", {
   mssn <- cc_mssn_locus_het_trend(
     power = 0.80,

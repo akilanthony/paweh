@@ -33,7 +33,7 @@ Both functions follow the same workflow:
 1. Construct baseline case and control genotype frequencies.
 2. Optionally apply locus heterogeneity.
 3. Optionally apply genotype misclassification.
-4. Compute genotype chi-square, optional allelic chi-square, and genotype trend calculations.
+4. Compute genotype chi-square and genotype trend calculations.
 
 The examples below use a small model-free setup:
 
@@ -170,20 +170,4 @@ cc_power_conditional_full(
   case_e03 = 0.005,
   verbose = FALSE
 )
-```
-
-# Omitting the allelic test
-
-Set `include_allelic = FALSE` when only genotype and trend results are needed.
-
-```{r, eval = FALSE}
-cc_power_conditional_full(
-  N_case = 200,
-  alpha = 0.05,
-  input_mode = "model_free",
-  g1 = g_case,
-  g0 = g_ctrl,
-  include_allelic = FALSE,
-  verbose = FALSE
-)$tests$alleles
 ```

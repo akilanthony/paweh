@@ -29,8 +29,8 @@
 #' @details
 #' These are specialized convenience functions retained for users who want a
 #' focused genotype-only calculation. The all-in-one case-control functions are
-#' recommended when combining model-free inputs, locus heterogeneity, allelic
-#' tests, trend tests, or multiple modifier choices in one call.
+#' recommended when combining model-free inputs, locus heterogeneity, trend
+#' tests, or multiple modifier choices in one call.
 #'
 #' The returned objects keep internal effect-size components such as \code{S}
 #' and, for differential misclassification, per-genotype components, for
@@ -1519,14 +1519,6 @@ cc_check_genotype_freqs <- function(g, name = "g") {
 }
 
 
-cc_geno_to_allele_freqs <- function(gj) {
-  cc_check_genotype_freqs(gj, "gj")
-
-  p <- gj[3] + 0.5 * gj[2]
-  c(q = 1 - p, p = p)
-}
-
-
 cc_apply_locus_het <- function(g_case_assoc, g_ctrl, pi) {
 
   cc_check_genotype_freqs(g_case_assoc, "g_case_assoc")
@@ -1563,10 +1555,10 @@ cc_fmt_e <- function(x, digits = 2) {
 #' Specialized Case-Control Locus-Heterogeneity Functions
 #'
 #' Convenience functions for case-control association calculations under locus
-#' heterogeneity. These focused functions compute one test at a time:
-#' genotype chi-square, allelic chi-square, or genotype trend. The all-in-one
-#' case-control functions remain the recommended interface when multiple tests
-#' or modifiers are needed in one call.
+#' heterogeneity. These focused functions compute genotype chi-square or
+#' genotype trend calculations one test at a time. The all-in-one case-control
+#' functions remain the recommended interface when multiple tests or modifiers
+#' are needed in one call.
 #'
 #' @param power Numeric in \eqn{(0,1)}. Desired target power for MSSN functions.
 #' @param N_case Numeric \eqn{> 0}. Number of cases for power functions.
@@ -1588,8 +1580,7 @@ cc_fmt_e <- function(x, digits = 2) {
 #' target non-centrality parameter, sample sizes, internal \code{S} values, and
 #' adjusted frequencies. Power functions include sample sizes,
 #' non-centrality parameter, power, internal \code{S} values, and adjusted
-#' frequencies. Allelic functions additionally return derived allele
-#' frequencies; trend functions additionally return the trend numerator and
+#' frequencies. Trend functions additionally return the trend numerator and
 #' denominator.
 #'
 #' @examples
@@ -1807,212 +1798,6 @@ cc_power_locus_het_genotypes <- function(
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-#' @rdname case_control_locus_heterogeneity
-#' @export
-cc_mssn_locus_het_alleles <- function(
-    power,
-    alpha,
-    g_case_assoc,
-    g_ctrl,
-    pi,
-    k = 1,
-    verbose = TRUE
-) {
-
-  # checks
-  if (!is.numeric(power) || length(power) != 1 || power <= 0 || power >= 1)
-    stop("power must be a single number in (0,1).")
-
-  if (!is.numeric(alpha) || length(alpha) != 1 || alpha <= 0 || alpha >= 1)
-    stop("alpha must be a single number in (0,1).")
-
-  if (!is.numeric(k) || length(k) != 1 || k <= 0)
-    stop("k must be a single positive number: N_ctrl / N_case.")
-
-  # apply locus heterogeneity
-  het <- cc_apply_locus_het(
-    g_case_assoc = g_case_assoc,
-    g_ctrl = g_ctrl,
-    pi = pi
-  )
-
-  g1 <- het$g_case_het
-  g0 <- het$g_ctrl_het
-
-  p1 <- cc_geno_to_allele_freqs(g1)
-  p0 <- cc_geno_to_allele_freqs(g0)
-
-  # target NCP, df = 1 for allelic test
-  lambda_star <- cc_chisq_ncp_target(
-    power = power,
-    alpha = alpha,
-    df = 1
-  )
-
-  # allele chi-square S component
-  S_a <- sum((p1 - p0)^2 / (p1 + k * p0))
-
-  if (!is.finite(S_a) || S_a <= 0)
-    stop("Allele S_a <= 0; check inputs or pi.")
-
-  N_case <- ceiling(lambda_star / (2 * k * S_a))
-  N_ctrl <- ceiling(k * N_case)
-
-  out <- list(
-    test = "case-control chi-square test of independence for alleles",
-    df = 1,
-    alpha = alpha,
-    target_power = power,
-    k = k,
-    pi = pi,
-    lambda_star = lambda_star,
-    S = S_a,
-    N_case = N_case,
-    N_ctrl = N_ctrl,
-    N_total = N_case + N_ctrl,
-    freqs = list(
-      g_case_assoc = het$g_case_assoc,
-      g_ctrl = het$g_ctrl,
-      g_case_het = g1,
-      g_ctrl_het = g0,
-      p_case_het = p1,
-      p_ctrl_het = p0
-    )
-  )
-
-  class(out) <- "cc_mssn_locus_het_alleles"
-
-  if (isTRUE(verbose)) {
-    message("\n--- Case-Control Locus Heterogeneity: MSSN for Allelic Chi-Square ---")
-    message("--------------------------------------------------------------------")
-    message(sprintf("%-32s %12s  |  %-28s %12s",
-                    "Target Power:", cc_fmt_f(power, 3),
-                    "Significance Level (alpha):", cc_fmt_e(alpha, 2)))
-    message(sprintf("%-32s %12s  |  %-28s %12s",
-                    "Locus Heterogeneity (pi):", cc_fmt_f(pi, 3),
-                    "Case:Control Ratio (k):", cc_fmt_f(k, 3)))
-    message("--------------------------------------------------------------------")
-    message(sprintf("%-32s %12.5f", "Target NCP (lambda_star):", lambda_star))
-    message("--------------------------------------------------------------------")
-    message("Required Sample Sizes")
-    message(sprintf("  %-16s %8d", "N_case:", N_case))
-    message(sprintf("  %-16s %8d", "N_ctrl:", N_ctrl))
-    message(sprintf("  %-16s %8d", "N_total:", N_case + N_ctrl))
-    message("--------------------------------------------------------------------")
-    message("Conditional risk-allele frequencies after locus heterogeneity")
-    message(sprintf("  p_case: %6.3f", unname(p1["p"])))
-    message(sprintf("  p_ctrl: %6.3f", unname(p0["p"])))
-    message("--------------------------------------------------------------------")
-  }
-
-  invisible(out)
-}
-
-#' @rdname case_control_locus_heterogeneity
-#' @export
-cc_power_locus_het_alleles <- function(
-    N_case,
-    alpha,
-    g_case_assoc,
-    g_ctrl,
-    pi,
-    k = 1,
-    verbose = TRUE
-) {
-
-  # checks
-  if (!is.numeric(N_case) || length(N_case) != 1 || N_case <= 0)
-    stop("N_case must be a single positive number.")
-
-  if (!is.numeric(alpha) || length(alpha) != 1 || alpha <= 0 || alpha >= 1)
-    stop("alpha must be a single number in (0,1).")
-
-  if (!is.numeric(k) || length(k) != 1 || k <= 0)
-    stop("k must be a single positive number: N_ctrl / N_case.")
-
-  N_ctrl <- k * N_case
-
-  # apply locus heterogeneity
-  het <- cc_apply_locus_het(
-    g_case_assoc = g_case_assoc,
-    g_ctrl = g_ctrl,
-    pi = pi
-  )
-
-  g1 <- het$g_case_het
-  g0 <- het$g_ctrl_het
-
-  p1 <- cc_geno_to_allele_freqs(g1)
-  p0 <- cc_geno_to_allele_freqs(g0)
-
-  # allelic NCP
-  S_a <- sum((p1 - p0)^2 / (p1 + k * p0))
-
-  if (!is.finite(S_a) || S_a <= 0)
-    stop("Allele S_a <= 0; check inputs or pi.")
-
-  lambda_a <- 2 * k * N_case * S_a
-
-  crit <- qchisq(1 - alpha, df = 1)
-  power_a <- pchisq(crit, df = 1, ncp = lambda_a, lower.tail = FALSE)
-
-  out <- list(
-    test = "case-control chi-square test of independence for alleles",
-    df = 1,
-    alpha = alpha,
-    N_case = N_case,
-    N_ctrl = N_ctrl,
-    N_total = N_case + N_ctrl,
-    k = k,
-    pi = pi,
-    lambda = lambda_a,
-    S = S_a,
-    power = power_a,
-    freqs = list(
-      g_case_assoc = het$g_case_assoc,
-      g_ctrl = het$g_ctrl,
-      g_case_het = g1,
-      g_ctrl_het = g0,
-      p_case_het = p1,
-      p_ctrl_het = p0
-    )
-  )
-
-  class(out) <- "cc_power_locus_het_alleles"
-
-  if (isTRUE(verbose)) {
-    message("\n--- Case-Control Locus Heterogeneity: Power for Allelic Chi-Square ---")
-    message("--------------------------------------------------------------------")
-    message(sprintf("%-32s %12s  |  %-28s %12s",
-                    "N_case:", cc_fmt_f(N_case, 0),
-                    "N_ctrl:", cc_fmt_f(N_ctrl, 0)))
-    message(sprintf("%-32s %12s  |  %-28s %12s",
-                    "Significance Level (alpha):", cc_fmt_e(alpha, 2),
-                    "Case:Control Ratio (k):", cc_fmt_f(k, 3)))
-    message(sprintf("%-32s %12s", "Locus Heterogeneity (pi):", cc_fmt_f(pi, 3)))
-    message("--------------------------------------------------------------------")
-    message(sprintf("%-32s %12.5f", "NCP (lambda):", lambda_a))
-    message(sprintf("%-32s %12.6f", "Power:", power_a))
-    message("--------------------------------------------------------------------")
-    message("Conditional risk-allele frequencies after locus heterogeneity")
-    message(sprintf("  p_case: %6.3f", unname(p1["p"])))
-    message(sprintf("  p_ctrl: %6.3f", unname(p0["p"])))
-    message("--------------------------------------------------------------------")
-  }
-
-  invisible(out)
-}
 
 
 
@@ -2283,7 +2068,7 @@ cc_power_locus_het_trend <- function(
 #' \code{phi = Pr(unaffected -> case)}. These specialized functions apply only
 #' phenotype misclassification; use the full case-control functions for
 #' combined phenotype misclassification, locus heterogeneity, genotype
-#' misclassification, allelic tests, or trend tests.
+#' misclassification, or trend tests.
 #'
 #' @return
 #' \code{cc_pheno_power_test()} returns a list containing sample sizes,

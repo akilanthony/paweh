@@ -7,7 +7,7 @@
 cc_plot_power(
   x_var,
   x_values,
-  test = c("genotypes", "alleles", "trend"),
+  test = c("genotypes", "trend"),
   input_mode = c("model_based", "model_free"),
   compare_tests = FALSE,
   title = NULL,
@@ -22,12 +22,12 @@ cc_plot_power(
 
 \item{x_values}{Numeric vector of x-axis values.}
 
-\item{test}{One of \code{"genotypes"}, \code{"alleles"}, or \code{"trend"}.}
+\item{test}{One of \code{"genotypes"} or \code{"trend"}.}
 
 \item{input_mode}{One of \code{"model_based"} or \code{"model_free"}.}
 
-\item{compare_tests}{Logical. If TRUE, plot genotype, allelic, and trend
-tests together and ignore \code{test}.}
+\item{compare_tests}{Logical. If TRUE, plot genotype and trend tests
+together and ignore \code{test}.}
 
 \item{title}{Optional character title override.}
 

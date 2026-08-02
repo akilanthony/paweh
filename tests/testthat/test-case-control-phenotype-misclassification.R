@@ -26,7 +26,6 @@ test_that("phenotype misclassification defaults preserve full-function outputs",
   )
 
   expect_equal(explicit_power$tests$genotypes, old_power$tests$genotypes)
-  expect_equal(explicit_power$tests$alleles, old_power$tests$alleles)
   expect_equal(explicit_power$tests$trend, old_power$tests$trend)
 
   old_mssn <- cc_mssn_conditional_full(
@@ -51,7 +50,6 @@ test_that("phenotype misclassification defaults preserve full-function outputs",
   )
 
   expect_equal(explicit_mssn$tests$genotypes, old_mssn$tests$genotypes)
-  expect_equal(explicit_mssn$tests$alleles, old_mssn$tests$alleles)
   expect_equal(explicit_mssn$tests$trend, old_mssn$tests$trend)
 })
 

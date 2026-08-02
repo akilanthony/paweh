@@ -54,7 +54,6 @@ library(shiny)
 
 test_label_map <- c(
   genotypes = "Genotype chi-square",
-  alleles = "Allelic chi-square",
   trend = "Trend test"
 )
 
@@ -353,10 +352,9 @@ cc_setup_ui <- function(input_mode) {
       "Tests to include",
       choices = c(
         "Genotype chi-square" = "genotypes",
-        "Allelic chi-square" = "alleles",
         "Trend test" = "trend"
       ),
-      selected = c("genotypes", "alleles", "trend")
+      selected = c("genotypes", "trend")
     ),
     actionButton("cc_setup_continue", "Continue", class = "primary-btn")
   )
@@ -760,7 +758,7 @@ server <- function(input, output, session) {
     analysis = NULL,
     cc_input_mode = NULL,
     cc_setup_done = FALSE,
-    cc_tests = c("genotypes", "alleles", "trend")
+    cc_tests = c("genotypes", "trend")
   )
 
   reset_state <- function() {
@@ -768,7 +766,7 @@ server <- function(input, output, session) {
     rv$analysis <- NULL
     rv$cc_input_mode <- NULL
     rv$cc_setup_done <- FALSE
-    rv$cc_tests <- c("genotypes", "alleles", "trend")
+    rv$cc_tests <- c("genotypes", "trend")
   }
 
   observeEvent(input$alpha_key_submit, {
@@ -1104,7 +1102,6 @@ server <- function(input, output, session) {
       input_mode = rv$cc_input_mode,
       k = input$cc_k %||% input$cc_plot_k,
       w = c(input$cc_w0, input$cc_w1, input$cc_w2),
-      include_allelic = "alleles" %in% selected_tests,
       locus_het = isTRUE(input$cc_locus_het),
       pi = 1 - (input$cc_locus_het_rate %||% 0),
       pheno_misclass = isTRUE(input$cc_pheno_misclass),
