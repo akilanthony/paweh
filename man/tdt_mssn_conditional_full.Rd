@@ -2,177 +2,132 @@
 % Please edit documentation in R/tdt_conditional.R
 \name{tdt_mssn_conditional_full}
 \alias{tdt_mssn_conditional_full}
-\title{Family-Based (TDT) Minimum Sample Size for Conditional Transmission Probabilities}
+\title{Family-Based (TDT) Minimum Sample Size for a Fixed Power (Conditional)}
 \usage{
 tdt_mssn_conditional_full(
-  power,
-  alpha,
+  target_power,
   input_mode = c("model_based", "model_free"),
-  prev = NULL,
   pd = NULL,
+  prev = NULL,
   R1 = NULL,
   R2 = NULL,
-  MOI = c("M", "D", "Rec"),
+  alpha = 0.05,
   delta_prime = 1,
+  misclass_rate = 0.01,
+  heter_rate = 0.01,
   ET = NULL,
   ENT = NULL,
   n_trios = NULL,
-  locus_het = FALSE,
-  pi = 1,
   verbose = TRUE
 )
 }
 \arguments{
-\item{power}{Numeric in \eqn{(0,1)}. Desired target power.}
+\item{target_power}{Numeric in (0,1). Desired power for the TDT.}
 
-\item{alpha}{Numeric in \eqn{(0,1)}. Significance level.}
-
-\item{input_mode}{Character. One of \code{"model_based"} or
+\item{input_mode}{Character. One of \code{"model_based"} (default) or
 \code{"model_free"}. See Details.}
 
-\item{prev}{Numeric in \eqn{(0,1)}. Disease prevalence \eqn{\phi_1} for
-\code{input_mode = "model_based"}.}
+\item{pd}{Numeric in (0,1). Frequency of the disease (high-risk) allele at
+the marker locus. Required for \code{input_mode = "model_based"}.
+Optional for \code{"model_free"}: required only if \code{heter_rate} or
+\code{misclass_rate} is non-zero, and if omitted in that case it is
+solved from \code{ET}/\code{ENT} (see Details).}
 
-\item{pd}{Numeric in \eqn{(0,1)}. Disease-allele frequency for
-\code{input_mode = "model_based"}.}
+\item{prev}{Numeric in (0,1). Disease prevalence (\eqn{\phi_1}). Required
+for \code{input_mode = "model_based"}. Required for \code{"model_free"}
+only if \code{misclass_rate} is non-zero.}
 
-\item{R1}{Numeric \eqn{> 0} or \code{NULL}. Heterozygote relative risk. When
-\code{NULL}, it is derived from \code{MOI}.}
+\item{R1}{Numeric \eqn{> 0}. Genotype relative risk for heterozygotes.
+Required for \code{input_mode = "model_based"}; unused for
+\code{"model_free"}.}
 
-\item{R2}{Numeric \eqn{> 0}. Homozygote relative risk for
-\code{input_mode = "model_based"}.}
+\item{R2}{Numeric \eqn{> 0}. Genotype relative risk for homozygotes.
+Required for \code{input_mode = "model_based"}; unused for
+\code{"model_free"}.}
 
-\item{MOI}{Character. Mode of inheritance used to derive \code{R1} when
-\code{R1} is \code{NULL}: \code{"M"} for multiplicative, \code{"D"} for
-dominant, or \code{"Rec"} for recessive.}
+\item{alpha}{Numeric in (0,1). Significance level for the TDT
+(default \code{0.05}).}
 
-\item{delta_prime}{Numeric in \eqn{[0,1]}. Scaled linkage disequilibrium
-parameter \eqn{\delta'} between the marker and trait loci.}
+\item{delta_prime}{Numeric. Linkage disequilibrium scale parameter
+\eqn{D'} (default \code{1}). Used for \code{input_mode = "model_based"}
+only.}
 
-\item{ET, ENT}{Numeric \eqn{\ge 0} for \code{input_mode = "model_free"}.
-Expected transmission and non-transmission counts accumulated over
-\code{n_trios} affected trios.}
+\item{misclass_rate}{Numeric in \eqn{[0,1)}. Phenotype misclassification
+rate for controls (\eqn{\pi_{01}}) in the misclassification scenario.}
 
-\item{n_trios}{Numeric \eqn{> 0}. Number of affected trios that the supplied
-\code{ET} and \code{ENT} correspond to. Required for
-\code{input_mode = "model_free"} and ignored otherwise. See Details.}
+\item{heter_rate}{Numeric in \eqn{[0,1)}. Proportion of trios whose
+affection status is not due to the locus of interest (\eqn{1 - \pi})
+in the heterogeneity scenario.}
 
-\item{locus_het}{Logical. If \code{TRUE}, mixes the baseline transmission
-probabilities with a locus-heterogeneity null term via \code{pi}.
-Requires \code{input_mode = "model_based"}.}
+\item{ET, ENT}{Numeric \eqn{\ge 0}. Expected transmission and
+non-transmission counts for \code{input_mode = "model_free"}.}
 
-\item{pi}{Numeric in \eqn{[0,1]}. Probability that a trio is linked to the
-disease locus (locus-homogeneity fraction) when \code{locus_het = TRUE}.
-\code{pi = 1} is full homogeneity and reproduces the no-heterogeneity
-result exactly.}
+\item{n_trios}{Numeric \eqn{> 0}. Number of affected trios that the
+supplied \code{ET} and \code{ENT} correspond to. Required for
+\code{input_mode = "model_free"} (unlike the power function, there is no
+\code{N} argument here to reuse, since this function solves for the
+required number of trios).}
 
-\item{verbose}{Logical. If \code{TRUE}, prints a clean formatted summary.}
+\item{verbose}{Logical. If \code{TRUE} (default), prints a formatted
+summary of the required numbers of trios, percent inflation, and the
+resulting power when the no-error design is used.}
 }
 \value{
-An object of class \code{"tdt_mssn_conditional_full"}: a nested list
-with components \code{alpha}, \code{target_power}, \code{input_mode},
-\code{delta_prime}, \code{locus_het}, \code{errors}, \code{model_info},
-\code{tests}, and \code{transmissions}. \code{tests$tdt} contains the test
-label, degrees of freedom, target non-centrality parameter
-\code{lambda_star}, internal \code{S} component, and \code{MSSN_trios}.
-\code{transmissions} stores baseline and observed \code{gT}/\code{gNT}
-probabilities and the \code{ET}/\code{ENT} counts implied at the MSSN.
-\code{locus_het} reports whether the modifier was applied, \code{pi}, and
-the \code{gT}/\code{gNT} values before and after the modifier.
+An object of class \code{"tdt_mssn_conditional_full"}: a list with the
+same components as \code{\link{tdt_required_trios_full}} (\code{alpha},
+\code{target_power}, \code{lambda_star}, \code{N}, \code{percent_increase},
+\code{power_at_N_no_error}, \code{power_loss_at_N_no_error},
+\code{gT_star}, \code{gNT_star}, \code{model_parameters}), plus
+\code{input_mode}.
 }
 \description{
-Computes the minimum sample size necessary (MSSN), expressed as a number of
-affected trios, for the transmission disequilibrium test to attain a target
-power. This is the family-based analogue of
-\code{\link{cc_mssn_conditional_full}} and shares its interface, workflow,
-and returned-object layout.
+Computes the minimum number of affected trios required to achieve a
+specified power for the transmission disequilibrium test (TDT) under three
+scenarios: (i) no error, (ii) phenotype misclassification only, and (iii)
+locus heterogeneity only. This is a copy of
+\code{\link{tdt_required_trios_full}} with one addition: \code{input_mode}
+lets the transmission probabilities come either from a genetic model
+(\code{"model_based"}, the default, numerically identical to
+\code{\link{tdt_required_trios_full}}) or directly from user-supplied
+expected transmission and non-transmission counts (\code{"model_free"}).
 }
 \details{
-The workflow mirrors \code{\link{tdt_power_conditional_full}}: baseline
-transmission probabilities are constructed, optionally mixed with a
-locus-heterogeneity null term when \code{locus_het = TRUE} (see
-\code{\link{tdt_power_conditional_full}} for the formula), and the MSSN is
-computed from the resulting per-trio effect size. Reserved phenotype- and
-genotype-misclassification stages pass the values through unchanged in this
-version.
+With \code{input_mode = "model_based"}, this function is a direct copy of
+\code{\link{tdt_required_trios_full}}: penetrances are derived from
+\code{prev}, \code{R1}, \code{R2}, and \code{pd} as in that function, and
+\deqn{N^* = \frac{\lambda^* (g_T^* + g_{NT}^*)}{2 (g_T^* - g_{NT}^*)^2}}
+is computed for each of the three scenarios.
 
-Because \eqn{ET = 2 N g_T^*} and \eqn{ENT = 2 N g_{NT}^*} are both
-proportional to the number of trios, the non-centrality parameter is linear
-in \eqn{N}:
-\deqn{\lambda = 2 N (g_T^* - g_{NT}^*)^2 / (g_T^* + g_{NT}^*).}
-The MSSN therefore has a closed form and requires no simulation:
-\deqn{N^* = \left\lceil \frac{\lambda^*}{2}
-  \frac{g_T^* + g_{NT}^*}{(g_T^* - g_{NT}^*)^2} \right\rceil,}
-where \eqn{\lambda^*} is the non-centrality parameter attaining the target
-power at the given significance level with 1 degree of freedom. This holds
-whether or not \code{locus_het} is applied, because the modifier keeps
-\eqn{g_T^*} and \eqn{g_{NT}^*} independent of \eqn{N}.
-
-With \code{input_mode = "model_free"}, \code{ET} and \code{ENT} are absolute
-counts that already embed a sample size, so \code{n_trios} must also be
-supplied to recover the per-parent probabilities
-\eqn{g_T^* = ET / (2 n_{trios})} and \eqn{g_{NT}^* = ENT / (2 n_{trios})}
-before rescaling to \eqn{N^*}. This requirement has no case-control
-counterpart, because model-free genotype frequencies are already normalized.
-\code{locus_het = TRUE} is not supported with \code{input_mode =
-"model_free"}; see \code{\link{tdt_power_conditional_full}} for why.
+With \code{input_mode = "model_free"}, the no-error scenario uses
+\eqn{g_T = ET / (2\,n_{trios})} and \eqn{g_{NT} = ENT / (2\,n_{trios})}.
+The misclassification and heterogeneity scenarios then use the same
+closed-form identities as \code{\link{tdt_power_conditional_full}} (see its
+Details for the formulas and the \code{pd}-solving fallback), applied to
+this no-error \eqn{g_T}/\eqn{g_{NT}} pair.
 }
 \examples{
+# model_based: identical to tdt_required_trios_full()
 tdt_mssn_conditional_full(
-  power = 0.8, alpha = 0.05,
-  input_mode = "model_based",
-  prev = 0.005, pd = 0.25, R1 = 2, R2 = 2,
-  delta_prime = 1,
+  target_power = 0.80, input_mode = "model_based",
+  pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
   verbose = FALSE
-)
+)$N$no_error
 
+# model_free: supply expected transmissions/non-transmissions directly
 tdt_mssn_conditional_full(
-  power = 0.8, alpha = 0.05,
-  input_mode = "model_based",
-  prev = 0.05, pd = 0.25, R2 = 1.5, MOI = "M",
-  delta_prime = 0.8,
-  verbose = FALSE
-)
-
-tdt_mssn_conditional_full(
-  power = 0.8, alpha = 0.05,
-  input_mode = "model_free",
+  target_power = 0.80, input_mode = "model_free",
   ET = 140, ENT = 100, n_trios = 120,
+  pd = 0.30, prev = 0.05,
   verbose = FALSE
-)
-
-tdt_mssn_conditional_full(
-  power = 0.8, alpha = 0.05,
-  input_mode = "model_based",
-  prev = 0.005, pd = 0.25, R1 = 2, R2 = 2,
-  delta_prime = 1,
-  locus_het = TRUE, pi = 0.99,
-  verbose = FALSE
-)
+)$N$no_error
 
 }
 \references{
-Gordon, D., Finch, S. J., & Kim, W. (2020).
+Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
 \emph{Heterogeneity in Statistical Genetics}. Springer Nature.
-Equations 1.6, 1.7, and 1.25; Table 1.5; Sect. 5.3.3, Eqs. 5.30-5.34b
-(pp. 293-294).
-
-Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
-for linkage disequilibrium: the insulin gene region and insulin-dependent
-diabetes mellitus (IDDM). \emph{American Journal of Human Genetics}, 52,
-506-516.
-
-Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
-(2009). Transmission disequilibrium test power and sample size in the
-presence of locus heterogeneity. \emph{Statistical Applications in Genetics
-and Molecular Biology}, 8(44). \doi{10.2202/1544-6115.1501}
-
-Deng, H. W., & Chen, W. M. (2001). The power of the transmission
-disequilibrium test (TDT) with both case-parent and control-parent trios.
-\emph{Genetical Research}, 78(3), 289-302.
 }
 \seealso{
-\code{\link{tdt_power_conditional_full}} for the power counterpart,
-and \code{\link{cc_mssn_conditional_full}} for the population-based
-analogue.
+\code{\link{tdt_required_trios_full}}, the function this is
+copied from, and \code{\link{tdt_power_conditional_full}} for the power
+counterpart.
 }

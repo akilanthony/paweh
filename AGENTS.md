@@ -46,32 +46,52 @@ Do not invent citations. If the exact citation is missing, leave a TODO.
 
 # Family-based (TDT) equation map
 
-Generalized conditional framework (R/tdt_conditional.R):
-- tdt_power_conditional_full()
-- tdt_mssn_conditional_full()
+Conditional TDT framework (R/tdt_conditional.R):
+- tdt_power_conditional_full() is a copy of tdt_power_full() (R/tdt_functions.R)
+- tdt_mssn_conditional_full() is a copy of tdt_required_trios_full() (R/tdt_functions.R)
 
-These mirror the case-control generalized functions. Input modes are
-"model_based" (prev, pd, R1/R2 or MOI, delta_prime, n_trios) and "model_free"
-(ET, ENT; plus n_trios for MSSN, because ET and ENT are absolute counts that
-embed a sample size).
+R/tdt_functions.R is the reference implementation for both; do not modify it.
+Every argument name, default, formula, and the three-scenario reporting (no
+error / misclassification / heterogeneity) from those two functions is kept
+identical. The only addition is input_mode = c("model_based", "model_free"):
+
+- "model_based" (default) reproduces the copied function exactly, numerically.
+- "model_free" lets a user who already has expected transmission and
+  non-transmission counts (ET, ENT) supply them directly instead of
+  prev/R1/R2. gT = ET / (2 * n_trios), gNT = ENT / (2 * n_trios), where
+  n_trios is N itself for the power function (ET/ENT are for the same N
+  trios power is computed for) and a separate n_trios argument for the MSSN
+  function (ET/ENT are absolute counts that embed a sample size, which need
+  not equal the N* being solved for).
+
+heter_rate and misclass_rate work in both modes. In model_free mode they use
+closed-form identities in terms of gT, gNT, pd, and prev alone (verified
+algebraically equivalent to the calc_gTgNT_heter()/calc_gTgNT_misclass()
+helpers copied from R/tdt_functions.R). Let A = gT - gNT (no-error) and
+p_plus = 1 - pd:
+  heterogeneity: gT = pd*p_plus + A*(p_plus - 0.5*heter_rate),
+                 gNT = pd*p_plus + A*(-pd + 0.5*heter_rate)
+  misclassification: m = prev*(1 - misclass_rate) / (prev + misclass_rate*(1 - prev)),
+                      gT = pd*p_plus + p_plus*A*m, gNT = pd*p_plus - pd*A*m
+A scenario is only computed from these identities when its rate is non-zero;
+at a rate of exactly 0 the scenario reuses the no-error gT/gNT directly, so
+pd is not required unless at least one rate is non-zero, and prev is not
+required unless misclass_rate is non-zero. If pd is needed but not supplied,
+it is solved from 2*pd^2 - 2*pd*(1-A) + (gT + gNT - A) = 0, taking the root
+in (0, 0.5) with a message; supplying pd directly is preferred.
+
+R1/R2 are never used in model_free mode.
 
 Tests implemented:
 - Standard transmission disequilibrium test (df = 1)
 
 Model modifiers:
-- Locus heterogeneity (stage 2 of .tdt_transmission_pipeline(), implemented):
-  gT/gNT = pi * baseline + (1 - pi) * null_term, where pi is the probability a
-  trio is linked to the disease locus (pi = 1 is full homogeneity and
-  reproduces the stage-1 baseline exactly). Enabled via locus_het = TRUE and
-  pi in tdt_power_conditional_full() and tdt_mssn_conditional_full(). Requires
-  input_mode = "model_based", because the null term depends on p_plus, p_d, C,
-  and delta, which are not recoverable from user-supplied ET/ENT alone.
-- Stages 3-4 of .tdt_transmission_pipeline() are reserved for phenotype
-  misclassification and genotype misclassification, and currently pass the
-  stage-2 gT/gNT through unchanged while recording disabled modifier slots in
-  the returned object.
+- Phenotype misclassification and locus heterogeneity: implemented, exactly
+  as in tdt_power_full()/tdt_required_trios_full() for model_based, and via
+  the closed-form identities above for model_free.
+- Genotype misclassification: not yet implemented in this framework.
 
-Textbook mapping (Gordon, Finch, and Kim 2020):
+Textbook mapping (Gordon, Finch, and Nothnagel 2020):
 - Penetrances from prevalence and genotype relative risks: Eq. 1.6 and Eq. 1.7,
   pp. 13.
 - TDT non-centrality parameter, lambda = (ET - ENT)^2 / (ET + ENT), with
@@ -85,20 +105,44 @@ Textbook mapping (Gordon, Finch, and Kim 2020):
   and Sect. 1.4.2, pp. 13-14.
 - TDT statistic definition and transmitted/non-transmitted counts: Sect. 1.6.1.3
   and Table 1.4, p. 24.
-- Locus heterogeneity for the TDT, gT*/gNT* mixture and NCP: Sect. 5.3.3,
-  Eqs. 5.30-5.34b, pp. 293-294. The NCP under locus heterogeneity is due to
-  Chen, Yang, Buyske, Matise, Finch, and Gordon (2009), Statistical
+- Phenotype misclassification for the TDT, gT*/gNT* under pi01: Eqs. 5.26-5.28,
+  Sect. 5.2.6 (as implemented in calc_gTgNT_misclass() / tdt_expected_gT()).
+- Locus heterogeneity for the TDT, gT*/gNT* mixture and NCP: Eq. 5.34,
+  Sect. 5.3.3, Eqs. 5.30-5.34b, pp. 293-294. The NCP under locus heterogeneity
+  is due to Chen, Yang, Buyske, Matise, Finch, and Gordon (2009), Statistical
   Applications in Genetics and Molecular Biology, 8(44), building on Deng and
   Chen (2001), Genetical Research, 78(3), 289-302.
 
 Reserved for future modifier stages:
-- Phenotype misclassification for TDT: Sect. 5.2.6, p. 284.
 - Genotype misclassification for TDT, including type I error inflation:
   Sect. 5.2.5, pp. 277 and 281.
 
-Note on style: unlike case_control.R, which defines its helper functions inside
-each exported function, R/tdt_conditional.R uses file-level internal helpers
-prefixed with ".tdt_" and marked @noRd. This avoids duplicating the pipeline
-between the power and MSSN entry points.
+Note on style: like tdt_power_full()/tdt_required_trios_full(), each of
+tdt_power_conditional_full() and tdt_mssn_conditional_full() defines its own
+local copies of calc_gTgNT_misclass(), calc_gTgNT_heter(), and the model_free
+pd-solving helper, rather than sharing file-level helpers. This mirrors the
+duplication already present between the two copied source functions.
 
 Do not invent citations. If the exact citation is missing, leave a TODO.
+
+## Next steps / open questions
+
+- Genotype misclassification for the TDT (Sect. 5.2.5, pp. 277 and 281) is
+  not implemented anywhere in the package yet, for either input_mode. Unlike
+  phenotype misclassification and locus heterogeneity, there is no existing
+  calc_gTgNT_*()-style formula to copy from R/tdt_functions.R -- this is new
+  work, not a port, and needs its own derivation and citation before coding.
+- R/tdt_functions.R's own plotting functions (tdt_plot_power_misclassification,
+  tdt_plot_power_heterogeneity, tdt_plot_sample_size_misclassification,
+  tdt_plot_sample_size_heterogeneity, and the four tdt_plot3d_*() functions)
+  still call tdt_power_full()/tdt_required_trios_full() directly. Only the
+  wrappers in R/plot_full_wrappers.R (tdt_plot_power(), tdt_plot_mssn()) were
+  switched to call tdt_power_conditional_full()/tdt_mssn_conditional_full().
+  The two sets of plotting functions currently point at different backends.
+- As a result, the package carries two implementations of the same
+  heterogeneity/misclassification math side by side: the original
+  tdt_power_full()/tdt_required_trios_full() in R/tdt_functions.R, and the
+  conditional copies in R/tdt_conditional.R. Whether to eventually deprecate
+  the older tdt_*_full() functions (and their dedicated plotting functions)
+  in favor of the conditional ones is undecided -- do not remove or
+  deprecate them without an explicit instruction to do so.
