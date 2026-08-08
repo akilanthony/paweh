@@ -20,5 +20,6 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     ggplot2,
+    mvtnorm,
     rlang
 VignetteBuilder: knitr
