@@ -221,7 +221,7 @@ mode_specific_cc_ui <- function(input_mode) {
   if (identical(input_mode, "model_based")) {
     tagList(
       sliderInput("cc_prev", "Disease prevalence (prev)", min = 0.001, max = 0.50, value = 0.05, step = 0.001),
-      sliderInput("cc_pd", "Disease allele frequency (pd)", min = 0.01, max = 0.99, value = 0.30, step = 0.01),
+      sliderInput("cc_pd", "Risk-allele frequency (pd)", min = 0.01, max = 0.99, value = 0.30, step = 0.01),
       numericInput("cc_R2", "Homozygote relative risk (R2)", 1.80, min = 0.0001, step = 0.1),
       selectInput("cc_MOI", "Mode of inheritance (MOI)", choices = c("M", "D", "Rec"))
     )
@@ -260,7 +260,7 @@ cc_advanced_ui <- function() {
   advanced_panel(
     "Advanced heterogeneity and error settings",
     checkboxInput("cc_locus_het", "Enable locus heterogeneity", FALSE),
-    sliderInput("cc_locus_het_rate", "Locus heterogeneity rate", min = 0, max = 1, value = 0.20, step = 0.01),
+    sliderInput("cc_locus_het_rate", "Locus heterogeneity rate (1 - pi)", min = 0, max = 1, value = 0.20, step = 0.01),
     checkboxInput("cc_pheno_misclass", "Enable phenotype misclassification", FALSE),
     sliderInput("cc_theta", "theta: affected classified as control", min = 0, max = 0.50, value = 0, step = 0.01),
     sliderInput("cc_phi", "phi: unaffected classified as case", min = 0, max = 0.50, value = 0, step = 0.01),
@@ -273,14 +273,14 @@ tdt_common_inputs <- function(include_N = FALSE, include_target_power = FALSE) {
   tagList(
     if (include_N) numericInput("tdt_N", "Number of affected trios (N)", 600, min = 1, step = 25),
     if (include_target_power) sliderInput("tdt_target_power", "Target power", min = 0.50, max = 0.99, value = 0.80, step = 0.01),
-    sliderInput("tdt_pd", "Disease allele frequency (pd)", min = 0.01, max = 0.99, value = 0.30, step = 0.01),
+    sliderInput("tdt_pd", "Risk-allele frequency (pd)", min = 0.01, max = 0.99, value = 0.30, step = 0.01),
     sliderInput("tdt_prev", "Disease prevalence (prev)", min = 0.001, max = 0.50, value = 0.05, step = 0.001),
     numericInput("tdt_R1", "Heterozygote relative risk (R1)", 1.50, min = 0.0001, step = 0.1),
     numericInput("tdt_R2", "Homozygote relative risk (R2)", 2.25, min = 0.0001, step = 0.1),
     selectInput("tdt_alpha", "Significance level (alpha)", choices = c(0.10, 0.05, 0.01, 0.001), selected = 0.05),
     sliderInput("tdt_delta_prime", "LD scale parameter (delta_prime)", min = 0, max = 1, value = 1, step = 0.01),
     sliderInput("tdt_misclass_rate", "Phenotype misclassification rate", min = 0, max = 0.20, value = 0.01, step = 0.005),
-    sliderInput("tdt_heter_rate", "Heterogeneity rate", min = 0, max = 0.80, value = 0.10, step = 0.01)
+    sliderInput("tdt_heter_rate", "Heterogeneity rate (1 - pi)", min = 0, max = 0.80, value = 0.10, step = 0.01)
   )
 }
 
@@ -454,14 +454,14 @@ tdt_plots_ui <- function() {
             "input.tdt_plot_type == 'mssn'",
             sliderInput("tdt_plot_target_power", "Target power", min = 0.50, max = 0.99, value = 0.80, step = 0.01)
           ),
-          sliderInput("tdt_plot_pd", "Disease allele frequency (pd)", min = 0.01, max = 0.99, value = 0.30, step = 0.01),
+          sliderInput("tdt_plot_pd", "Risk-allele frequency (pd)", min = 0.01, max = 0.99, value = 0.30, step = 0.01),
           sliderInput("tdt_plot_prev", "Disease prevalence (prev)", min = 0.001, max = 0.50, value = 0.05, step = 0.001),
           numericInput("tdt_plot_R1", "Heterozygote relative risk (R1)", 1.50, min = 0.0001, step = 0.1),
           numericInput("tdt_plot_R2", "Homozygote relative risk (R2)", 2.25, min = 0.0001, step = 0.1),
           selectInput("tdt_plot_alpha", "Significance level (alpha)", choices = c(0.10, 0.05, 0.01, 0.001), selected = 0.05),
           sliderInput("tdt_plot_delta_prime", "LD scale parameter (delta_prime)", min = 0, max = 1, value = 1, step = 0.01),
           sliderInput("tdt_plot_misclass_rate", "Phenotype misclassification rate", min = 0, max = 0.20, value = 0.01, step = 0.005),
-          sliderInput("tdt_plot_heter_rate", "Heterogeneity rate", min = 0, max = 0.80, value = 0.10, step = 0.01),
+          sliderInput("tdt_plot_heter_rate", "Heterogeneity rate (1 - pi)", min = 0, max = 0.80, value = 0.10, step = 0.01),
           plot_settings_ui("tdt_plot"),
           actionButton("tdt_plot_generate", "Generate Plot", class = "primary-btn")
         ),
@@ -916,6 +916,11 @@ server <- function(input, output, session) {
       ))
     }
     tagList(
+      div(
+        class = "input-note",
+        strong("Important: differential genotype error is not null-calibrated."),
+        "Reported power is nominal asymptotic power and reported MSSN is nominal MSSN, using the usual chi-square critical value. Different case/control error mechanisms can distort the null distribution and inflate type I error; genmixr does not independently recalibrate that distribution."
+      ),
       selectInput("cc_diff_source", "diff_source", c("explicit", "case", "ctrl")),
       numericInput("cc_diff_multiplier", "diff_multiplier", 1, min = 0, step = 0.05),
       fluidRow(

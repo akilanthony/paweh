@@ -65,9 +65,9 @@ tdt_power(
 
 The returned object is a list with components such as:
 
-* `no_error`: power under an ideal model with no misclassification or heterogeneity.
-* `misclassification`: power under phenotype misclassification only
-* `heterogeneity`: power under locus heterogeneity only
+* `power$no_error`: power under an ideal model with no misclassification or heterogeneity.
+* `power$misclassification`: power under phenotype misclassification only.
+* `power$heterogeneity`: power under locus heterogeneity only.
 
 The `power_loss` element gives the absolute loss in power (relative to the no-error design) caused by misclassification and heterogeneity.
 
@@ -116,7 +116,7 @@ In this section we illustrate how `tdt_power()` and `tdt_mssn()` can be used to 
 
 We rely on two studies:
 
-- **Ambrosio et al. (2004)** — DRD2/DRD3 TDT in schizophrenia trios (negative results).  
+- **Ambrósio et al. (2004)** — DRD2/DRD3 TDT in schizophrenia trios (negative results).
    
 - **Spielman et al. (1993)** — the original TDT paper on the insulin VNTR and IDDM (strong positive results).  
   
@@ -124,7 +124,7 @@ We rely on two studies:
 
 ## 5.1 DRD2/DRD3 and schizophrenia in Portuguese trios
 
-Ambrosio et al. analyzed **90 affected trios** to test DRD2/DRD3 variants in schizophrenia. They reported **no evidence of association**.
+Ambrósio et al. analyzed **90 affected trios** to test DRD2/DRD3 variants in schizophrenia. They reported **no evidence of association**.
 
 From their TDT table for the DRD2 TaqIA polymorphism:
 
@@ -156,11 +156,11 @@ ambrosio_power <- tdt_power(
   verbose       = TRUE
 )
 
-ambrosio_power$no_error
+ambrosio_power$power$no_error
 ambrosio_power$power_loss
 ```
 
-This typically yields very low power, consistent with the negative results in Ambrosio et al.
+This typically yields very low power, consistent with the negative results in Ambrósio et al.
 
 
 ### 5.1.2 Impact of misclassification and heterogeneity
@@ -181,8 +181,8 @@ ambrosio_power_error <- tdt_power(
   verbose       = TRUE
 )
 
-ambrosio_power_error$misclassification
-ambrosio_power_error$heterogeneity
+ambrosio_power_error$power$misclassification
+ambrosio_power_error$power$heterogeneity
 ambrosio_power_error$power_loss
 ```
 
@@ -249,7 +249,7 @@ spielman_power <- tdt_power(
   verbose       = TRUE
 )
 
-spielman_power$no_error
+spielman_power$power$no_error
 ```
 
 This yields high power, consistent with their strong published result.
@@ -271,9 +271,9 @@ spielman_power_error <- tdt_power(
   verbose       = TRUE
 )
 
-spielman_power_error$no_error
-spielman_power_error$misclassification
-spielman_power_error$heterogeneity
+spielman_power_error$power$no_error
+spielman_power_error$power$misclassification
+spielman_power_error$power$heterogeneity
 spielman_power_error$power_loss
 ```
 
@@ -415,7 +415,7 @@ plot_tdt_power_locus_heterogeneity_3d(
 
 This vignette introduced the extended Transmission Disequilibrium Test (TDT) framework implemented in **genmixr**, with emphasis on power calculation, sample size determination, and the consequences of realistic error processes such as phenotype misclassification and locus heterogeneity. 
 
-Through examples based on real studies—Ambrosio et al.’s investigation of DRD2/DRD3 in schizophrenia trios and Spielman et al.’s landmark insulin VNTR TDT paper—we demonstrated how classical trio designs can be re-evaluated and how new studies can be planned under modern assumptions. These examples highlight several key insights:
+Through examples based on real studies—Ambrósio et al.’s investigation of DRD2/DRD3 in schizophrenia trios and Spielman et al.’s landmark insulin VNTR TDT paper—we demonstrated how classical trio designs can be re-evaluated and how new studies can be planned under modern assumptions. These examples highlight several key insights:
 
 - **Power can be severely limited** in modest-effect settings, especially when diagnostic uncertainty or genetic heterogeneity is present.  
 - Even **small error rates can substantially inflate required sample sizes**, making naive power calculations overly optimistic.  
@@ -429,10 +429,8 @@ Together, these tools offer a comprehensive workflow that supports both retrospe
 # References
 
 Ambrósio AM, Kennedy JL, Macciardi F, Macedo A, Valente J, Dourado A, Oliveira CR, Pato C. **Family association study between DRD2 and DRD3 gene polymorphisms and schizophrenia in a Portuguese population.** *Psychiatry Research*. 2004;125(3):185–191. DOI: 10.1016/j.psychres.2003.12.016.
-Available in this vignette’s supporting files.
 
 Spielman RS, McGinnis RE, Ewens WJ. **Transmission test for linkage disequilibrium: The insulin gene region and insulin-dependent diabetes mellitus (IDDM).** *The American Journal of Human Genetics*. 1993;52(3):506–516.  
-Available in this vignette’s supporting files.
 
 Gordon D, Finch SJ, Kim W. **Heterogeneity in Statistical Genetics: How to Assess, Address, and Account for Mixtures in Association Studies.** Springer; 2020. DOI: 10.1007/978-3-030-61121-7.
 (Primary theoretical reference for the extended TDT framework used in **genmixr**.)

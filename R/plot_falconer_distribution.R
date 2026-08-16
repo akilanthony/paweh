@@ -56,6 +56,10 @@
 #' Density mode is analytic and performs no simulation. Histogram mode first
 #' samples genotypes from their Hardy--Weinberg frequencies and then samples
 #' trait values from the corresponding conditional normal distributions.
+#' The x-axis is the quantitative-trait value. In analytic density mode, the
+#' y-axis is genotype-specific density when `scale = "density"` and
+#' population-weighted density when `scale = "frequency"`. In histogram mode,
+#' the y-axis is normalized density or bin count for those respective scales.
 #'
 #' @return A \code{ggplot} object, or a plotting data frame when
 #'   `return_data = TRUE`.
