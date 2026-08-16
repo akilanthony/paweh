@@ -394,15 +394,21 @@ plot_tdt_mssn_locus_heterogeneity(
 
 # 7. 3D Sensitivity Surfaces (optional)
 
-In addition to 2D sensitivity plots, **genmixr** provides optional interactive
-3D visualization tools using the `plotly` package.
+In addition to 2D sensitivity plots, **genmixr** provides a generalized
+interactive 3D visualization using the `plotly` package. Select any two
+supported model parameters as axes, choose power or MSSN as the height, and
+select the no-error, misclassification, or heterogeneity scenario explicitly.
 
-These functions are only available if `plotly` is installed.
+This function is only available if `plotly` is installed.
 
 ```{r, eval=requireNamespace("plotly", quietly=TRUE)}
-plot_tdt_power_locus_heterogeneity_3d(
-  pd_seq = seq(0.05, 0.80, by = 0.05),
-  heter_seq = seq(0, 0.50, by = 0.05),
+plot_tdt_surface3d(
+  metric = "power",
+  scenario = "heterogeneity",
+  x = "pd",
+  y = "heter_rate",
+  x_values = seq(0.10, 0.50, length.out = 5),
+  y_values = seq(0, 0.40, length.out = 5),
   N = 600,
   prev = 0.05,
   R1 = 1.5,

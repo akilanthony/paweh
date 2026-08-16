@@ -48,18 +48,15 @@ reference:
   contents:
   - plot_tdt_mssn
   - plot_tdt_power
+  - plot_tdt_surface3d
 - title: "TDT: phenotype misclassification plotting"
   contents:
   - plot_tdt_mssn_phenotype_misclassification
-  - plot_tdt_mssn_phenotype_misclassification_3d
   - plot_tdt_power_phenotype_misclassification
-  - plot_tdt_power_phenotype_misclassification_3d
 - title: "TDT: locus heterogeneity plotting"
   contents:
   - plot_tdt_mssn_locus_heterogeneity
-  - plot_tdt_mssn_locus_heterogeneity_3d
   - plot_tdt_power_locus_heterogeneity
-  - plot_tdt_power_locus_heterogeneity_3d
 - title: "Quantitative traits: model parameters"
   contents:
   - qtl_falconer_parameters
