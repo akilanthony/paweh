@@ -67,6 +67,10 @@ also be interpreted as \code{bb}, \code{Bb}, and \code{BB}, respectively.
 Density mode is analytic and performs no simulation. Histogram mode first
 samples genotypes from their Hardy--Weinberg frequencies and then samples
 trait values from the corresponding conditional normal distributions.
+The x-axis is the quantitative-trait value. In analytic density mode, the
+y-axis is genotype-specific density when \code{scale = "density"} and
+population-weighted density when \code{scale = "frequency"}. In histogram mode,
+the y-axis is normalized density or bin count for those respective scales.
 }
 \examples{
 # A large QTL effect visibly separates the genotype distributions.

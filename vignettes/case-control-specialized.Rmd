@@ -57,7 +57,7 @@ cc_chisq_power_genotype_misclassification_1p(
 )$power
 ```
 
-```{r, eval = FALSE}
+```{r}
 cc_chisq_mssn_genotype_misclassification_1p(
   power = 0.80,
   alpha = 0.05,
@@ -75,7 +75,7 @@ cc_chisq_mssn_genotype_misclassification_1p(
 Trend functions use genotype scores `w`, with the default scores
 `c(0, 1, 2)`.
 
-```{r, eval = FALSE}
+```{r}
 cc_trend_power_locus_heterogeneity(
   N_case = 200,
   alpha = 0.05,
@@ -102,7 +102,7 @@ cc_trend_mssn_locus_heterogeneity(
 Use the 2p or 3p functions when the genotype misclassification model is known
 in advance and only genotype chi-square results are needed.
 
-```{r, eval = FALSE}
+```{r}
 cc_chisq_power_genotype_misclassification_2p(
   N_case = 200,
   alpha = 0.05,
@@ -134,7 +134,7 @@ cc_chisq_power_genotype_misclassification_3p(
 These functions apply the case-frequency adjustment
 `pi * g_case_assoc + (1 - pi) * g_ctrl` before computing the requested test.
 
-```{r, eval = FALSE}
+```{r}
 cc_chisq_power_locus_heterogeneity(
   N_case = 200,
   alpha = 0.05,
@@ -159,7 +159,13 @@ cc_chisq_mssn_locus_heterogeneity(
 Differential 3p functions use separate case and control misclassification
 matrices.
 
-```{r, eval = FALSE}
+Their reported power is nominal asymptotic power, and their reported MSSN is
+nominal MSSN, evaluated with the usual chi-square critical value. Differential
+case/control genotype-error mechanisms can distort the null distribution and
+inflate type I error. These functions do not independently recalibrate the null
+distribution for arbitrary differential genotyping error.
+
+```{r}
 cc_chisq_power_genotype_misclassification_differential_3p(
   N_case = 200,
   alpha = 0.05,
@@ -192,3 +198,9 @@ cc_chisq_mssn_genotype_misclassification_differential_3p(
   verbose = FALSE
 )
 ```
+
+# References
+
+Gordon D, Finch SJ, Kim W. *Heterogeneity in Statistical Genetics: How to
+Assess, Address, and Account for Mixtures in Association Studies.* Springer,
+2020. DOI: 10.1007/978-3-030-61121-7.
