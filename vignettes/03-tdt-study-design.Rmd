@@ -1,0 +1,283 @@
+---
+title: "Transmission disequilibrium test study design"
+author: "pawh package authors"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{Transmission disequilibrium test study design}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.6)
+library(pawh)
+```
+
+# Why use an affected-child trio design?
+
+The transmission disequilibrium test (TDT) compares an allele transmitted to
+an affected child with the alternative parental allele that was not
+transmitted. This within-family comparison can avoid confounding from
+population stratification that affects unrelated case-control comparisons.
+
+Let `ET` and `ENT` denote expected transmitted and non-transmitted counts. The
+one-degree-of-freedom TDT non-centrality parameter is based on their contrast,
+
+\[
+\lambda = \frac{(ET-ENT)^2}{ET+ENT}.
+\]
+
+In this vignette, `N` and every reported MSSN are numbers of affected-child
+trios, not numbers of individual people.
+
+# Power and MSSN for trios
+
+The canonical model-based interfaces answer inverse design questions under a
+common genetic model.
+
+```{r basic-tdt}
+basic_tdt_power <- tdt_power(
+  N = 600, input_mode = "model_based",
+  pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+  alpha = 0.05, delta_prime = 1,
+  misclass_rate = 0.01, heter_rate = 0.10,
+  verbose = FALSE
+)
+
+basic_tdt_mssn <- tdt_mssn(
+  target_power = 0.80, input_mode = "model_based",
+  pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+  alpha = 0.05, delta_prime = 1,
+  misclass_rate = 0.01, heter_rate = 0.10,
+  verbose = FALSE
+)
+
+data.frame(
+  scenario = c("No error", "Phenotype misclassification", "Locus heterogeneity"),
+  power_at_600_trios = unlist(basic_tdt_power$power),
+  required_trios = unlist(basic_tdt_mssn$N),
+  row.names = NULL
+)
+```
+
+The canonical backend reports separate modifier scenarios. It does not claim
+that the misclassification and heterogeneity components are a combined-error
+analysis.
+
+# Model-based and model-free TDT inputs
+
+Model-based input uses `pd`, `prev`, `R1`, `R2`, and `delta_prime`. The
+lower-level probability and count functions make the connection to `ET` and
+`ENT` visible without requiring a long derivation.
+
+```{r expected-counts}
+gT <- tdt_expected_transmission_probability(
+  pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+  delta_prime = 1, verbose = FALSE
+)
+gNT <- tdt_expected_nontransmission_probability(
+  pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+  delta_prime = 1, verbose = FALSE
+)
+expected_counts <- tdt_expected_transmission_counts(
+  N_star = 500,
+  pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+  delta_prime = 1, pi = 1, verbose = FALSE
+)
+
+data.frame(
+  quantity = c("Transmission probability", "Non-transmission probability", "ET", "ENT"),
+  value = c(gT$gT_star, gNT$gNT_star, expected_counts$ET_star, expected_counts$ENT_star)
+)
+```
+
+If a pilot study or external calculation already supplies expected counts,
+they can be used directly:
+
+```{r model-free-power}
+count_power <- tdt_power_from_expected_counts(
+  ET = expected_counts$ET_star,
+  ENT = expected_counts$ENT_star,
+  alpha = 0.05
+)
+
+canonical_model_free <- tdt_power(
+  N = 500, input_mode = "model_free",
+  ET = expected_counts$ET_star,
+  ENT = expected_counts$ENT_star,
+  misclass_rate = 0, heter_rate = 0,
+  verbose = FALSE
+)
+
+c(lower_level_power = count_power$power,
+  canonical_power = canonical_model_free$power$no_error)
+```
+
+For model-free MSSN, `n_trios` records the trio count represented by the
+supplied `ET` and `ENT`. Applying heterogeneity additionally requires `pd`;
+applying phenotype misclassification requires `pd` and `prev`. Model-free
+inputs therefore relocate assumptions rather than eliminate them.
+
+# Published-example reproduction: Buyske et al. (2009)
+
+Buyske et al. examined phenotype misclassification in affected-child trios.
+The validated multiplicative example uses target power 0.80, `alpha = 1e-5`,
+`pd = 0.50`, prevalence 0.01, `R2 = 2.5`, `R1 = sqrt(2.5)`, maximum positive
+LD, and phenotype misclassification rate 0.05.
+
+```{r buyske-reproduction}
+buyske <- tdt_mssn(
+  target_power = 0.80, alpha = 1e-5,
+  pd = 0.50, prev = 0.01,
+  R1 = sqrt(2.5), R2 = 2.5,
+  delta_prime = 1,
+  misclass_rate = 0.05, heter_rate = 0,
+  verbose = FALSE
+)
+
+buyske_ratio <- buyske$N$misclassification / buyske$N$no_error
+data.frame(
+  quantity = c("No-error MSSN", "Misclassification MSSN", "Final sample-size ratio"),
+  published = c("approximately 546", "approximately 21,400", "approximately 39-fold"),
+  pawh = c(buyske$N$no_error, buyske$N$misclassification, buyske_ratio)
+)
+```
+
+This is an excellent **Published-example reproduction**: approximately 546
+versus 21,401 affected-child trios, a 39.23-fold final sample-size ratio.
+A 39.23-fold ratio is a 3,822.7% increase, not a 39.23% increase. The current
+result component named `percent_increase` stores the proportional increase
+`(new / baseline) - 1`; its historical name should not be read as a
+conventional percentage.
+
+## Extending Buyske: a misclassification curve
+
+```{r buyske-curve, fig.cap="Required affected-child trios as phenotype misclassification increases under the Buyske model."}
+plot_tdt_mssn(
+  x_var = "misclass_rate",
+  x_values = seq(0, 0.05, by = 0.005),
+  scenario = "misclassification",
+  input_mode = "model_based",
+  target_power = 0.80, alpha = 1e-5,
+  pd = 0.50, prev = 0.01,
+  R1 = sqrt(2.5), R2 = 2.5,
+  delta_prime = 1, heter_rate = 0
+)
+```
+
+The steep curve identifies a fragile design region. It does not represent a
+confidence interval or a probability distribution over the error rate.
+
+## Extending Buyske: prevalence by misclassification
+
+The optional interactive surface evaluates the same Buyske parameters over a
+modest prevalence-by-error grid. It is guarded so the vignette remains
+executable when Plotly is unavailable.
+
+```{r buyske-surface, eval=requireNamespace("plotly", quietly=TRUE), fig.cap="MSSN sensitivity to prevalence and phenotype misclassification under the Buyske model."}
+plot_tdt_surface3d(
+  metric = "mssn", scenario = "misclassification",
+  x = "prev", y = "misclass_rate",
+  x_values = c(0.005, 0.01, 0.02, 0.04),
+  y_values = seq(0, 0.05, length.out = 5),
+  target_power = 0.80, alpha = 1e-5,
+  pd = 0.50, R1 = sqrt(2.5), R2 = 2.5,
+  delta_prime = 1, heter_rate = 0
+)
+```
+
+This surface extends discrete calculations into a sensitivity analysis; it is
+not an uncertainty distribution.
+
+# Published-example reproduction: Chen et al. (2009)
+
+Chen et al. studied TDT design under locus heterogeneity. Here `heter_rate` is
+the heterogeneous or unlinked trio fraction, equal to `1 - pi`.
+
+```{r chen-reproduction}
+chen_no_heterogeneity <- tdt_mssn(
+  target_power = 0.80, alpha = 1e-5,
+  pd = 0.25, prev = 0.10,
+  R1 = sqrt(1.5), R2 = 1.5,
+  delta_prime = 1,
+  misclass_rate = 0, heter_rate = 0,
+  verbose = FALSE
+)
+
+chen_half_heterogeneous <- tdt_mssn(
+  target_power = 0.80, alpha = 1e-5,
+  pd = 0.25, prev = 0.10,
+  R1 = sqrt(1.5), R2 = 1.5,
+  delta_prime = 1,
+  misclass_rate = 0, heter_rate = 0.50,
+  verbose = FALSE
+)
+
+data.frame(
+  heterogeneous_fraction = c(0, 0.50),
+  published_required_trios = c("approximately 3430", "approximately 13721"),
+  pawh_required_trios = c(
+    chen_no_heterogeneity$N$heterogeneity,
+    chen_half_heterogeneous$N$heterogeneity
+  )
+)
+```
+
+This is a near-exact **Published-example reproduction**. Small differences
+reflect the paper's reported integer values and rounding.
+
+## Extending Chen: dilution by heterogeneous trios
+
+```{r chen-curve, fig.cap="Required affected-child trios as the heterogeneous or unlinked fraction increases under the Chen model."}
+plot_tdt_mssn(
+  x_var = "heter_rate",
+  x_values = seq(0, 0.50, by = 0.05),
+  scenario = "heterogeneity",
+  input_mode = "model_based",
+  target_power = 0.80, alpha = 1e-5,
+  pd = 0.25, prev = 0.10,
+  R1 = sqrt(1.5), R2 = 1.5,
+  delta_prime = 1, misclass_rate = 0
+)
+```
+
+Heterogeneous trios dilute locus-specific signal. A flatter curve would
+indicate a more robust design; a steep curve signals that modest departures
+from homogeneity require substantially more families.
+
+# Assumptions and limitations
+
+- The design is an affected-child trio TDT using an asymptotic chi-square
+  approximation.
+- In the current parameterization, `delta_prime` lies in `[0, 1]` and scales
+  maximum **positive** LD. Negative LD requires another allele-frequency-
+  dependent normalization and is not implemented.
+- `misclass_rate` and `heter_rate` describe distinct reported scenarios.
+- Model-free `ET` and `ENT` are treated as supplied expected counts.
+- MSSN is measured in trios.
+- Curves and surfaces vary fixed assumptions; they are not uncertainty bands.
+
+# References
+
+Buyske S, Yang G, Matise TC, Gordon D. When a case is not a case: effects of
+phenotype misclassification on power and sample size requirements for the
+transmission disequilibrium test with affected child trios. *Human Heredity*.
+2009;67(4):287--292. doi:10.1159/000194981.
+
+Chen C, Yang G, Buyske S, Matise T, Finch SJ, Gordon D. Transmission
+disequilibrium test power and sample size in the presence of locus
+heterogeneity. *Statistical Applications in Genetics and Molecular Biology*.
+2009;8:Article 44. doi:10.2202/1544-6115.1501.
+
+Gordon D, Finch SJ, Kim W. *Heterogeneity in Statistical Genetics: How to
+Assess, Address, and Account for Mixtures in Association Studies*. Springer;
+2020. doi:10.1007/978-3-030-61121-7.
+
+# Session information
+
+```{r session-info}
+sessionInfo()
+```
