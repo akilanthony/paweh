@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(genmixr)
+library(pawh)
 
-test_check("genmixr")
+test_check("pawh")

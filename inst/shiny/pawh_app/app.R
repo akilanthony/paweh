@@ -2,8 +2,8 @@ if (!requireNamespace("shiny", quietly = TRUE)) {
   stop("The 'shiny' package is required to run this app.", call. = FALSE)
 }
 
-if (!requireNamespace("genmixr", quietly = TRUE)) {
-  stop("The 'genmixr' package must be installed to run this app.", call. = FALSE)
+if (!requireNamespace("pawh", quietly = TRUE)) {
+  stop("The 'pawh' package must be installed to run this app.", call. = FALSE)
 }
 
 app_file <- tryCatch(sys.frame(1)$ofile, error = function(e) NULL)
@@ -27,18 +27,18 @@ required_exports <- c(
   "plot_tdt_mssn"
 )
 
-missing_exports <- setdiff(required_exports, getNamespaceExports("genmixr"))
+missing_exports <- setdiff(required_exports, getNamespaceExports("pawh"))
 if (local_pkg_available &&
     length(missing_exports) > 0 &&
     requireNamespace("pkgload", quietly = TRUE)) {
   pkgload::load_all(pkg_root, quiet = TRUE)
-  missing_exports <- setdiff(required_exports, getNamespaceExports("genmixr"))
+  missing_exports <- setdiff(required_exports, getNamespaceExports("pawh"))
 }
 
 if (length(missing_exports) > 0) {
   stop(
     paste(
-      "The loaded genmixr package is missing required Shiny app exports:",
+      "The loaded pawh package is missing required Shiny app exports:",
       paste(missing_exports, collapse = ", "),
       "Install this branch or run devtools::load_all() before launching the app."
     ),
@@ -919,7 +919,7 @@ server <- function(input, output, session) {
       div(
         class = "input-note",
         strong("Important: differential genotype error is not null-calibrated."),
-        "Reported power is nominal asymptotic power and reported MSSN is nominal MSSN, using the usual chi-square critical value. Different case/control error mechanisms can distort the null distribution and inflate type I error; genmixr does not independently recalibrate that distribution."
+        "Reported power is nominal asymptotic power and reported MSSN is nominal MSSN, using the usual chi-square critical value. Different case/control error mechanisms can distort the null distribution and inflate type I error; pawh does not independently recalibrate that distribution."
       ),
       selectInput("cc_diff_source", "diff_source", c("explicit", "case", "ctrl")),
       numericInput("cc_diff_multiplier", "diff_multiplier", 1, min = 0, step = 0.05),
@@ -973,7 +973,7 @@ server <- function(input, output, session) {
 
   tdt_power_result <- eventReactive(input$tdt_power_analyze, {
     args <- c(list(N = input$tdt_N), tdt_args(), list(verbose = FALSE))
-    safe_call(do.call(genmixr::tdt_power, args))
+    safe_call(do.call(pawh::tdt_power, args))
   }, ignoreInit = TRUE)
 
   output$tdt_power_table <- renderTable({
@@ -990,7 +990,7 @@ server <- function(input, output, session) {
     )
     n <- input$tdt_N
     x_values <- unique(round(seq(max(1, 0.25 * n), 2 * n, length.out = 24)))
-    print(genmixr::plot_tdt_power(
+    print(pawh::plot_tdt_power(
       x_var = "N",
       x_values = x_values,
       scenario = input$tdt_power_plot_scenario,
@@ -1008,7 +1008,7 @@ server <- function(input, output, session) {
 
   tdt_mssn_result <- eventReactive(input$tdt_mssn_analyze, {
     args <- c(list(target_power = input$tdt_target_power), tdt_args(), list(verbose = FALSE))
-    safe_call(do.call(genmixr::tdt_mssn, args))
+    safe_call(do.call(pawh::tdt_mssn, args))
   }, ignoreInit = TRUE)
 
   output$tdt_mssn_table <- renderTable({
@@ -1025,7 +1025,7 @@ server <- function(input, output, session) {
     )
     scenario <- input$tdt_mssn_plot_scenario
     x_var <- if (scenario == "misclassification") "misclass_rate" else "heter_rate"
-    print(genmixr::plot_tdt_mssn(
+    print(pawh::plot_tdt_mssn(
       x_var = x_var,
       x_values = seq(0, if (x_var == "misclass_rate") 0.20 else 0.80, length.out = 24),
       scenario = scenario,
@@ -1061,9 +1061,9 @@ server <- function(input, output, session) {
         y_label = if (nzchar(input$tdt_plot_y_label)) input$tdt_plot_y_label else NULL
       )
       if (identical(input$tdt_plot_type, "power")) {
-        do.call(genmixr::plot_tdt_power, c(common, list(N = input$tdt_plot_N)))
+        do.call(pawh::plot_tdt_power, c(common, list(N = input$tdt_plot_N)))
       } else {
-        do.call(genmixr::plot_tdt_mssn, c(common, list(target_power = input$tdt_plot_target_power)))
+        do.call(pawh::plot_tdt_mssn, c(common, list(target_power = input$tdt_plot_target_power)))
       }
     })
   }, ignoreInit = TRUE)
@@ -1147,7 +1147,7 @@ server <- function(input, output, session) {
   cc_power_result <- eventReactive(input$cc_power_analyze, {
     safe_call({
       args <- c(cc_args(), list(N_case = input$cc_N_case, verbose = FALSE))
-      do.call(genmixr::cc_power, args)
+      do.call(pawh::cc_power, args)
     })
   }, ignoreInit = TRUE)
 
@@ -1176,13 +1176,13 @@ server <- function(input, output, session) {
       ),
       args
     )
-    print(do.call(genmixr::plot_cc_power, plot_args))
+    print(do.call(pawh::plot_cc_power, plot_args))
   })
 
   cc_mssn_result <- eventReactive(input$cc_mssn_analyze, {
     safe_call({
       args <- c(cc_args(), list(power = input$cc_target_power, verbose = FALSE))
-      do.call(genmixr::cc_mssn, args)
+      do.call(pawh::cc_mssn, args)
     })
   }, ignoreInit = TRUE)
 
@@ -1209,7 +1209,7 @@ server <- function(input, output, session) {
       ),
       args
     )
-    print(do.call(genmixr::plot_cc_mssn, plot_args))
+    print(do.call(pawh::plot_cc_mssn, plot_args))
   })
 
   cc_plot_result <- eventReactive(input$cc_plot_generate, {
@@ -1232,9 +1232,9 @@ server <- function(input, output, session) {
         args
       )
       if (identical(input$cc_plot_type, "power")) {
-        do.call(genmixr::plot_cc_power, c(common, list(N_case = input$cc_plot_N_case)))
+        do.call(pawh::plot_cc_power, c(common, list(N_case = input$cc_plot_N_case)))
       } else {
-        do.call(genmixr::plot_cc_mssn, c(common, list(power = input$cc_plot_target_power)))
+        do.call(pawh::plot_cc_mssn, c(common, list(power = input$cc_plot_target_power)))
       }
     })
   }, ignoreInit = TRUE)

@@ -1,8 +1,8 @@
 ---
-title: "Transmission Disequilibrium Test (TDT) power and sample size in genmixr"
+title: "Transmission Disequilibrium Test (TDT) power and sample size in pawh"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{TDT power and sample size in genmixr}
+  %\VignetteIndexEntry{TDT power and sample size in pawh}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-library(genmixr)
+library(pawh)
 library(ggplot2)
 ```
 
@@ -20,7 +20,7 @@ library(ggplot2)
 
 Family-based association tests, particularly the *Transmission Disequilibrium Test* (TDT), are widely used in human genetics to detect linkage and association while avoiding confounding due to population stratification.
 
-The **genmixr** package implements an extended TDT framework that accounts for
+The **pawh** package implements an extended TDT framework that accounts for
 
 * Phenotype misclassification
 * Locus heterogeneity
@@ -38,7 +38,7 @@ These functions provide a complete workflow for designing family-based studies.
 # 2. Required Libraries
 
 ```{r}
-library(genmixr)
+library(pawh)
 library(ggplot2)
 ```
 
@@ -112,7 +112,7 @@ to the no-error design (e.g. 0.42 corresponds to a 42% increase).
 
 # 5. Real-world examples
 
-In this section we illustrate how `tdt_power()` and `tdt_mssn()` can be used to interpret and design family-based association studies. These examples show how one might *use* `genmixr` for real design scenarios rather than reproducing original papers exactly.
+In this section we illustrate how `tdt_power()` and `tdt_mssn()` can be used to interpret and design family-based association studies. These examples show how one might *use* `pawh` for real design scenarios rather than reproducing original papers exactly.
 
 We rely on two studies:
 
@@ -305,12 +305,12 @@ spielman_trios_followup$percent_increase
 This demonstrates how required trios increase when targeting more modest effects.
 
 
-Together, these examples show how `genmixr` can be used both to reinterpret past TDT studies and to design new trio studies under realistic assumptions.
+Together, these examples show how `pawh` can be used both to reinterpret past TDT studies and to design new trio studies under realistic assumptions.
 
 
 # 6. Visualizing Sensitivity to Error Processes
 
-To summarize the influence of phenotype misclassification and locus heterogeneity on TDT performance, **genmixr** provides four plotting utilities:
+To summarize the influence of phenotype misclassification and locus heterogeneity on TDT performance, **pawh** provides four plotting utilities:
 
 - `plot_tdt_power_phenotype_misclassification()`: power vs. misclassification rate (holding heterogeneity fixed)
 - `plot_tdt_power_locus_heterogeneity()`: power vs. heterogeneity rate (holding misclassification fixed)
@@ -394,7 +394,7 @@ plot_tdt_mssn_locus_heterogeneity(
 
 # 7. 3D Sensitivity Surfaces (optional)
 
-In addition to 2D sensitivity plots, **genmixr** provides a generalized
+In addition to 2D sensitivity plots, **pawh** provides a generalized
 interactive 3D visualization using the `plotly` package. Select any two
 supported model parameters as axes, choose power or MSSN as the height, and
 select the no-error, misclassification, or heterogeneity scenario explicitly.
@@ -419,13 +419,13 @@ plot_tdt_surface3d(
 
 # 8. Conclusion
 
-This vignette introduced the extended Transmission Disequilibrium Test (TDT) framework implemented in **genmixr**, with emphasis on power calculation, sample size determination, and the consequences of realistic error processes such as phenotype misclassification and locus heterogeneity. 
+This vignette introduced the extended Transmission Disequilibrium Test (TDT) framework implemented in **pawh**, with emphasis on power calculation, sample size determination, and the consequences of realistic error processes such as phenotype misclassification and locus heterogeneity.
 
 Through examples based on real studies—Ambrósio et al.’s investigation of DRD2/DRD3 in schizophrenia trios and Spielman et al.’s landmark insulin VNTR TDT paper—we demonstrated how classical trio designs can be re-evaluated and how new studies can be planned under modern assumptions. These examples highlight several key insights:
 
 - **Power can be severely limited** in modest-effect settings, especially when diagnostic uncertainty or genetic heterogeneity is present.  
 - Even **small error rates can substantially inflate required sample sizes**, making naive power calculations overly optimistic.  
-- The visual tools in **genmixr** (`plot_tdt_power()` and `plot_tdt_mssn()`) provide intuitive summaries of design robustness, allowing researchers to evaluate sensitivity to multiple forms of error simultaneously.
+- The visual tools in **pawh** (`plot_tdt_power()` and `plot_tdt_mssn()`) provide intuitive summaries of design robustness, allowing researchers to evaluate sensitivity to multiple forms of error simultaneously.
 - The full modeling framework draws directly from the theoretical development in *Heterogeneity in Statistical Genetics*, which provides a principled foundation for TDT in the presence of mixture structures, LD scaling, and phenotype misclassification.
 
 Together, these tools offer a comprehensive workflow that supports both retrospective interpretation of existing TDT findings and forward-looking design of new trio-based genetic studies. As family-based association methods continue to complement population-based GWAS analyses, incorporating heterogeneity and diagnostic noise into study planning remains essential for reliable inference.
@@ -439,6 +439,6 @@ Ambrósio AM, Kennedy JL, Macciardi F, Macedo A, Valente J, Dourado A, Oliveira 
 Spielman RS, McGinnis RE, Ewens WJ. **Transmission test for linkage disequilibrium: The insulin gene region and insulin-dependent diabetes mellitus (IDDM).** *The American Journal of Human Genetics*. 1993;52(3):506–516.  
 
 Gordon D, Finch SJ, Kim W. **Heterogeneity in Statistical Genetics: How to Assess, Address, and Account for Mixtures in Association Studies.** Springer; 2020. DOI: 10.1007/978-3-030-61121-7.
-(Primary theoretical reference for the extended TDT framework used in **genmixr**.)
+(Primary theoretical reference for the extended TDT framework used in **pawh**.)
 
 ---
