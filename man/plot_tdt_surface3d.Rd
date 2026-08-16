@@ -57,8 +57,8 @@ they are not axes.}
 \item{alpha}{Numeric in \verb{(0, 1)}. Fixed significance level when \code{alpha} is
 not an axis.}
 
-\item{delta_prime}{Numeric in \verb{[-1, 1]}. Fixed linkage-disequilibrium scale
-when \code{delta_prime} is not an axis.}
+\item{delta_prime}{Numeric in \verb{[0, 1]}. Fixed positive linkage-disequilibrium
+scale when \code{delta_prime} is not an axis.}
 
 \item{misclass_rate}{Numeric in \verb{[0, 1)}. Fixed phenotype
 misclassification rate when it is not an axis.}
@@ -97,6 +97,12 @@ The supported axes and their default grids are:
 \code{delta_prime = seq(0.25, 1, length.out = 20)},
 \code{misclass_rate = seq(0, 0.20, length.out = 20)}, and
 \code{heter_rate = seq(0, 0.50, length.out = 20)}.
+The package's implemented LD convention is
+\code{D = delta_prime * pd * (1 - pd)}, where \code{delta_prime} is the proportion of
+maximum positive disequilibrium: \code{0} represents linkage equilibrium and \code{1}
+represents maximum positive LD under the model assumptions. Negative LD
+would require a different, allele-frequency-dependent normalization and is
+not represented by this parameterization.
 
 The surface is deliberately model-based. \code{N} and \code{target_power} define the
 design calculation and therefore remain fixed rather than becoming axes.
@@ -111,7 +117,7 @@ scenario. Consequently, \code{misclass_rate} is an active axis only for
 \code{scenario = "heterogeneity"}. An inactive modifier axis is rejected rather
 than silently producing a flat, misleading surface.
 
-This function requires the optional package pkg{plotly}. The plotting layer
+This function requires the optional \code{plotly} package. The plotting layer
 introduces no independent statistical approximation: it only constructs the
 grid, delegates calculations to \code{\link[=tdt_power]{tdt_power()}} or \code{\link[=tdt_mssn]{tdt_mssn()}}, extracts the
 selected scenario, and renders the result.

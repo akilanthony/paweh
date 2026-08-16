@@ -26,8 +26,8 @@
 #'   they are not axes.
 #' @param alpha Numeric in `(0, 1)`. Fixed significance level when `alpha` is
 #'   not an axis.
-#' @param delta_prime Numeric in `[-1, 1]`. Fixed linkage-disequilibrium scale
-#'   when `delta_prime` is not an axis.
+#' @param delta_prime Numeric in `[0, 1]`. Fixed positive linkage-disequilibrium
+#'   scale when `delta_prime` is not an axis.
 #' @param misclass_rate Numeric in `[0, 1)`. Fixed phenotype
 #'   misclassification rate when it is not an axis.
 #' @param heter_rate Numeric in `[0, 1)`. Fixed locus-heterogeneity rate when
@@ -48,6 +48,12 @@
 #' `delta_prime = seq(0.25, 1, length.out = 20)`,
 #' `misclass_rate = seq(0, 0.20, length.out = 20)`, and
 #' `heter_rate = seq(0, 0.50, length.out = 20)`.
+#' The package's implemented LD convention is
+#' `D = delta_prime * pd * (1 - pd)`, where `delta_prime` is the proportion of
+#' maximum positive disequilibrium: `0` represents linkage equilibrium and `1`
+#' represents maximum positive LD under the model assumptions. Negative LD
+#' would require a different, allele-frequency-dependent normalization and is
+#' not represented by this parameterization.
 #'
 #' The surface is deliberately model-based. `N` and `target_power` define the
 #' design calculation and therefore remain fixed rather than becoming axes.
@@ -62,7 +68,7 @@
 #' `scenario = "heterogeneity"`. An inactive modifier axis is rejected rather
 #' than silently producing a flat, misleading surface.
 #'
-#' This function requires the optional package pkg{plotly}. The plotting layer
+#' This function requires the optional `plotly` package. The plotting layer
 #' introduces no independent statistical approximation: it only constructs the
 #' grid, delegates calculations to [tdt_power()] or [tdt_mssn()], extracts the
 #' selected scenario, and renders the result.
@@ -326,7 +332,7 @@ plot_tdt_surface3d <- function(
     delta_prime = list(
       label = "LD scale (D')",
       default = seq(0.25, 1, length.out = 20),
-      valid = function(value) value >= -1 & value <= 1
+      valid = function(value) value >= 0 & value <= 1
     ),
     misclass_rate = list(
       label = "Phenotype misclassification rate (pi01)",

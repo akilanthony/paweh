@@ -321,6 +321,19 @@ test_that("surface validation rejects ambiguous or inactive designs", {
   )
   expect_error(
     plot_tdt_surface3d(
+      scenario = "no_error", x = "pd", y = "delta_prime",
+      x_values = c(0.2, 0.3), y_values = c(-0.1, 0.5)
+    ),
+    "outside its valid range"
+  )
+  expect_error(
+    plot_tdt_surface3d(
+      x_values = c(0.2, 0.3), y_values = c(0, 0.1), delta_prime = 1.1
+    ),
+    "delta_prime has an invalid fixed value"
+  )
+  expect_error(
+    plot_tdt_surface3d(
       x_values = c(0.2, 0.3), y_values = c(0, 0.1), prev = 1
     ),
     "prev has an invalid fixed value"
