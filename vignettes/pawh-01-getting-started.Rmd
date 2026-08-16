@@ -1,0 +1,155 @@
+---
+title: "Getting started with pawh"
+author: "pawh package authors"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{Getting started with pawh}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
+library(pawh)
+```
+
+# What problem does `pawh` solve?
+
+`pawh` supports prospective power and minimum-sample-size-necessary (MSSN)
+calculations for genetic association study designs. It is intended for the
+stage at which a researcher is deciding what data to collect, how many
+subjects or trios are needed, and how sensitive that design may be to model
+assumptions.
+
+The relevant design inputs differ across studies. They can include sample
+size, allele frequency, genotype relative risk, genotype or phenotype
+misclassification, locus heterogeneity, family-based transmission,
+extreme-phenotype sampling, and correlation among quantitative traits.
+These quantities are assumptions or design targets, not estimates produced
+from raw genomic data by `pawh`.
+
+# Power and MSSN answer inverse questions
+
+- **Power:** given a sample size and model, what probability of rejection is
+  expected under the specified alternative?
+- **MSSN:** given a target power and model, how many cases, controls, trios, or
+  total individuals are required?
+
+For example, suppose pilot work supplies conditional genotype probabilities
+for cases and controls. A compact power calculation is:
+
+```{r tiny-example}
+g_case <- c(0.25, 0.50, 0.25)
+g_control <- c(0.36, 0.48, 0.16)
+
+starter_power <- cc_power(
+  N_case = 500,
+  alpha = 0.05,
+  input_mode = "model_free",
+  g1 = g_case,
+  g0 = g_control,
+  k = 1,
+  verbose = FALSE
+)
+
+starter_power$tests$genotypes$power
+```
+
+The corresponding `cc_mssn()` calculation reverses the design question by
+replacing `N_case` with a target `power`.
+
+# Three study-design families
+
+## Case-control association
+
+Cases and controls are compared using a genotype chi-square or trend test.
+The canonical `cc_power()` and `cc_mssn()` interfaces support model-based and
+model-free inputs, along with compatible heterogeneity and error modifiers.
+
+## Affected-child trios
+
+The transmission disequilibrium test (TDT) compares transmitted and
+non-transmitted alleles in affected-child trios. `tdt_power()` and
+`tdt_mssn()` report power or required trio counts under distinct no-error,
+phenotype-misclassification, and locus-heterogeneity scenarios.
+
+## Quantitative traits
+
+For continuous traits, `pawh` supports one-way genotype-group ANOVA,
+threshold-selected genotype chi-square designs, and multivariate designs
+using Pillai MANOVA or joint threshold selection.
+
+# Model-based and model-free inputs
+
+These modes locate the scientific assumptions in different places.
+
+For **case-control** studies, model-based input uses prevalence, disease-allele
+frequency, genotype relative risk, and mode of inheritance. Model-free input
+uses supplied conditional genotype probabilities: `g1` for cases or affected
+subjects and `g0` for controls or unaffected subjects.
+
+For the **TDT**, model-based input uses `pd`, `prev`, `R1`, `R2`, and
+`delta_prime`. Model-free input starts from expected transmission and
+non-transmission counts (`ET` and `ENT`), with the associated number of trios
+needed for MSSN calculations.
+
+Model-free input is useful when these quantities come from pilot data, prior
+publications, external calculations, or direct design assumptions. It does
+not remove assumptions; it moves them into the supplied conditional
+quantities.
+
+# Where should I start?
+
+| Scientific design | Canonical starting functions | Detailed vignette |
+|---|---|---|
+| Case-control association | `cc_power()`, `cc_mssn()` | Case-Control Study Design |
+| Affected-child trios | `tdt_power()`, `tdt_mssn()` | TDT Study Design |
+| Continuous single-trait QTL | `qtl_anova_power()`, `qtl_anova_mssn()` | Quantitative-Trait Study Design |
+| Extreme-trait QTL | `qtl_threshold_chisq_power()`, `qtl_threshold_chisq_mssn()` | Quantitative-Trait Study Design |
+| Multivariate quantitative traits | `qtl_multivariate_power_full()`, `qtl_multivariate_mssn_full()` | Quantitative-Trait Study Design |
+
+# Why Bioconductor?
+
+`pawh` is being prepared for Bioconductor because it addresses prospective
+design questions in genetic association research. These calculations can
+complement downstream genomic analysis by examining operating characteristics
+before data generation or collection. The package does not currently claim
+sequencing-file, genomic-range, or `SummarizedExperiment` integration.
+
+# Published validation philosophy
+
+The remaining vignettes distinguish three uses of literature:
+
+- **Published-example reproduction:** a reported analytic result is evaluated
+  with a matching `pawh` design.
+- **Published methodological context:** a paper explains an important risk or
+  method, but its exact analysis is not claimed to be reproduced.
+- **Motivating published application:** an application motivates a design
+  question while using a different statistical procedure.
+
+The study-design vignettes reproduce validated examples across case-control,
+TDT, and multivariate quantitative-trait settings and then extend those fixed
+designs with sensitivity calculations.
+
+# Installation
+
+Once `pawh` is available through Bioconductor, the standard installation path
+will be:
+
+```{r installation, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+BiocManager::install("pawh")
+```
+
+No installation is performed while this vignette is built.
+
+# Session information
+
+```{r session-info}
+sessionInfo()
+```

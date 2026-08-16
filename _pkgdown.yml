@@ -84,12 +84,19 @@ reference:
   - plot_qtl_threshold_chisq_power
 
 articles:
-- title: Case-control
-  navbar: Case-control
+- title: Getting Started
+  navbar: Getting Started
   contents:
-  - case-control-full
-  - case-control-specialized
-- title: Transmission Disequilibrium Test
-  navbar: TDT
+  - pawh-01-getting-started
+- title: Case-Control Study Design
+  navbar: Case-Control Study Design
   contents:
-  - tdt-pawh
+  - pawh-02-case-control-study-design
+- title: TDT Study Design
+  navbar: TDT Study Design
+  contents:
+  - pawh-03-tdt-study-design
+- title: Quantitative-Trait Study Design
+  navbar: Quantitative-Trait Study Design
+  contents:
+  - pawh-04-quantitative-trait-study-design
