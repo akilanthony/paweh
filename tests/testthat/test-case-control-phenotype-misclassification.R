@@ -4,7 +4,7 @@ cc_pheno_g_case <- c(0.25, 0.50, 0.25)
 cc_pheno_g_ctrl <- c(0.36, 0.48, 0.16)
 
 test_that("phenotype misclassification defaults preserve full-function outputs", {
-  old_power <- cc_power_conditional_full(
+  old_power <- cc_power(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
@@ -13,7 +13,7 @@ test_that("phenotype misclassification defaults preserve full-function outputs",
     verbose = FALSE
   )
 
-  explicit_power <- cc_power_conditional_full(
+  explicit_power <- cc_power(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
@@ -28,7 +28,7 @@ test_that("phenotype misclassification defaults preserve full-function outputs",
   expect_equal(explicit_power$tests$genotypes, old_power$tests$genotypes)
   expect_equal(explicit_power$tests$trend, old_power$tests$trend)
 
-  old_mssn <- cc_mssn_conditional_full(
+  old_mssn <- cc_mssn(
     power = 0.80,
     alpha = 0.05,
     input_mode = "model_free",
@@ -37,7 +37,7 @@ test_that("phenotype misclassification defaults preserve full-function outputs",
     verbose = FALSE
   )
 
-  explicit_mssn <- cc_mssn_conditional_full(
+  explicit_mssn <- cc_mssn(
     power = 0.80,
     alpha = 0.05,
     input_mode = "model_free",
@@ -64,7 +64,7 @@ test_that("phenotype misclassification matches Edwards et al Figure 2 genotype p
   )
 
   for (case in cases) {
-    out <- cc_power_conditional_full(
+    out <- cc_power(
       N_case = 250,
       alpha = 0.01,
       k = 1,
@@ -85,7 +85,7 @@ test_that("phenotype misclassification matches Edwards et al Figure 2 genotype p
 test_that("phenotype misclassification MSSN round trip reaches target power", {
   target_power <- 0.80
 
-  mssn <- cc_mssn_conditional_full(
+  mssn <- cc_mssn(
     power = target_power,
     alpha = 0.01,
     input_mode = "model_free",
@@ -98,7 +98,7 @@ test_that("phenotype misclassification MSSN round trip reaches target power", {
     verbose = FALSE
   )
 
-  power <- cc_power_conditional_full(
+  power <- cc_power(
     N_case = mssn$tests$genotypes$MSSN_case,
     alpha = 0.01,
     input_mode = "model_free",
@@ -116,7 +116,7 @@ test_that("phenotype misclassification MSSN round trip reaches target power", {
 
 test_that("phenotype misclassification validates full-function inputs", {
   expect_error(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 250,
       alpha = 0.01,
       input_mode = "model_free",
@@ -130,7 +130,7 @@ test_that("phenotype misclassification validates full-function inputs", {
   )
 
   expect_error(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 250,
       alpha = 0.01,
       input_mode = "model_free",
@@ -145,7 +145,7 @@ test_that("phenotype misclassification validates full-function inputs", {
   )
 
   expect_error(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 250,
       alpha = 0.01,
       input_mode = "model_free",
@@ -160,7 +160,7 @@ test_that("phenotype misclassification validates full-function inputs", {
   )
 
   expect_error(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 250,
       alpha = 0.01,
       input_mode = "model_free",
@@ -176,7 +176,7 @@ test_that("phenotype misclassification validates full-function inputs", {
 })
 
 test_that("specialized phenotype misclassification functions run and return key fields", {
-  power <- cc_pheno_power_test(
+  power <- cc_chisq_power_phenotype_misclassification(
     N_case = 250,
     alpha = 0.01,
     g_aff = cc_pheno_g_aff,
@@ -191,7 +191,7 @@ test_that("specialized phenotype misclassification functions run and return key 
   expect_equal(sum(power$g_case_obs), 1, tolerance = 1e-12)
   expect_equal(sum(power$g_ctrl_obs), 1, tolerance = 1e-12)
 
-  mssn <- cc_pheno_mssn_test(
+  mssn <- cc_chisq_mssn_phenotype_misclassification(
     target_power = 0.80,
     alpha = 0.01,
     g_aff = cc_pheno_g_aff,

@@ -1,8 +1,8 @@
 plot_g_aff <- c((1 - 0.05)^2, 2 * 0.05 * (1 - 0.05), 0.05^2)
 plot_g_unaff <- c((1 - 0.15)^2, 2 * 0.15 * (1 - 0.15), 0.15^2)
 
-test_that("cc_plot_power returns ggplot for phenotype misclassification sweep", {
-  p <- cc_plot_power(
+test_that("plot_cc_power returns ggplot for phenotype misclassification sweep", {
+  p <- plot_cc_power(
     x_var = "phi",
     x_values = c(0, 0.01, 0.02),
     test = "genotypes",
@@ -21,8 +21,8 @@ test_that("cc_plot_power returns ggplot for phenotype misclassification sweep", 
   expect_match(p$labels$x, "Phenotype misclassification")
 })
 
-test_that("cc_plot_mssn returns ggplot for model-based genotype error sweep", {
-  p <- cc_plot_mssn(
+test_that("plot_cc_mssn returns ggplot for model-based genotype error sweep", {
+  p <- plot_cc_mssn(
     x_var = "geno_error_multiplier",
     x_values = c(0, 0.5, 1),
     test = "trend",
@@ -44,7 +44,7 @@ test_that("cc_plot_mssn returns ggplot for model-based genotype error sweep", {
 })
 
 test_that("TDT full wrappers return ggplot objects", {
-  power_plot <- tdt_plot_power(
+  power_plot <- plot_tdt_power(
     x_var = "heter_rate",
     x_values = c(0, 0.05, 0.10),
     scenario = "heterogeneity",
@@ -57,7 +57,7 @@ test_that("TDT full wrappers return ggplot objects", {
     delta_prime = 1
   )
 
-  mssn_plot <- tdt_plot_mssn(
+  mssn_plot <- plot_tdt_mssn(
     x_var = "misclass_rate",
     x_values = c(0, 0.01, 0.02),
     scenario = "misclassification",
@@ -74,10 +74,10 @@ test_that("TDT full wrappers return ggplot objects", {
   expect_s3_class(mssn_plot, "ggplot")
 })
 
-test_that("cc_plot_power compare_tests returns plot and readable data labels", {
+test_that("plot_cc_power compare_tests returns plot and readable data labels", {
   x_values <- c(0, 0.01, 0.02)
 
-  p <- cc_plot_power(
+  p <- plot_cc_power(
     x_var = "phi",
     x_values = x_values,
     input_mode = "model_free",
@@ -92,7 +92,7 @@ test_that("cc_plot_power compare_tests returns plot and readable data labels", {
     k = 1
   )
 
-  dat <- cc_plot_power(
+  dat <- plot_cc_power(
     x_var = "phi",
     x_values = x_values,
     input_mode = "model_free",
@@ -120,7 +120,7 @@ test_that("cc_plot_power compare_tests returns plot and readable data labels", {
 test_that("return_data TRUE returns simple data frames", {
   x_values <- c(0, 0.01, 0.02)
 
-  dat <- cc_plot_power(
+  dat <- plot_cc_power(
     x_var = "phi",
     x_values = x_values,
     test = "genotypes",
@@ -143,7 +143,7 @@ test_that("return_data TRUE returns simple data frames", {
 })
 
 test_that("plot wrappers use clear default labels", {
-  tdt_p <- tdt_plot_power(
+  tdt_p <- plot_tdt_power(
     x_var = "heter_rate",
     x_values = c(0, 0.05),
     scenario = "heterogeneity",
@@ -156,7 +156,7 @@ test_that("plot wrappers use clear default labels", {
     delta_prime = 1
   )
 
-  cc_p <- cc_plot_power(
+  cc_p <- plot_cc_power(
     x_var = "phi",
     x_values = c(0, 0.01),
     test = "genotypes",
@@ -177,7 +177,7 @@ test_that("plot wrappers use clear default labels", {
 
 test_that("plot wrappers report unsupported arguments clearly", {
   expect_error(
-    cc_plot_power(
+    plot_cc_power(
       x_var = "not_supported",
       x_values = c(0, 1),
       input_mode = "model_free"
@@ -186,7 +186,7 @@ test_that("plot wrappers report unsupported arguments clearly", {
   )
 
   expect_error(
-    cc_plot_power(
+    plot_cc_power(
       x_var = "phi",
       x_values = c(0, 0.01),
       test = "bad_test",
@@ -196,7 +196,7 @@ test_that("plot wrappers report unsupported arguments clearly", {
   )
 
   expect_error(
-    tdt_plot_power(
+    plot_tdt_power(
       x_var = "heter_rate",
       x_values = c(0, 0.1),
       scenario = "bad_scenario"
@@ -205,10 +205,10 @@ test_that("plot wrappers report unsupported arguments clearly", {
   )
 })
 
-test_that("tdt_plot_power model_based data matches tdt_power_full() directly", {
+test_that("plot_tdt_power model_based data matches tdt_power() directly", {
   x_values <- c(0, 0.05, 0.10, 0.20)
 
-  dat <- tdt_plot_power(
+  dat <- plot_tdt_power(
     x_var = "heter_rate",
     x_values = x_values,
     scenario = "heterogeneity",
@@ -219,7 +219,7 @@ test_that("tdt_plot_power model_based data matches tdt_power_full() directly", {
   )
 
   expected <- vapply(x_values, function(hr) {
-    suppressMessages(tdt_power_full(
+    suppressMessages(tdt_power(
       N = 600, pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
       alpha = 0.05, delta_prime = 1, heter_rate = hr,
       verbose = FALSE
@@ -229,10 +229,10 @@ test_that("tdt_plot_power model_based data matches tdt_power_full() directly", {
   expect_equal(dat$power, expected)
 })
 
-test_that("tdt_plot_mssn model_based data matches tdt_required_trios_full() directly", {
+test_that("plot_tdt_mssn model_based data matches tdt_mssn() directly", {
   x_values <- c(0, 0.01, 0.02, 0.05)
 
-  dat <- tdt_plot_mssn(
+  dat <- plot_tdt_mssn(
     x_var = "misclass_rate",
     x_values = x_values,
     scenario = "misclassification",
@@ -243,7 +243,7 @@ test_that("tdt_plot_mssn model_based data matches tdt_required_trios_full() dire
   )
 
   expected <- vapply(x_values, function(mr) {
-    suppressMessages(tdt_required_trios_full(
+    suppressMessages(tdt_mssn(
       target_power = 0.80, pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
       alpha = 0.05, delta_prime = 1, misclass_rate = mr,
       verbose = FALSE
@@ -253,8 +253,8 @@ test_that("tdt_plot_mssn model_based data matches tdt_required_trios_full() dire
   expect_equal(dat$required_trios, expected)
 })
 
-test_that("tdt_plot_power works in model_free mode sweeping ET and ENT", {
-  dat_et <- tdt_plot_power(
+test_that("plot_tdt_power works in model_free mode sweeping ET and ENT", {
+  dat_et <- plot_tdt_power(
     x_var = "ET",
     x_values = c(120, 140, 160),
     scenario = "no_error",
@@ -265,7 +265,7 @@ test_that("tdt_plot_power works in model_free mode sweeping ET and ENT", {
   expect_equal(nrow(dat_et), 3)
   expect_true(all(diff(dat_et$power) > 0))
 
-  dat_ent <- tdt_plot_power(
+  dat_ent <- plot_tdt_power(
     x_var = "ENT",
     x_values = c(60, 80, 100),
     scenario = "no_error",
@@ -277,9 +277,9 @@ test_that("tdt_plot_power works in model_free mode sweeping ET and ENT", {
   expect_true(all(diff(dat_ent$power) < 0))
 })
 
-test_that("tdt_plot_mssn works in model_free mode sweeping ET, ENT, and n_trios", {
+test_that("plot_tdt_mssn works in model_free mode sweeping ET, ENT, and n_trios", {
   expect_no_error(
-    tdt_plot_mssn(
+    plot_tdt_mssn(
       x_var = "ET",
       x_values = c(120, 140, 160),
       scenario = "no_error",
@@ -289,7 +289,7 @@ test_that("tdt_plot_mssn works in model_free mode sweeping ET, ENT, and n_trios"
   )
 
   expect_no_error(
-    tdt_plot_mssn(
+    plot_tdt_mssn(
       x_var = "n_trios",
       x_values = c(100, 120, 150),
       scenario = "no_error",
@@ -301,7 +301,7 @@ test_that("tdt_plot_mssn works in model_free mode sweeping ET, ENT, and n_trios"
 
 test_that("TDT plot wrappers validate x_var against input_mode", {
   expect_error(
-    tdt_plot_power(
+    plot_tdt_power(
       x_var = "pd",
       x_values = c(0.1, 0.2),
       input_mode = "model_free",
@@ -311,7 +311,7 @@ test_that("TDT plot wrappers validate x_var against input_mode", {
   )
 
   expect_error(
-    tdt_plot_power(
+    plot_tdt_power(
       x_var = "ET",
       x_values = c(100, 150),
       input_mode = "model_based",
@@ -321,7 +321,7 @@ test_that("TDT plot wrappers validate x_var against input_mode", {
   )
 
   expect_error(
-    tdt_plot_mssn(
+    plot_tdt_mssn(
       x_var = "prev",
       x_values = c(0.02, 0.05),
       input_mode = "model_free",
@@ -331,7 +331,7 @@ test_that("TDT plot wrappers validate x_var against input_mode", {
   )
 
   expect_error(
-    tdt_plot_mssn(
+    plot_tdt_mssn(
       x_var = "n_trios",
       x_values = c(100, 150),
       input_mode = "model_based",
@@ -343,7 +343,7 @@ test_that("TDT plot wrappers validate x_var against input_mode", {
 
 test_that("TDT plot wrappers require pd/prev for model_free heterogeneity/misclassification scenarios", {
   expect_error(
-    tdt_plot_power(
+    plot_tdt_power(
       x_var = "heter_rate",
       x_values = c(0, 0.1),
       scenario = "heterogeneity",
@@ -354,7 +354,7 @@ test_that("TDT plot wrappers require pd/prev for model_free heterogeneity/miscla
   )
 
   expect_error(
-    tdt_plot_power(
+    plot_tdt_power(
       x_var = "misclass_rate",
       x_values = c(0, 0.1),
       scenario = "misclassification",
@@ -365,7 +365,7 @@ test_that("TDT plot wrappers require pd/prev for model_free heterogeneity/miscla
   )
 
   expect_no_error(
-    tdt_plot_power(
+    plot_tdt_power(
       x_var = "heter_rate",
       x_values = c(0, 0.1),
       scenario = "heterogeneity",
@@ -378,7 +378,7 @@ test_that("TDT plot wrappers require pd/prev for model_free heterogeneity/miscla
 test_that("model_free round-trip reproduces a model_based power sweep exactly", {
   x_values <- c(0, 0.05, 0.10, 0.20)
 
-  mb <- tdt_plot_power(
+  mb <- plot_tdt_power(
     x_var = "heter_rate",
     x_values = x_values,
     scenario = "heterogeneity",
@@ -388,14 +388,14 @@ test_that("model_free round-trip reproduces a model_based power sweep exactly", 
     return_data = TRUE
   )
 
-  baseline <- tdt_power_conditional_full(
+  baseline <- tdt_power(
     N = 600, input_mode = "model_based",
     pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
     alpha = 0.05, delta_prime = 1,
     verbose = FALSE
   )
 
-  mf <- tdt_plot_power(
+  mf <- plot_tdt_power(
     x_var = "heter_rate",
     x_values = x_values,
     scenario = "heterogeneity",
@@ -411,7 +411,7 @@ test_that("model_free round-trip reproduces a model_based power sweep exactly", 
 test_that("model_free round-trip reproduces a model_based MSSN sweep exactly", {
   x_values <- c(0, 0.02, 0.05, 0.10)
 
-  mb <- tdt_plot_mssn(
+  mb <- plot_tdt_mssn(
     x_var = "misclass_rate",
     x_values = x_values,
     scenario = "misclassification",
@@ -421,7 +421,7 @@ test_that("model_free round-trip reproduces a model_based MSSN sweep exactly", {
     return_data = TRUE
   )
 
-  baseline <- tdt_mssn_conditional_full(
+  baseline <- tdt_mssn(
     target_power = 0.80, input_mode = "model_based",
     pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
     alpha = 0.05, delta_prime = 1,
@@ -432,7 +432,7 @@ test_that("model_free round-trip reproduces a model_based MSSN sweep exactly", {
   ET_val  <- baseline$gT_star$no_error  * 2 * n_trios_used
   ENT_val <- baseline$gNT_star$no_error * 2 * n_trios_used
 
-  mf <- tdt_plot_mssn(
+  mf <- plot_tdt_mssn(
     x_var = "misclass_rate",
     x_values = x_values,
     scenario = "misclassification",
@@ -447,7 +447,7 @@ test_that("model_free round-trip reproduces a model_based MSSN sweep exactly", {
 
 test_that("plot wrappers support genotype and phenotype error multipliers", {
   expect_no_error(
-    cc_plot_mssn(
+    plot_cc_mssn(
       x_var = "geno_error_multiplier",
       x_values = c(0, 0.5, 1),
       test = "trend",
@@ -467,7 +467,7 @@ test_that("plot wrappers support genotype and phenotype error multipliers", {
   )
 
   expect_no_error(
-    cc_plot_power(
+    plot_cc_power(
       x_var = "pheno_error_multiplier",
       x_values = c(0, 0.5, 1),
       test = "genotypes",

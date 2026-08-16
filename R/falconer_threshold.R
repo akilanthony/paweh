@@ -3,7 +3,7 @@
 #' Converts the genotype-specific Falconer trait distributions into upper-tail
 #' case and lower-tail control penetrances and conditional genotype frequencies.
 #'
-#' @inheritParams falconer_parameters
+#' @inheritParams qtl_falconer_parameters
 #' @param threshold_mode Either \code{"percentile"} or \code{"direct"}.
 #' @param x_upper Percentage selected from the upper population tail in
 #'   percentile mode.
@@ -20,12 +20,12 @@
 #' selection events are not complements. Percentile inputs refer to standard
 #' normal population percentiles before conditioning on genotype.
 #'
-#' @return An object of class \code{"falconer_threshold_parameters"} containing
+#' @return An object of class \code{"qtl_falconer_threshold_parameters"} containing
 #'   thresholds, genotype-specific penetrances, selected-population
 #'   prevalences, conditional genotype frequencies, and Falconer parameters.
 #'
 #' @examples
-#' falconer_threshold_parameters(
+#' qtl_falconer_threshold_parameters(
 #'   qtl_var = 0.025, tau = 0.5, pd = 0.15,
 #'   x_upper = 5, x_lower = 5
 #' )
@@ -36,7 +36,7 @@
 #'
 #' @importFrom stats pnorm qnorm
 #' @export
-falconer_threshold_parameters <- function(
+qtl_falconer_threshold_parameters <- function(
     qtl_var,
     tau,
     pd,
@@ -49,7 +49,7 @@ falconer_threshold_parameters <- function(
 ) {
   threshold_mode <- match.arg(threshold_mode)
   .falconer_check_flag(verbose, "verbose")
-  parameters <- falconer_parameters(
+  parameters <- qtl_falconer_parameters(
     qtl_var = qtl_var, tau = tau, pd = pd, verbose = FALSE
   )
 
@@ -117,7 +117,7 @@ falconer_threshold_parameters <- function(
       g_unaffected = g_unaffected,
       falconer = parameters
     ),
-    class = "falconer_threshold_parameters"
+    class = "qtl_falconer_threshold_parameters"
   )
 
   if (isTRUE(verbose)) {
@@ -184,7 +184,7 @@ falconer_threshold_parameters <- function(
 #'
 #' @param N_case Positive number of selected cases.
 #' @param alpha Significance level in \eqn{(0,1)}.
-#' @inheritParams falconer_threshold_parameters
+#' @inheritParams qtl_falconer_threshold_parameters
 #' @param k Positive control-to-case ratio \eqn{N_{control}/N_{case}}.
 #' @param verbose Logical. If \code{TRUE}, prints a concise summary.
 #'
@@ -224,14 +224,14 @@ qtl_threshold_chisq_power <- function(
   .falconer_check_scalar(k, "k", lower = 0, lower_open = TRUE)
   .falconer_check_flag(verbose, "verbose")
 
-  threshold <- falconer_threshold_parameters(
+  threshold <- qtl_falconer_threshold_parameters(
     qtl_var = qtl_var, tau = tau, pd = pd,
     x_upper = x_upper, x_lower = x_lower, verbose = FALSE
   )
 
   # Reuse the package's validated genotype chi-square backend with pi = 1,
   # which applies no locus-heterogeneity mixing.
-  cc <- cc_power_locus_het_genotypes(
+  cc <- cc_chisq_power_locus_heterogeneity(
     N_case = N_case,
     alpha = alpha,
     g_case_assoc = threshold$g_affected,
@@ -392,11 +392,11 @@ qtl_threshold_chisq_mssn <- function(
   .falconer_check_scalar(k, "k", lower = 0, lower_open = TRUE)
   .falconer_check_flag(verbose, "verbose")
 
-  threshold <- falconer_threshold_parameters(
+  threshold <- qtl_falconer_threshold_parameters(
     qtl_var = qtl_var, tau = tau, pd = pd,
     x_upper = x_upper, x_lower = x_lower, verbose = FALSE
   )
-  cc <- cc_mssn_locus_het_genotypes(
+  cc <- cc_chisq_mssn_locus_heterogeneity(
     power = power,
     alpha = alpha,
     g_case_assoc = threshold$g_affected,

@@ -1,8 +1,8 @@
 cc_g_case <- c(0.25, 0.50, 0.25)
 cc_g_ctrl <- c(0.36, 0.48, 0.16)
 
-test_that("cc_power_conditional_full returns expected structure and class", {
-  out <- cc_power_conditional_full(
+test_that("cc_power returns expected structure and class", {
+  out <- cc_power(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
@@ -11,7 +11,7 @@ test_that("cc_power_conditional_full returns expected structure and class", {
     verbose = FALSE
   )
 
-  expect_s3_class(out, "cc_power_conditional_full")
+  expect_s3_class(out, "cc_power")
   expect_type(out$tests, "list")
   expect_type(out$freqs, "list")
   expect_named(out$tests, c("genotypes", "trend"))
@@ -20,8 +20,8 @@ test_that("cc_power_conditional_full returns expected structure and class", {
   expect_false(obsolete_arg %in% names(out))
 })
 
-test_that("cc_mssn_conditional_full returns expected structure and class", {
-  out <- cc_mssn_conditional_full(
+test_that("cc_mssn returns expected structure and class", {
+  out <- cc_mssn(
     power = 0.80,
     alpha = 0.05,
     input_mode = "model_free",
@@ -30,7 +30,7 @@ test_that("cc_mssn_conditional_full returns expected structure and class", {
     verbose = FALSE
   )
 
-  expect_s3_class(out, "cc_mssn_conditional_full")
+  expect_s3_class(out, "cc_mssn")
   expect_type(out$tests, "list")
   expect_type(out$freqs, "list")
   expect_named(out$tests, c("genotypes", "trend"))
@@ -41,7 +41,7 @@ test_that("cc_mssn_conditional_full returns expected structure and class", {
 
 test_that("model_free and model_based inputs run without error", {
   expect_no_error(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 500,
       alpha = 0.05,
       input_mode = "model_free",
@@ -53,7 +53,7 @@ test_that("model_free and model_based inputs run without error", {
   )
 
   expect_no_error(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 500,
       alpha = 0.05,
       input_mode = "model_based",
@@ -68,7 +68,7 @@ test_that("model_free and model_based inputs run without error", {
 })
 
 test_that("locus heterogeneity transforms true case frequencies", {
-  out <- cc_power_conditional_full(
+  out <- cc_power(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
@@ -84,7 +84,7 @@ test_that("locus heterogeneity transforms true case frequencies", {
 })
 
 test_that("pi boundary values transform true case frequencies", {
-  pi_one <- cc_power_conditional_full(
+  pi_one <- cc_power(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
@@ -97,7 +97,7 @@ test_that("pi boundary values transform true case frequencies", {
 
   expect_equal(pi_one$freqs$g_true_case, pi_one$freqs$g_base_case, tolerance = 1e-12)
 
-  pi_zero <- cc_power_conditional_full(
+  pi_zero <- cc_power(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
@@ -120,7 +120,7 @@ test_that("pi boundary values transform true case frequencies", {
 })
 
 test_that("3p genotype misclassification stores model and prints status", {
-  out <- cc_power_conditional_full(
+  out <- cc_power(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
@@ -136,7 +136,7 @@ test_that("3p genotype misclassification stores model and prints status", {
   expect_equal(out$errors$genotype_misclass$model, "3p_homhet_homhom")
 
   printed <- capture.output(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 500,
       alpha = 0.05,
       input_mode = "model_free",
@@ -155,7 +155,7 @@ test_that("3p genotype misclassification stores model and prints status", {
 })
 
 test_that("diff3p multiplier shortcut scales parameters from case or control", {
-  from_case <- cc_power_conditional_full(
+  from_case <- cc_power(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
@@ -176,7 +176,7 @@ test_that("diff3p multiplier shortcut scales parameters from case or control", {
     tolerance = 1e-12
   )
 
-  from_ctrl <- cc_power_conditional_full(
+  from_ctrl <- cc_power(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
@@ -200,7 +200,7 @@ test_that("diff3p multiplier shortcut scales parameters from case or control", {
 
 test_that("full functions no longer accept the obsolete allele-test argument or output", {
   obsolete_arg <- paste0("include_", "allel", "ic")
-  out <- cc_power_conditional_full(
+  out <- cc_power(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
@@ -213,7 +213,7 @@ test_that("full functions no longer accept the obsolete allele-test argument or 
   expect_false(obsolete_arg %in% names(out))
 
   printed_power <- capture.output(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 500,
       alpha = 0.05,
       input_mode = "model_free",
@@ -228,7 +228,7 @@ test_that("full functions no longer accept the obsolete allele-test argument or 
   expect_false(any(grepl("allel", printed_power, ignore.case = TRUE)))
 
   printed_mssn <- capture.output(
-    cc_mssn_conditional_full(
+    cc_mssn(
       power = 0.80,
       alpha = 0.05,
       input_mode = "model_free",
@@ -244,7 +244,7 @@ test_that("full functions no longer accept the obsolete allele-test argument or 
 
   expect_error(
     do.call(
-      cc_power_conditional_full,
+      cc_power,
       c(
         list(
           N_case = 500,
@@ -263,7 +263,7 @@ test_that("full functions no longer accept the obsolete allele-test argument or 
 
 test_that("invalid inputs throw errors", {
   expect_error(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 500,
       alpha = 0.05,
       input_mode = "model_free",
@@ -275,7 +275,7 @@ test_that("invalid inputs throw errors", {
   )
 
   expect_error(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 500,
       alpha = 0.05,
       input_mode = "model_free",
@@ -289,7 +289,7 @@ test_that("invalid inputs throw errors", {
   )
 
   expect_error(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 500,
       alpha = 0.05,
       input_mode = "model_free",
@@ -302,7 +302,7 @@ test_that("invalid inputs throw errors", {
   )
 
   expect_error(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 500,
       alpha = 0.05,
       input_mode = "model_free",
@@ -319,7 +319,7 @@ test_that("invalid inputs throw errors", {
 })
 
 test_that("returned numeric fields are finite and positive", {
-  power_out <- cc_power_conditional_full(
+  power_out <- cc_power(
     N_case = 500,
     alpha = 0.05,
     input_mode = "model_free",
@@ -339,7 +339,7 @@ test_that("returned numeric fields are finite and positive", {
   expect_gt(power_out$tests$trend$lambda, 0)
   expect_gt(power_out$tests$trend$power, 0)
 
-  mssn_out <- cc_mssn_conditional_full(
+  mssn_out <- cc_mssn(
     power = 0.80,
     alpha = 0.05,
     input_mode = "model_free",
@@ -358,7 +358,7 @@ test_that("returned numeric fields are finite and positive", {
 
 test_that("verbose output is clean and reports modifiers", {
   printed <- capture.output(
-    cc_power_conditional_full(
+    cc_power(
       N_case = 500,
       alpha = 0.05,
       input_mode = "model_free",

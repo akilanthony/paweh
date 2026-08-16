@@ -2,11 +2,11 @@
 % Please edit documentation in R/case_control_specialized.R
 \name{case_control_phenotype_misclassification}
 \alias{case_control_phenotype_misclassification}
-\alias{cc_pheno_power_test}
-\alias{cc_pheno_mssn_test}
+\alias{cc_chisq_power_phenotype_misclassification}
+\alias{cc_chisq_mssn_phenotype_misclassification}
 \title{Specialized Case-Control Phenotype Misclassification Functions}
 \usage{
-cc_pheno_power_test(
+cc_chisq_power_phenotype_misclassification(
   N_case,
   alpha = 0.05,
   g_aff,
@@ -17,7 +17,7 @@ cc_pheno_power_test(
   k = 1
 )
 
-cc_pheno_mssn_test(
+cc_chisq_mssn_phenotype_misclassification(
   target_power = 0.8,
   alpha = 0.05,
   g_aff,
@@ -55,10 +55,10 @@ individual is classified as a case,
 calculations.}
 }
 \value{
-\code{cc_pheno_power_test()} returns a list containing sample sizes,
+\code{cc_chisq_power_phenotype_misclassification()} returns a list containing sample sizes,
 phenotype-error parameters, observed case/control genotype frequencies,
 internal \code{S}, non-centrality parameter \code{lambda}, and power.
-\code{cc_pheno_mssn_test()} returns a list containing target power,
+\code{cc_chisq_mssn_phenotype_misclassification()} returns a list containing target power,
 phenotype-error parameters, observed case/control genotype frequencies,
 internal \code{S}, target non-centrality parameter \code{lambda_star}, and
 case/control/total MSSN.
@@ -66,8 +66,8 @@ case/control/total MSSN.
 \description{
 Convenience functions for genotype chi-square case-control calculations in
 the presence of phenotype misclassification only. These focused functions are
-narrower than \code{\link{cc_mssn_conditional_full}} and
-\code{\link{cc_power_conditional_full}}: they use true affected and true
+narrower than \code{\link{cc_mssn}} and
+\code{\link{cc_power}}: they use true affected and true
 unaffected genotype frequencies supplied directly by the user and do not
 apply locus heterogeneity or genotype misclassification.
 }
@@ -85,13 +85,13 @@ misclassification, or trend tests.
 g_aff <- c((1 - 0.05)^2, 2 * 0.05 * (1 - 0.05), 0.05^2)
 g_unaff <- c((1 - 0.15)^2, 2 * 0.15 * (1 - 0.15), 0.15^2)
 
-cc_pheno_power_test(
+cc_chisq_power_phenotype_misclassification(
   N_case = 250, alpha = 0.01,
   g_aff = g_aff, g_unaff = g_unaff,
   prev = 0.05, theta = 0, phi = 0.01
 )
 
-cc_pheno_mssn_test(
+cc_chisq_mssn_phenotype_misclassification(
   target_power = 0.8, alpha = 0.01,
   g_aff = g_aff, g_unaff = g_unaff,
   prev = 0.05, theta = 0, phi = 0.01

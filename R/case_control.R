@@ -100,7 +100,7 @@
 #' for validation and debugging, but are not printed in the clean verbose
 #' output.
 #'
-#' @return An object of class \code{"cc_mssn_conditional_full"}: a nested list
+#' @return An object of class \code{"cc_mssn"}: a nested list
 #' with components \code{alpha}, \code{target_power}, \code{input_mode},
 #' \code{k}, \code{w}, \code{locus_het}, \code{errors}, \code{model_info},
 #' \code{tests}, and \code{freqs}.
@@ -112,7 +112,7 @@
 #' observed case/control genotype frequencies.
 #'
 #' @examples
-#' cc_mssn_conditional_full(
+#' cc_mssn(
 #'   power = 0.8, alpha = 0.05,
 #'   input_mode = "model_free",
 #'   g1 = c(0.25, 0.50, 0.25),
@@ -121,7 +121,7 @@
 #'   verbose = FALSE
 #' )
 #'
-#' cc_mssn_conditional_full(
+#' cc_mssn(
 #'   power = 0.8, alpha = 0.05,
 #'   input_mode = "model_free",
 #'   g1 = c(0.25, 0.50, 0.25),
@@ -130,7 +130,7 @@
 #'   verbose = FALSE
 #' )
 #'
-#' cc_mssn_conditional_full(
+#' cc_mssn(
 #'   power = 0.8, alpha = 0.05,
 #'   input_mode = "model_free",
 #'   g1 = c(0.25, 0.50, 0.25),
@@ -140,7 +140,7 @@
 #'   verbose = FALSE
 #' )
 #'
-#' cc_mssn_conditional_full(
+#' cc_mssn(
 #'   power = 0.8, alpha = 0.05,
 #'   input_mode = "model_free",
 #'   g1 = c(0.25, 0.50, 0.25),
@@ -165,7 +165,7 @@
 #'
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
-cc_mssn_conditional_full <- function(
+cc_mssn <- function(
     power, alpha,
 
     input_mode = c("model_based", "model_free"),
@@ -680,7 +680,7 @@ cc_mssn_conditional_full <- function(
     )
   )
 
-  class(out) <- "cc_mssn_conditional_full"
+  class(out) <- "cc_mssn"
 
   # ---- clean printed output ----
   if (isTRUE(verbose)) {
@@ -921,7 +921,7 @@ if (geno_misclass == "none") {
 #' for validation and debugging, but are not printed in the clean verbose
 #' output.
 #'
-#' @return An object of class \code{"cc_power_conditional_full"}: a nested list
+#' @return An object of class \code{"cc_power"}: a nested list
 #' with components \code{alpha}, \code{N_case}, \code{N_ctrl}, \code{N_total},
 #' \code{input_mode}, \code{k}, \code{w}, \code{locus_het}, \code{errors},
 #' \code{model_info}, \code{tests}, and \code{freqs}.
@@ -933,7 +933,7 @@ if (geno_misclass == "none") {
 #' case/control genotype frequencies.
 #'
 #' @examples
-#' cc_power_conditional_full(
+#' cc_power(
 #'   N_case = 500, alpha = 0.05,
 #'   input_mode = "model_free",
 #'   g1 = c(0.25, 0.50, 0.25),
@@ -942,7 +942,7 @@ if (geno_misclass == "none") {
 #'   verbose = FALSE
 #' )
 #'
-#' cc_power_conditional_full(
+#' cc_power(
 #'   N_case = 500, alpha = 0.05,
 #'   input_mode = "model_free",
 #'   g1 = c(0.25, 0.50, 0.25),
@@ -951,7 +951,7 @@ if (geno_misclass == "none") {
 #'   verbose = FALSE
 #' )
 #'
-#' cc_power_conditional_full(
+#' cc_power(
 #'   N_case = 500, alpha = 0.05,
 #'   input_mode = "model_free",
 #'   g1 = c(0.25, 0.50, 0.25),
@@ -961,7 +961,7 @@ if (geno_misclass == "none") {
 #'   verbose = FALSE
 #' )
 #'
-#' cc_power_conditional_full(
+#' cc_power(
 #'   N_case = 500, alpha = 0.05,
 #'   input_mode = "model_based",
 #'   prev = 0.05, pd = 0.30, R2 = 1.8, MOI = "M",
@@ -969,7 +969,7 @@ if (geno_misclass == "none") {
 #'   verbose = FALSE
 #' )
 #'
-#' cc_power_conditional_full(
+#' cc_power(
 #'   N_case = 500, alpha = 0.05,
 #'   input_mode = "model_based",
 #'   prev = 0.05, pd = 0.30, R2 = 1.8, MOI = "M",
@@ -978,7 +978,7 @@ if (geno_misclass == "none") {
 #'   verbose = FALSE
 #' )
 #'
-#' cc_power_conditional_full(
+#' cc_power(
 #'   N_case = 500, alpha = 0.05,
 #'   input_mode = "model_free",
 #'   g1 = c(0.25, 0.50, 0.25),
@@ -990,7 +990,7 @@ if (geno_misclass == "none") {
 #'   verbose = FALSE
 #' )
 #'
-#' cc_power_conditional_full(
+#' cc_power(
 #'   N_case = 500, alpha = 0.05,
 #'   input_mode = "model_free",
 #'   g1 = c(0.25, 0.50, 0.25),
@@ -1016,7 +1016,7 @@ if (geno_misclass == "none") {
 #'
 #' @importFrom stats pchisq qchisq
 #' @export
-cc_power_conditional_full <- function(
+cc_power <- function(
     N_case, alpha,
 
     input_mode = c("model_based", "model_free"),
@@ -1522,7 +1522,7 @@ cc_power_conditional_full <- function(
     )
   )
 
-  class(out) <- "cc_power_conditional_full"
+  class(out) <- "cc_power"
 
   # ---- clean printed output ----
   if (isTRUE(verbose)) {

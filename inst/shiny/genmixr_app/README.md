@@ -34,11 +34,11 @@ checklist of tests, then offers Power, Sample Size, and Plots workflows.
 
 ## Backend functions
 
-- TDT Power: `tdt_power_full()`
-- TDT Sample Size: `tdt_required_trios_full()`
-- TDT Plots: `tdt_plot_power()` and `tdt_plot_mssn()`
-- Case-Control Power: `cc_power_conditional_full()`
-- Case-Control Sample Size: `cc_mssn_conditional_full()`
-- Case-Control Plots: `cc_plot_power()` and `cc_plot_mssn()`
+- TDT Power: `tdt_power()`
+- TDT Sample Size: `tdt_mssn()`
+- TDT Plots: `plot_tdt_power()` and `plot_tdt_mssn()`
+- Case-Control Power: `cc_power()`
+- Case-Control Sample Size: `cc_mssn()`
+- Case-Control Plots: `plot_cc_power()` and `plot_cc_mssn()`
 
 No deployment credentials, tokens, or secrets are included.

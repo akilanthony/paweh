@@ -3,8 +3,8 @@
 #' Convenience functions for genotype-only case-control chi-square calculations
 #' under conditional model-based genotype frequencies and genotype
 #' misclassification. These functions are narrower than
-#' \code{\link{cc_mssn_conditional_full}} and
-#' \code{\link{cc_power_conditional_full}}: they compute only the genotype
+#' \code{\link{cc_mssn}} and
+#' \code{\link{cc_power}}: they compute only the genotype
 #' chi-square test for one specific misclassification model.
 #'
 #' @param power Numeric in \eqn{(0,1)}. Desired target power for MSSN functions.
@@ -45,12 +45,12 @@
 #' and observed genotype frequencies.
 #'
 #' @examples
-#' cc_mssn_genotypes_conditional_misclass(
+#' cc_chisq_mssn_genotype_misclassification_1p(
 #'   power = 0.8, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
 #'   MOI = "D", e = 0.02, verbose = FALSE
 #' )
 #'
-#' cc_power_genotypes_conditional_misclass_3p(
+#' cc_chisq_power_genotype_misclassification_3p(
 #'   N_case = 500, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
 #'   MOI = "D", e01 = 0.02, e02 = 0.01, e03 = 0.005,
 #'   verbose = FALSE
@@ -66,7 +66,7 @@
 #' @name case_control_genotype_misclassification
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
-cc_mssn_genotypes_conditional_misclass <- function(
+cc_chisq_mssn_genotype_misclassification_1p <- function(
     power, alpha, prev, pd, R2,
     MOI = c("M","D","Rec"),
     k = 1,
@@ -184,7 +184,7 @@ cc_mssn_genotypes_conditional_misclass <- function(
       g_obs_ctrl  = g_obs_ctrl
     )
   )
-  class(out) <- "cc_mssn_genotypes_conditional_misclass"
+  class(out) <- "cc_chisq_mssn_genotype_misclassification_1p"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control (Conditional Model): MSSN with Genotype Misclassification ---")
@@ -232,7 +232,7 @@ cc_mssn_genotypes_conditional_misclass <- function(
 }
 #' @rdname case_control_genotype_misclassification
 #' @export
-cc_power_genotypes_conditional_misclass <- function(
+cc_chisq_power_genotype_misclassification_1p <- function(
     N_case, alpha, prev, pd, R2,
     MOI = c("M","D","Rec"),
     k = 1,
@@ -341,7 +341,7 @@ cc_power_genotypes_conditional_misclass <- function(
       g_obs_ctrl  = g_obs_ctrl
     )
   )
-  class(out) <- "cc_power_genotypes_conditional_misclass"
+  class(out) <- "cc_chisq_power_genotype_misclassification_1p"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control (Conditional Model): Power with Genotype Misclassification ---")
@@ -396,7 +396,7 @@ cc_power_genotypes_conditional_misclass <- function(
 # -------------------------------------------------------------------
 #' @rdname case_control_genotype_misclassification
 #' @export
-cc_mssn_genotypes_conditional_misclass_2p <- function(
+cc_chisq_mssn_genotype_misclassification_2p <- function(
     power, alpha, prev, pd, R2,
     MOI = c("M","D","Rec"),
     k = 1,
@@ -526,7 +526,7 @@ cc_mssn_genotypes_conditional_misclass_2p <- function(
       g_obs_ctrl  = g_obs_ctrl
     )
   )
-  class(out) <- "cc_mssn_genotypes_conditional_misclass_2p"
+  class(out) <- "cc_chisq_mssn_genotype_misclassification_2p"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control (Conditional Model): MSSN with Genotype Misclassification (2-parameter) ---")
@@ -574,7 +574,7 @@ cc_mssn_genotypes_conditional_misclass_2p <- function(
 }
 #' @rdname case_control_genotype_misclassification
 #' @export
-cc_power_genotypes_conditional_misclass_2p <- function(
+cc_chisq_power_genotype_misclassification_2p <- function(
     N_case, alpha, prev, pd, R2,
     MOI = c("M","D","Rec"),
     k = 1,
@@ -695,7 +695,7 @@ cc_power_genotypes_conditional_misclass_2p <- function(
       g_obs_ctrl  = g_obs_ctrl
     )
   )
-  class(out) <- "cc_power_genotypes_conditional_misclass_2p"
+  class(out) <- "cc_chisq_power_genotype_misclassification_2p"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control (Conditional Model): Power with Genotype Misclassification (2-parameter) ---")
@@ -740,7 +740,7 @@ cc_power_genotypes_conditional_misclass_2p <- function(
 
 #
 #
-# mssn_2p <- cc_mssn_genotypes_conditional_misclass_2p(
+# mssn_2p <- cc_chisq_mssn_genotype_misclassification_2p(
 #   power = 0.8,
 #   alpha = 5e-6,
 #   prev  = 0.1,
@@ -762,7 +762,7 @@ cc_power_genotypes_conditional_misclass_2p <- function(
 # mssn_2p$freqs$g_obs_ctrl
 #
 #
-# pow_check <- cc_power_genotypes_conditional_misclass_2p(
+# pow_check <- cc_chisq_power_genotype_misclassification_2p(
 #   N_case = mssn_2p$N_case,
 #   alpha = 5e-6,
 #   prev  = 0.1,
@@ -787,7 +787,7 @@ cc_power_genotypes_conditional_misclass_2p <- function(
 # Genotype misclassification: 3-parameter model (e01, e02, e03)
 #' @rdname case_control_genotype_misclassification
 #' @export
-cc_mssn_genotypes_conditional_misclass_3p <- function(
+cc_chisq_mssn_genotype_misclassification_3p <- function(
     power, alpha, prev, pd, R2,
     MOI = c("M","D","Rec"),
     k = 1,
@@ -913,7 +913,7 @@ cc_mssn_genotypes_conditional_misclass_3p <- function(
       g_obs_case  = g_obs_case,  g_obs_ctrl  = g_obs_ctrl
     )
   )
-  class(out) <- "cc_mssn_genotypes_conditional_misclass_3p"
+  class(out) <- "cc_chisq_mssn_genotype_misclassification_3p"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control (Conditional Model): Minimum Sample Size Necessary (MSSN) ---")
@@ -955,7 +955,7 @@ cc_mssn_genotypes_conditional_misclass_3p <- function(
 }
 #' @rdname case_control_genotype_misclassification
 #' @export
-cc_power_genotypes_conditional_misclass_3p <- function(
+cc_chisq_power_genotype_misclassification_3p <- function(
     N_case, alpha, prev, pd, R2,
     MOI = c("M","D","Rec"),
     k = 1,
@@ -1070,7 +1070,7 @@ cc_power_genotypes_conditional_misclass_3p <- function(
       g_obs_case  = g_obs_case,  g_obs_ctrl  = g_obs_ctrl
     )
   )
-  class(out) <- "cc_power_genotypes_conditional_misclass_3p"
+  class(out) <- "cc_chisq_power_genotype_misclassification_3p"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control (Conditional Model): Power for Fixed Sample Size ---")
@@ -1154,7 +1154,7 @@ cc_apply_genotype_misclass <- function(g_true, M_true_to_obs) {
 }
 #' @rdname case_control_genotype_misclassification
 #' @export
-cc_mssn_genotypes_conditional_diffmisclass <- function(
+cc_chisq_mssn_genotype_misclassification_differential_3p <- function(
     power, alpha, prev, pd, R2,
     MOI = c("M", "D", "Rec"),
     k = 1,
@@ -1268,7 +1268,7 @@ cc_mssn_genotypes_conditional_diffmisclass <- function(
       g_obs_ctrl = g_obs_ctrl
     )
   )
-  class(out) <- "cc_mssn_genotypes_conditional_diffmisclass"
+  class(out) <- "cc_chisq_mssn_genotype_misclassification_differential_3p"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control (Conditional Model): Minimum Sample Size Necessary (MSSN) ---")
@@ -1329,7 +1329,7 @@ cc_mssn_genotypes_conditional_diffmisclass <- function(
 }
 #' @rdname case_control_genotype_misclassification
 #' @export
-cc_power_genotypes_conditional_diffmisclass <- function(
+cc_chisq_power_genotype_misclassification_differential_3p <- function(
     N_case, alpha, prev, pd, R2,
     MOI = c("M", "D", "Rec"),
     k = 1,
@@ -1433,7 +1433,7 @@ cc_power_genotypes_conditional_diffmisclass <- function(
       g_obs_ctrl = g_obs_ctrl
     )
   )
-  class(out) <- "cc_power_genotypes_conditional_diffmisclass"
+  class(out) <- "cc_chisq_power_genotype_misclassification_differential_3p"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control (Conditional Model): Power with Differential Genotype Misclassification ---")
@@ -1584,7 +1584,7 @@ cc_fmt_e <- function(x, digits = 2) {
 #' denominator.
 #'
 #' @examples
-#' cc_mssn_locus_het_genotypes(
+#' cc_chisq_mssn_locus_heterogeneity(
 #'   power = 0.8, alpha = 0.05,
 #'   g_case_assoc = c(0.25, 0.50, 0.25),
 #'   g_ctrl = c(0.36, 0.48, 0.16),
@@ -1592,7 +1592,7 @@ cc_fmt_e <- function(x, digits = 2) {
 #'   verbose = FALSE
 #' )
 #'
-#' cc_power_locus_het_trend(
+#' cc_trend_power_locus_heterogeneity(
 #'   N_case = 500, alpha = 0.05,
 #'   g_case_assoc = c(0.25, 0.50, 0.25),
 #'   g_ctrl = c(0.36, 0.48, 0.16),
@@ -1610,7 +1610,7 @@ cc_fmt_e <- function(x, digits = 2) {
 #' @name case_control_locus_heterogeneity
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
-cc_mssn_locus_het_genotypes <- function(
+cc_chisq_mssn_locus_heterogeneity <- function(
     power,
     alpha,
     g_case_assoc,
@@ -1676,7 +1676,7 @@ cc_mssn_locus_het_genotypes <- function(
     )
   )
 
-  class(out) <- "cc_mssn_locus_het_genotypes"
+  class(out) <- "cc_chisq_mssn_locus_heterogeneity"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control Locus Heterogeneity: MSSN for Genotype Chi-Square ---")
@@ -1708,7 +1708,7 @@ cc_mssn_locus_het_genotypes <- function(
 ## POWER
 #' @rdname case_control_locus_heterogeneity
 #' @export
-cc_power_locus_het_genotypes <- function(
+cc_chisq_power_locus_heterogeneity <- function(
     N_case,
     alpha,
     g_case_assoc,
@@ -1771,7 +1771,7 @@ cc_power_locus_het_genotypes <- function(
     )
   )
 
-  class(out) <- "cc_power_locus_het_genotypes"
+  class(out) <- "cc_chisq_power_locus_heterogeneity"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control Locus Heterogeneity: Power for Genotype Chi-Square ---")
@@ -1811,7 +1811,7 @@ cc_power_locus_het_genotypes <- function(
 
 #' @rdname case_control_locus_heterogeneity
 #' @export
-cc_mssn_locus_het_trend <- function(
+cc_trend_mssn_locus_heterogeneity <- function(
     power,
     alpha,
     g_case_assoc,
@@ -1895,7 +1895,7 @@ cc_mssn_locus_het_trend <- function(
     )
   )
 
-  class(out) <- "cc_mssn_locus_het_trend"
+  class(out) <- "cc_trend_mssn_locus_heterogeneity"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control Locus Heterogeneity: MSSN for Trend Test ---")
@@ -1927,7 +1927,7 @@ cc_mssn_locus_het_trend <- function(
 
 #' @rdname case_control_locus_heterogeneity
 #' @export
-cc_power_locus_het_trend <- function(
+cc_trend_power_locus_heterogeneity <- function(
     N_case,
     alpha,
     g_case_assoc,
@@ -2007,7 +2007,7 @@ cc_power_locus_het_trend <- function(
     )
   )
 
-  class(out) <- "cc_power_locus_het_trend"
+  class(out) <- "cc_trend_power_locus_heterogeneity"
 
   if (isTRUE(verbose)) {
     message("\n--- Case-Control Locus Heterogeneity: Power for Trend Test ---")
@@ -2038,8 +2038,8 @@ cc_power_locus_het_trend <- function(
 #'
 #' Convenience functions for genotype chi-square case-control calculations in
 #' the presence of phenotype misclassification only. These focused functions are
-#' narrower than \code{\link{cc_mssn_conditional_full}} and
-#' \code{\link{cc_power_conditional_full}}: they use true affected and true
+#' narrower than \code{\link{cc_mssn}} and
+#' \code{\link{cc_power}}: they use true affected and true
 #' unaffected genotype frequencies supplied directly by the user and do not
 #' apply locus heterogeneity or genotype misclassification.
 #'
@@ -2071,10 +2071,10 @@ cc_power_locus_het_trend <- function(
 #' misclassification, or trend tests.
 #'
 #' @return
-#' \code{cc_pheno_power_test()} returns a list containing sample sizes,
+#' \code{cc_chisq_power_phenotype_misclassification()} returns a list containing sample sizes,
 #' phenotype-error parameters, observed case/control genotype frequencies,
 #' internal \code{S}, non-centrality parameter \code{lambda}, and power.
-#' \code{cc_pheno_mssn_test()} returns a list containing target power,
+#' \code{cc_chisq_mssn_phenotype_misclassification()} returns a list containing target power,
 #' phenotype-error parameters, observed case/control genotype frequencies,
 #' internal \code{S}, target non-centrality parameter \code{lambda_star}, and
 #' case/control/total MSSN.
@@ -2083,13 +2083,13 @@ cc_power_locus_het_trend <- function(
 #' g_aff <- c((1 - 0.05)^2, 2 * 0.05 * (1 - 0.05), 0.05^2)
 #' g_unaff <- c((1 - 0.15)^2, 2 * 0.15 * (1 - 0.15), 0.15^2)
 #'
-#' cc_pheno_power_test(
+#' cc_chisq_power_phenotype_misclassification(
 #'   N_case = 250, alpha = 0.01,
 #'   g_aff = g_aff, g_unaff = g_unaff,
 #'   prev = 0.05, theta = 0, phi = 0.01
 #' )
 #'
-#' cc_pheno_mssn_test(
+#' cc_chisq_mssn_phenotype_misclassification(
 #'   target_power = 0.8, alpha = 0.01,
 #'   g_aff = g_aff, g_unaff = g_unaff,
 #'   prev = 0.05, theta = 0, phi = 0.01
@@ -2104,7 +2104,7 @@ cc_power_locus_het_trend <- function(
 #' @name case_control_phenotype_misclassification
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
-cc_pheno_power_test <- function(
+cc_chisq_power_phenotype_misclassification <- function(
     N_case,
     alpha = 0.05,
     g_aff,
@@ -2170,7 +2170,7 @@ cc_pheno_power_test <- function(
 
 #' @rdname case_control_phenotype_misclassification
 #' @export
-cc_pheno_mssn_test <- function(
+cc_chisq_mssn_phenotype_misclassification <- function(
     target_power = 0.80,
     alpha = 0.05,
     g_aff,

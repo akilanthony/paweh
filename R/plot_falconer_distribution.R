@@ -90,7 +90,7 @@ plot_qtl_genotype_distribution <- function(
   .falconer_check_flag(show_means, "show_means")
   .falconer_check_flag(verbose, "verbose")
   .falconer_check_flag(return_data, "return_data")
-  model <- falconer_parameters(qtl_var, tau, pd, verbose = verbose)
+  model <- qtl_falconer_parameters(qtl_var, tau, pd, verbose = verbose)
 
   genotype_labels <- paste("Genotype", 0:2)
   means <- unname(model$mu)

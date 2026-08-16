@@ -41,7 +41,7 @@
 .falconer_mv_parameters <- function(qtl_var, tau, pd, cor_matrix) {
   p <- .falconer_mv_validate_model(qtl_var, tau, pd, cor_matrix)
   one_trait <- lapply(seq_len(p), function(i) {
-    falconer_parameters(qtl_var[i], tau[i], pd, verbose = FALSE)
+    qtl_falconer_parameters(qtl_var[i], tau[i], pd, verbose = FALSE)
   })
   additive_variance <- vapply(one_trait, function(x) {
     2 * x$pd * x$p_plus * (x$a + x$delta * (x$p_plus - x$pd))^2
@@ -397,7 +397,7 @@ qtl_multivariate_power_full <- function(
     .falconer_check_scalar(N_case, "N_case", lower = 0, lower_open = TRUE)
     .falconer_check_scalar(k, "k", lower = 0, lower_open = TRUE)
     threshold <- .falconer_mv_threshold_components(model, x_upper, x_lower)
-    cc <- cc_power_locus_het_genotypes(
+    cc <- cc_chisq_power_locus_heterogeneity(
       N_case = N_case, alpha = alpha,
       g_case_assoc = threshold$frequencies$case,
       g_ctrl = threshold$frequencies$control,
@@ -559,13 +559,13 @@ qtl_multivariate_mssn_full <- function(
   } else {
     .falconer_check_scalar(k, "k", lower = 0, lower_open = TRUE)
     threshold <- .falconer_mv_threshold_components(model, x_upper, x_lower)
-    cc <- cc_mssn_locus_het_genotypes(
+    cc <- cc_chisq_mssn_locus_heterogeneity(
       power = power, alpha = alpha,
       g_case_assoc = threshold$frequencies$case,
       g_ctrl = threshold$frequencies$control,
       pi = 1, k = k, verbose = FALSE
     )
-    achieved <- cc_power_locus_het_genotypes(
+    achieved <- cc_chisq_power_locus_heterogeneity(
       N_case = cc$N_case, alpha = alpha,
       g_case_assoc = threshold$frequencies$case,
       g_ctrl = threshold$frequencies$control,

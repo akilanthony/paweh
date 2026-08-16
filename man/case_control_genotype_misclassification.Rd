@@ -2,17 +2,17 @@
 % Please edit documentation in R/case_control_specialized.R
 \name{case_control_genotype_misclassification}
 \alias{case_control_genotype_misclassification}
-\alias{cc_mssn_genotypes_conditional_misclass}
-\alias{cc_power_genotypes_conditional_misclass}
-\alias{cc_mssn_genotypes_conditional_misclass_2p}
-\alias{cc_power_genotypes_conditional_misclass_2p}
-\alias{cc_mssn_genotypes_conditional_misclass_3p}
-\alias{cc_power_genotypes_conditional_misclass_3p}
-\alias{cc_mssn_genotypes_conditional_diffmisclass}
-\alias{cc_power_genotypes_conditional_diffmisclass}
+\alias{cc_chisq_mssn_genotype_misclassification_1p}
+\alias{cc_chisq_power_genotype_misclassification_1p}
+\alias{cc_chisq_mssn_genotype_misclassification_2p}
+\alias{cc_chisq_power_genotype_misclassification_2p}
+\alias{cc_chisq_mssn_genotype_misclassification_3p}
+\alias{cc_chisq_power_genotype_misclassification_3p}
+\alias{cc_chisq_mssn_genotype_misclassification_differential_3p}
+\alias{cc_chisq_power_genotype_misclassification_differential_3p}
 \title{Specialized Case-Control Genotype Misclassification Functions}
 \usage{
-cc_mssn_genotypes_conditional_misclass(
+cc_chisq_mssn_genotype_misclassification_1p(
   power,
   alpha,
   prev,
@@ -24,7 +24,7 @@ cc_mssn_genotypes_conditional_misclass(
   verbose = TRUE
 )
 
-cc_power_genotypes_conditional_misclass(
+cc_chisq_power_genotype_misclassification_1p(
   N_case,
   alpha,
   prev,
@@ -36,7 +36,7 @@ cc_power_genotypes_conditional_misclass(
   verbose = TRUE
 )
 
-cc_mssn_genotypes_conditional_misclass_2p(
+cc_chisq_mssn_genotype_misclassification_2p(
   power,
   alpha,
   prev,
@@ -49,7 +49,7 @@ cc_mssn_genotypes_conditional_misclass_2p(
   verbose = TRUE
 )
 
-cc_power_genotypes_conditional_misclass_2p(
+cc_chisq_power_genotype_misclassification_2p(
   N_case,
   alpha,
   prev,
@@ -62,7 +62,7 @@ cc_power_genotypes_conditional_misclass_2p(
   verbose = TRUE
 )
 
-cc_mssn_genotypes_conditional_misclass_3p(
+cc_chisq_mssn_genotype_misclassification_3p(
   power,
   alpha,
   prev,
@@ -76,7 +76,7 @@ cc_mssn_genotypes_conditional_misclass_3p(
   verbose = TRUE
 )
 
-cc_power_genotypes_conditional_misclass_3p(
+cc_chisq_power_genotype_misclassification_3p(
   N_case,
   alpha,
   prev,
@@ -90,7 +90,7 @@ cc_power_genotypes_conditional_misclass_3p(
   verbose = TRUE
 )
 
-cc_mssn_genotypes_conditional_diffmisclass(
+cc_chisq_mssn_genotype_misclassification_differential_3p(
   power,
   alpha,
   prev,
@@ -107,7 +107,7 @@ cc_mssn_genotypes_conditional_diffmisclass(
   verbose = TRUE
 )
 
-cc_power_genotypes_conditional_diffmisclass(
+cc_chisq_power_genotype_misclassification_differential_3p(
   N_case,
   alpha,
   prev,
@@ -170,8 +170,8 @@ and observed genotype frequencies.
 Convenience functions for genotype-only case-control chi-square calculations
 under conditional model-based genotype frequencies and genotype
 misclassification. These functions are narrower than
-\code{\link{cc_mssn_conditional_full}} and
-\code{\link{cc_power_conditional_full}}: they compute only the genotype
+\code{\link{cc_mssn}} and
+\code{\link{cc_power}}: they compute only the genotype
 chi-square test for one specific misclassification model.
 }
 \details{
@@ -185,12 +185,12 @@ and, for differential misclassification, per-genotype components, for
 validation and debugging.
 }
 \examples{
-cc_mssn_genotypes_conditional_misclass(
+cc_chisq_mssn_genotype_misclassification_1p(
   power = 0.8, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
   MOI = "D", e = 0.02, verbose = FALSE
 )
 
-cc_power_genotypes_conditional_misclass_3p(
+cc_chisq_power_genotype_misclassification_3p(
   N_case = 500, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
   MOI = "D", e01 = 0.02, e02 = 0.01, e03 = 0.005,
   verbose = FALSE
