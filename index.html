@@ -62,8 +62,168 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9">
-Provides analytic power and minimum sample size necessary (MSSN) calculations for genetic association study designs described in Gordon et al. (2020), "Heterogeneity in Statistical Genetics". Public interfaces cover case-control genotype chi-square and trend tests, family-based transmission disequilibrium tests (TDT), and single- and multivariate quantitative-trait designs using ANOVA, threshold-selected genotype chi-square tests, and Pillai MANOVA. Methods can account for locus heterogeneity and supported phenotype or genotype misclassification mechanisms. Functions return structured results and include static and interactive visualizations for study design, teaching, and methodological validation.
+  <main id="main" class="col-md-9"><div class="section level1">
+<div class="page-header"><h1 id="pawh">pawh<a class="anchor" aria-label="anchor" href="#pawh"></a>
+</h1></div>
+<p><code>pawh</code> is an R package for prospective power and minimum sample size necessary (MSSN) calculations in genetic association studies. It helps researchers evaluate study operating characteristics before data collection or genotyping: given a proposed sample size, <code>pawh</code> calculates power; given a target power, it calculates the required sample size.</p>
+<p>The package supports case-control association studies, affected-child trio designs using the Transmission Disequilibrium Test (TDT), and continuous, extreme-phenotype, and multivariate quantitative-trait designs. Depending on the design, calculations can account for genotype misclassification, phenotype misclassification, and locus heterogeneity. Canonical case-control and TDT interfaces support model-based and model-free workflows where those input modes are applicable.</p>
+<div class="section level2">
+<h2 id="what-pawh-supports">What <code>pawh</code> supports<a class="anchor" aria-label="anchor" href="#what-pawh-supports"></a>
+</h2>
+<ul>
+<li>
+<strong>Case-control association:</strong> two-degree-of-freedom genotype chi-square and one-degree-of-freedom genotype trend designs, with supported models for genotype or phenotype misclassification and locus heterogeneity.</li>
+<li>
+<strong>Affected-child trios:</strong> TDT power and required-trio calculations under no-error, phenotype-misclassification, and locus-heterogeneity scenarios.</li>
+<li>
+<strong>Quantitative traits:</strong> one-way genotype-group ANOVA for continuously measured traits, genotype chi-square designs for selected phenotype tails, and multivariate designs using Pillai MANOVA or joint threshold selection.</li>
+</ul>
+<p>Model-based calculations express assumptions through quantities such as prevalence, disease-allele frequency, genotype relative risk, inheritance mode, or quantitative-trait variance. Where model-free input is supported, users can instead supply conditional genotype probabilities or expected transmission and non-transmission counts derived from pilot data, prior work, or external calculations. Model-free input does not eliminate assumptions; it places them in the supplied conditional quantities.</p>
+<p>Most functions return structured objects containing both the primary design answer and intermediate quantities useful for validation. Examples below extract only the result needed for interpretation; consult the reference documentation when diagnostic components are required.</p>
+</div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p>The complete documentation is available at <a href="https://akilanthony.github.io/pawh/">https://akilanthony.github.io/pawh/</a>.</p>
+<p>Four articles provide the main entry points:</p>
+<ul>
+<li><a href="https://akilanthony.github.io/pawh/articles/pawh-01-getting-started.html">Getting Started</a></li>
+<li><a href="https://akilanthony.github.io/pawh/articles/pawh-02-case-control-study-design.html">Case-Control Study Design</a></li>
+<li><a href="https://akilanthony.github.io/pawh/articles/pawh-03-tdt-study-design.html">TDT Study Design</a></li>
+<li><a href="https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html">Quantitative-Trait Study Design</a></li>
+</ul>
+<p>Function-level reference documentation is also available from the <a href="https://akilanthony.github.io/pawh/reference/">pkgdown reference index</a>.</p>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p><code>pawh</code> is currently under development and is not yet available through Bioconductor. Install the development version from GitHub:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"remotes"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"akilanthony/pawh"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+</h2>
+<p>The canonical case-control interface can calculate genotype-test power for a fixed design. This example assumes 500 cases, an equal number of controls, 5% disease prevalence, a disease-allele frequency of 0.30, and a genotype relative risk of 1.8 under the package’s multiplicative model:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/akilanthony/pawh" class="external-link">pawh</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">power_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cc_power.html">cc_power</a></span><span class="op">(</span></span>
+<span>    N_case <span class="op">=</span> <span class="fl">500</span>,</span>
+<span>    alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>    input_mode <span class="op">=</span> <span class="st">"model_based"</span>,</span>
+<span>    prev <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>    pd <span class="op">=</span> <span class="fl">0.30</span>,</span>
+<span>    R2 <span class="op">=</span> <span class="fl">1.8</span>,</span>
+<span>    MOI <span class="op">=</span> <span class="st">"M"</span>,</span>
+<span>    k <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">power_result</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">genotypes</span><span class="op">$</span><span class="va">power</span></span>
+<span><span class="co">#&gt; [1] 0.8366557</span></span></code></pre></div>
+<p>The inverse calculation asks how many subjects are required for 80% power under the same assumptions:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mssn_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cc_mssn.html">cc_mssn</a></span><span class="op">(</span></span>
+<span>    power <span class="op">=</span> <span class="fl">0.80</span>,</span>
+<span>    alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>    input_mode <span class="op">=</span> <span class="st">"model_based"</span>,</span>
+<span>    prev <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>    pd <span class="op">=</span> <span class="fl">0.30</span>,</span>
+<span>    R2 <span class="op">=</span> <span class="fl">1.8</span>,</span>
+<span>    MOI <span class="op">=</span> <span class="st">"M"</span>,</span>
+<span>    k <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    cases <span class="op">=</span> <span class="va">mssn_result</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">genotypes</span><span class="op">$</span><span class="va">MSSN_case</span>,</span>
+<span>    controls <span class="op">=</span> <span class="va">mssn_result</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">genotypes</span><span class="op">$</span><span class="va">MSSN_ctrl</span>,</span>
+<span>    total <span class="op">=</span> <span class="va">mssn_result</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">genotypes</span><span class="op">$</span><span class="va">MSSN_total</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;    cases controls    total</span></span>
+<span><span class="co">#&gt;      457      457      914</span></span></code></pre></div>
+<p>These are prospective operating characteristics under the stated model, not estimates fitted from subject-level genomic data. See the case-control article for model-free inputs and supported error and heterogeneity scenarios.</p>
+<p>Power and MSSN are inverse design questions, but integer recruitment targets may not reproduce a requested power exactly because required sample sizes are rounded up. Results also inherit all stated distributional, prevalence, frequency, relative-risk, linkage-disequilibrium, and error assumptions. The study-design articles document these assumptions and identify settings that are outside the current implementation.</p>
+</div>
+<div class="section level2">
+<h2 id="study-design-workflows">Study-design workflows<a class="anchor" aria-label="anchor" href="#study-design-workflows"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th>Design</th>
+<th>Primary functions</th>
+<th>Documentation</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Case-control association</td>
+<td>
+<code><a href="reference/cc_power.html">cc_power()</a></code>, <code><a href="reference/cc_mssn.html">cc_mssn()</a></code>
+</td>
+<td><a href="https://akilanthony.github.io/pawh/articles/pawh-02-case-control-study-design.html">Case-Control Study Design</a></td>
+</tr>
+<tr>
+<td>Affected-child trios / TDT</td>
+<td>
+<code><a href="reference/tdt_power.html">tdt_power()</a></code>, <code><a href="reference/tdt_mssn.html">tdt_mssn()</a></code>
+</td>
+<td><a href="https://akilanthony.github.io/pawh/articles/pawh-03-tdt-study-design.html">TDT Study Design</a></td>
+</tr>
+<tr>
+<td>Continuous quantitative trait</td>
+<td>
+<code><a href="reference/qtl_anova_power.html">qtl_anova_power()</a></code>, <code><a href="reference/qtl_anova_mssn.html">qtl_anova_mssn()</a></code>
+</td>
+<td><a href="https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html">Quantitative-Trait Study Design</a></td>
+</tr>
+<tr>
+<td>Extreme quantitative trait</td>
+<td>
+<code><a href="reference/qtl_threshold_chisq_power.html">qtl_threshold_chisq_power()</a></code>, <code><a href="reference/qtl_threshold_chisq_mssn.html">qtl_threshold_chisq_mssn()</a></code>
+</td>
+<td><a href="https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html">Quantitative-Trait Study Design</a></td>
+</tr>
+<tr>
+<td>Multivariate quantitative traits</td>
+<td>
+<code><a href="reference/qtl_multivariate_power_full.html">qtl_multivariate_power_full()</a></code>, <code><a href="reference/qtl_multivariate_mssn_full.html">qtl_multivariate_mssn_full()</a></code>
+</td>
+<td><a href="https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html">Quantitative-Trait Study Design</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="published-example-validation">Published-example validation<a class="anchor" aria-label="anchor" href="#published-example-validation"></a>
+</h2>
+<p><code>pawh</code> includes literature-backed regression tests and worked examples for case-control genotype and phenotype misclassification, TDT phenotype misclassification and locus heterogeneity, and multivariate quantitative-trait power and sample size. The articles distinguish exact or near-exact published-example reproductions from papers used only as methodological context or motivating applications.</p>
+</div>
+<div class="section level2">
+<h2 id="scope">Scope<a class="anchor" aria-label="anchor" href="#scope"></a>
+</h2>
+<p><code>pawh</code> is a prospective statistical study-design package. It does not perform GWAS association testing, sequence processing, variant annotation, or general genomic data management. Instead, it is intended to complement downstream genetic-analysis workflows by helping researchers examine power, sample size, and sensitivity to supported design assumptions before collecting data or performing genotyping.</p>
+</div>
+<div class="section level2">
+<h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
+</h2>
+<p>A formal package citation will be added as <code>pawh</code> approaches its initial Bioconductor release. In the meantime, please consult the methodological references in the package documentation and study-design articles.</p>
+</div>
+<div class="section level2">
+<h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
+</h2>
+<p><code>pawh</code> is available under the MIT License.</p>
+</div>
+</div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
