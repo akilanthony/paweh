@@ -33,12 +33,18 @@ than a ggplot object.}
 \item{...}{Fixed arguments passed to \code{qtl_threshold_chisq_power()}.}
 }
 \value{
-A ggplot object, or a data frame with the swept parameter and power
+A \code{ggplot} object, or a data frame with the swept parameter and power
 if \code{return_data = TRUE}.
 }
 \description{
 Sweeps one model, selection, or design parameter and repeatedly calls
 \code{\link{qtl_threshold_chisq_power}()}.
+}
+\details{
+The x-axis is \code{x_values} for the selected model, selection,
+or design parameter. The y-axis is power for the two-df genotype chi-square
+test after upper-tail case and lower-tail control selection. Arguments in
+\code{...} remain fixed while \code{x_var} is swept.
 }
 \examples{
 plot_qtl_threshold_chisq_power(
@@ -47,4 +53,8 @@ plot_qtl_threshold_chisq_power(
   x_upper = 5, x_lower = 5, k = 1
 )
 
+}
+\seealso{
+\code{\link{qtl_threshold_chisq_power}},
+\code{\link{plot_qtl_threshold_chisq_mssn}}.
 }

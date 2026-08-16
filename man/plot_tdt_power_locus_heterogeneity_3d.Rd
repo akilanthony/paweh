@@ -2,8 +2,7 @@
 % Please edit documentation in R/tdt_functions.R
 \name{plot_tdt_power_locus_heterogeneity_3d}
 \alias{plot_tdt_power_locus_heterogeneity_3d}
-\title{Plot a 3D TDT Power Surface for Locus Heterogeneity
-This function requires the optional package \pkg{plotly}.}
+\title{Plot a 3D TDT Power Surface for Locus Heterogeneity}
 \usage{
 plot_tdt_power_locus_heterogeneity_3d(
   pd_seq,
@@ -38,23 +37,31 @@ plot_tdt_power_locus_heterogeneity_3d(
 \item{title}{Plot title.}
 }
 \value{
-A plotly htmlwidget.
+An object inheriting from \code{"plotly"} and \code{"htmlwidget"}.
 }
 \description{
-Plot a 3D TDT Power Surface for Locus Heterogeneity
 This function requires the optional package \pkg{plotly}.
 }
-\examples{
-\donttest{
-plot_tdt_power_locus_heterogeneity_3d(
-  pd_seq = seq(0.05, 0.80, by = 0.02),
-  heter_seq = seq(0, 0.60, by = 0.03),
-  N = 600,
-  prev = 0.05,
-  R1 = 1.5, R2 = 2.25,
-  alpha = 0.05,
-  delta_prime = 1,
-  misclass_rate = 0
-)
+\details{
+The x-axis is risk-allele frequency \code{pd}, the y-axis is the
+heterogeneous trio fraction \eqn{1-\pi}, and the surface height is
+heterogeneity-scenario TDT power from \code{tdt_power()}. The affected-trio
+count \code{N}, \code{misclass_rate}, and other model parameters remain
+fixed. This transitional function is restricted to these swept axes.
 }
+\examples{
+if (requireNamespace("plotly", quietly = TRUE)) {
+  p <- plot_tdt_power_locus_heterogeneity_3d(
+    pd_seq = c(0.2, 0.3, 0.4),
+    heter_seq = c(0, 0.1, 0.2),
+    N = 600, prev = 0.05, R1 = 1.5, R2 = 2.25,
+    misclass_rate = 0
+  )
+}
+
+}
+\seealso{
+\code{\link{tdt_power}},
+\code{\link{plot_tdt_power_locus_heterogeneity}}, and
+\code{\link{plot_tdt_power_phenotype_misclassification_3d}}.
 }

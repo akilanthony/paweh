@@ -50,7 +50,9 @@ thresholds are supplied.}
 The validated model and threshold details are retained as attributes.}
 }
 \value{
-A ggplot object, or the plotting grid when \code{return_data = TRUE}.
+A \code{ggplot} object, or the plotting grid when
+\code{return_data = TRUE}. Returned data retain the validated model and
+threshold details as attributes.
 }
 \description{
 Visualizes the population mixture of three genotype-specific bivariate
@@ -78,7 +80,12 @@ plot_qtl_multivariate_contour(
   qtl_var = c(0.95, 0.92), tau = c(0, 0.5), pd = 0.5,
   cor_matrix = cor_matrix,
   x_upper = c(10, 10), x_lower = c(15, 15),
-  surface = "cdf"
+  surface = "cdf", grid_n = 30
 )
 
+}
+\seealso{
+\code{\link[=qtl_multivariate_power_full]{qtl_multivariate_power_full()}},
+\code{\link[=qtl_multivariate_mssn_full]{qtl_multivariate_mssn_full()}}, and
+\code{\link[=plot_qtl_multivariate_surface3d]{plot_qtl_multivariate_surface3d()}}.
 }

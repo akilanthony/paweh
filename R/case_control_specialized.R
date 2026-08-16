@@ -75,9 +75,46 @@
 #'   MOI = "D", e = 0.02, verbose = FALSE
 #' )
 #'
+#' cc_chisq_power_genotype_misclassification_1p(
+#'   N_case = 500, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+#'   MOI = "D", e = 0.02, verbose = FALSE
+#' )
+#'
+#' cc_chisq_mssn_genotype_misclassification_2p(
+#'   power = 0.8, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+#'   MOI = "D", e1 = 0.02, e2 = 0.01, verbose = FALSE
+#' )
+#'
+#' cc_chisq_power_genotype_misclassification_2p(
+#'   N_case = 500, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+#'   MOI = "D", e1 = 0.02, e2 = 0.01, verbose = FALSE
+#' )
+#'
+#' cc_chisq_mssn_genotype_misclassification_3p(
+#'   power = 0.8, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+#'   MOI = "D", e01 = 0.02, e02 = 0.01, e03 = 0.005,
+#'   verbose = FALSE
+#' )
+#'
 #' cc_chisq_power_genotype_misclassification_3p(
 #'   N_case = 500, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
 #'   MOI = "D", e01 = 0.02, e02 = 0.01, e03 = 0.005,
+#'   verbose = FALSE
+#' )
+#'
+#' cc_chisq_mssn_genotype_misclassification_differential_3p(
+#'   power = 0.8, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+#'   MOI = "D",
+#'   case_e01 = 0.02, case_e02 = 0.01, case_e03 = 0.005,
+#'   ctrl_e01 = 0.01, ctrl_e02 = 0.005, ctrl_e03 = 0.002,
+#'   verbose = FALSE
+#' )
+#'
+#' cc_chisq_power_genotype_misclassification_differential_3p(
+#'   N_case = 500, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+#'   MOI = "D",
+#'   case_e01 = 0.02, case_e02 = 0.01, case_e03 = 0.005,
+#'   ctrl_e01 = 0.01, ctrl_e02 = 0.005, ctrl_e03 = 0.002,
 #'   verbose = FALSE
 #' )
 #'
@@ -1646,6 +1683,18 @@ cc_fmt_e <- function(x, digits = 2) {
 #'   g_ctrl = c(0.36, 0.48, 0.16),
 #'   pi = 0.8,
 #'   verbose = FALSE
+#' )
+#'
+#' cc_chisq_power_locus_heterogeneity(
+#'   N_case = 500, alpha = 0.05,
+#'   g_case_assoc = c(0.25, 0.50, 0.25),
+#'   g_ctrl = c(0.36, 0.48, 0.16), pi = 0.8, verbose = FALSE
+#' )
+#'
+#' cc_trend_mssn_locus_heterogeneity(
+#'   power = 0.8, alpha = 0.05,
+#'   g_case_assoc = c(0.25, 0.50, 0.25),
+#'   g_ctrl = c(0.36, 0.48, 0.16), pi = 0.8, verbose = FALSE
 #' )
 #'
 #' cc_trend_power_locus_heterogeneity(

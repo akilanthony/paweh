@@ -40,14 +40,20 @@ plot_tdt_mssn_locus_heterogeneity(
 \item{title}{Plot title.}
 }
 \value{
-A ggplot object (invisibly). Prints the plot.
+A \code{ggplot} object, returned invisibly after it is printed.
 }
 \description{
 Plot required number of trios vs heterogeneity rate (1 - pi),
 holding misclassification fixed.
 }
+\details{
+The x-axis is the heterogeneous trio fraction \eqn{1-\pi}; the
+homogeneous/linked fraction is \eqn{\pi}. The y-axis is MSSN, the required
+number of affected trios returned by \code{tdt_mssn()} for fixed
+\code{target_power}. \code{misclass_fixed} and genetic-model parameters
+remain fixed.
+}
 \examples{
-\donttest{
 # Required sample size sensitivity to locus heterogeneity
 plot_tdt_mssn_locus_heterogeneity(
   target_power = 0.80,
@@ -55,8 +61,13 @@ plot_tdt_mssn_locus_heterogeneity(
   prev = 0.05,
   R1   = 1.5,
   R2   = 2.25,
-  heter_seq      = seq(0, 0.50, by = 0.05),
+  heter_seq      = c(0, 0.1, 0.2),
   misclass_fixed = 0
 )
+
 }
+\seealso{
+\code{\link{tdt_mssn}},
+\code{\link{plot_tdt_mssn_phenotype_misclassification}}, and
+\code{\link{plot_tdt_mssn}}.
 }

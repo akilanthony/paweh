@@ -37,22 +37,32 @@ plot_tdt_power_phenotype_misclassification_3d(
 \item{title}{Plot title.}
 }
 \value{
-A plotly htmlwidget.
+An object inheriting from \code{"plotly"} and \code{"htmlwidget"}.
 }
 \description{
 This function requires the optional package \pkg{plotly}.
 }
-\examples{
-\donttest{
-plot_tdt_power_phenotype_misclassification_3d(
-  pd_seq = seq(0.05, 0.80, by = 0.02),
-  misclass_seq = seq(0, 0.20, by = 0.01),
-  N = 600,
-  prev = 0.05,
-  R1 = 1.5, R2 = 2.25,
-  alpha = 0.05,
-  delta_prime = 1,
-  heter_rate = 0
-)
+\details{
+The x-axis is risk-allele frequency \code{pd}, the y-axis is
+phenotype misclassification probability \eqn{\pi_{01}}, and the surface
+height is misclassification-scenario TDT power from \code{tdt_power()}.
+The affected-trio count \code{N}, \code{heter_rate}, and other model
+parameters remain fixed. This transitional function is restricted to these
+two swept axes and requires the optional package \pkg{plotly}.
 }
+\examples{
+if (requireNamespace("plotly", quietly = TRUE)) {
+  p <- plot_tdt_power_phenotype_misclassification_3d(
+    pd_seq = c(0.2, 0.3, 0.4),
+    misclass_seq = c(0, 0.03, 0.06),
+    N = 600, prev = 0.05, R1 = 1.5, R2 = 2.25,
+    heter_rate = 0
+  )
+}
+
+}
+\seealso{
+\code{\link{tdt_power}},
+\code{\link{plot_tdt_power_phenotype_misclassification}}, and
+\code{\link{plot_tdt_power_locus_heterogeneity_3d}}.
 }

@@ -73,12 +73,16 @@ Unlike \code{\link{tdt_mssn}()}'s own default of
 \code{0} here in \code{input_mode = "model_free"} (unless fixed via
 \code{...} or swept via \code{x_var}), so \code{scenario = "no_error"}
 always works without \code{pd}/\code{prev}.
+All arguments passed through \code{...} remain fixed while \code{x_var}
+is swept. The y-axis is MSSN expressed as the required number of affected
+trios for the resolved scenario. When \code{x_var = "heter_rate"}, it is
+the heterogeneous trio fraction \eqn{1-\pi}; \code{target_power} remains
+fixed unless it is itself the swept variable.
 }
 \examples{
-\dontrun{
 plot_tdt_mssn(
   x_var = "misclass_rate",
-  x_values = seq(0, 0.10, by = 0.01),
+  x_values = c(0, 0.02, 0.04),
   scenario = "misclassification",
   input_mode = "model_based",
   target_power = 0.80,
@@ -90,15 +94,9 @@ plot_tdt_mssn(
   delta_prime = 1
 )
 
-plot_tdt_mssn(
-  x_var = "misclass_rate",
-  x_values = seq(0, 0.10, by = 0.01),
-  scenario = "misclassification",
-  input_mode = "model_free",
-  target_power = 0.80,
-  ET = 140, ENT = 100, n_trios = 120,
-  pd = 0.30, prev = 0.05
-)
 }
-
+\seealso{
+\code{\link{tdt_mssn}}, \code{\link{plot_tdt_power}},
+\code{\link{plot_tdt_mssn_phenotype_misclassification}}, and
+\code{\link{plot_tdt_mssn_locus_heterogeneity}}.
 }

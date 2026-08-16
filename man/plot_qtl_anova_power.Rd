@@ -32,12 +32,17 @@ than a ggplot object.}
 \item{...}{Fixed arguments passed to \code{qtl_anova_power()}.}
 }
 \value{
-A ggplot object, or a data frame with the swept parameter and power
+A \code{ggplot} object, or a data frame with the swept parameter and power
 if \code{return_data = TRUE}.
 }
 \description{
 Sweeps one model or design parameter and repeatedly calls
 \code{\link{qtl_anova_power}()} for a single continuous quantitative trait.
+}
+\details{
+The x-axis is \code{x_values} for the selected \code{x_var}; the
+y-axis is one-way ANOVA power from \code{qtl_anova_power()}. Every argument
+in \code{...} remains fixed while the selected parameter is swept.
 }
 \examples{
 plot_qtl_anova_power(
@@ -45,4 +50,8 @@ plot_qtl_anova_power(
   alpha = 0.0001, qtl_var = 0.025, tau = 0.5, pd = 0.15
 )
 
+}
+\seealso{
+\code{\link{qtl_anova_power}},
+\code{\link{plot_qtl_anova_mssn}}.
 }

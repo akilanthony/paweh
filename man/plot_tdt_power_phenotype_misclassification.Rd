@@ -37,14 +37,20 @@ plot_tdt_power_phenotype_misclassification(
 \item{title}{Character. Plot title.}
 }
 \value{
-A ggplot object (invisibly). Prints the plot.
+A \code{ggplot} object, returned invisibly after it is printed.
 }
 \description{
 Plot TDT power vs phenotype misclassification rate (pi01),
 holding heterogeneity fixed.
 }
+\details{
+The x-axis is phenotype misclassification probability
+\eqn{\pi_{01}} and the y-axis is the corresponding power from
+\code{tdt_power()}. \code{N} is a fixed number of affected trios;
+\code{heter_fixed} and all genetic-model parameters remain fixed while
+\code{misclass_seq} is swept.
+}
 \examples{
-\donttest{
 # Power sensitivity to phenotype misclassification
 plot_tdt_power_phenotype_misclassification(
   N    = 600,
@@ -52,8 +58,13 @@ plot_tdt_power_phenotype_misclassification(
   prev = 0.05,
   R1   = 1.5,
   R2   = 2.25,
-  misclass_seq = seq(0, 0.15, by = 0.01),
+  misclass_seq = c(0, 0.03, 0.06),
   heter_fixed  = 0
 )
+
 }
+\seealso{
+\code{\link{tdt_power}},
+\code{\link{plot_tdt_power_locus_heterogeneity}}, and
+\code{\link{plot_tdt_power}}.
 }

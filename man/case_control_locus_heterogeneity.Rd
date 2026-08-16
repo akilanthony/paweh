@@ -108,6 +108,18 @@ cc_chisq_mssn_locus_heterogeneity(
   verbose = FALSE
 )
 
+cc_chisq_power_locus_heterogeneity(
+  N_case = 500, alpha = 0.05,
+  g_case_assoc = c(0.25, 0.50, 0.25),
+  g_ctrl = c(0.36, 0.48, 0.16), pi = 0.8, verbose = FALSE
+)
+
+cc_trend_mssn_locus_heterogeneity(
+  power = 0.8, alpha = 0.05,
+  g_case_assoc = c(0.25, 0.50, 0.25),
+  g_ctrl = c(0.36, 0.48, 0.16), pi = 0.8, verbose = FALSE
+)
+
 cc_trend_power_locus_heterogeneity(
   N_case = 500, alpha = 0.05,
   g_case_assoc = c(0.25, 0.50, 0.25),

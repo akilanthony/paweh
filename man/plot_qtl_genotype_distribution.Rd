@@ -48,7 +48,7 @@ ggplot object. The Falconer model is retained in its \code{falconer_model}
 attribute.}
 }
 \value{
-A ggplot object, or a plotting data frame when
+A \code{ggplot} object, or a plotting data frame when
 \code{return_data = TRUE}.
 }
 \description{
@@ -79,4 +79,8 @@ plot_qtl_genotype_distribution(
   qtl_var = 0.0005, tau = 0, pd = 0.25, scale = "frequency"
 )
 
+}
+\seealso{
+\code{\link[=qtl_falconer_parameters]{qtl_falconer_parameters()}}, \code{\link[=plot_qtl_anova_power]{plot_qtl_anova_power()}}, and
+\code{\link[=plot_qtl_threshold_chisq_power]{plot_qtl_threshold_chisq_power()}}.
 }

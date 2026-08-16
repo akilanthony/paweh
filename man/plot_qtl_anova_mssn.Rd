@@ -32,12 +32,18 @@ than a ggplot object.}
 \item{...}{Fixed arguments passed to \code{qtl_anova_mssn()}.}
 }
 \value{
-A ggplot object, or a data frame with the swept parameter and
+A \code{ggplot} object, or a data frame with the swept parameter and
 \code{required_N} if \code{return_data = TRUE}.
 }
 \description{
 Sweeps one model or design parameter and repeatedly calls
 \code{\link{qtl_anova_mssn}()}.
+}
+\details{
+The x-axis is \code{x_values} for the selected \code{x_var}; the
+y-axis is the minimum total sample size returned by \code{qtl_anova_mssn()}.
+Target power and other arguments in \code{...} remain fixed unless selected
+as \code{x_var}.
 }
 \examples{
 plot_qtl_anova_mssn(
@@ -45,4 +51,8 @@ plot_qtl_anova_mssn(
   power = 0.8, alpha = 0.0001, tau = 0.5, pd = 0.15
 )
 
+}
+\seealso{
+\code{\link{qtl_anova_mssn}},
+\code{\link{plot_qtl_anova_power}}.
 }

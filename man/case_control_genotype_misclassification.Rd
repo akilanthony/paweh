@@ -215,9 +215,46 @@ cc_chisq_mssn_genotype_misclassification_1p(
   MOI = "D", e = 0.02, verbose = FALSE
 )
 
+cc_chisq_power_genotype_misclassification_1p(
+  N_case = 500, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+  MOI = "D", e = 0.02, verbose = FALSE
+)
+
+cc_chisq_mssn_genotype_misclassification_2p(
+  power = 0.8, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+  MOI = "D", e1 = 0.02, e2 = 0.01, verbose = FALSE
+)
+
+cc_chisq_power_genotype_misclassification_2p(
+  N_case = 500, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+  MOI = "D", e1 = 0.02, e2 = 0.01, verbose = FALSE
+)
+
+cc_chisq_mssn_genotype_misclassification_3p(
+  power = 0.8, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+  MOI = "D", e01 = 0.02, e02 = 0.01, e03 = 0.005,
+  verbose = FALSE
+)
+
 cc_chisq_power_genotype_misclassification_3p(
   N_case = 500, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
   MOI = "D", e01 = 0.02, e02 = 0.01, e03 = 0.005,
+  verbose = FALSE
+)
+
+cc_chisq_mssn_genotype_misclassification_differential_3p(
+  power = 0.8, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+  MOI = "D",
+  case_e01 = 0.02, case_e02 = 0.01, case_e03 = 0.005,
+  ctrl_e01 = 0.01, ctrl_e02 = 0.005, ctrl_e03 = 0.002,
+  verbose = FALSE
+)
+
+cc_chisq_power_genotype_misclassification_differential_3p(
+  N_case = 500, alpha = 0.05, prev = 0.1, pd = 0.3, R2 = 1.8,
+  MOI = "D",
+  case_e01 = 0.02, case_e02 = 0.01, case_e03 = 0.005,
+  ctrl_e01 = 0.01, ctrl_e02 = 0.005, ctrl_e03 = 0.002,
   verbose = FALSE
 )
 

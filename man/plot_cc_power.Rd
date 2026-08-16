@@ -67,15 +67,19 @@ values are read from \code{theta_base} and \code{phi_base}, falling back to
 read from \code{e_base}; \code{e1_base} and \code{e2_base}; \code{e01_base},
 \code{e02_base}, and \code{e03_base}; or case/control baseline parameters
 for \code{geno_misclass = "diff3p"}.
+All arguments supplied through \code{...} remain fixed while
+\code{x_var} is swept. The x-axis contains \code{x_values}; the y-axis is
+the power returned by \code{cc_power()} for the selected genotype chi-square
+or trend test. With \code{compare_tests = TRUE}, both powers are drawn on
+the same axes.
 }
 \examples{
-\dontrun{
 g_aff <- c((1 - 0.05)^2, 2 * 0.05 * (1 - 0.05), 0.05^2)
 g_unaff <- c((1 - 0.15)^2, 2 * 0.15 * (1 - 0.15), 0.15^2)
 
 plot_cc_power(
   x_var = "phi",
-  x_values = seq(0, 0.10, by = 0.01),
+  x_values = c(0, 0.02, 0.04),
   test = "genotypes",
   input_mode = "model_free",
   N_case = 250,
@@ -88,20 +92,7 @@ plot_cc_power(
   k = 1
 )
 
-plot_cc_power(
-  x_var = "phi",
-  x_values = seq(0, 0.10, by = 0.01),
-  input_mode = "model_free",
-  compare_tests = TRUE,
-  N_case = 250,
-  alpha = 0.01,
-  g1 = g_aff,
-  g0 = g_unaff,
-  prev = 0.05,
-  pheno_misclass = TRUE,
-  theta = 0,
-  k = 1
-)
 }
-
+\seealso{
+\code{\link{cc_power}}, \code{\link{plot_cc_mssn}}.
 }
