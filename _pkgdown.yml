@@ -1,13 +1,12 @@
 url: https://akilanthony.github.io/pawh/
 template:
   bootstrap: 5
-
 reference:
-- title: "Case-control: canonical interfaces"
+- title: 'Case-control: canonical interfaces'
   contents:
   - cc_mssn
   - cc_power
-- title: "Case-control: genotype misclassification"
+- title: 'Case-control: genotype misclassification'
   contents:
   - cc_chisq_mssn_genotype_misclassification_1p
   - cc_chisq_power_genotype_misclassification_1p
@@ -17,25 +16,25 @@ reference:
   - cc_chisq_power_genotype_misclassification_3p
   - cc_chisq_mssn_genotype_misclassification_differential_3p
   - cc_chisq_power_genotype_misclassification_differential_3p
-- title: "Case-control: phenotype misclassification"
+- title: 'Case-control: phenotype misclassification'
   contents:
   - cc_chisq_mssn_phenotype_misclassification
   - cc_chisq_power_phenotype_misclassification
-- title: "Case-control: locus heterogeneity"
+- title: 'Case-control: locus heterogeneity'
   contents:
   - cc_chisq_mssn_locus_heterogeneity
   - cc_chisq_power_locus_heterogeneity
   - cc_trend_mssn_locus_heterogeneity
   - cc_trend_power_locus_heterogeneity
-- title: "Case-control: plotting"
+- title: 'Case-control: plotting'
   contents:
   - plot_cc_mssn
   - plot_cc_power
-- title: "TDT: canonical interfaces"
+- title: 'TDT: canonical interfaces'
   contents:
   - tdt_mssn
   - tdt_power
-- title: "TDT: expected counts and lower-level calculations"
+- title: 'TDT: expected counts and lower-level calculations'
   contents:
   - tdt_expected_nontransmission_probability
   - tdt_expected_transmission_counts
@@ -44,36 +43,36 @@ reference:
   - tdt_mssn_phenotype_misclassification_from_ncp
   - tdt_power_from_expected_counts
   - tdt_power_from_model
-- title: "TDT: canonical plotting"
+- title: 'TDT: canonical plotting'
   contents:
   - plot_tdt_mssn
   - plot_tdt_power
   - plot_tdt_surface3d
-- title: "TDT: phenotype misclassification plotting"
+- title: 'TDT: phenotype misclassification plotting'
   contents:
   - plot_tdt_mssn_phenotype_misclassification
   - plot_tdt_power_phenotype_misclassification
-- title: "TDT: locus heterogeneity plotting"
+- title: 'TDT: locus heterogeneity plotting'
   contents:
   - plot_tdt_mssn_locus_heterogeneity
   - plot_tdt_power_locus_heterogeneity
-- title: "Quantitative traits: model parameters"
+- title: 'Quantitative traits: model parameters'
   contents:
   - qtl_falconer_parameters
   - qtl_falconer_threshold_parameters
-- title: "Quantitative traits: ANOVA"
+- title: 'Quantitative traits: ANOVA'
   contents:
   - qtl_anova_mssn
   - qtl_anova_power
-- title: "Quantitative traits: threshold genotype chi-square"
+- title: 'Quantitative traits: threshold genotype chi-square'
   contents:
   - qtl_threshold_chisq_mssn
   - qtl_threshold_chisq_power
-- title: "Quantitative traits: multivariate Pillai MANOVA"
+- title: 'Quantitative traits: multivariate Pillai MANOVA'
   contents:
   - qtl_multivariate_mssn_full
   - qtl_multivariate_power_full
-- title: "Quantitative traits: plotting"
+- title: 'Quantitative traits: plotting'
   contents:
   - plot_qtl_anova_mssn
   - plot_qtl_anova_power
@@ -82,21 +81,17 @@ reference:
   - plot_qtl_multivariate_surface3d
   - plot_qtl_threshold_chisq_mssn
   - plot_qtl_threshold_chisq_power
-
 articles:
 - title: Getting Started
   navbar: Getting Started
-  contents:
-  - pawh-01-getting-started
+  contents: pawh-01-getting-started
 - title: Case-Control Study Design
   navbar: Case-Control Study Design
-  contents:
-  - pawh-02-case-control-study-design
+  contents: pawh-02-case-control-study-design
 - title: TDT Study Design
   navbar: TDT Study Design
-  contents:
-  - pawh-03-tdt-study-design
+  contents: pawh-03-tdt-study-design
 - title: Quantitative-Trait Study Design
   navbar: Quantitative-Trait Study Design
-  contents:
-  - pawh-04-quantitative-trait-study-design
+  contents: pawh-04-quantitative-trait-study-design
+

@@ -16,7 +16,7 @@ Description: Provides analytic power and minimum sample size necessary (MSSN)
     validation.
 License: MIT + file LICENSE
 Encoding: UTF-8
-URL: https://github.com/akilanthony/pawh
+URL: https://github.com/akilanthony/pawh, https://akilanthony.github.io/pawh/
 BugReports: https://github.com/akilanthony/pawh/issues
 Roxygen: list(markdown = TRUE)
 Suggests: 
