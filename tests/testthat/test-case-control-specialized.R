@@ -5,7 +5,7 @@ cc_spec_g_case <- c(0.25, 0.50, 0.25)
 cc_spec_g_ctrl <- c(0.36, 0.48, 0.16)
 
 test_that("1p genotype misclassification specialized functions return stable structures", {
-  mssn <- cc_mssn_genotypes_conditional_misclass(
+  mssn <- cc_chisq_mssn_genotype_misclassification_1p(
     power = 0.80,
     alpha = 0.05,
     prev = cc_spec_prev,
@@ -16,13 +16,13 @@ test_that("1p genotype misclassification specialized functions return stable str
     verbose = FALSE
   )
 
-  expect_s3_class(mssn, "cc_mssn_genotypes_conditional_misclass")
+  expect_s3_class(mssn, "cc_chisq_mssn_genotype_misclassification_1p")
   expect_equal(mssn$misclassification$model, "symmetric")
   expect_equal(rowSums(mssn$misclassification$M), rep(1, 3), tolerance = 1e-12)
   expect_gt(mssn$N_case, 0)
   expect_gt(mssn$S, 0)
 
-  power <- cc_power_genotypes_conditional_misclass(
+  power <- cc_chisq_power_genotype_misclassification_1p(
     N_case = mssn$N_case,
     alpha = 0.05,
     prev = cc_spec_prev,
@@ -33,14 +33,14 @@ test_that("1p genotype misclassification specialized functions return stable str
     verbose = FALSE
   )
 
-  expect_s3_class(power, "cc_power_genotypes_conditional_misclass")
+  expect_s3_class(power, "cc_chisq_power_genotype_misclassification_1p")
   expect_gt(power$lambda, 0)
   expect_gt(power$power, 0)
   expect_lte(power$power, 1)
 })
 
 test_that("2p genotype misclassification specialized functions return stable structures", {
-  mssn <- cc_mssn_genotypes_conditional_misclass_2p(
+  mssn <- cc_chisq_mssn_genotype_misclassification_2p(
     power = 0.80,
     alpha = 0.05,
     prev = cc_spec_prev,
@@ -52,12 +52,12 @@ test_that("2p genotype misclassification specialized functions return stable str
     verbose = FALSE
   )
 
-  expect_s3_class(mssn, "cc_mssn_genotypes_conditional_misclass_2p")
+  expect_s3_class(mssn, "cc_chisq_mssn_genotype_misclassification_2p")
   expect_equal(mssn$misclassification$model, "two_param_hom_het")
   expect_equal(rowSums(mssn$misclassification$M), rep(1, 3), tolerance = 1e-12)
   expect_gt(mssn$N_case, 0)
 
-  power <- cc_power_genotypes_conditional_misclass_2p(
+  power <- cc_chisq_power_genotype_misclassification_2p(
     N_case = mssn$N_case,
     alpha = 0.05,
     prev = cc_spec_prev,
@@ -69,14 +69,14 @@ test_that("2p genotype misclassification specialized functions return stable str
     verbose = FALSE
   )
 
-  expect_s3_class(power, "cc_power_genotypes_conditional_misclass_2p")
+  expect_s3_class(power, "cc_chisq_power_genotype_misclassification_2p")
   expect_gt(power$lambda, 0)
   expect_gt(power$power, 0)
   expect_lte(power$power, 1)
 })
 
 test_that("3p genotype misclassification specialized functions return stable structures", {
-  mssn <- cc_mssn_genotypes_conditional_misclass_3p(
+  mssn <- cc_chisq_mssn_genotype_misclassification_3p(
     power = 0.80,
     alpha = 0.05,
     prev = cc_spec_prev,
@@ -89,12 +89,12 @@ test_that("3p genotype misclassification specialized functions return stable str
     verbose = FALSE
   )
 
-  expect_s3_class(mssn, "cc_mssn_genotypes_conditional_misclass_3p")
+  expect_s3_class(mssn, "cc_chisq_mssn_genotype_misclassification_3p")
   expect_equal(mssn$misclassification$model, "3p")
   expect_equal(rowSums(mssn$misclassification$M), rep(1, 3), tolerance = 1e-12)
   expect_gt(mssn$MSSN_case, 0)
 
-  power <- cc_power_genotypes_conditional_misclass_3p(
+  power <- cc_chisq_power_genotype_misclassification_3p(
     N_case = mssn$MSSN_case,
     alpha = 0.05,
     prev = cc_spec_prev,
@@ -107,14 +107,14 @@ test_that("3p genotype misclassification specialized functions return stable str
     verbose = FALSE
   )
 
-  expect_s3_class(power, "cc_power_genotypes_conditional_misclass_3p")
+  expect_s3_class(power, "cc_chisq_power_genotype_misclassification_3p")
   expect_gt(power$lambda, 0)
   expect_gt(power$power, 0)
   expect_lte(power$power, 1)
 })
 
 test_that("differential 3p genotype misclassification specialized functions preserve matrices", {
-  mssn <- cc_mssn_genotypes_conditional_diffmisclass(
+  mssn <- cc_chisq_mssn_genotype_misclassification_differential_3p(
     power = 0.80,
     alpha = 0.05,
     prev = cc_spec_prev,
@@ -130,7 +130,7 @@ test_that("differential 3p genotype misclassification specialized functions pres
     verbose = FALSE
   )
 
-  expect_s3_class(mssn, "cc_mssn_genotypes_conditional_diffmisclass")
+  expect_s3_class(mssn, "cc_chisq_mssn_genotype_misclassification_differential_3p")
   expect_equal(mssn$misclassification$model, "differential_3p")
   expect_equal(rowSums(mssn$misclassification$case_matrix), rep(1, 3), tolerance = 1e-12)
   expect_equal(rowSums(mssn$misclassification$ctrl_matrix), rep(1, 3), tolerance = 1e-12)
@@ -141,7 +141,7 @@ test_that("differential 3p genotype misclassification specialized functions pres
     tolerance = 1e-12
   )
 
-  power <- cc_power_genotypes_conditional_diffmisclass(
+  power <- cc_chisq_power_genotype_misclassification_differential_3p(
     N_case = mssn$MSSN_case,
     alpha = 0.05,
     prev = cc_spec_prev,
@@ -157,14 +157,14 @@ test_that("differential 3p genotype misclassification specialized functions pres
     verbose = FALSE
   )
 
-  expect_s3_class(power, "cc_power_genotypes_conditional_diffmisclass")
+  expect_s3_class(power, "cc_chisq_power_genotype_misclassification_differential_3p")
   expect_gt(power$lambda, 0)
   expect_gt(power$power, 0)
   expect_lte(power$power, 1)
 })
 
 test_that("locus heterogeneity specialized genotype functions adjust case frequencies", {
-  mssn <- cc_mssn_locus_het_genotypes(
+  mssn <- cc_chisq_mssn_locus_heterogeneity(
     power = 0.80,
     alpha = 0.05,
     g_case_assoc = cc_spec_g_case,
@@ -174,11 +174,11 @@ test_that("locus heterogeneity specialized genotype functions adjust case freque
   )
 
   expected <- 0.75 * cc_spec_g_case + 0.25 * cc_spec_g_ctrl
-  expect_s3_class(mssn, "cc_mssn_locus_het_genotypes")
+  expect_s3_class(mssn, "cc_chisq_mssn_locus_heterogeneity")
   expect_equal(mssn$freqs$g_case_het, expected, tolerance = 1e-12)
   expect_gt(mssn$N_case, 0)
 
-  power <- cc_power_locus_het_genotypes(
+  power <- cc_chisq_power_locus_heterogeneity(
     N_case = mssn$N_case,
     alpha = 0.05,
     g_case_assoc = cc_spec_g_case,
@@ -187,13 +187,13 @@ test_that("locus heterogeneity specialized genotype functions adjust case freque
     verbose = FALSE
   )
 
-  expect_s3_class(power, "cc_power_locus_het_genotypes")
+  expect_s3_class(power, "cc_chisq_power_locus_heterogeneity")
   expect_gt(power$lambda, 0)
   expect_gt(power$power, 0)
 })
 
 test_that("locus heterogeneity specialized trend functions return numerator and denominator", {
-  mssn <- cc_mssn_locus_het_trend(
+  mssn <- cc_trend_mssn_locus_heterogeneity(
     power = 0.80,
     alpha = 0.05,
     g_case_assoc = cc_spec_g_case,
@@ -203,12 +203,12 @@ test_that("locus heterogeneity specialized trend functions return numerator and 
     verbose = FALSE
   )
 
-  expect_s3_class(mssn, "cc_mssn_locus_het_trend")
+  expect_s3_class(mssn, "cc_trend_mssn_locus_heterogeneity")
   expect_gt(mssn$numerator, 0)
   expect_gt(mssn$denominator, 0)
   expect_gt(mssn$N_case, 0)
 
-  power <- cc_power_locus_het_trend(
+  power <- cc_trend_power_locus_heterogeneity(
     N_case = mssn$N_case,
     alpha = 0.05,
     g_case_assoc = cc_spec_g_case,
@@ -218,14 +218,14 @@ test_that("locus heterogeneity specialized trend functions return numerator and 
     verbose = FALSE
   )
 
-  expect_s3_class(power, "cc_power_locus_het_trend")
+  expect_s3_class(power, "cc_trend_power_locus_heterogeneity")
   expect_gt(power$lambda, 0)
   expect_gt(power$power, 0)
 })
 
 test_that("specialized helper-facing validation errors remain active", {
   expect_error(
-    cc_mssn_locus_het_genotypes(
+    cc_chisq_mssn_locus_heterogeneity(
       power = 0.80,
       alpha = 0.05,
       g_case_assoc = c(0.2, 0.2, 0.2),
@@ -237,7 +237,7 @@ test_that("specialized helper-facing validation errors remain active", {
   )
 
   expect_error(
-    cc_mssn_genotypes_conditional_misclass_3p(
+    cc_chisq_mssn_genotype_misclassification_3p(
       power = 0.80,
       alpha = 0.05,
       prev = cc_spec_prev,

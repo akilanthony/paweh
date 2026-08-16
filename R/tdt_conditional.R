@@ -1,15 +1,11 @@
 # ==============================================================================
-# Conditional TDT framework
+# Canonical TDT framework
 #
-# tdt_power_conditional_full()  is a copy of tdt_power_full()        (R/tdt_functions.R)
-# tdt_mssn_conditional_full()   is a copy of tdt_required_trios_full() (R/tdt_functions.R)
+# The validated model-based formulas and three-scenario reporting (no error /
+# misclassification / heterogeneity) are preserved. The public interface also
+# supports input_mode = c("model_based", "model_free"):
 #
-# Every argument name, default, formula, and the three-scenario reporting
-# (no error / misclassification / heterogeneity) from those two functions is
-# kept identical. The only addition is input_mode = c("model_based",
-# "model_free"):
-#
-#   - "model_based" (default) reproduces the copied function exactly.
+#   - "model_based" (default) uses genetic-model parameters.
 #   - "model_free" lets a user who already has expected transmission and
 #     non-transmission counts (ET, ENT) supply them directly instead of
 #     prev/R1/R2. gT = ET / (2 * n_trios), gNT = ENT / (2 * n_trios), where
@@ -20,25 +16,22 @@
 #
 # heter_rate and misclass_rate apply in both modes. In model_free mode they
 # use closed-form identities (verified algebraically equivalent to the
-# calc_gTgNT_heter()/calc_gTgNT_misclass() helpers copied from
-# R/tdt_functions.R) in terms of gT, gNT, pd, and prev alone -- see the
+# calc_gTgNT_heter()/calc_gTgNT_misclass() identities in terms of gT, gNT,
+# pd, and prev alone -- see the
 # roxygen details below. R1/R2 are never used in model_free mode.
 #
-# Do not modify R/tdt_functions.R; it is the reference implementation these
-# two functions are copied from.
 # ==============================================================================
 
 
-#' Family-Based (TDT) Power for a Fixed Number of Trios (Conditional)
+#' Family-Based (TDT) Power
 #'
 #' Computes power for the transmission disequilibrium test (TDT) at a fixed
 #' number of affected trios under three scenarios: (i) no error, (ii)
-#' phenotype misclassification only, and (iii) locus heterogeneity only. This
-#' is a copy of \code{\link{tdt_power_full}} with one addition:
+#' phenotype misclassification only, and (iii) locus heterogeneity only.
 #' \code{input_mode} lets the transmission probabilities come either from a
-#' genetic model (\code{"model_based"}, the default, numerically identical to
-#' \code{\link{tdt_power_full}}) or directly from user-supplied expected
-#' transmission and non-transmission counts (\code{"model_free"}).
+#' genetic model (\code{"model_based"}, the default) or directly from
+#' user-supplied expected transmission and non-transmission counts
+#' (\code{"model_free"}).
 #'
 #' @param N Numeric \eqn{> 0}. Number of affected trios.
 #' @param input_mode Character. One of \code{"model_based"} (default) or
@@ -77,8 +70,8 @@
 #'   probabilities.
 #'
 #' @details
-#' With \code{input_mode = "model_based"}, this function is a direct copy of
-#' \code{\link{tdt_power_full}}: penetrances \eqn{f_0, f_1, f_2} are derived
+#' With \code{input_mode = "model_based"}, penetrances
+#' \eqn{f_0, f_1, f_2} are derived
 #' from \code{prev}, \code{R1}, \code{R2}, and \code{pd}, and the expected
 #' transmission and non-transmission probabilities under each of the three
 #' scenarios are computed exactly as in that function (misclassification via
@@ -88,8 +81,8 @@
 #' \eqn{g_T = ET / (2N)} and \eqn{g_{NT} = ENT / (2N)} directly. The
 #' misclassification and heterogeneity scenarios are then computed from the
 #' following identities, which are algebraically equivalent to the
-#' calc_gTgNT_heter() and calc_gTgNT_misclass() helpers copied from
-#' \code{\link{tdt_power_full}}. Let \eqn{A = g_T - g_{NT}} (no-error) and
+#' the corresponding model-based identities. Let
+#' \eqn{A = g_T - g_{NT}} (no-error) and
 #' \eqn{p_+ = 1 - p_d}:
 #' \deqn{\text{heterogeneity: } g_T = p_d p_+ + A (p_+ - 0.5 \times
 #'   \text{heter\_rate}), \quad
@@ -110,15 +103,15 @@
 #' no such unique root exists -- supplying \code{pd} directly is preferred.
 #'
 #' @return
-#' An object of class \code{"tdt_power_conditional_full"}: a list with the
-#' same components as \code{\link{tdt_power_full}} (\code{alpha}, \code{N},
+#' An object of class \code{"tdt_power"}: a list with components
+#' \code{alpha}, \code{N},
 #' \code{lambda}, \code{power}, \code{power_loss}, \code{gT_star},
-#' \code{gNT_star}, \code{ET}, \code{ENT}, \code{model_parameters}), plus
+#' \code{gNT_star}, \code{ET}, \code{ENT}, \code{model_parameters}, and
 #' \code{input_mode}.
 #'
 #' @examples
-#' # model_based: identical to tdt_power_full()
-#' tdt_power_conditional_full(
+#' # Model-based input
+#' tdt_power(
 #'   N = 600, input_mode = "model_based",
 #'   pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
 #'   misclass_rate = 0.01, heter_rate = 0.10,
@@ -126,7 +119,7 @@
 #' )$power$no_error
 #'
 #' # model_free: supply expected transmissions/non-transmissions directly
-#' tdt_power_conditional_full(
+#' tdt_power(
 #'   N = 600, input_mode = "model_free",
 #'   ET = 140, ENT = 100,
 #'   pd = 0.30, prev = 0.05,
@@ -140,13 +133,11 @@
 #' Equations 5.26-5.28 (misclassification) and Equation 5.34
 #' (heterogeneity).
 #'
-#' @seealso \code{\link{tdt_power_full}}, the function this is copied from,
-#'   and \code{\link{tdt_mssn_conditional_full}} for the sample-size
-#'   counterpart.
+#' @seealso \code{\link{tdt_mssn}} for the MSSN counterpart.
 #'
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
-tdt_power_conditional_full <- function(
+tdt_power <- function(
     N,
     input_mode = c("model_based", "model_free"),
     pd   = NULL,
@@ -505,21 +496,19 @@ tdt_power_conditional_full <- function(
     )
   )
 
-  class(out) <- "tdt_power_conditional_full"
+  class(out) <- "tdt_power"
   invisible(out)
 }
 
 
-#' Family-Based (TDT) Minimum Sample Size for a Fixed Power (Conditional)
+#' Family-Based (TDT) Minimum Sample Size Necessary
 #'
 #' Computes the minimum number of affected trios required to achieve a
 #' specified power for the transmission disequilibrium test (TDT) under three
 #' scenarios: (i) no error, (ii) phenotype misclassification only, and (iii)
-#' locus heterogeneity only. This is a copy of
-#' \code{\link{tdt_required_trios_full}} with one addition: \code{input_mode}
-#' lets the transmission probabilities come either from a genetic model
-#' (\code{"model_based"}, the default, numerically identical to
-#' \code{\link{tdt_required_trios_full}}) or directly from user-supplied
+#' locus heterogeneity only. \code{input_mode} lets the transmission
+#' probabilities come either from a genetic model
+#' (\code{"model_based"}, the default) or directly from user-supplied
 #' expected transmission and non-transmission counts (\code{"model_free"}).
 #'
 #' @param target_power Numeric in (0,1). Desired power for the TDT.
@@ -561,37 +550,35 @@ tdt_power_conditional_full <- function(
 #'   resulting power when the no-error design is used.
 #'
 #' @details
-#' With \code{input_mode = "model_based"}, this function is a direct copy of
-#' \code{\link{tdt_required_trios_full}}: penetrances are derived from
-#' \code{prev}, \code{R1}, \code{R2}, and \code{pd} as in that function, and
+#' With \code{input_mode = "model_based"}, penetrances are derived from
+#' \code{prev}, \code{R1}, \code{R2}, and \code{pd}, and
 #' \deqn{N^* = \frac{\lambda^* (g_T^* + g_{NT}^*)}{2 (g_T^* - g_{NT}^*)^2}}
 #' is computed for each of the three scenarios.
 #'
 #' With \code{input_mode = "model_free"}, the no-error scenario uses
 #' \eqn{g_T = ET / (2\,n_{trios})} and \eqn{g_{NT} = ENT / (2\,n_{trios})}.
 #' The misclassification and heterogeneity scenarios then use the same
-#' closed-form identities as \code{\link{tdt_power_conditional_full}} (see its
+#' closed-form identities as \code{\link{tdt_power}} (see its
 #' Details for the formulas and the \code{pd}-solving fallback), applied to
 #' this no-error \eqn{g_T}/\eqn{g_{NT}} pair.
 #'
 #' @return
-#' An object of class \code{"tdt_mssn_conditional_full"}: a list with the
-#' same components as \code{\link{tdt_required_trios_full}} (\code{alpha},
+#' An object of class \code{"tdt_mssn"}: a list with components \code{alpha},
 #' \code{target_power}, \code{lambda_star}, \code{N}, \code{percent_increase},
 #' \code{power_at_N_no_error}, \code{power_loss_at_N_no_error},
-#' \code{gT_star}, \code{gNT_star}, \code{model_parameters}), plus
+#' \code{gT_star}, \code{gNT_star}, \code{model_parameters}, and
 #' \code{input_mode}.
 #'
 #' @examples
-#' # model_based: identical to tdt_required_trios_full()
-#' tdt_mssn_conditional_full(
+#' # Model-based input
+#' tdt_mssn(
 #'   target_power = 0.80, input_mode = "model_based",
 #'   pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
 #'   verbose = FALSE
 #' )$N$no_error
 #'
 #' # model_free: supply expected transmissions/non-transmissions directly
-#' tdt_mssn_conditional_full(
+#' tdt_mssn(
 #'   target_power = 0.80, input_mode = "model_free",
 #'   ET = 140, ENT = 100, n_trios = 120,
 #'   pd = 0.30, prev = 0.05,
@@ -602,13 +589,11 @@ tdt_power_conditional_full <- function(
 #' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
 #' \emph{Heterogeneity in Statistical Genetics}. Springer Nature.
 #'
-#' @seealso \code{\link{tdt_required_trios_full}}, the function this is
-#'   copied from, and \code{\link{tdt_power_conditional_full}} for the power
-#'   counterpart.
+#' @seealso \code{\link{tdt_power}} for the power counterpart.
 #'
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
-tdt_mssn_conditional_full <- function(
+tdt_mssn <- function(
     target_power,
     input_mode = c("model_based", "model_free"),
     pd   = NULL,
@@ -771,7 +756,7 @@ tdt_mssn_conditional_full <- function(
     prev_ <- pd^2 * f2 + 2 * pd * p_plus * f1 + p_plus^2 * f0
     delta <- delta_prime * pd * p_plus
 
-    # gT* and gNT* implied by the no-error ET/ENT formulas in tdt_power_full
+    # gT* and gNT* implied by the no-error ET/ENT formulas in tdt_power
     gT_nomisc  <- (pd * p_plus + delta * p_plus * C / prev_)
     gNT_nomisc <- (pd * p_plus - delta * pd    * C / prev_)
 
@@ -963,6 +948,6 @@ tdt_mssn_conditional_full <- function(
     )
   )
 
-  class(out) <- "tdt_mssn_conditional_full"
+  class(out) <- "tdt_mssn"
   invisible(out)
 }

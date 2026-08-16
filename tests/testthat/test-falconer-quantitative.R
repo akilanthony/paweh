@@ -7,11 +7,11 @@ falconer_example <- list(
 
 test_that("Falconer parameters reproduce the Chapter 6 univariate example", {
   out <- do.call(
-    falconer_parameters,
+    qtl_falconer_parameters,
     c(falconer_example[c("qtl_var", "tau", "pd")], list(verbose = FALSE))
   )
 
-  expect_s3_class(out, "falconer_parameters")
+  expect_s3_class(out, "qtl_falconer_parameters")
   expect_equal(out$a, 0.2279819, tolerance = 1e-6)
   expect_equal(out$delta, 0.1139909, tolerance = 1e-6)
   expect_equal(out$m, 0.1305196, tolerance = 1e-6)
@@ -24,7 +24,7 @@ test_that("Falconer parameters reproduce the Chapter 6 univariate example", {
 })
 
 test_that("Falconer parameters centre and standardize the trait", {
-  out <- falconer_parameters(
+  out <- qtl_falconer_parameters(
     qtl_var = 0.10, tau = -0.35, pd = 0.27, verbose = FALSE
   )
 
@@ -92,9 +92,9 @@ test_that("ANOVA has near-null power for a near-zero QTL variance", {
 })
 
 test_that("Falconer quantitative functions validate their inputs", {
-  expect_error(falconer_parameters(qtl_var = 0, tau = 0.5, pd = 0.15), "qtl_var")
-  expect_error(falconer_parameters(qtl_var = 1, tau = 0.5, pd = 0.15), "qtl_var")
-  expect_error(falconer_parameters(qtl_var = 0.025, tau = 0.5, pd = 0), "pd")
+  expect_error(qtl_falconer_parameters(qtl_var = 0, tau = 0.5, pd = 0.15), "qtl_var")
+  expect_error(qtl_falconer_parameters(qtl_var = 1, tau = 0.5, pd = 0.15), "qtl_var")
+  expect_error(qtl_falconer_parameters(qtl_var = 0.025, tau = 0.5, pd = 0), "pd")
   expect_error(qtl_anova_power(3, 0.05, 0.025, 0.5, 0.15, verbose = FALSE), "N")
   expect_error(qtl_anova_power(10.5, 0.05, 0.025, 0.5, 0.15, verbose = FALSE), "integer")
   expect_error(qtl_anova_power(100, 1, 0.025, 0.5, 0.15, verbose = FALSE), "alpha")

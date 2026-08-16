@@ -5,30 +5,30 @@ template:
 reference:
 - title: "Case-control: full functions"
   contents:
-  - cc_mssn_conditional_full
-  - cc_power_conditional_full
+  - cc_mssn
+  - cc_power
 - title: "Case-control: specialized functions"
   contents:
-  - cc_mssn_genotypes_conditional_misclass
-  - cc_power_genotypes_conditional_misclass
-  - cc_mssn_genotypes_conditional_misclass_2p
-  - cc_power_genotypes_conditional_misclass_2p
-  - cc_mssn_genotypes_conditional_misclass_3p
-  - cc_power_genotypes_conditional_misclass_3p
-  - cc_mssn_genotypes_conditional_diffmisclass
-  - cc_power_genotypes_conditional_diffmisclass
-  - cc_mssn_locus_het_genotypes
-  - cc_power_locus_het_genotypes
-  - cc_mssn_locus_het_trend
-  - cc_power_locus_het_trend
-  - cc_pheno_power_test
-  - cc_pheno_mssn_test
+  - cc_chisq_mssn_genotype_misclassification_1p
+  - cc_chisq_power_genotype_misclassification_1p
+  - cc_chisq_mssn_genotype_misclassification_2p
+  - cc_chisq_power_genotype_misclassification_2p
+  - cc_chisq_mssn_genotype_misclassification_3p
+  - cc_chisq_power_genotype_misclassification_3p
+  - cc_chisq_mssn_genotype_misclassification_differential_3p
+  - cc_chisq_power_genotype_misclassification_differential_3p
+  - cc_chisq_mssn_locus_heterogeneity
+  - cc_chisq_power_locus_heterogeneity
+  - cc_trend_mssn_locus_heterogeneity
+  - cc_trend_power_locus_heterogeneity
+  - cc_chisq_power_phenotype_misclassification
+  - cc_chisq_mssn_phenotype_misclassification
 - title: "Full-function plotting wrappers"
   contents:
-  - cc_plot_power
-  - cc_plot_mssn
-  - tdt_plot_power
-  - tdt_plot_mssn
+  - plot_cc_power
+  - plot_cc_mssn
+  - plot_tdt_power
+  - plot_tdt_mssn
 - title: Transmission Disequilibrium Test Functions
   contents:
   - starts_with("tdt_")

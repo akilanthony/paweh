@@ -17,14 +17,14 @@ local_pkg_available <- file.exists(file.path(pkg_root, "DESCRIPTION")) &&
   file.exists(file.path(pkg_root, "R", "case_control.R"))
 
 required_exports <- c(
-  "cc_power_conditional_full",
-  "cc_mssn_conditional_full",
-  "cc_plot_power",
-  "cc_plot_mssn",
-  "tdt_power_full",
-  "tdt_required_trios_full",
-  "tdt_plot_power",
-  "tdt_plot_mssn"
+  "cc_power",
+  "cc_mssn",
+  "plot_cc_power",
+  "plot_cc_mssn",
+  "tdt_power",
+  "tdt_mssn",
+  "plot_tdt_power",
+  "plot_tdt_mssn"
 )
 
 missing_exports <- setdiff(required_exports, getNamespaceExports("genmixr"))
@@ -968,7 +968,7 @@ server <- function(input, output, session) {
 
   tdt_power_result <- eventReactive(input$tdt_power_analyze, {
     args <- c(list(N = input$tdt_N), tdt_args(), list(verbose = FALSE))
-    safe_call(do.call(genmixr::tdt_power_full, args))
+    safe_call(do.call(genmixr::tdt_power, args))
   }, ignoreInit = TRUE)
 
   output$tdt_power_table <- renderTable({
@@ -985,7 +985,7 @@ server <- function(input, output, session) {
     )
     n <- input$tdt_N
     x_values <- unique(round(seq(max(1, 0.25 * n), 2 * n, length.out = 24)))
-    print(genmixr::tdt_plot_power(
+    print(genmixr::plot_tdt_power(
       x_var = "N",
       x_values = x_values,
       scenario = input$tdt_power_plot_scenario,
@@ -1003,7 +1003,7 @@ server <- function(input, output, session) {
 
   tdt_mssn_result <- eventReactive(input$tdt_mssn_analyze, {
     args <- c(list(target_power = input$tdt_target_power), tdt_args(), list(verbose = FALSE))
-    safe_call(do.call(genmixr::tdt_required_trios_full, args))
+    safe_call(do.call(genmixr::tdt_mssn, args))
   }, ignoreInit = TRUE)
 
   output$tdt_mssn_table <- renderTable({
@@ -1020,7 +1020,7 @@ server <- function(input, output, session) {
     )
     scenario <- input$tdt_mssn_plot_scenario
     x_var <- if (scenario == "misclassification") "misclass_rate" else "heter_rate"
-    print(genmixr::tdt_plot_mssn(
+    print(genmixr::plot_tdt_mssn(
       x_var = x_var,
       x_values = seq(0, if (x_var == "misclass_rate") 0.20 else 0.80, length.out = 24),
       scenario = scenario,
@@ -1056,9 +1056,9 @@ server <- function(input, output, session) {
         y_label = if (nzchar(input$tdt_plot_y_label)) input$tdt_plot_y_label else NULL
       )
       if (identical(input$tdt_plot_type, "power")) {
-        do.call(genmixr::tdt_plot_power, c(common, list(N = input$tdt_plot_N)))
+        do.call(genmixr::plot_tdt_power, c(common, list(N = input$tdt_plot_N)))
       } else {
-        do.call(genmixr::tdt_plot_mssn, c(common, list(target_power = input$tdt_plot_target_power)))
+        do.call(genmixr::plot_tdt_mssn, c(common, list(target_power = input$tdt_plot_target_power)))
       }
     })
   }, ignoreInit = TRUE)
@@ -1142,7 +1142,7 @@ server <- function(input, output, session) {
   cc_power_result <- eventReactive(input$cc_power_analyze, {
     safe_call({
       args <- c(cc_args(), list(N_case = input$cc_N_case, verbose = FALSE))
-      do.call(genmixr::cc_power_conditional_full, args)
+      do.call(genmixr::cc_power, args)
     })
   }, ignoreInit = TRUE)
 
@@ -1171,13 +1171,13 @@ server <- function(input, output, session) {
       ),
       args
     )
-    print(do.call(genmixr::cc_plot_power, plot_args))
+    print(do.call(genmixr::plot_cc_power, plot_args))
   })
 
   cc_mssn_result <- eventReactive(input$cc_mssn_analyze, {
     safe_call({
       args <- c(cc_args(), list(power = input$cc_target_power, verbose = FALSE))
-      do.call(genmixr::cc_mssn_conditional_full, args)
+      do.call(genmixr::cc_mssn, args)
     })
   }, ignoreInit = TRUE)
 
@@ -1204,7 +1204,7 @@ server <- function(input, output, session) {
       ),
       args
     )
-    print(do.call(genmixr::cc_plot_mssn, plot_args))
+    print(do.call(genmixr::plot_cc_mssn, plot_args))
   })
 
   cc_plot_result <- eventReactive(input$cc_plot_generate, {
@@ -1227,9 +1227,9 @@ server <- function(input, output, session) {
         args
       )
       if (identical(input$cc_plot_type, "power")) {
-        do.call(genmixr::cc_plot_power, c(common, list(N_case = input$cc_plot_N_case)))
+        do.call(genmixr::plot_cc_power, c(common, list(N_case = input$cc_plot_N_case)))
       } else {
-        do.call(genmixr::cc_plot_mssn, c(common, list(power = input$cc_plot_target_power)))
+        do.call(genmixr::plot_cc_mssn, c(common, list(power = input$cc_plot_target_power)))
       }
     })
   }, ignoreInit = TRUE)

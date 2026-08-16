@@ -8,11 +8,11 @@ threshold_example <- list(
 
 test_that("threshold parameters reproduce the Chapter 6 selection example", {
   out <- do.call(
-    falconer_threshold_parameters,
+    qtl_falconer_threshold_parameters,
     c(threshold_example, list(verbose = FALSE))
   )
 
-  expect_s3_class(out, "falconer_threshold_parameters")
+  expect_s3_class(out, "qtl_falconer_threshold_parameters")
   expect_equal(out$upper_threshold, 1.644854, tolerance = 1e-6)
   expect_equal(out$lower_threshold, -1.644854, tolerance = 1e-6)
   expect_equal(unname(out$f_affected), c(0.0388, 0.0781, 0.0963), tolerance = 1e-3)
@@ -27,10 +27,10 @@ test_that("threshold parameters reproduce the Chapter 6 selection example", {
 
 test_that("direct thresholds agree with their percentile equivalents", {
   percentile <- do.call(
-    falconer_threshold_parameters,
+    qtl_falconer_threshold_parameters,
     c(threshold_example, list(verbose = FALSE))
   )
-  direct <- falconer_threshold_parameters(
+  direct <- qtl_falconer_threshold_parameters(
     qtl_var = 0.025, tau = 0.5, pd = 0.15,
     threshold_mode = "direct",
     upper_threshold = percentile$upper_threshold,
@@ -95,15 +95,15 @@ test_that("threshold chi-square has near-null power for a near-zero QTL variance
 
 test_that("Falconer threshold functions validate thresholds and test inputs", {
   expect_error(
-    falconer_threshold_parameters(0.025, 0.5, 0.15, x_upper = 0, x_lower = 5),
+    qtl_falconer_threshold_parameters(0.025, 0.5, 0.15, x_upper = 0, x_lower = 5),
     "x_upper"
   )
   expect_error(
-    falconer_threshold_parameters(0.025, 0.5, 0.15, x_upper = 5, x_lower = 100),
+    qtl_falconer_threshold_parameters(0.025, 0.5, 0.15, x_upper = 5, x_lower = 100),
     "x_lower"
   )
   expect_error(
-    falconer_threshold_parameters(
+    qtl_falconer_threshold_parameters(
       0.025, 0.5, 0.15, threshold_mode = "direct",
       upper_threshold = 0, lower_threshold = 0
     ),

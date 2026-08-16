@@ -25,7 +25,7 @@ TODO: Add exact textbook equation numbers and pages after verification.
 
 The specialized case-control functions are focused convenience functions for users
 who want one calculation at a time. The full functions,
-`cc_power_conditional_full()` and `cc_mssn_conditional_full()`, are still the
+`cc_power()` and `cc_mssn()`, are still the
 main interface for combined workflows.
 
 This vignette groups the specialized functions by calculation type.
@@ -43,7 +43,7 @@ genotype frequencies and return genotype chi-square MSSN or power.
 This evaluated example verifies that the vignette can run:
 
 ```{r}
-cc_power_genotypes_conditional_misclass(
+cc_chisq_power_genotype_misclassification_1p(
   N_case = 200,
   alpha = 0.05,
   prev = 0.10,
@@ -56,7 +56,7 @@ cc_power_genotypes_conditional_misclass(
 ```
 
 ```{r, eval = FALSE}
-cc_mssn_genotypes_conditional_misclass(
+cc_chisq_mssn_genotype_misclassification_1p(
   power = 0.80,
   alpha = 0.05,
   prev = 0.10,
@@ -74,7 +74,7 @@ Trend functions use genotype scores `w`, with the default scores
 `c(0, 1, 2)`.
 
 ```{r, eval = FALSE}
-cc_power_locus_het_trend(
+cc_trend_power_locus_heterogeneity(
   N_case = 200,
   alpha = 0.05,
   g_case_assoc = g_case,
@@ -84,7 +84,7 @@ cc_power_locus_het_trend(
   verbose = FALSE
 )
 
-cc_mssn_locus_het_trend(
+cc_trend_mssn_locus_heterogeneity(
   power = 0.80,
   alpha = 0.05,
   g_case_assoc = g_case,
@@ -101,7 +101,7 @@ Use the 2p or 3p functions when the genotype misclassification model is known
 in advance and only genotype chi-square results are needed.
 
 ```{r, eval = FALSE}
-cc_power_genotypes_conditional_misclass_2p(
+cc_chisq_power_genotype_misclassification_2p(
   N_case = 200,
   alpha = 0.05,
   prev = 0.10,
@@ -113,7 +113,7 @@ cc_power_genotypes_conditional_misclass_2p(
   verbose = FALSE
 )
 
-cc_power_genotypes_conditional_misclass_3p(
+cc_chisq_power_genotype_misclassification_3p(
   N_case = 200,
   alpha = 0.05,
   prev = 0.10,
@@ -133,7 +133,7 @@ These functions apply the case-frequency adjustment
 `pi * g_case_assoc + (1 - pi) * g_ctrl` before computing the requested test.
 
 ```{r, eval = FALSE}
-cc_power_locus_het_genotypes(
+cc_chisq_power_locus_heterogeneity(
   N_case = 200,
   alpha = 0.05,
   g_case_assoc = g_case,
@@ -142,7 +142,7 @@ cc_power_locus_het_genotypes(
   verbose = FALSE
 )
 
-cc_mssn_locus_het_genotypes(
+cc_chisq_mssn_locus_heterogeneity(
   power = 0.80,
   alpha = 0.05,
   g_case_assoc = g_case,
@@ -158,7 +158,7 @@ Differential 3p functions use separate case and control misclassification
 matrices.
 
 ```{r, eval = FALSE}
-cc_power_genotypes_conditional_diffmisclass(
+cc_chisq_power_genotype_misclassification_differential_3p(
   N_case = 200,
   alpha = 0.05,
   prev = 0.10,
@@ -174,7 +174,7 @@ cc_power_genotypes_conditional_diffmisclass(
   verbose = FALSE
 )
 
-cc_mssn_genotypes_conditional_diffmisclass(
+cc_chisq_mssn_genotype_misclassification_differential_3p(
   power = 0.80,
   alpha = 0.05,
   prev = 0.10,

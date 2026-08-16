@@ -6,11 +6,11 @@ falconer_threshold_print_args <- c(
 
 test_that("verbose FALSE suppresses all Falconer console output", {
   expect_silent(do.call(
-    falconer_parameters,
+    qtl_falconer_parameters,
     c(falconer_print_args, list(verbose = FALSE))
   ))
   expect_silent(do.call(
-    falconer_threshold_parameters,
+    qtl_falconer_threshold_parameters,
     c(falconer_threshold_print_args, list(verbose = FALSE))
   ))
   expect_silent(qtl_anova_power(
@@ -37,10 +37,10 @@ test_that("verbose FALSE suppresses all Falconer console output", {
 
 test_that("verbose TRUE prints expected Falconer section headings", {
   parameter_output <- paste(capture.output(
-    do.call(falconer_parameters, falconer_print_args), type = "message"
+    do.call(qtl_falconer_parameters, falconer_print_args), type = "message"
   ), collapse = "\n")
   threshold_output <- paste(capture.output(
-    do.call(falconer_threshold_parameters, falconer_threshold_print_args),
+    do.call(qtl_falconer_threshold_parameters, falconer_threshold_print_args),
     type = "message"
   ), collapse = "\n")
   anova_power_output <- paste(capture.output(
@@ -94,20 +94,20 @@ test_that("verbose TRUE prints expected Falconer section headings", {
 
 test_that("printing does not alter Falconer return values", {
   quiet_parameters <- do.call(
-    falconer_parameters,
+    qtl_falconer_parameters,
     c(falconer_print_args, list(verbose = FALSE))
   )
   printed_parameters <- suppressMessages(do.call(
-    falconer_parameters,
+    qtl_falconer_parameters,
     c(falconer_print_args, list(verbose = TRUE))
   ))
 
   quiet_threshold <- do.call(
-    falconer_threshold_parameters,
+    qtl_falconer_threshold_parameters,
     c(falconer_threshold_print_args, list(verbose = FALSE))
   )
   printed_threshold <- suppressMessages(do.call(
-    falconer_threshold_parameters,
+    qtl_falconer_threshold_parameters,
     c(falconer_threshold_print_args, list(verbose = TRUE))
   ))
 

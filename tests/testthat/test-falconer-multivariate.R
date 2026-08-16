@@ -198,7 +198,7 @@ test_that("phenotype correlation changes threshold and Pillai results", {
 })
 
 test_that("p = 1 threshold behavior agrees with the existing single-trait backend", {
-  old <- falconer_threshold_parameters(
+  old <- qtl_falconer_threshold_parameters(
     qtl_var = 0.025, tau = 0.5, pd = 0.15,
     x_upper = 5, x_lower = 5, verbose = FALSE
   )

@@ -2,13 +2,13 @@
 % Please edit documentation in R/case_control_specialized.R
 \name{case_control_locus_heterogeneity}
 \alias{case_control_locus_heterogeneity}
-\alias{cc_mssn_locus_het_genotypes}
-\alias{cc_power_locus_het_genotypes}
-\alias{cc_mssn_locus_het_trend}
-\alias{cc_power_locus_het_trend}
+\alias{cc_chisq_mssn_locus_heterogeneity}
+\alias{cc_chisq_power_locus_heterogeneity}
+\alias{cc_trend_mssn_locus_heterogeneity}
+\alias{cc_trend_power_locus_heterogeneity}
 \title{Specialized Case-Control Locus-Heterogeneity Functions}
 \usage{
-cc_mssn_locus_het_genotypes(
+cc_chisq_mssn_locus_heterogeneity(
   power,
   alpha,
   g_case_assoc,
@@ -18,7 +18,7 @@ cc_mssn_locus_het_genotypes(
   verbose = TRUE
 )
 
-cc_power_locus_het_genotypes(
+cc_chisq_power_locus_heterogeneity(
   N_case,
   alpha,
   g_case_assoc,
@@ -28,7 +28,7 @@ cc_power_locus_het_genotypes(
   verbose = TRUE
 )
 
-cc_mssn_locus_het_trend(
+cc_trend_mssn_locus_heterogeneity(
   power,
   alpha,
   g_case_assoc,
@@ -39,7 +39,7 @@ cc_mssn_locus_het_trend(
   verbose = TRUE
 )
 
-cc_power_locus_het_trend(
+cc_trend_power_locus_heterogeneity(
   N_case,
   alpha,
   g_case_assoc,
@@ -91,7 +91,7 @@ functions remain the recommended interface when multiple tests or modifiers
 are needed in one call.
 }
 \examples{
-cc_mssn_locus_het_genotypes(
+cc_chisq_mssn_locus_heterogeneity(
   power = 0.8, alpha = 0.05,
   g_case_assoc = c(0.25, 0.50, 0.25),
   g_ctrl = c(0.36, 0.48, 0.16),
@@ -99,7 +99,7 @@ cc_mssn_locus_het_genotypes(
   verbose = FALSE
 )
 
-cc_power_locus_het_trend(
+cc_trend_power_locus_heterogeneity(
   N_case = 500, alpha = 0.05,
   g_case_assoc = c(0.25, 0.50, 0.25),
   g_ctrl = c(0.36, 0.48, 0.16),

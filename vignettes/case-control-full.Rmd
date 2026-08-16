@@ -25,8 +25,8 @@ TODO: Add exact textbook equation numbers and pages after verification.
 
 The full case-control interface has two main functions:
 
-- `cc_power_conditional_full()` computes power for fixed case/control sample sizes.
-- `cc_mssn_conditional_full()` computes minimum sample size necessary (MSSN) for a target power.
+- `cc_power()` computes power for fixed case/control sample sizes.
+- `cc_mssn()` computes minimum sample size necessary (MSSN) for a target power.
 
 Both functions follow the same workflow:
 
@@ -47,7 +47,7 @@ g_ctrl <- c(0.36, 0.48, 0.16)
 This evaluated example verifies that the vignette runs.
 
 ```{r}
-cc_power_conditional_full(
+cc_power(
   N_case = 200,
   alpha = 0.05,
   input_mode = "model_free",
@@ -61,7 +61,7 @@ cc_power_conditional_full(
 # Model-free with locus heterogeneity
 
 ```{r, eval = FALSE}
-cc_power_conditional_full(
+cc_power(
   N_case = 200,
   alpha = 0.05,
   input_mode = "model_free",
@@ -76,7 +76,7 @@ cc_power_conditional_full(
 # Model-free with locus heterogeneity and 3p misclassification
 
 ```{r, eval = FALSE}
-cc_power_conditional_full(
+cc_power(
   N_case = 200,
   alpha = 0.05,
   input_mode = "model_free",
@@ -95,7 +95,7 @@ cc_power_conditional_full(
 # Model-based with locus heterogeneity and 3p misclassification
 
 ```{r, eval = FALSE}
-cc_power_conditional_full(
+cc_power(
   N_case = 200,
   alpha = 0.05,
   input_mode = "model_based",
@@ -116,7 +116,7 @@ cc_power_conditional_full(
 # MSSN example
 
 ```{r, eval = FALSE}
-cc_mssn_conditional_full(
+cc_mssn(
   power = 0.80,
   alpha = 0.05,
   input_mode = "model_free",
@@ -135,7 +135,7 @@ cc_mssn_conditional_full(
 # Differential 3p, explicit parameters
 
 ```{r, eval = FALSE}
-cc_power_conditional_full(
+cc_power(
   N_case = 200,
   alpha = 0.05,
   input_mode = "model_free",
@@ -156,7 +156,7 @@ cc_power_conditional_full(
 # Differential 3p, multiplier from case parameters
 
 ```{r, eval = FALSE}
-cc_power_conditional_full(
+cc_power(
   N_case = 200,
   alpha = 0.05,
   input_mode = "model_free",

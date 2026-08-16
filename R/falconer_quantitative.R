@@ -177,7 +177,7 @@
 #' makes the genotype-weighted trait mean zero, and the residual variance is
 #' \eqn{1 - V_{QTL}}.
 #'
-#' @return An object of class \code{"falconer_parameters"}. The list contains
+#' @return An object of class \code{"qtl_falconer_parameters"}. The list contains
 #'   \code{qtl_var}, \code{tau}, \code{pd}, \code{p_plus}, additive effect
 #'   \code{a}, dominance effect \code{delta}, centering constant \code{m},
 #'   genotype means \code{mu}, mixing proportions \code{pi},
@@ -185,14 +185,14 @@
 #'   \code{total_variance}.
 #'
 #' @examples
-#' falconer_parameters(qtl_var = 0.025, tau = 0.5, pd = 0.15)
+#' qtl_falconer_parameters(qtl_var = 0.025, tau = 0.5, pd = 0.15)
 #'
 #' @references
 #' Gordon et al. (2020), \emph{Heterogeneity in Statistical Genetics},
 #' Chapter 6, Section 6.1, pp. 324--325.
 #'
 #' @export
-falconer_parameters <- function(qtl_var, tau, pd, verbose = TRUE) {
+qtl_falconer_parameters <- function(qtl_var, tau, pd, verbose = TRUE) {
   .falconer_check_scalar(
     qtl_var, "qtl_var", lower = 0, upper = 1,
     lower_open = TRUE, upper_open = TRUE
@@ -262,7 +262,7 @@ falconer_parameters <- function(qtl_var, tau, pd, verbose = TRUE) {
       weighted_mean = weighted_mean,
       total_variance = total_variance
     ),
-    class = "falconer_parameters"
+    class = "qtl_falconer_parameters"
   )
 
   if (isTRUE(verbose)) {
@@ -311,7 +311,7 @@ falconer_parameters <- function(qtl_var, tau, pd, verbose = TRUE) {
 #'
 #' @param N Integer total sample size greater than 3.
 #' @param alpha Significance level in \eqn{(0,1)}.
-#' @inheritParams falconer_parameters
+#' @inheritParams qtl_falconer_parameters
 #' @param count_method Genotype count method. \code{"rounded"} rounds expected
 #'   genotype counts to the nearest integer before computing the ANOVA
 #'   quantities. \code{"expected"} uses expected genotype counts directly
@@ -353,7 +353,7 @@ qtl_anova_power <- function(
   )
   .falconer_check_flag(verbose, "verbose")
 
-  parameters <- falconer_parameters(
+  parameters <- qtl_falconer_parameters(
     qtl_var = qtl_var, tau = tau, pd = pd, verbose = FALSE
   )
   parameters$alpha <- alpha
@@ -475,7 +475,7 @@ qtl_anova_mssn <- function(
   .falconer_check_flag(multiple_of_three, "multiple_of_three")
   .falconer_check_flag(verbose, "verbose")
 
-  parameters <- falconer_parameters(
+  parameters <- qtl_falconer_parameters(
     qtl_var = qtl_var, tau = tau, pd = pd, verbose = FALSE
   )
   step <- if (multiple_of_three) 3L else 1L
