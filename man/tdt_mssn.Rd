@@ -73,11 +73,21 @@ summary of the required numbers of trios, percent inflation, and the
 resulting power when the no-error design is used.}
 }
 \value{
-An object of class \code{"tdt_mssn"}: a list with components \code{alpha},
-\code{target_power}, \code{lambda_star}, \code{N}, \code{percent_increase},
-\code{power_at_N_no_error}, \code{power_loss_at_N_no_error},
-\code{gT_star}, \code{gNT_star}, \code{model_parameters}, and
-\code{input_mode}.
+An object of class \code{"tdt_mssn"}, containing:
+\describe{
+\item{alpha, target_power, lambda_star, input_mode}{Design targets, target
+one-df NCP, and input mode.}
+\item{N}{Named \code{no_error}, \code{misclassification}, and
+\code{heterogeneity} required affected-trio counts.}
+\item{percent_increase}{Modifier-specific percentage inflation relative to
+the no-error required count.}
+\item{power_at_N_no_error, power_loss_at_N_no_error}{Power and power loss
+obtained if the no-error design size is used under each modifier.}
+\item{gT_star, gNT_star}{Scenario-specific transmission and
+non-transmission probabilities used in the MSSN formulas.}
+\item{model_parameters}{Supplied and derived genetic-model, LD,
+misclassification, heterogeneity, and model-free count-scale information.}
+}
 }
 \description{
 Computes the minimum number of affected trios required to achieve a
@@ -93,6 +103,12 @@ With \code{input_mode = "model_based"}, penetrances are derived from
 \code{prev}, \code{R1}, \code{R2}, and \code{pd}, and
 \deqn{N^* = \frac{\lambda^* (g_T^* + g_{NT}^*)}{2 (g_T^* - g_{NT}^*)^2}}
 is computed for each of the three scenarios.
+The no-error calculation follows Eq. 1.25 (p. 27); phenotype
+misclassification follows Eqs. 5.24--5.27 (pp. 284--285); and locus
+heterogeneity follows Eqs. 5.30--5.34b (pp. 293--294). Eq. 5.28 is a
+numerical example. Here \code{heter_rate} is the heterogeneous fraction,
+equal to \eqn{1-\pi} when lower-level formulas use homogeneous fraction
+\eqn{\pi}.
 
 With \code{input_mode = "model_free"}, the no-error scenario uses
 \eqn{g_T = ET / (2\,n_{trios})} and \eqn{g_{NT} = ENT / (2\,n_{trios})}.
@@ -119,8 +135,26 @@ tdt_mssn(
 
 }
 \references{
-Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-\emph{Heterogeneity in Statistical Genetics}. Springer Nature.
+Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
+for linkage disequilibrium: the insulin gene region and insulin-dependent
+diabetes mellitus. \emph{American Journal of Human Genetics}, 52(3),
+506--516. PMID: 8447318; PMCID: PMC1682161.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
+
+Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+a case: Effects of phenotype misclassification on power and sample size
+requirements for the transmission disequilibrium test with affected child
+trios. \emph{Human Heredity}, 67(4), 287--292.
+\doi{10.1159/000194981}.
+
+Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+(2009). Transmission disequilibrium test power and sample size in the
+presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+and Molecular Biology}, 8, Article 44. \doi{10.2202/1544-6115.1501}.
 }
 \seealso{
 \code{\link{tdt_power}} for the power counterpart.

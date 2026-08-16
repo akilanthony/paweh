@@ -46,8 +46,9 @@ A list containing:
 \description{
 Computes the statistical power of the Transmission Disequilibrium Test (TDT)
 using genetic model parameters such as allele frequency, relative risks,
-disease prevalence, and the number of affected trios. Implements Equation 1.25
-from \emph{Gordon et al. (2020), Heterogeneity in Statistical Genetics}.
+disease prevalence, and the number of affected trios. Implements the
+penetrance construction in Eqs. 1.6--1.7 (p. 13) and TDT Eq. 1.25
+(p. 27) of Gordon, Finch, and Kim (2020).
 }
 \details{
 When penetrances (\code{f0}, \code{f1}, \code{f2}) are not provided, they are
@@ -59,6 +60,9 @@ where
 Expected transmission (\eqn{ET}) and non-transmission (\eqn{ENT}) counts are
 computed based on the allele frequency and penetrance model, and the power
 is derived from the non-central chi-square distribution with 1 degree of freedom.
+Here \code{N} is the number of affected-child trios. \code{delta_prime}
+scales \eqn{D=p_d(1-p_d)D'} in the implemented model; the disease-locus and
+marker-locus assumptions should be considered when interpreting \code{pd}.
 }
 \examples{
 # Example: model-based power computation
@@ -69,6 +73,18 @@ tdt_power_from_model(
 
 }
 \references{
-Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-\emph{Heterogeneity in Statistical Genetics}. Springer Nature.
+Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
+for linkage disequilibrium: the insulin gene region and insulin-dependent
+diabetes mellitus. \emph{American Journal of Human Genetics}, 52(3),
+506--516. PMID: 8447318; PMCID: PMC1682161.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
+}
+\seealso{
+\code{\link{tdt_power}},
+\code{\link{tdt_power_from_expected_counts}}, and
+\code{\link{tdt_mssn_from_model}}.
 }

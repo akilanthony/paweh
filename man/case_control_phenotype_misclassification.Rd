@@ -80,6 +80,9 @@ probabilities. Here \code{theta = Pr(affected -> control)} and
 phenotype misclassification; use the full case-control functions for
 combined phenotype misclassification, locus heterogeneity, genotype
 misclassification, or trend tests.
+The observed case distribution is a prevalence-weighted mixture of true
+affected and unaffected genotype probabilities conditional on being
+classified as a case; the control distribution is constructed analogously.
 }
 \examples{
 g_aff <- c((1 - 0.05)^2, 2 * 0.05 * (1 - 0.05), 0.05^2)
@@ -102,5 +105,14 @@ cc_chisq_mssn_phenotype_misclassification(
 Edwards, B. J., Haynes, C., Levenstien, M. A., Finch, S. J., & Gordon, D.
 (2005). Power and sample size calculations in the presence of phenotype
 errors for case/control genetic association studies. \emph{BMC Genetics},
-6, 18.
+6, 18. \doi{10.1186/1471-2156-6-18}. PMID: 15819990.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
+}
+\seealso{
+\code{\link{cc_power}}, \code{\link{cc_mssn}}, and
+\code{\link{case_control_genotype_misclassification}}.
 }

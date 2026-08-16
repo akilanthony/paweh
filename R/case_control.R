@@ -38,8 +38,10 @@
 #'   weights cannot all be equal.
 #' @param geno_misclass Character. Genotype misclassification model:
 #'   \code{"none"}, \code{"1p"}, \code{"2p"}, \code{"3p"}, or \code{"diff3p"}.
-#' @param e Numeric. Symmetric one-parameter misclassification rate for
-#'   \code{geno_misclass = "1p"}.
+#' @param e Numeric in \eqn{[0,0.5]}. For \code{geno_misclass = "1p"}, the
+#'   probability assigned to each adjacent off-diagonal genotype call; the
+#'   diagonal probability is \eqn{1-2e}. Thus the \eqn{\epsilon} in textbook
+#'   Eq. 2.5 equals \eqn{2e}; see Details.
 #' @param e1,e2 Numeric. Two-parameter misclassification rates for
 #'   \code{geno_misclass = "2p"}.
 #' @param e01,e02,e03 Numeric. Non-differential three-parameter
@@ -72,7 +74,8 @@
 #'
 #' With \code{input_mode = "model_based"}, conditional case and control genotype
 #' frequencies are derived from \code{prev}, \code{pd}, \code{R2}, and
-#' \code{MOI}. With \code{input_mode = "model_free"}, the user supplies
+#' \code{MOI} using Chapter 1, Section 1.4.2, Eqs. 1.6--1.7 (p. 13) of
+#' Gordon, Finch, and Kim (2020). With \code{input_mode = "model_free"}, the user supplies
 #' \code{g1} and \code{g0} directly; when phenotype misclassification is
 #' enabled, \code{g1} is treated as the true affected genotype distribution and
 #' \code{g0} is treated as the true unaffected genotype distribution.
@@ -88,6 +91,17 @@
 #' rate, \code{"2p"} for adjacent homozygote/heterozygote and heterozygote
 #' error rates, \code{"3p"} for a non-differential three-parameter matrix, and
 #' \code{"diff3p"} for separate case and control three-parameter matrices.
+#' The one-, two-, and three-parameter matrices correspond to textbook
+#' Eqs. 2.5, 2.6, and 2.7 (pp. 57--58). For \code{"1p"}, package \code{e}
+#' is the probability in each adjacent off-diagonal cell and the diagonal is
+#' \eqn{1-2e}; textbook Eq. 2.5 uses off-diagonal \eqn{\epsilon/2}, so
+#' \eqn{\epsilon=2e}.
+#'
+#' The genotype test uses Eq. 1.22 (p. 26). The trend test is defined by
+#' Eqs. 1.20--1.21 (p. 24) and uses the NCP in Eq. 1.24 (p. 27). Locus
+#' heterogeneity follows Eq. 2.16 (p. 88): \code{pi} is the homogeneous
+#' fraction and \eqn{1-\pi} is the heterogeneous fraction. Its trend-test
+#' construction corresponds to Eqs. 5.29a--b (pp. 287--288).
 #'
 #' For \code{geno_misclass = "diff3p"}, \code{diff_source = "explicit"} uses
 #' the case and control error parameters exactly as supplied. With
@@ -96,20 +110,33 @@
 #' \code{diff_source = "ctrl"}, case parameters are computed by multiplying the
 #' control parameters by \code{diff_multiplier}.
 #'
+#' With \code{geno_misclass = "diff3p"}, returned MSSNs are nominal,
+#' asymptotic values evaluated with the usual chi-square critical value.
+#' Different case and control error mechanisms can distort the null
+#' distribution and inflate type I error. This function does not independently
+#' recalibrate that null distribution for arbitrary differential genotyping
+#' error.
+#'
 #' Internal effect-size components \code{S} are retained in the returned object
 #' for validation and debugging, but are not printed in the clean verbose
 #' output.
 #'
-#' @return An object of class \code{"cc_mssn"}: a nested list
-#' with components \code{alpha}, \code{target_power}, \code{input_mode},
-#' \code{k}, \code{w}, \code{locus_het}, \code{errors}, \code{model_info},
-#' \code{tests}, and \code{freqs}.
-#' \code{errors$phenotype_misclass} stores the phenotype-misclassification
-#' settings and post-phenotype-misclassification frequencies.
-#' \code{tests$genotypes} and \code{tests$trend} contain test labels, degrees
-#' of freedom, target non-centrality parameters, internal \code{S} components,
-#' and MSSN case/control/total values. \code{freqs} stores baseline, true, and
-#' observed case/control genotype frequencies.
+#' @return An object of class \code{"cc_mssn"}, containing:
+#' \describe{
+#' \item{alpha, target_power}{Requested significance level and power.}
+#' \item{input_mode, k, w, locus_het}{Input mode, control-to-case ratio, trend
+#' scores, and locus-heterogeneity settings.}
+#' \item{errors}{Genotype-error model and matrices, plus phenotype-error
+#' settings and intermediate frequencies.}
+#' \item{model_info}{Model-based penetrances and risk-model inputs, or
+#' model-free identifying information.}
+#' \item{tests$genotypes, tests$trend}{Test label, degrees of freedom, target
+#' NCP \code{lambda_star}, internal \code{S}, and case, control, and total MSSN.
+#' The trend result also contains its numerator and denominator. Sample sizes
+#' are numbers of individuals.}
+#' \item{freqs}{Baseline, post-heterogeneity (true), post-phenotype-error, and
+#' final observed case and control genotype-probability vectors.}
+#' }
 #'
 #' @examples
 #' cc_mssn(
@@ -151,17 +178,32 @@
 #' )
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' Gordon, D., Finch, S. J., Nothnagel, M., & Ott, J. (2002). Power and sample
+#' size calculations for case-control genetic association tests when errors
+#' are present: application to single nucleotide polymorphisms.
+#' \emph{Human Heredity}, 54(1), 22--33. \doi{10.1159/000066696}.
+#'
+#' Armitage, P. (1955). Tests for linear trends in proportions and frequencies.
+#' \emph{Biometrics}, 11(3), 375--386. \doi{10.2307/3001775}.
+#'
+#' Slager, S. L., & Schaid, D. J. (2001). Case-control studies of genetic
+#' markers: power and sample size approximations for Armitage's test for trend.
+#' \emph{Human Heredity}, 52(3), 149--153. \doi{10.1159/000053370}.
 #'
 #' Edwards, B. J., Haynes, C., Levenstien, M. A., Finch, S. J., & Gordon, D.
 #' (2005). Power and sample size calculations in the presence of phenotype
 #' errors for case/control genetic association studies. \emph{BMC Genetics},
-#' 6, 18.
+#' 6, 18. \doi{10.1186/1471-2156-6-18}.
 #'
-#' TODO: Provide exact textbook equation numbers/pages for the case-control
-#' genotype, trend, locus-heterogeneity, and genotype-misclassification
-#' calculations.
+#' @seealso \code{\link{cc_power}},
+#' \code{\link{case_control_genotype_misclassification}},
+#' \code{\link{case_control_locus_heterogeneity}}, and
+#' \code{\link{case_control_phenotype_misclassification}}.
 #'
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
@@ -859,8 +901,9 @@ if (geno_misclass == "none") {
 #'   weights cannot all be equal.
 #' @param geno_misclass Character. Genotype misclassification model:
 #'   \code{"none"}, \code{"1p"}, \code{"2p"}, \code{"3p"}, or \code{"diff3p"}.
-#' @param e Numeric. Symmetric one-parameter misclassification rate for
-#'   \code{geno_misclass = "1p"}.
+#' @param e Numeric in \eqn{[0,0.5]}. For \code{geno_misclass = "1p"}, the
+#'   probability assigned to each adjacent off-diagonal genotype call. The
+#'   textbook Eq. 2.5 parameter satisfies \eqn{\epsilon=2e}; see Details.
 #' @param e1,e2 Numeric. Two-parameter misclassification rates for
 #'   \code{geno_misclass = "2p"}.
 #' @param e01,e02,e03 Numeric. Non-differential three-parameter
@@ -893,7 +936,8 @@ if (geno_misclass == "none") {
 #'
 #' With \code{input_mode = "model_based"}, conditional case and control genotype
 #' frequencies are derived from \code{prev}, \code{pd}, \code{R2}, and
-#' \code{MOI}. With \code{input_mode = "model_free"}, the user supplies
+#' \code{MOI} using Chapter 1, Section 1.4.2, Eqs. 1.6--1.7 (p. 13) of
+#' Gordon, Finch, and Kim (2020). With \code{input_mode = "model_free"}, the user supplies
 #' \code{g1} and \code{g0} directly; when phenotype misclassification is
 #' enabled, \code{g1} is treated as the true affected genotype distribution and
 #' \code{g0} is treated as the true unaffected genotype distribution.
@@ -909,6 +953,14 @@ if (geno_misclass == "none") {
 #' rate, \code{"2p"} for adjacent homozygote/heterozygote and heterozygote
 #' error rates, \code{"3p"} for a non-differential three-parameter matrix, and
 #' \code{"diff3p"} for separate case and control three-parameter matrices.
+#' These matrices correspond to Eqs. 2.5--2.7 (pp. 57--58). For \code{"1p"},
+#' package \code{e} is the probability in each adjacent off-diagonal cell and
+#' the diagonal is \eqn{1-2e}; textbook Eq. 2.5 uses off-diagonal
+#' \eqn{\epsilon/2}, so \eqn{\epsilon=2e}. The genotype and trend tests use
+#' Eqs. 1.22 and 1.24 (pp. 26--27), with the trend statistic defined by
+#' Eqs. 1.20--1.21 (p. 24). Locus heterogeneity follows Eq. 2.16 (p. 88), where
+#' \code{pi} is the homogeneous fraction; its trend-test form is given in
+#' Eqs. 5.29a--b (pp. 287--288).
 #'
 #' For \code{geno_misclass = "diff3p"}, \code{diff_source = "explicit"} uses
 #' the case and control error parameters exactly as supplied. With
@@ -917,20 +969,32 @@ if (geno_misclass == "none") {
 #' \code{diff_source = "ctrl"}, case parameters are computed by multiplying the
 #' control parameters by \code{diff_multiplier}.
 #'
+#' With \code{geno_misclass = "diff3p"}, returned power is nominal asymptotic
+#' power evaluated with the usual chi-square critical value. Different case
+#' and control error mechanisms can distort the null distribution and inflate
+#' type I error. This function does not independently recalibrate the null
+#' distribution for arbitrary differential genotyping error.
+#'
 #' Internal effect-size components \code{S} are retained in the returned object
 #' for validation and debugging, but are not printed in the clean verbose
 #' output.
 #'
-#' @return An object of class \code{"cc_power"}: a nested list
-#' with components \code{alpha}, \code{N_case}, \code{N_ctrl}, \code{N_total},
-#' \code{input_mode}, \code{k}, \code{w}, \code{locus_het}, \code{errors},
-#' \code{model_info}, \code{tests}, and \code{freqs}.
-#' \code{errors$phenotype_misclass} stores the
-#' phenotype-misclassification settings and post-phenotype-misclassification
-#' frequencies. \code{tests$genotypes} and \code{tests$trend} contain test
-#' labels, degrees of freedom, non-centrality parameters, internal \code{S}
-#' components, and power. \code{freqs} stores baseline, true, and observed
-#' case/control genotype frequencies.
+#' @return An object of class \code{"cc_power"}, containing:
+#' \describe{
+#' \item{alpha, N_case, N_ctrl, N_total}{Significance level and numbers of
+#' case, control, and total individuals.}
+#' \item{input_mode, k, w, locus_het}{Input mode, control-to-case ratio, trend
+#' scores, and locus-heterogeneity settings.}
+#' \item{errors}{Genotype-error model and matrices, plus phenotype-error
+#' settings and intermediate frequencies.}
+#' \item{model_info}{Model-based penetrances and risk-model inputs, or
+#' model-free identifying information.}
+#' \item{tests$genotypes, tests$trend}{Test label, degrees of freedom, NCP
+#' \code{lambda}, internal \code{S}, and power. The trend result also contains
+#' its numerator and denominator.}
+#' \item{freqs}{Baseline, post-heterogeneity (true), post-phenotype-error, and
+#' final observed case and control genotype-probability vectors.}
+#' }
 #'
 #' @examples
 #' cc_power(
@@ -1002,17 +1066,32 @@ if (geno_misclass == "none") {
 #' )
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' Gordon, D., Finch, S. J., Nothnagel, M., & Ott, J. (2002). Power and sample
+#' size calculations for case-control genetic association tests when errors
+#' are present: application to single nucleotide polymorphisms.
+#' \emph{Human Heredity}, 54(1), 22--33. \doi{10.1159/000066696}.
+#'
+#' Armitage, P. (1955). Tests for linear trends in proportions and frequencies.
+#' \emph{Biometrics}, 11(3), 375--386. \doi{10.2307/3001775}.
+#'
+#' Slager, S. L., & Schaid, D. J. (2001). Case-control studies of genetic
+#' markers: power and sample size approximations for Armitage's test for trend.
+#' \emph{Human Heredity}, 52(3), 149--153. \doi{10.1159/000053370}.
 #'
 #' Edwards, B. J., Haynes, C., Levenstien, M. A., Finch, S. J., & Gordon, D.
 #' (2005). Power and sample size calculations in the presence of phenotype
 #' errors for case/control genetic association studies. \emph{BMC Genetics},
-#' 6, 18.
+#' 6, 18. \doi{10.1186/1471-2156-6-18}.
 #'
-#' TODO: Provide exact textbook equation numbers/pages for the case-control
-#' genotype, trend, locus-heterogeneity, and genotype-misclassification
-#' calculations.
+#' @seealso \code{\link{cc_mssn}},
+#' \code{\link{case_control_genotype_misclassification}},
+#' \code{\link{case_control_locus_heterogeneity}}, and
+#' \code{\link{case_control_phenotype_misclassification}}.
 #'
 #' @importFrom stats pchisq qchisq
 #' @export

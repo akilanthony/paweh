@@ -74,8 +74,19 @@
 #' \eqn{f_0, f_1, f_2} are derived
 #' from \code{prev}, \code{R1}, \code{R2}, and \code{pd}, and the expected
 #' transmission and non-transmission probabilities under each of the three
-#' scenarios are computed exactly as in that function (misclassification via
-#' Equations 5.26-5.28, heterogeneity via Equation 5.34).
+#' scenarios are computed from the standard TDT formulation in Eq. 1.25
+#' (Chapter 1, Section 1.6.1.3, p. 27), the phenotype-misclassification
+#' probabilities in Eqs. 5.24--5.27 (Section 5.2.6, pp. 284--285), and the
+#' locus-heterogeneity construction in Eqs. 5.30--5.34a (Section 5.3.3,
+#' pp. 293--294) of Gordon, Finch, and Kim (2020). Eq. 5.28 is a numerical
+#' worked example, not the general symbolic formula.
+#'
+#' \code{N} is the number of affected-child trios, with both parents genotyped.
+#' \code{ET} and \code{ENT} are expected counts accumulated over trios, whereas
+#' \eqn{g_T} and \eqn{g_{NT}} are per-parental-allele transmission and
+#' non-transmission probabilities. \code{heter_rate} is the heterogeneous
+#' fraction; in lower-level formulas written with the linked/homogeneous
+#' fraction \eqn{\pi}, \eqn{\text{heter_rate}=1-\pi}.
 #'
 #' With \code{input_mode = "model_free"}, the no-error scenario uses
 #' \eqn{g_T = ET / (2N)} and \eqn{g_{NT} = ENT / (2N)} directly. The
@@ -102,12 +113,21 @@
 #' is used, with a message reporting the derived value. An error is raised if
 #' no such unique root exists -- supplying \code{pd} directly is preferred.
 #'
-#' @return
-#' An object of class \code{"tdt_power"}: a list with components
-#' \code{alpha}, \code{N},
-#' \code{lambda}, \code{power}, \code{power_loss}, \code{gT_star},
-#' \code{gNT_star}, \code{ET}, \code{ENT}, \code{model_parameters}, and
-#' \code{input_mode}.
+#' @return An object of class \code{"tdt_power"}, containing:
+#' \describe{
+#' \item{alpha, N, input_mode}{Significance level, affected-trio count, and
+#' input mode.}
+#' \item{lambda, power}{Named \code{no_error}, \code{misclassification}, and
+#' \code{heterogeneity} NCP and power values.}
+#' \item{power_loss}{Absolute power loss for each modifier relative to the
+#' no-error scenario.}
+#' \item{gT_star, gNT_star}{Scenario-specific transmission and
+#' non-transmission probabilities.}
+#' \item{ET, ENT}{Scenario-specific expected transmission and
+#' non-transmission counts for the supplied \code{N} trios.}
+#' \item{model_parameters}{Supplied and derived genetic-model, LD,
+#' misclassification, and heterogeneity parameters.}
+#' }
 #'
 #' @examples
 #' # Model-based input
@@ -128,10 +148,26 @@
 #' )$power$no_error
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' \emph{Heterogeneity in Statistical Genetics}. Springer Nature.
-#' Equations 5.26-5.28 (misclassification) and Equation 5.34
-#' (heterogeneity).
+#' Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
+#' for linkage disequilibrium: the insulin gene region and insulin-dependent
+#' diabetes mellitus. \emph{American Journal of Human Genetics}, 52(3),
+#' 506--516. PMID: 8447318; PMCID: PMC1682161.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+#' a case: Effects of phenotype misclassification on power and sample size
+#' requirements for the transmission disequilibrium test with affected child
+#' trios. \emph{Human Heredity}, 67(4), 287--292.
+#' \doi{10.1159/000194981}.
+#'
+#' Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+#' (2009). Transmission disequilibrium test power and sample size in the
+#' presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+#' and Molecular Biology}, 8, Article 44. \doi{10.2202/1544-6115.1501}.
 #'
 #' @seealso \code{\link{tdt_mssn}} for the MSSN counterpart.
 #'
@@ -170,7 +206,7 @@ tdt_power <- function(
       stop("For input_mode='model_free' with misclass_rate != 0, prev must be supplied.")
   }
 
-  ## ---------- internal helper: gT* and gNT* with misclassification (Eq. 5.28a,b) ----------
+  ## ---------- internal helper: gT* and gNT* with misclassification (Eq. 5.26) ----------
   calc_gTgNT_misclass <- function(pd, prev, R1, R2,
                                   delta_prime, pi01) {
     p_plus <- 1 - pd
@@ -211,7 +247,7 @@ tdt_power <- function(
     )
   }
 
-  ## ---------- internal helper: gT* and gNT* with heterogeneity (Eq. 5.34) ----------
+  ## ---------- internal helper: gT* and gNT* with heterogeneity (Eqs. 5.33-5.34a) ----------
   calc_gTgNT_heter <- function(pd, prev, R1, R2,
                                delta_prime, heter_rate) {
     p_plus <- 1 - pd
@@ -554,6 +590,12 @@ tdt_power <- function(
 #' \code{prev}, \code{R1}, \code{R2}, and \code{pd}, and
 #' \deqn{N^* = \frac{\lambda^* (g_T^* + g_{NT}^*)}{2 (g_T^* - g_{NT}^*)^2}}
 #' is computed for each of the three scenarios.
+#' The no-error calculation follows Eq. 1.25 (p. 27); phenotype
+#' misclassification follows Eqs. 5.24--5.27 (pp. 284--285); and locus
+#' heterogeneity follows Eqs. 5.30--5.34b (pp. 293--294). Eq. 5.28 is a
+#' numerical example. Here \code{heter_rate} is the heterogeneous fraction,
+#' equal to \eqn{1-\pi} when lower-level formulas use homogeneous fraction
+#' \eqn{\pi}.
 #'
 #' With \code{input_mode = "model_free"}, the no-error scenario uses
 #' \eqn{g_T = ET / (2\,n_{trios})} and \eqn{g_{NT} = ENT / (2\,n_{trios})}.
@@ -562,12 +604,21 @@ tdt_power <- function(
 #' Details for the formulas and the \code{pd}-solving fallback), applied to
 #' this no-error \eqn{g_T}/\eqn{g_{NT}} pair.
 #'
-#' @return
-#' An object of class \code{"tdt_mssn"}: a list with components \code{alpha},
-#' \code{target_power}, \code{lambda_star}, \code{N}, \code{percent_increase},
-#' \code{power_at_N_no_error}, \code{power_loss_at_N_no_error},
-#' \code{gT_star}, \code{gNT_star}, \code{model_parameters}, and
-#' \code{input_mode}.
+#' @return An object of class \code{"tdt_mssn"}, containing:
+#' \describe{
+#' \item{alpha, target_power, lambda_star, input_mode}{Design targets, target
+#' one-df NCP, and input mode.}
+#' \item{N}{Named \code{no_error}, \code{misclassification}, and
+#' \code{heterogeneity} required affected-trio counts.}
+#' \item{percent_increase}{Modifier-specific percentage inflation relative to
+#' the no-error required count.}
+#' \item{power_at_N_no_error, power_loss_at_N_no_error}{Power and power loss
+#' obtained if the no-error design size is used under each modifier.}
+#' \item{gT_star, gNT_star}{Scenario-specific transmission and
+#' non-transmission probabilities used in the MSSN formulas.}
+#' \item{model_parameters}{Supplied and derived genetic-model, LD,
+#' misclassification, heterogeneity, and model-free count-scale information.}
+#' }
 #'
 #' @examples
 #' # Model-based input
@@ -586,8 +637,26 @@ tdt_power <- function(
 #' )$N$no_error
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' \emph{Heterogeneity in Statistical Genetics}. Springer Nature.
+#' Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
+#' for linkage disequilibrium: the insulin gene region and insulin-dependent
+#' diabetes mellitus. \emph{American Journal of Human Genetics}, 52(3),
+#' 506--516. PMID: 8447318; PMCID: PMC1682161.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+#' a case: Effects of phenotype misclassification on power and sample size
+#' requirements for the transmission disequilibrium test with affected child
+#' trios. \emph{Human Heredity}, 67(4), 287--292.
+#' \doi{10.1159/000194981}.
+#'
+#' Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+#' (2009). Transmission disequilibrium test power and sample size in the
+#' presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+#' and Molecular Biology}, 8, Article 44. \doi{10.2202/1544-6115.1501}.
 #'
 #' @seealso \code{\link{tdt_power}} for the power counterpart.
 #'
@@ -630,7 +699,7 @@ tdt_mssn <- function(
       stop("For input_mode='model_free' with misclass_rate != 0, prev must be supplied.")
   }
 
-  ## ---------- internal helper: gT* and gNT* with misclassification (Eq. 5.28a,b) ----------
+  ## ---------- internal helper: gT* and gNT* with misclassification (Eq. 5.26) ----------
   calc_gTgNT_misclass <- function(pd, prev, R1, R2,
                                   delta_prime, pi01) {
     p_plus <- 1 - pd
@@ -669,7 +738,7 @@ tdt_mssn <- function(
     )
   }
 
-  ## ---------- internal helper: gT* and gNT* with heterogeneity (Eq. 5.34) ----------
+  ## ---------- internal helper: gT* and gNT* with heterogeneity (Eqs. 5.33-5.34a) ----------
   calc_gTgNT_heter <- function(pd, prev, R1, R2,
                                delta_prime, heter_rate) {
     p_plus <- 1 - pd

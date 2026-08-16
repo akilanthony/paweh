@@ -15,11 +15,13 @@ knitr::opts_chunk$set(
 library(genmixr)
 ```
 
-# Draft note
+# Methodological map
 
-Draft vignette. Equation/page references will be finalized after textbook verification.
-
-TODO: Add exact textbook equation numbers and pages after verification.
+The specialized genotype-error functions use the genotype chi-square NCP in
+Eq. 1.22 (p. 26) and error matrices in Eqs. 2.5--2.7 (pp. 57--58) of Gordon,
+Finch, and Kim (2020). Locus-heterogeneity functions use Eq. 2.16 (p. 88);
+the trend-test versions additionally correspond to Eqs. 5.29a--b
+(pp. 287--288).
 
 # Overview
 

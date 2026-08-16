@@ -177,6 +177,13 @@
 #' makes the genotype-weighted trait mean zero, and the residual variance is
 #' \eqn{1 - V_{QTL}}.
 #'
+#' This is a classical, Falconer-style quantitative-genetic parameterization
+#' as formulated for this study-design framework by Gordon, Finch, and Kim
+#' (2020), Chapter 6, Section 6.1. The population mixture is Eq. 6.1
+#' (p. 324); the additive effect, dominance effect, and centering formulas on
+#' p. 325 are unnumbered. The function name does not assert that every exact
+#' implemented expression is a numbered equation in Falconer and Mackay.
+#'
 #' @return An object of class \code{"qtl_falconer_parameters"}. The list contains
 #'   \code{qtl_var}, \code{tau}, \code{pd}, \code{p_plus}, additive effect
 #'   \code{a}, dominance effect \code{delta}, centering constant \code{m},
@@ -188,8 +195,23 @@
 #' qtl_falconer_parameters(qtl_var = 0.025, tau = 0.5, pd = 0.15)
 #'
 #' @references
-#' Gordon et al. (2020), \emph{Heterogeneity in Statistical Genetics},
-#' Chapter 6, Section 6.1, pp. 324--325.
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer, Chapter 6,
+#' Section 6.1, pp. 324--325. \doi{10.1007/978-3-030-61121-7}.
+#'
+#' Fisher, R. A. (1918). The correlation between relatives on the supposition
+#' of Mendelian inheritance. \emph{Transactions of the Royal Society of
+#' Edinburgh}, 52, 399--433. \doi{10.1017/S0080456800012163}.
+#'
+#' Lynch, M., & Walsh, B. (1998). \emph{Genetics and Analysis of Quantitative
+#' Traits}. Sinauer Associates.
+#'
+#' Falconer, D. S., & Mackay, T. F. C. (1996). \emph{Introduction to
+#' Quantitative Genetics}, 4th ed. Longman.
+#'
+#' @seealso \code{\link{qtl_falconer_threshold_parameters}},
+#' \code{\link{qtl_anova_power}}, and \code{\link{qtl_anova_mssn}}.
 #'
 #' @export
 qtl_falconer_parameters <- function(qtl_var, tau, pd, verbose = TRUE) {
@@ -318,6 +340,17 @@ qtl_falconer_parameters <- function(qtl_var, tau, pd, verbose = TRUE) {
 #'   without rounding.
 #' @param verbose Logical. If \code{TRUE}, prints a concise summary.
 #'
+#' @details
+#' The three genotype groups have the means returned by
+#' \code{qtl_falconer_parameters()} and a common residual variance
+#' \eqn{1-V_{QTL}}. Genotype group counts are either rounded Hardy--Weinberg
+#' expectations or unrounded expected counts according to \code{count_method}.
+#' The between-group effect gives the noncentrality parameter in textbook
+#' Eq. 6.8, and power is the upper tail of a noncentral F distribution with
+#' numerator degrees of freedom 2 and denominator degrees of freedom
+#' \eqn{N-3}. Genotype counts follow Eq. 6.7 (Chapter 6, Section 6.1.1,
+#' p. 328).
+#'
 #' @return An object of class \code{"qtl_anova_power"} containing power,
 #'   sample size, degrees of freedom, critical value, non-centrality parameter,
 #'   genotype counts, genotype means, residual variance, and the complete
@@ -330,8 +363,14 @@ qtl_falconer_parameters <- function(qtl_var, tau, pd, verbose = TRUE) {
 #' )
 #'
 #' @references
-#' Gordon et al. (2020), \emph{Heterogeneity in Statistical Genetics},
-#' Chapter 6, Section 6.1, Equations 6.1, 6.7, and 6.8.
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer, Chapter 6,
+#' Section 6.1.1, Eqs. 6.7--6.8, p. 328.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{qtl_anova_mssn}} and
+#' \code{\link{qtl_falconer_parameters}}.
 #'
 #' @importFrom stats pf qf
 #' @export
@@ -441,6 +480,15 @@ qtl_anova_power <- function(
 #' @param multiple_of_three Logical. If \code{TRUE}, searches sample sizes in
 #'   multiples of three. If \code{FALSE}, searches every integer sample size.
 #'
+#' @details
+#' For every candidate integer \code{N}, the genotype counts, denominator
+#' degrees of freedom, noncentrality parameter, critical F value, and achieved
+#' power are recomputed. With \code{count_method = "rounded"}, candidates for
+#' which any genotype group has zero members are excluded. The first candidate
+#' attaining \code{power} is returned; setting \code{multiple_of_three = TRUE}
+#' restricts the search grid rather than changing the ANOVA formula. The model
+#' and NCP follow textbook Eqs. 6.7--6.8 (p. 328).
+#'
 #' @return An object of class \code{"qtl_anova_mssn"} containing the smallest
 #'   sufficient \code{N}, achieved power, degrees of freedom, non-centrality
 #'   parameter, genotype counts, and Falconer parameters.
@@ -450,6 +498,16 @@ qtl_anova_power <- function(
 #'   power = 0.8, alpha = 0.0001, qtl_var = 0.025,
 #'   tau = 0.5, pd = 0.15, verbose = FALSE
 #' )
+#'
+#' @references
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer, Chapter 6,
+#' Section 6.1.1, Eqs. 6.7--6.8, p. 328.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{qtl_anova_power}} and
+#' \code{\link{qtl_falconer_parameters}}.
 #'
 #' @importFrom stats pf qf
 #' @export

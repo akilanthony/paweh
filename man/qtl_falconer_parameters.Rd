@@ -35,12 +35,35 @@ Their Hardy-Weinberg mixing proportions are
 \eqn{((1-p_d)^2, 2p_d(1-p_d), p_d^2)}. The population-centering constant
 makes the genotype-weighted trait mean zero, and the residual variance is
 \eqn{1 - V_{QTL}}.
+
+This is a classical, Falconer-style quantitative-genetic parameterization
+as formulated for this study-design framework by Gordon, Finch, and Kim
+(2020), Chapter 6, Section 6.1. The population mixture is Eq. 6.1
+(p. 324); the additive effect, dominance effect, and centering formulas on
+p. 325 are unnumbered. The function name does not assert that every exact
+implemented expression is a numbered equation in Falconer and Mackay.
 }
 \examples{
 qtl_falconer_parameters(qtl_var = 0.025, tau = 0.5, pd = 0.15)
 
 }
 \references{
-Gordon et al. (2020), \emph{Heterogeneity in Statistical Genetics},
-Chapter 6, Section 6.1, pp. 324--325.
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer, Chapter 6,
+Section 6.1, pp. 324--325. \doi{10.1007/978-3-030-61121-7}.
+
+Fisher, R. A. (1918). The correlation between relatives on the supposition
+of Mendelian inheritance. \emph{Transactions of the Royal Society of
+Edinburgh}, 52, 399--433. \doi{10.1017/S0080456800012163}.
+
+Lynch, M., & Walsh, B. (1998). \emph{Genetics and Analysis of Quantitative
+Traits}. Sinauer Associates.
+
+Falconer, D. S., & Mackay, T. F. C. (1996). \emph{Introduction to
+Quantitative Genetics}, 4th ed. Longman.
+}
+\seealso{
+\code{\link{qtl_falconer_threshold_parameters}},
+\code{\link{qtl_anova_power}}, and \code{\link{qtl_anova_mssn}}.
 }

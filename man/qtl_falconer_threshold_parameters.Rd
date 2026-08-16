@@ -53,6 +53,12 @@ Cases are selected above the upper threshold and controls below the lower
 threshold. The middle portion is excluded, so the affected and unaffected
 selection events are not complements. Percentile inputs refer to standard
 normal population percentiles before conditioning on genotype.
+The genotype-specific normal mixture follows Eq. 6.1 (pp. 324--325).
+Genotype-specific upper- and lower-tail probabilities, their population
+prevalences, and conditional genotype frequencies follow Eqs. 6.3--6.5
+(p. 326). Eq. 6.6 (p. 327) is a numerical worked example, not an additional
+symbolic step. This is a classical/Falconer-style parameterization as
+formulated for this design framework by Gordon, Finch, and Kim (2020).
 }
 \examples{
 qtl_falconer_threshold_parameters(
@@ -62,6 +68,17 @@ qtl_falconer_threshold_parameters(
 
 }
 \references{
-Gordon et al. (2020), \emph{Heterogeneity in Statistical Genetics},
-Chapter 6, Section 6.1, Equations 6.3--6.5.
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer, Chapter 6,
+Section 6.1, Eqs. 6.3--6.5, p. 326.
+\doi{10.1007/978-3-030-61121-7}.
+
+Falconer, D. S., & Mackay, T. F. C. (1996). \emph{Introduction to
+Quantitative Genetics}, 4th ed. Longman.
+}
+\seealso{
+\code{\link{qtl_falconer_parameters}},
+\code{\link{qtl_threshold_chisq_power}}, and
+\code{\link{qtl_threshold_chisq_mssn}}.
 }

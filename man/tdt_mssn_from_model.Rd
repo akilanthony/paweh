@@ -33,8 +33,8 @@ tdt_mssn_from_model(
 
 \item{delta_prime}{Numeric. Linkage disequilibrium (LD) scale factor (default = 1).}
 
-\item{pi}{Numeric. Heterogeneity parameter, where 1 represents full homogeneity
-and values between 0–1 allow for mixed genetic effects (default = 1).}
+\item{pi}{Numeric in \eqn{[0,1]}. Linked/homogeneous trio fraction; \code{1}
+is complete homogeneity and \eqn{1-\pi} is the heterogeneous fraction.}
 }
 \value{
 A list containing:
@@ -47,8 +47,9 @@ A list containing:
 Computes the required number of affected trios (\eqn{N^*}) needed to achieve
 a specified statistical power in the Transmission Disequilibrium Test (TDT),
 given model parameters for allele frequency, relative risks, disease prevalence,
-and heterogeneity. Implements Equation 5.34b from
-\emph{Gordon et al. (2020), Heterogeneity in Statistical Genetics}.
+and heterogeneity. Implements the probability and MSSN chain in
+Eqs. 5.33--5.34b (Chapter 5, Section 5.3.3, pp. 293--294) of Gordon,
+Finch, and Kim (2020).
 }
 \details{
 This function determines the non-centrality parameter (\eqn{\lambda^*}) via
@@ -58,7 +59,8 @@ It then computes the expected transmission (\eqn{gT^*}) and non-transmission
 \deqn{N^* = \frac{\lambda^*}{2} \frac{(gT^* + gNT^*)}{(gT^* - gNT^*)^2}}
 
 The expected transmission and non-transmission components are calculated
-under allele frequency and penetrance model assumptions (see Eq. 5.34b).
+under allele frequency and penetrance model assumptions in Eq. 5.33. Their
+NCP and MSSN are Eqs. 5.34a--b.
 }
 \examples{
 # Example: compute required trios for 80\% power at alpha = 0.05
@@ -70,6 +72,17 @@ tdt_mssn_from_model(
 
 }
 \references{
-Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-\emph{Heterogeneity in Statistical Genetics}. Springer Nature.
+Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+(2009). Transmission disequilibrium test power and sample size in the
+presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+and Molecular Biology}, 8, Article 44. \doi{10.2202/1544-6115.1501}.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
+}
+\seealso{
+\code{\link{tdt_mssn}}, \code{\link{tdt_power_from_model}}, and
+\code{\link{tdt_expected_transmission_counts}}.
 }

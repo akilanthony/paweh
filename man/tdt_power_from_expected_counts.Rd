@@ -23,12 +23,14 @@ A list containing:
 \description{
 Computes the statistical power of the Transmission Disequilibrium Test (TDT)
 given the expected number of transmissions (ET) and non-transmissions (ENT)
-under a specified significance level. Implements Equation 1.25 from
-\emph{Gordon et al. (2020), Heterogeneity in Statistical Genetics}.
+under a specified significance level. Implements Eq. 1.25 (Chapter 1,
+Section 1.6.1.3, p. 27) of Gordon, Finch, and Kim (2020).
 }
 \details{
 The function calculates the non-centrality parameter and statistical power for the TDT
 using the chi-square distribution with 1 degree of freedom.
+\code{ET} and \code{ENT} are expected counts, not probabilities, and must
+refer to the same affected-trio design.
 
 The non-centrality parameter is computed as:
 \deqn{\lambda = \frac{(ET - ENT)^2}{ET + ENT}}
@@ -42,6 +44,16 @@ tdt_power_from_expected_counts(ET = 140, ENT = 100, alpha = 0.05)
 
 }
 \references{
-Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-\emph{Heterogeneity in Statistical Genetics}. Springer Nature.
+Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
+for linkage disequilibrium: the insulin gene region and insulin-dependent
+diabetes mellitus. \emph{American Journal of Human Genetics}, 52(3),
+506--516. PMID: 8447318; PMCID: PMC1682161.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
+}
+\seealso{
+\code{\link{tdt_power}} and \code{\link{tdt_power_from_model}}.
 }
