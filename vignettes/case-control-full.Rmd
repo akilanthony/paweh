@@ -1,8 +1,8 @@
 ---
-title: "Case-control full functions in genmixr"
+title: "Case-control full functions in pawh"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Case-control full functions in genmixr}
+  %\VignetteIndexEntry{Case-control full functions in pawh}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-library(genmixr)
+library(pawh)
 ```
 
 # Methodological map

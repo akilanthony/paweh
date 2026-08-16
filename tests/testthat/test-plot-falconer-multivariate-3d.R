@@ -14,7 +14,7 @@ test_that("3D density surface returns a Plotly widget with validated data", {
   ))
   dat <- attr(p, "plot_data")
   model <- attr(p, "falconer_model")
-  direct <- do.call(genmixr:::.falconer_mv_parameters, mv_plot3d_args[1:4])
+  direct <- do.call(pawh:::.falconer_mv_parameters, mv_plot3d_args[1:4])
 
   expect_s3_class(p, "plotly")
   expect_s3_class(p, "htmlwidget")

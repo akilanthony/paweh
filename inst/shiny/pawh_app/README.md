@@ -1,6 +1,6 @@
-# genmixr alpha-test Shiny app
+# pawh alpha-test Shiny app
 
-This is a stepwise Shiny interface for exploring `genmixr`
+This is a stepwise Shiny interface for exploring `pawh`
 case-control and TDT power/sample-size workflows.
 
 ## Run locally
@@ -8,13 +8,13 @@ case-control and TDT power/sample-size workflows.
 After installing the package, run:
 
 ```r
-shiny::runApp(system.file("shiny/genmixr_app", package = "genmixr"))
+shiny::runApp(system.file("shiny/pawh_app", package = "pawh"))
 ```
 
 During package development, you can also run the app from the repository root:
 
 ```r
-shiny::runApp("inst/shiny/genmixr_app")
+shiny::runApp("inst/shiny/pawh_app")
 ```
 
 ## Workflow
