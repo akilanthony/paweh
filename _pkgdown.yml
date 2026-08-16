@@ -87,16 +87,16 @@ articles:
 - title: Getting Started
   navbar: Getting Started
   contents:
-  - 01-getting-started
+  - pawh-01-getting-started
 - title: Case-Control Study Design
   navbar: Case-Control Study Design
   contents:
-  - 02-case-control-study-design
+  - pawh-02-case-control-study-design
 - title: TDT Study Design
   navbar: TDT Study Design
   contents:
-  - 03-tdt-study-design
+  - pawh-03-tdt-study-design
 - title: Quantitative-Trait Study Design
   navbar: Quantitative-Trait Study Design
   contents:
-  - 04-quantitative-trait-study-design
+  - pawh-04-quantitative-trait-study-design

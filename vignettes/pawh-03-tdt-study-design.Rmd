@@ -164,7 +164,8 @@ plot_tdt_mssn(
   target_power = 0.80, alpha = 1e-5,
   pd = 0.50, prev = 0.01,
   R1 = sqrt(2.5), R2 = 2.5,
-  delta_prime = 1, heter_rate = 0
+  delta_prime = 1, heter_rate = 0,
+  title = "Required trios vs phenotype misclassification"
 )
 ```
 
@@ -240,7 +241,8 @@ plot_tdt_mssn(
   target_power = 0.80, alpha = 1e-5,
   pd = 0.25, prev = 0.10,
   R1 = sqrt(1.5), R2 = 1.5,
-  delta_prime = 1, misclass_rate = 0
+  delta_prime = 1, misclass_rate = 0,
+  title = "Required trios vs locus heterogeneity"
 )
 ```
 

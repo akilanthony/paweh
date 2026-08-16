@@ -132,7 +132,8 @@ plot_cc_mssn(
   power = 0.95, alpha = 0.05,
   g1 = g_gordon_case, g0 = g_gordon_control, k = 1,
   geno_misclass = "2p", e1_base = 0.10, e2_base = 0.05,
-  x_label = "Fraction of the 10%/10% DSB error pattern"
+  x_label = "Fraction of the 10%/10% DSB error pattern",
+  title = "Required cases under the Gordon DSB error pattern"
 )
 ```
 
@@ -194,7 +195,8 @@ plot_cc_power(
   test = "genotypes", input_mode = "model_free",
   N_case = 250, alpha = 0.01, k = 1,
   g1 = g_edwards_affected, g0 = g_edwards_unaffected,
-  prev = 0.05, pheno_misclass = TRUE, theta = 0
+  prev = 0.05, pheno_misclass = TRUE, theta = 0,
+  title = "Power vs misclassification (prevalence 0.05)"
 )
 ```
 
@@ -204,7 +206,8 @@ plot_cc_power(
   test = "genotypes", input_mode = "model_free",
   N_case = 250, alpha = 0.01, k = 1,
   g1 = g_edwards_affected, g0 = g_edwards_unaffected,
-  prev = 0.01, pheno_misclass = TRUE, theta = 0
+  prev = 0.01, pheno_misclass = TRUE, theta = 0,
+  title = "Power vs misclassification (prevalence 0.01)"
 )
 ```
 
@@ -221,7 +224,8 @@ plot_cc_mssn(
   input_mode = "model_free", compare_tests = TRUE,
   sample_size = "case",
   power = 0.80, alpha = 0.05, k = 1,
-  g1 = g_gordon_case, g0 = g_gordon_control
+  g1 = g_gordon_case, g0 = g_gordon_control,
+  title = "Required cases vs locus heterogeneity"
 )
 ```
 
