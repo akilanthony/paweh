@@ -65,12 +65,14 @@ Multiplier behavior matches \code{\link{plot_cc_power}()}:
 \code{phi_base}; \code{geno_error_multiplier} multiplies the corresponding
 baseline genotype-error parameters for the selected genotype
 misclassification model.
+All arguments in \code{...} remain fixed while \code{x_var} is swept. The
+y-axis is the required number of selected cases, controls, or total
+individuals returned by \code{cc_mssn()}, according to \code{sample_size}.
 }
 \examples{
-\dontrun{
 plot_cc_mssn(
   x_var = "geno_error_multiplier",
-  x_values = seq(0, 3, by = 0.5),
+  x_values = c(0, 1, 2),
   test = "trend",
   input_mode = "model_based",
   power = 0.80,
@@ -85,6 +87,8 @@ plot_cc_mssn(
   e03_base = 0.005,
   k = 1
 )
-}
 
+}
+\seealso{
+\code{\link{cc_mssn}}, \code{\link{plot_cc_power}}.
 }

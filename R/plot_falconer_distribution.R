@@ -57,7 +57,7 @@
 #' samples genotypes from their Hardy--Weinberg frequencies and then samples
 #' trait values from the corresponding conditional normal distributions.
 #'
-#' @return A ggplot object, or a plotting data frame when
+#' @return A \code{ggplot} object, or a plotting data frame when
 #'   `return_data = TRUE`.
 #'
 #' @examples
@@ -70,6 +70,9 @@
 #' plot_qtl_genotype_distribution(
 #'   qtl_var = 0.0005, tau = 0, pd = 0.25, scale = "frequency"
 #' )
+#'
+#' @seealso [qtl_falconer_parameters()], [plot_qtl_anova_power()], and
+#' [plot_qtl_threshold_chisq_power()].
 #'
 #' @export
 plot_qtl_genotype_distribution <- function(

@@ -868,12 +868,17 @@ tdt_expected_transmission_counts <- function(N_star, pd, prev, R1, R2,
 #' @param heter_fixed Numeric. Heterogeneity rate held fixed (default 0).
 #' @param title Character. Plot title.
 #'
-#' @return A ggplot object (invisibly). Prints the plot.
+#' @details The x-axis is phenotype misclassification probability
+#' \eqn{\pi_{01}} and the y-axis is the corresponding power from
+#' \code{tdt_power()}. \code{N} is a fixed number of affected trios;
+#' \code{heter_fixed} and all genetic-model parameters remain fixed while
+#' \code{misclass_seq} is swept.
+#'
+#' @return A \code{ggplot} object, returned invisibly after it is printed.
 #' @importFrom ggplot2 ggplot geom_line geom_point labs theme_bw aes
 #' @importFrom rlang .data
 #' @export
 #' @examples
-#' \donttest{
 #' # Power sensitivity to phenotype misclassification
 #' plot_tdt_power_phenotype_misclassification(
 #'   N    = 600,
@@ -881,10 +886,13 @@ tdt_expected_transmission_counts <- function(N_star, pd, prev, R1, R2,
 #'   prev = 0.05,
 #'   R1   = 1.5,
 #'   R2   = 2.25,
-#'   misclass_seq = seq(0, 0.15, by = 0.01),
+#'   misclass_seq = c(0, 0.03, 0.06),
 #'   heter_fixed  = 0
 #' )
-#' }
+#'
+#' @seealso \code{\link{tdt_power}},
+#' \code{\link{plot_tdt_power_locus_heterogeneity}}, and
+#' \code{\link{plot_tdt_power}}.
 
 plot_tdt_power_phenotype_misclassification <- function(
     pd, prev, R1, R2,
@@ -947,12 +955,16 @@ plot_tdt_power_phenotype_misclassification <- function(
 #' @param misclass_fixed Numeric. Misclassification rate held fixed (default 0).
 #' (Other params same meaning as in plot_tdt_power_phenotype_misclassification.)
 #'
-#' @return A ggplot object (invisibly). Prints the plot.
+#' @details The x-axis is the heterogeneous trio fraction \eqn{1-\pi}; the
+#' homogeneous/linked fraction is \eqn{\pi}. The y-axis is heterogeneity-scenario
+#' power from \code{tdt_power()}. \code{N}, \code{misclass_fixed}, and all
+#' genetic-model parameters remain fixed while \code{heter_seq} is swept.
+#'
+#' @return A \code{ggplot} object, returned invisibly after it is printed.
 #' @importFrom ggplot2 ggplot geom_line geom_point labs theme_bw aes
 #' @importFrom rlang .data
 #' @export
 #' @examples
-#' \donttest{
 #' # Power sensitivity to locus heterogeneity
 #' plot_tdt_power_locus_heterogeneity(
 #'   N    = 600,
@@ -960,10 +972,13 @@ plot_tdt_power_phenotype_misclassification <- function(
 #'   prev = 0.05,
 #'   R1   = 1.5,
 #'   R2   = 2.25,
-#'   heter_seq      = seq(0, 0.50, by = 0.05),
+#'   heter_seq      = c(0, 0.1, 0.2),
 #'   misclass_fixed = 0
 #' )
-#' }
+#'
+#' @seealso \code{\link{tdt_power}},
+#' \code{\link{plot_tdt_power_phenotype_misclassification}}, and
+#' \code{\link{plot_tdt_power}}.
 
 plot_tdt_power_locus_heterogeneity <- function(
     pd, prev, R1, R2,
@@ -1026,12 +1041,16 @@ plot_tdt_power_locus_heterogeneity <- function(
 #' @param heter_fixed Numeric. Heterogeneity rate held fixed (default 0).
 #' (Other params same meaning as in plot_tdt_power_phenotype_misclassification.)
 #'
-#' @return A ggplot object (invisibly). Prints the plot.
+#' @details The x-axis is phenotype misclassification probability
+#' \eqn{\pi_{01}}. The y-axis is MSSN, the required number of affected trios
+#' returned by \code{tdt_mssn()} for fixed \code{target_power}.
+#' \code{heter_fixed} and all genetic-model parameters remain fixed.
+#'
+#' @return A \code{ggplot} object, returned invisibly after it is printed.
 #' @importFrom ggplot2 ggplot geom_line geom_point labs theme_bw aes
 #' @importFrom rlang .data
 #' @export
 #' @examples
-#' \donttest{
 #' # Required sample size sensitivity to phenotype misclassification
 #' plot_tdt_mssn_phenotype_misclassification(
 #'   target_power = 0.80,
@@ -1039,10 +1058,13 @@ plot_tdt_power_locus_heterogeneity <- function(
 #'   prev = 0.05,
 #'   R1   = 1.5,
 #'   R2   = 2.25,
-#'   misclass_seq = seq(0, 0.15, by = 0.01),
+#'   misclass_seq = c(0, 0.03, 0.06),
 #'   heter_fixed  = 0
 #' )
-#' }
+#'
+#' @seealso \code{\link{tdt_mssn}},
+#' \code{\link{plot_tdt_mssn_locus_heterogeneity}}, and
+#' \code{\link{plot_tdt_mssn}}.
 
 plot_tdt_mssn_phenotype_misclassification <- function(
     pd, prev, R1, R2,
@@ -1105,12 +1127,17 @@ plot_tdt_mssn_phenotype_misclassification <- function(
 #' @param misclass_fixed Numeric. Misclassification rate held fixed (default 0).
 #' (Other params same meaning as in plot_tdt_power_phenotype_misclassification.)
 #'
-#' @return A ggplot object (invisibly). Prints the plot.
+#' @details The x-axis is the heterogeneous trio fraction \eqn{1-\pi}; the
+#' homogeneous/linked fraction is \eqn{\pi}. The y-axis is MSSN, the required
+#' number of affected trios returned by \code{tdt_mssn()} for fixed
+#' \code{target_power}. \code{misclass_fixed} and genetic-model parameters
+#' remain fixed.
+#'
+#' @return A \code{ggplot} object, returned invisibly after it is printed.
 #' @importFrom ggplot2 ggplot geom_line geom_point labs theme_bw aes
 #' @importFrom rlang .data
 #' @export
 #' @examples
-#' \donttest{
 #' # Required sample size sensitivity to locus heterogeneity
 #' plot_tdt_mssn_locus_heterogeneity(
 #'   target_power = 0.80,
@@ -1118,10 +1145,13 @@ plot_tdt_mssn_phenotype_misclassification <- function(
 #'   prev = 0.05,
 #'   R1   = 1.5,
 #'   R2   = 2.25,
-#'   heter_seq      = seq(0, 0.50, by = 0.05),
+#'   heter_seq      = c(0, 0.1, 0.2),
 #'   misclass_fixed = 0
 #' )
-#' }
+#'
+#' @seealso \code{\link{tdt_mssn}},
+#' \code{\link{plot_tdt_mssn_phenotype_misclassification}}, and
+#' \code{\link{plot_tdt_mssn}}.
 
 plot_tdt_mssn_locus_heterogeneity <- function(
     pd, prev, R1, R2,
@@ -1180,22 +1210,29 @@ plot_tdt_mssn_locus_heterogeneity <- function(
 #' @param heter_rate Heterogeneity rate to hold fixed while varying misclassification.
 #' @param title Plot title.
 #'
-#' @return A plotly htmlwidget.
+#' @details The x-axis is risk-allele frequency \code{pd}, the y-axis is
+#' phenotype misclassification probability \eqn{\pi_{01}}, and the surface
+#' height is misclassification-scenario TDT power from \code{tdt_power()}.
+#' The affected-trio count \code{N}, \code{heter_rate}, and other model
+#' parameters remain fixed. This transitional function is restricted to these
+#' two swept axes and requires the optional package \pkg{plotly}.
+#'
+#' @return An object inheriting from \code{"plotly"} and \code{"htmlwidget"}.
 #' @export
 #'
 #' @examples
-#' \donttest{
-#' plot_tdt_power_phenotype_misclassification_3d(
-#'   pd_seq = seq(0.05, 0.80, by = 0.02),
-#'   misclass_seq = seq(0, 0.20, by = 0.01),
-#'   N = 600,
-#'   prev = 0.05,
-#'   R1 = 1.5, R2 = 2.25,
-#'   alpha = 0.05,
-#'   delta_prime = 1,
-#'   heter_rate = 0
-#' )
+#' if (requireNamespace("plotly", quietly = TRUE)) {
+#'   p <- plot_tdt_power_phenotype_misclassification_3d(
+#'     pd_seq = c(0.2, 0.3, 0.4),
+#'     misclass_seq = c(0, 0.03, 0.06),
+#'     N = 600, prev = 0.05, R1 = 1.5, R2 = 2.25,
+#'     heter_rate = 0
+#'   )
 #' }
+#'
+#' @seealso \code{\link{tdt_power}},
+#' \code{\link{plot_tdt_power_phenotype_misclassification}}, and
+#' \code{\link{plot_tdt_power_locus_heterogeneity_3d}}.
 plot_tdt_power_phenotype_misclassification_3d <- function(
     pd_seq,
     misclass_seq,
@@ -1244,6 +1281,7 @@ plot_tdt_power_phenotype_misclassification_3d <- function(
 
 
 #' Plot a 3D TDT Power Surface for Locus Heterogeneity
+#'
 #' This function requires the optional package \pkg{plotly}.
 #' @param pd_seq Vector of allele frequencies.
 #' @param heter_seq Vector of heterogeneity rates (1 - pi).
@@ -1255,22 +1293,28 @@ plot_tdt_power_phenotype_misclassification_3d <- function(
 #' @param misclass_rate Misclassification rate to hold fixed while varying heterogeneity.
 #' @param title Plot title.
 #'
-#' @return A plotly htmlwidget.
+#' @details The x-axis is risk-allele frequency \code{pd}, the y-axis is the
+#' heterogeneous trio fraction \eqn{1-\pi}, and the surface height is
+#' heterogeneity-scenario TDT power from \code{tdt_power()}. The affected-trio
+#' count \code{N}, \code{misclass_rate}, and other model parameters remain
+#' fixed. This transitional function is restricted to these swept axes.
+#'
+#' @return An object inheriting from \code{"plotly"} and \code{"htmlwidget"}.
 #' @export
 #'
 #' @examples
-#' \donttest{
-#' plot_tdt_power_locus_heterogeneity_3d(
-#'   pd_seq = seq(0.05, 0.80, by = 0.02),
-#'   heter_seq = seq(0, 0.60, by = 0.03),
-#'   N = 600,
-#'   prev = 0.05,
-#'   R1 = 1.5, R2 = 2.25,
-#'   alpha = 0.05,
-#'   delta_prime = 1,
-#'   misclass_rate = 0
-#' )
+#' if (requireNamespace("plotly", quietly = TRUE)) {
+#'   p <- plot_tdt_power_locus_heterogeneity_3d(
+#'     pd_seq = c(0.2, 0.3, 0.4),
+#'     heter_seq = c(0, 0.1, 0.2),
+#'     N = 600, prev = 0.05, R1 = 1.5, R2 = 2.25,
+#'     misclass_rate = 0
+#'   )
 #' }
+#'
+#' @seealso \code{\link{tdt_power}},
+#' \code{\link{plot_tdt_power_locus_heterogeneity}}, and
+#' \code{\link{plot_tdt_power_phenotype_misclassification_3d}}.
 plot_tdt_power_locus_heterogeneity_3d <- function(
     pd_seq,
     heter_seq,
@@ -1319,6 +1363,7 @@ plot_tdt_power_locus_heterogeneity_3d <- function(
 
 
 #' Plot a 3D TDT MSSN Surface for Locus Heterogeneity
+#'
 #' This function requires the optional package \pkg{plotly}.
 #' @param pd_seq Vector of allele frequencies.
 #' @param heter_seq Vector of heterogeneity rates (1 - pi).
@@ -1331,22 +1376,28 @@ plot_tdt_power_locus_heterogeneity_3d <- function(
 #' @param ceiling_N Logical; if TRUE (default) plots ceiling(N).
 #' @param title Plot title.
 #'
-#' @return A plotly htmlwidget.
+#' @details The x-axis is risk-allele frequency \code{pd}, the y-axis is the
+#' heterogeneous trio fraction \eqn{1-\pi}, and the height is MSSN in affected
+#' trios from \code{tdt_mssn()} for fixed \code{target_power}. Other model
+#' parameters, including \code{misclass_rate}, remain fixed. With
+#' \code{ceiling_N = TRUE}, displayed heights are integer ceilings.
+#'
+#' @return An object inheriting from \code{"plotly"} and \code{"htmlwidget"}.
 #' @export
 #'
 #' @examples
-#' \donttest{
-#' plot_tdt_mssn_locus_heterogeneity_3d(
-#'   pd_seq = seq(0.05, 0.80, by = 0.02),
-#'   heter_seq = seq(0, 0.60, by = 0.03),
-#'   target_power = 0.80,
-#'   prev = 0.05,
-#'   R1 = 1.5, R2 = 2.25,
-#'   alpha = 0.05,
-#'   delta_prime = 1,
-#'   misclass_rate = 0
-#' )
+#' if (requireNamespace("plotly", quietly = TRUE)) {
+#'   p <- plot_tdt_mssn_locus_heterogeneity_3d(
+#'     pd_seq = c(0.2, 0.3, 0.4),
+#'     heter_seq = c(0, 0.1, 0.2),
+#'     target_power = 0.80, prev = 0.05, R1 = 1.5, R2 = 2.25,
+#'     misclass_rate = 0
+#'   )
 #' }
+#'
+#' @seealso \code{\link{tdt_mssn}},
+#' \code{\link{plot_tdt_mssn_locus_heterogeneity}}, and
+#' \code{\link{plot_tdt_mssn_phenotype_misclassification_3d}}.
 plot_tdt_mssn_locus_heterogeneity_3d <- function(
     pd_seq,
     heter_seq,
@@ -1397,6 +1448,7 @@ plot_tdt_mssn_locus_heterogeneity_3d <- function(
 }
 
 #' Plot a 3D TDT MSSN Surface for Phenotype Misclassification
+#'
 #' This function requires the optional package \pkg{plotly}.
 #' @param pd_seq Vector of allele frequencies.
 #' @param misclass_seq Vector of misclassification rates (pi01).
@@ -1409,22 +1461,29 @@ plot_tdt_mssn_locus_heterogeneity_3d <- function(
 #' @param ceiling_N Logical; if TRUE (default) plots ceiling(N).
 #' @param title Plot title.
 #'
-#' @return A plotly htmlwidget.
+#' @details The x-axis is risk-allele frequency \code{pd}, the y-axis is
+#' phenotype misclassification probability \eqn{\pi_{01}}, and the height is
+#' MSSN in affected trios from \code{tdt_mssn()} for fixed
+#' \code{target_power}. Other model parameters, including \code{heter_rate},
+#' remain fixed. With \code{ceiling_N = TRUE}, displayed heights are integer
+#' ceilings.
+#'
+#' @return An object inheriting from \code{"plotly"} and \code{"htmlwidget"}.
 #' @export
 #'
 #' @examples
-#' \donttest{
-#' plot_tdt_mssn_phenotype_misclassification_3d(
-#'   pd_seq = seq(0.05, 0.80, by = 0.02),
-#'   misclass_seq = seq(0, 0.20, by = 0.01),
-#'   target_power = 0.80,
-#'   prev = 0.05,
-#'   R1 = 1.5, R2 = 2.25,
-#'   alpha = 0.05,
-#'   delta_prime = 1,
-#'   heter_rate = 0
-#' )
+#' if (requireNamespace("plotly", quietly = TRUE)) {
+#'   p <- plot_tdt_mssn_phenotype_misclassification_3d(
+#'     pd_seq = c(0.2, 0.3, 0.4),
+#'     misclass_seq = c(0, 0.03, 0.06),
+#'     target_power = 0.80, prev = 0.05, R1 = 1.5, R2 = 2.25,
+#'     heter_rate = 0
+#'   )
 #' }
+#'
+#' @seealso \code{\link{tdt_mssn}},
+#' \code{\link{plot_tdt_mssn_phenotype_misclassification}}, and
+#' \code{\link{plot_tdt_mssn_locus_heterogeneity_3d}}.
 plot_tdt_mssn_phenotype_misclassification_3d <- function(
     pd_seq,
     misclass_seq,

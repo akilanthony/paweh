@@ -71,7 +71,9 @@
 #' traits where documented; this conventional contour visualization is
 #' intentionally restricted to two.
 #'
-#' @return A ggplot object, or the plotting grid when `return_data = TRUE`.
+#' @return A \code{ggplot} object, or the plotting grid when
+#'   `return_data = TRUE`. Returned data retain the validated model and
+#'   threshold details as attributes.
 #'
 #' @examples
 #' cor_matrix <- matrix(c(1, 0.15, 0.15, 1), 2, byrow = TRUE)
@@ -79,8 +81,12 @@
 #'   qtl_var = c(0.95, 0.92), tau = c(0, 0.5), pd = 0.5,
 #'   cor_matrix = cor_matrix,
 #'   x_upper = c(10, 10), x_lower = c(15, 15),
-#'   surface = "cdf"
+#'   surface = "cdf", grid_n = 30
 #' )
+#'
+#' @seealso [qtl_multivariate_power_full()],
+#' [qtl_multivariate_mssn_full()], and
+#' [plot_qtl_multivariate_surface3d()].
 #'
 #' @export
 plot_qtl_multivariate_contour <- function(

@@ -72,12 +72,15 @@ own default of \code{0.01}, \code{heter_rate} and \code{misclass_rate}
 default to \code{0} here in \code{input_mode = "model_free"} (unless fixed
 via \code{...} or swept via \code{x_var}), so \code{scenario = "no_error"}
 always works without \code{pd}/\code{prev}.
+All arguments passed through \code{...} remain fixed while \code{x_var}
+is swept. The x-axis contains \code{x_values}; the y-axis is TDT power for
+the resolved scenario. When \code{x_var = "heter_rate"}, the axis is the
+heterogeneous trio fraction \eqn{1-\pi}.
 }
 \examples{
-\dontrun{
 plot_tdt_power(
   x_var = "heter_rate",
-  x_values = seq(0, 0.50, by = 0.05),
+  x_values = c(0, 0.1, 0.2),
   scenario = "heterogeneity",
   input_mode = "model_based",
   N = 600,
@@ -89,16 +92,9 @@ plot_tdt_power(
   delta_prime = 1
 )
 
-plot_tdt_power(
-  x_var = "heter_rate",
-  x_values = seq(0, 0.50, by = 0.05),
-  scenario = "heterogeneity",
-  input_mode = "model_free",
-  N = 600,
-  ET = 160,
-  ENT = 100,
-  pd = 0.30
-)
 }
-
+\seealso{
+\code{\link{tdt_power}}, \code{\link{plot_tdt_mssn}},
+\code{\link{plot_tdt_power_phenotype_misclassification}}, and
+\code{\link{plot_tdt_power_locus_heterogeneity}}.
 }

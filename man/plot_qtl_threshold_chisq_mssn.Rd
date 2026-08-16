@@ -38,12 +38,18 @@ than a ggplot object.}
 \item{...}{Fixed arguments passed to \code{qtl_threshold_chisq_mssn()}.}
 }
 \value{
-A ggplot object, or a data frame with the swept parameter and the
+A \code{ggplot} object, or a data frame with the swept parameter and the
 selected MSSN result if \code{return_data = TRUE}.
 }
 \description{
 Sweeps one model, selection, or design parameter and repeatedly calls
 \code{\link{qtl_threshold_chisq_mssn}()}.
+}
+\details{
+The x-axis is \code{x_values} for the selected model, selection,
+or design parameter. The y-axis is the selected case, control, or total MSSN
+requested by \code{sample_size}; it is not a source-population screening
+count. Other arguments remain fixed while \code{x_var} is swept.
 }
 \examples{
 plot_qtl_threshold_chisq_mssn(
@@ -52,4 +58,8 @@ plot_qtl_threshold_chisq_mssn(
   x_upper = 5, x_lower = 5, k = 1
 )
 
+}
+\seealso{
+\code{\link{qtl_threshold_chisq_mssn}},
+\code{\link{plot_qtl_threshold_chisq_power}}.
 }

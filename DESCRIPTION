@@ -3,7 +3,17 @@ Title: Computational Toolkit for Heterogeneity in Statistical Genetics
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Akil", family = "Anthony", email = "akilanthony19@gmail.com", role = c("aut", "cre"))
-Description: Provides a collection of R functions implementing statistical models, equations, and power or sample size calculations described in Gordon et al. (2020), "Heterogeneity in Statistical Genetics". The package reproduces and extends analytical results from the textbook, covering Transmission Disequilibrium Tests (TDT), likelihood ratio tests, trend tests, misclassification models, and other approaches for evaluating heterogeneity in genetic association studies. Functions return structured outputs and print clear, aligned ASCII summaries for teaching, research, and validation.
+Description: Provides analytic power and minimum sample size necessary (MSSN)
+    calculations for genetic association study designs described in Gordon et
+    al. (2020), "Heterogeneity in Statistical Genetics". Public interfaces
+    cover case-control genotype chi-square and trend tests, family-based
+    transmission disequilibrium tests (TDT), and single- and multivariate
+    quantitative-trait designs using ANOVA, threshold-selected genotype
+    chi-square tests, and Pillai MANOVA. Methods can account for locus
+    heterogeneity and supported phenotype or genotype misclassification
+    mechanisms. Functions return structured results and include static and
+    interactive visualizations for study design, teaching, and methodological
+    validation.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

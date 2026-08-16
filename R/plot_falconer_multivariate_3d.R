@@ -43,28 +43,22 @@
 #'
 #' This function requires the optional package \pkg{plotly}.
 #'
-#' @return A Plotly htmlwidget. Validated model quantities, raw and displayed
+#' @return An object inheriting from \code{"plotly"} and \code{"htmlwidget"}.
+#'   Validated model quantities, raw and displayed
 #'   surface data, thresholds, and mean-marker data are attached as attributes.
 #'
-#' @seealso [plot_qtl_multivariate_contour()]
+#' @seealso [plot_qtl_multivariate_contour()],
+#' [qtl_multivariate_power_full()], and [qtl_multivariate_mssn_full()].
 #'
 #' @examples
-#' \donttest{
-#' cor_matrix <- matrix(c(1, 0.15, 0.15, 1), 2, byrow = TRUE)
-#'
-#' plot_qtl_multivariate_surface3d(
-#'   qtl_var = c(0.95, 0.92), tau = c(0, 0.5), pd = 0.5,
-#'   cor_matrix = cor_matrix,
-#'   x_upper = c(10, 10), x_lower = c(15, 15),
-#'   surface = "density"
-#' )
-#'
-#' plot_qtl_multivariate_surface3d(
-#'   qtl_var = c(0.95, 0.92), tau = c(0, 0.5), pd = 0.5,
-#'   cor_matrix = cor_matrix,
-#'   x_upper = c(10, 10), x_lower = c(15, 15),
-#'   surface = "cdf"
-#' )
+#' if (requireNamespace("plotly", quietly = TRUE)) {
+#'   cor_matrix <- matrix(c(1, 0.15, 0.15, 1), 2, byrow = TRUE)
+#'   p <- plot_qtl_multivariate_surface3d(
+#'     qtl_var = c(0.1, 0.08), tau = c(0, 0.5), pd = 0.3,
+#'     cor_matrix = cor_matrix,
+#'     x_upper = c(10, 10), x_lower = c(15, 15),
+#'     surface = "density", grid_n = 20
+#'   )
 #' }
 #'
 #' @export

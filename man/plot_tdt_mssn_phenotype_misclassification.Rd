@@ -40,14 +40,19 @@ plot_tdt_mssn_phenotype_misclassification(
 \item{title}{Plot title.}
 }
 \value{
-A ggplot object (invisibly). Prints the plot.
+A \code{ggplot} object, returned invisibly after it is printed.
 }
 \description{
 Plot required number of trios vs misclassification rate (pi01),
 holding heterogeneity fixed.
 }
+\details{
+The x-axis is phenotype misclassification probability
+\eqn{\pi_{01}}. The y-axis is MSSN, the required number of affected trios
+returned by \code{tdt_mssn()} for fixed \code{target_power}.
+\code{heter_fixed} and all genetic-model parameters remain fixed.
+}
 \examples{
-\donttest{
 # Required sample size sensitivity to phenotype misclassification
 plot_tdt_mssn_phenotype_misclassification(
   target_power = 0.80,
@@ -55,8 +60,13 @@ plot_tdt_mssn_phenotype_misclassification(
   prev = 0.05,
   R1   = 1.5,
   R2   = 2.25,
-  misclass_seq = seq(0, 0.15, by = 0.01),
+  misclass_seq = c(0, 0.03, 0.06),
   heter_fixed  = 0
 )
+
 }
+\seealso{
+\code{\link{tdt_mssn}},
+\code{\link{plot_tdt_mssn_locus_heterogeneity}}, and
+\code{\link{plot_tdt_mssn}}.
 }

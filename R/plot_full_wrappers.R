@@ -459,17 +459,21 @@
 #' read from \code{e_base}; \code{e1_base} and \code{e2_base}; \code{e01_base},
 #' \code{e02_base}, and \code{e03_base}; or case/control baseline parameters
 #' for \code{geno_misclass = "diff3p"}.
+#' All arguments supplied through \code{...} remain fixed while
+#' \code{x_var} is swept. The x-axis contains \code{x_values}; the y-axis is
+#' the power returned by \code{cc_power()} for the selected genotype chi-square
+#' or trend test. With \code{compare_tests = TRUE}, both powers are drawn on
+#' the same axes.
 #'
 #' @return A ggplot object, or a data frame if \code{return_data = TRUE}.
 #'
 #' @examples
-#' \dontrun{
 #' g_aff <- c((1 - 0.05)^2, 2 * 0.05 * (1 - 0.05), 0.05^2)
 #' g_unaff <- c((1 - 0.15)^2, 2 * 0.15 * (1 - 0.15), 0.15^2)
 #'
 #' plot_cc_power(
 #'   x_var = "phi",
-#'   x_values = seq(0, 0.10, by = 0.01),
+#'   x_values = c(0, 0.02, 0.04),
 #'   test = "genotypes",
 #'   input_mode = "model_free",
 #'   N_case = 250,
@@ -482,21 +486,7 @@
 #'   k = 1
 #' )
 #'
-#' plot_cc_power(
-#'   x_var = "phi",
-#'   x_values = seq(0, 0.10, by = 0.01),
-#'   input_mode = "model_free",
-#'   compare_tests = TRUE,
-#'   N_case = 250,
-#'   alpha = 0.01,
-#'   g1 = g_aff,
-#'   g0 = g_unaff,
-#'   prev = 0.05,
-#'   pheno_misclass = TRUE,
-#'   theta = 0,
-#'   k = 1
-#' )
-#' }
+#' @seealso \code{\link{cc_power}}, \code{\link{plot_cc_mssn}}.
 #'
 #' @export
 plot_cc_power <- function(
@@ -605,14 +595,16 @@ plot_cc_power <- function(
 #' \code{phi_base}; \code{geno_error_multiplier} multiplies the corresponding
 #' baseline genotype-error parameters for the selected genotype
 #' misclassification model.
+#' All arguments in \code{...} remain fixed while \code{x_var} is swept. The
+#' y-axis is the required number of selected cases, controls, or total
+#' individuals returned by \code{cc_mssn()}, according to \code{sample_size}.
 #'
 #' @return A ggplot object, or a data frame if \code{return_data = TRUE}.
 #'
 #' @examples
-#' \dontrun{
 #' plot_cc_mssn(
 #'   x_var = "geno_error_multiplier",
-#'   x_values = seq(0, 3, by = 0.5),
+#'   x_values = c(0, 1, 2),
 #'   test = "trend",
 #'   input_mode = "model_based",
 #'   power = 0.80,
@@ -627,7 +619,8 @@ plot_cc_power <- function(
 #'   e03_base = 0.005,
 #'   k = 1
 #' )
-#' }
+#'
+#' @seealso \code{\link{cc_mssn}}, \code{\link{plot_cc_power}}.
 #'
 #' @export
 plot_cc_mssn <- function(
@@ -753,14 +746,17 @@ plot_cc_mssn <- function(
 #' default to \code{0} here in \code{input_mode = "model_free"} (unless fixed
 #' via \code{...} or swept via \code{x_var}), so \code{scenario = "no_error"}
 #' always works without \code{pd}/\code{prev}.
+#' All arguments passed through \code{...} remain fixed while \code{x_var}
+#' is swept. The x-axis contains \code{x_values}; the y-axis is TDT power for
+#' the resolved scenario. When \code{x_var = "heter_rate"}, the axis is the
+#' heterogeneous trio fraction \eqn{1-\pi}.
 #'
 #' @return A ggplot object, or a data frame if \code{return_data = TRUE}.
 #'
 #' @examples
-#' \dontrun{
 #' plot_tdt_power(
 #'   x_var = "heter_rate",
-#'   x_values = seq(0, 0.50, by = 0.05),
+#'   x_values = c(0, 0.1, 0.2),
 #'   scenario = "heterogeneity",
 #'   input_mode = "model_based",
 #'   N = 600,
@@ -772,17 +768,9 @@ plot_cc_mssn <- function(
 #'   delta_prime = 1
 #' )
 #'
-#' plot_tdt_power(
-#'   x_var = "heter_rate",
-#'   x_values = seq(0, 0.50, by = 0.05),
-#'   scenario = "heterogeneity",
-#'   input_mode = "model_free",
-#'   N = 600,
-#'   ET = 160,
-#'   ENT = 100,
-#'   pd = 0.30
-#' )
-#' }
+#' @seealso \code{\link{tdt_power}}, \code{\link{plot_tdt_mssn}},
+#' \code{\link{plot_tdt_power_phenotype_misclassification}}, and
+#' \code{\link{plot_tdt_power_locus_heterogeneity}}.
 #'
 #' @export
 plot_tdt_power <- function(
@@ -887,14 +875,18 @@ plot_tdt_power <- function(
 #' \code{0} here in \code{input_mode = "model_free"} (unless fixed via
 #' \code{...} or swept via \code{x_var}), so \code{scenario = "no_error"}
 #' always works without \code{pd}/\code{prev}.
+#' All arguments passed through \code{...} remain fixed while \code{x_var}
+#' is swept. The y-axis is MSSN expressed as the required number of affected
+#' trios for the resolved scenario. When \code{x_var = "heter_rate"}, it is
+#' the heterogeneous trio fraction \eqn{1-\pi}; \code{target_power} remains
+#' fixed unless it is itself the swept variable.
 #'
 #' @return A ggplot object, or a data frame if \code{return_data = TRUE}.
 #'
 #' @examples
-#' \dontrun{
 #' plot_tdt_mssn(
 #'   x_var = "misclass_rate",
-#'   x_values = seq(0, 0.10, by = 0.01),
+#'   x_values = c(0, 0.02, 0.04),
 #'   scenario = "misclassification",
 #'   input_mode = "model_based",
 #'   target_power = 0.80,
@@ -906,16 +898,9 @@ plot_tdt_power <- function(
 #'   delta_prime = 1
 #' )
 #'
-#' plot_tdt_mssn(
-#'   x_var = "misclass_rate",
-#'   x_values = seq(0, 0.10, by = 0.01),
-#'   scenario = "misclassification",
-#'   input_mode = "model_free",
-#'   target_power = 0.80,
-#'   ET = 140, ENT = 100, n_trios = 120,
-#'   pd = 0.30, prev = 0.05
-#' )
-#' }
+#' @seealso \code{\link{tdt_mssn}}, \code{\link{plot_tdt_power}},
+#' \code{\link{plot_tdt_mssn_phenotype_misclassification}}, and
+#' \code{\link{plot_tdt_mssn_locus_heterogeneity}}.
 #'
 #' @export
 plot_tdt_mssn <- function(

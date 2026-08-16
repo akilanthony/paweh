@@ -67,7 +67,11 @@
 #'   than a ggplot object.
 #' @param ... Fixed arguments passed to \code{qtl_anova_power()}.
 #'
-#' @return A ggplot object, or a data frame with the swept parameter and power
+#' @details The x-axis is \code{x_values} for the selected \code{x_var}; the
+#' y-axis is one-way ANOVA power from \code{qtl_anova_power()}. Every argument
+#' in \code{...} remains fixed while the selected parameter is swept.
+#'
+#' @return A \code{ggplot} object, or a data frame with the swept parameter and power
 #'   if \code{return_data = TRUE}.
 #'
 #' @examples
@@ -75,6 +79,9 @@
 #'   x_var = "N", x_values = c(600, 800, 1000),
 #'   alpha = 0.0001, qtl_var = 0.025, tau = 0.5, pd = 0.15
 #' )
+#'
+#' @seealso \code{\link{qtl_anova_power}},
+#' \code{\link{plot_qtl_anova_mssn}}.
 #'
 #' @export
 plot_qtl_anova_power <- function(
@@ -115,7 +122,12 @@ plot_qtl_anova_power <- function(
 #' @inheritParams plot_qtl_anova_power
 #' @param ... Fixed arguments passed to \code{qtl_anova_mssn()}.
 #'
-#' @return A ggplot object, or a data frame with the swept parameter and
+#' @details The x-axis is \code{x_values} for the selected \code{x_var}; the
+#' y-axis is the minimum total sample size returned by \code{qtl_anova_mssn()}.
+#' Target power and other arguments in \code{...} remain fixed unless selected
+#' as \code{x_var}.
+#'
+#' @return A \code{ggplot} object, or a data frame with the swept parameter and
 #'   \code{required_N} if \code{return_data = TRUE}.
 #'
 #' @examples
@@ -123,6 +135,9 @@ plot_qtl_anova_power <- function(
 #'   x_var = "qtl_var", x_values = c(0.015, 0.025, 0.05),
 #'   power = 0.8, alpha = 0.0001, tau = 0.5, pd = 0.15
 #' )
+#'
+#' @seealso \code{\link{qtl_anova_mssn}},
+#' \code{\link{plot_qtl_anova_power}}.
 #'
 #' @export
 plot_qtl_anova_mssn <- function(
@@ -164,7 +179,12 @@ plot_qtl_anova_mssn <- function(
 #' @inheritParams plot_qtl_anova_power
 #' @param ... Fixed arguments passed to \code{qtl_threshold_chisq_power()}.
 #'
-#' @return A ggplot object, or a data frame with the swept parameter and power
+#' @details The x-axis is \code{x_values} for the selected model, selection,
+#' or design parameter. The y-axis is power for the two-df genotype chi-square
+#' test after upper-tail case and lower-tail control selection. Arguments in
+#' \code{...} remain fixed while \code{x_var} is swept.
+#'
+#' @return A \code{ggplot} object, or a data frame with the swept parameter and power
 #'   if \code{return_data = TRUE}.
 #'
 #' @examples
@@ -173,6 +193,9 @@ plot_qtl_anova_mssn <- function(
 #'   alpha = 0.0001, qtl_var = 0.025, tau = 0.5, pd = 0.15,
 #'   x_upper = 5, x_lower = 5, k = 1
 #' )
+#'
+#' @seealso \code{\link{qtl_threshold_chisq_power}},
+#' \code{\link{plot_qtl_threshold_chisq_mssn}}.
 #'
 #' @export
 plot_qtl_threshold_chisq_power <- function(
@@ -223,7 +246,12 @@ plot_qtl_threshold_chisq_power <- function(
 #' @inheritParams plot_qtl_anova_power
 #' @param ... Fixed arguments passed to \code{qtl_threshold_chisq_mssn()}.
 #'
-#' @return A ggplot object, or a data frame with the swept parameter and the
+#' @details The x-axis is \code{x_values} for the selected model, selection,
+#' or design parameter. The y-axis is the selected case, control, or total MSSN
+#' requested by \code{sample_size}; it is not a source-population screening
+#' count. Other arguments remain fixed while \code{x_var} is swept.
+#'
+#' @return A \code{ggplot} object, or a data frame with the swept parameter and the
 #'   selected MSSN result if \code{return_data = TRUE}.
 #'
 #' @examples
@@ -232,6 +260,9 @@ plot_qtl_threshold_chisq_power <- function(
 #'   power = 0.8, alpha = 0.0001, tau = 0.5, pd = 0.15,
 #'   x_upper = 5, x_lower = 5, k = 1
 #' )
+#'
+#' @seealso \code{\link{qtl_threshold_chisq_mssn}},
+#' \code{\link{plot_qtl_threshold_chisq_power}}.
 #'
 #' @export
 plot_qtl_threshold_chisq_mssn <- function(

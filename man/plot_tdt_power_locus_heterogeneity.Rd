@@ -40,14 +40,19 @@ plot_tdt_power_locus_heterogeneity(
 \item{title}{Plot title.}
 }
 \value{
-A ggplot object (invisibly). Prints the plot.
+A \code{ggplot} object, returned invisibly after it is printed.
 }
 \description{
 Plot TDT power vs locus heterogeneity rate (1 - pi),
 holding misclassification fixed.
 }
+\details{
+The x-axis is the heterogeneous trio fraction \eqn{1-\pi}; the
+homogeneous/linked fraction is \eqn{\pi}. The y-axis is heterogeneity-scenario
+power from \code{tdt_power()}. \code{N}, \code{misclass_fixed}, and all
+genetic-model parameters remain fixed while \code{heter_seq} is swept.
+}
 \examples{
-\donttest{
 # Power sensitivity to locus heterogeneity
 plot_tdt_power_locus_heterogeneity(
   N    = 600,
@@ -55,8 +60,13 @@ plot_tdt_power_locus_heterogeneity(
   prev = 0.05,
   R1   = 1.5,
   R2   = 2.25,
-  heter_seq      = seq(0, 0.50, by = 0.05),
+  heter_seq      = c(0, 0.1, 0.2),
   misclass_fixed = 0
 )
+
 }
+\seealso{
+\code{\link{tdt_power}},
+\code{\link{plot_tdt_power_phenotype_misclassification}}, and
+\code{\link{plot_tdt_power}}.
 }
