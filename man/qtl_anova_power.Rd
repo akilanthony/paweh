@@ -43,6 +43,17 @@ Falconer parameter object.
 Calculates power for a one-way ANOVA comparing the means of the three SNP
 genotype groups for one continuous quantitative trait.
 }
+\details{
+The three genotype groups have the means returned by
+\code{qtl_falconer_parameters()} and a common residual variance
+\eqn{1-V_{QTL}}. Genotype group counts are either rounded Hardy--Weinberg
+expectations or unrounded expected counts according to \code{count_method}.
+The between-group effect gives the noncentrality parameter in textbook
+Eq. 6.8, and power is the upper tail of a noncentral F distribution with
+numerator degrees of freedom 2 and denominator degrees of freedom
+\eqn{N-3}. Genotype counts follow Eq. 6.7 (Chapter 6, Section 6.1.1,
+p. 328).
+}
 \examples{
 qtl_anova_power(
   N = 996, alpha = 0.0001, qtl_var = 0.025,
@@ -51,6 +62,13 @@ qtl_anova_power(
 
 }
 \references{
-Gordon et al. (2020), \emph{Heterogeneity in Statistical Genetics},
-Chapter 6, Section 6.1, Equations 6.1, 6.7, and 6.8.
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer, Chapter 6,
+Section 6.1.1, Eqs. 6.7--6.8, p. 328.
+\doi{10.1007/978-3-030-61121-7}.
+}
+\seealso{
+\code{\link{qtl_anova_mssn}} and
+\code{\link{qtl_falconer_parameters}}.
 }

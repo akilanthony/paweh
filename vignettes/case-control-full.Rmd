@@ -15,11 +15,15 @@ knitr::opts_chunk$set(
 library(genmixr)
 ```
 
-# Draft note
+# Methodological map
 
-Draft vignette. Equation/page references will be finalized after textbook verification.
-
-TODO: Add exact textbook equation numbers and pages after verification.
+Model-based penetrances follow Chapter 1 Section 1.4.2, Eqs. 1.6--1.7
+(p. 13) of Gordon, Finch, and Kim (2020). The genotype chi-square and trend
+tests use Eqs. 1.22 and 1.24 (pp. 26--27), with the trend statistic defined in
+Eqs. 1.20--1.21 (p. 24). Locus heterogeneity follows Eq. 2.16 (p. 88), and
+the trend-test formulation under heterogeneity is in Eqs. 5.29a--b
+(pp. 287--288). Genotype-error matrices are described by Eqs. 2.5--2.7
+(pp. 57--58).
 
 # Overview
 

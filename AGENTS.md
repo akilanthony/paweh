@@ -36,13 +36,14 @@ Model modifiers:
   - 3p
   - diff3p
 
-Textbook mapping:
-- Genotype chi-square equation: TODO add textbook equation number/page
-- Trend test equation: TODO add textbook equation number/page
-- Locus heterogeneity equation or section: TODO add textbook equation number/page
-- Genotype misclassification equation or section: TODO add textbook equation number/page
-
-Do not invent citations. If the exact citation is missing, leave a TODO.
+Textbook mapping (Gordon, Finch, and Kim 2020):
+- Model-based penetrances: Sect. 1.4.2, Eqs. 1.6--1.7, p. 13.
+- Genotype chi-square NCP: Eq. 1.22, p. 26.
+- Trend definition/NCP: Eqs. 1.20--1.21 and 1.24, pp. 24 and 27.
+- Locus heterogeneity: Eq. 2.16, p. 88; trend form Eqs. 5.29a--b,
+  pp. 287--288.
+- Genotype misclassification: Eqs. 2.5--2.7, pp. 57--58; differential
+  discussion Sect. 2.5.2, pp. 61--69.
 
 # Family-based (TDT) equation map
 
@@ -91,7 +92,7 @@ Model modifiers:
   the closed-form identities above for model_free.
 - Genotype misclassification: not yet implemented in this framework.
 
-Textbook mapping (Gordon, Finch, and Nothnagel 2020):
+Textbook mapping (Gordon, Finch, and Kim 2020):
 - Penetrances from prevalence and genotype relative risks: Eq. 1.6 and Eq. 1.7,
   pp. 13.
 - TDT non-centrality parameter, lambda = (ET - ENT)^2 / (ET + ENT), with
@@ -105,10 +106,11 @@ Textbook mapping (Gordon, Finch, and Nothnagel 2020):
   and Sect. 1.4.2, pp. 13-14.
 - TDT statistic definition and transmitted/non-transmitted counts: Sect. 1.6.1.3
   and Table 1.4, p. 24.
-- Phenotype misclassification for the TDT, gT*/gNT* under pi01: Eqs. 5.26-5.28,
-  Sect. 5.2.6 (as implemented in calc_gTgNT_misclass() / tdt_expected_transmission_probability()).
-- Locus heterogeneity for the TDT, gT*/gNT* mixture and NCP: Eq. 5.34,
-  Sect. 5.3.3, Eqs. 5.30-5.34b, pp. 293-294. The NCP under locus heterogeneity
+- Phenotype misclassification for the TDT, gT*/gNT* under pi01:
+  Eqs. 5.24--5.27, Sect. 5.2.6, pp. 284--285. Eq. 5.28 is a numerical example.
+- Locus heterogeneity for the TDT: Eqs. 5.30--5.32 (counts), Eq. 5.33
+  (probabilities), and Eqs. 5.34a--b (NCP/MSSN), Sect. 5.3.3, pp. 293--294.
+  The NCP under locus heterogeneity
   is due to Chen, Yang, Buyske, Matise, Finch, and Gordon (2009), Statistical
   Applications in Genetics and Molecular Biology, 8(44), building on Deng and
   Chen (2001), Genetical Research, 78(3), 289-302.

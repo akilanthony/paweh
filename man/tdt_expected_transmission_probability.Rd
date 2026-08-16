@@ -66,6 +66,8 @@ g_T^* =
 }
 
 When \eqn{\pi_{01}=0}, this reduces to the standard non-misclassified case.
+This is Eq. 5.24 in Chapter 5, Section 5.2.6 (p. 284).
+\code{gT_star} is a probability, not an expected count.
 }
 \examples{
 # Example 1 – no misclassification
@@ -84,6 +86,18 @@ tdt_expected_transmission_probability(
 
 }
 \references{
-Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-\emph{Heterogeneity in Statistical Genetics}. Springer Nature.
+Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+a case: Effects of phenotype misclassification on power and sample size
+requirements for the transmission disequilibrium test with affected child
+trios. \emph{Human Heredity}, 67(4), 287--292.
+\doi{10.1159/000194981}. PMID: 19172087.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
+}
+\seealso{
+\code{\link{tdt_expected_nontransmission_probability}},
+\code{\link{tdt_expected_transmission_counts}}, and \code{\link{tdt_power}}.
 }

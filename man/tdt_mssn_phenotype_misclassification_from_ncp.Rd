@@ -39,13 +39,14 @@ A list containing:
 \item{gNT_star}{Expected non-transmission probability.}
 \item{N_required}{Required number of trios (\eqn{N^*}).}
 \item{lambda_star}{Non-centrality parameter.}
-\item{C, f0, f1, f2}{Intermediate derived values used in Eq. 5.26-5.28.}
+\item{C, f0, f1, f2}{Intermediate derived values used in Eq. 5.26.}
 }
 \description{
 Computes the expected transmissions (\eqn{gT^*}) and non-transmissions (\eqn{gNT^*})
 as well as the required number of trios (\eqn{N^*}) for a specified non-centrality parameter
-(\eqn{\lambda^*}) under a misclassification model. Implements Equations 5.26-5.28
-and Equation 5.27b from \emph{Gordon et al. (2020), Heterogeneity in Statistical Genetics}.
+(\eqn{\lambda^*}) under a misclassification model. Implements Eq. 5.26 and
+Eqs. 5.27a--b (Chapter 5, Section 5.2.6, pp. 284--285) of Gordon, Finch,
+and Kim (2020). Eq. 5.28a--b is the book's numerical worked example.
 }
 \details{
 This function adjusts the Transmission Disequilibrium Test (TDT) for possible
@@ -74,6 +75,19 @@ tdt_mssn_phenotype_misclassification_from_ncp(
 
 }
 \references{
-Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-\emph{Heterogeneity in Statistical Genetics}. Springer Nature.
+Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+a case: Effects of phenotype misclassification on power and sample size
+requirements for the transmission disequilibrium test with affected child
+trios. \emph{Human Heredity}, 67(4), 287--292.
+\doi{10.1159/000194981}. PMID: 19172087.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
+}
+\seealso{
+\code{\link{tdt_mssn}},
+\code{\link{tdt_expected_transmission_probability}}, and
+\code{\link{tdt_expected_nontransmission_probability}}.
 }

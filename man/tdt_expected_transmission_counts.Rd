@@ -30,7 +30,8 @@ tdt_expected_transmission_counts(
 
 \item{delta_prime}{Numeric. Linkage disequilibrium scale parameter (\eqn{D'}) (default = 1).}
 
-\item{pi}{Numeric. Heterogeneity parameter controlling the proportion of homogeneous trios (default = 1).}
+\item{pi}{Numeric in \eqn{[0,1]}. Linked/homogeneous trio fraction
+(default \code{1}); \eqn{1-\pi} is the heterogeneous fraction.}
 
 \item{theta1}{Numeric. Population allele frequency (defaults to \code{pd} if \code{NULL}).}
 
@@ -69,8 +70,11 @@ ENT^* = 2N^* \left[
 \right]
 }
 
-These expressions generalize the basic TDT expectations (Eq. 5.24-5.25) to include
-heterogeneity across trios through the parameter \eqn{\pi}.
+These are Eqs. 5.31--5.32 in Chapter 5, Section 5.3.3 (pp. 293--294).
+They are expected counts over \code{N_star} affected trios. Dividing by
+\eqn{2N^*} gives the corresponding \eqn{g_T^*} and \eqn{g_{NT}^*}
+probabilities. The canonical \code{heter_rate} used by \code{tdt_power()}
+and \code{tdt_mssn()} equals \eqn{1-\pi}.
 }
 \examples{
 # Example 1: Homogeneous model (pi = 1)
@@ -89,6 +93,18 @@ tdt_expected_transmission_counts(
 
 }
 \references{
-Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-\emph{Heterogeneity in Statistical Genetics}. Springer Nature.
+Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+(2009). Transmission disequilibrium test power and sample size in the
+presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+and Molecular Biology}, 8, Article 44. \doi{10.2202/1544-6115.1501}.
+PMID: 19883370.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
+}
+\seealso{
+\code{\link{tdt_power}}, \code{\link{tdt_mssn}}, and
+\code{\link{tdt_mssn_from_model}}.
 }

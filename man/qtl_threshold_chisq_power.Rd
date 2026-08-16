@@ -48,6 +48,15 @@ genotype frequencies, and Falconer parameters.
 Calculates power for the 2-df genotype chi-square test after a quantitative
 trait is converted into upper-tail cases and lower-tail controls.
 }
+\details{
+Genotype-specific normal means and the common residual variance follow the
+mixture in Eq. 6.1. Upper-tail cases and lower-tail controls are constructed
+with Eqs. 6.3--6.5 (pp. 324--326); the middle of the trait distribution is
+excluded. The resulting conditional genotype probabilities are compared by
+the two-degree-of-freedom genotype chi-square test using Eq. 1.22 (p. 26).
+\code{N_case} and \code{k * N_case} are selected case and control counts,
+not numbers screened from the source population.
+}
 \examples{
 qtl_threshold_chisq_power(
   N_case = 126, alpha = 0.0001,
@@ -57,6 +66,13 @@ qtl_threshold_chisq_power(
 
 }
 \references{
-Gordon et al. (2020), \emph{Heterogeneity in Statistical Genetics},
-Chapter 6, Section 6.1, Equations 6.1 and 6.3--6.5.
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer, Eqs. 1.22, 6.1,
+and 6.3--6.5, pp. 26 and 324--326.
+\doi{10.1007/978-3-030-61121-7}.
+}
+\seealso{
+\code{\link{qtl_threshold_chisq_mssn}} and
+\code{\link{qtl_falconer_threshold_parameters}}.
 }

@@ -16,7 +16,10 @@
 #' @param MOI Character. Mode of inheritance: \code{"M"}, \code{"D"}, or
 #'   \code{"Rec"}.
 #' @param k Numeric \eqn{> 0}. Control-to-case ratio \eqn{N_{ctrl}/N_{case}}.
-#' @param e Numeric. One-parameter symmetric genotype error rate.
+#' @param e Numeric in \eqn{[0,0.5]}. One-parameter symmetric error
+#'   probability assigned to each adjacent off-diagonal call. The matrix
+#'   diagonal is \eqn{1-2e}; textbook Eq. 2.5 uses a total error parameter
+#'   \eqn{\epsilon=2e}.
 #' @param e1,e2 Numeric. Two-parameter genotype misclassification rates.
 #' @param e01,e02,e03 Numeric. Three-parameter non-differential genotype
 #'   misclassification rates.
@@ -31,6 +34,28 @@
 #' focused genotype-only calculation. The all-in-one case-control functions are
 #' recommended when combining model-free inputs, locus heterogeneity, trend
 #' tests, or multiple modifier choices in one call.
+#'
+#' Conditional genotype probabilities are constructed from prevalence, allele
+#' frequency, and relative risks using Chapter 1, Section 1.4.2 and
+#' Eqs. 1.6--1.7 (p. 13) of Gordon, Finch, and Kim (2020). The genotype test
+#' uses the two-degree-of-freedom NCP in Eq. 1.22 (p. 26). The error matrices
+#' are the one-, two-, and three-parameter families in Eqs. 2.5, 2.6, and 2.7
+#' (pp. 57--58). Douglas et al. (2002) and Sobel et al. (2002) support the
+#' corresponding error-model families; Gordon et al. (2002) supports their use
+#' in case-control power and sample-size calculations.
+#'
+#' For the 1p functions, package \code{e} is the probability in each adjacent
+#' off-diagonal cell, and the diagonal is \eqn{1-2e}. Textbook Eq. 2.5 instead
+#' writes each off-diagonal as \eqn{\epsilon/2} and the diagonal as
+#' \eqn{1-\epsilon}; therefore \eqn{\epsilon=2e}.
+#'
+#' Differential 3p functions use separate Eq. 2.7-family matrices for cases and
+#' controls, as discussed in Chapter 2, Section 2.5.2 (pp. 61--69). Their power
+#' is nominal asymptotic power, and their MSSN is nominal MSSN, evaluated with
+#' the usual chi-square critical value. Different case and control error
+#' mechanisms can distort the null distribution and inflate type I error.
+#' These functions do not independently recalibrate the null distribution for
+#' arbitrary differential genotyping error.
 #'
 #' The returned objects keep internal effect-size components such as \code{S}
 #' and, for differential misclassification, per-genotype components, for
@@ -57,11 +82,33 @@
 #' )
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
 #'
-#' TODO: Provide exact textbook equation numbers/pages for the specialized
-#' case-control genotype misclassification calculations.
+#' Gordon, D., Finch, S. J., Nothnagel, M., & Ott, J. (2002). Power and sample
+#' size calculations for case-control genetic association tests when errors
+#' are present: application to single nucleotide polymorphisms.
+#' \emph{Human Heredity}, 54(1), 22--33. \doi{10.1159/000066696}.
+#'
+#' Douglas, J. A., Skol, A. D., & Boehnke, M. (2002). Probability of detection
+#' of genotyping errors and mutations as inheritance inconsistencies in
+#' nuclear-family data. \emph{American Journal of Human Genetics}, 70(2),
+#' 487--495. \doi{10.1086/338919}.
+#'
+#' Sobel, E., Papp, J. C., & Lange, K. (2002). Detection and integration of
+#' genotyping errors in statistical genetics. \emph{American Journal of Human
+#' Genetics}, 70(2), 496--508. \doi{10.1086/338920}.
+#'
+#' Ahn, K., Gordon, D., & Finch, S. J. (2009). Increase of rejection rate in
+#' case-control studies with the differential genotyping error rates.
+#' \emph{Statistical Applications in Genetics and Molecular Biology}, 8(1),
+#' Article 25. \doi{10.2202/1544-6115.1429}.
+#'
+#' @seealso \code{\link{cc_power}}, \code{\link{cc_mssn}},
+#' \code{\link{case_control_locus_heterogeneity}}, and
+#' \code{\link{case_control_phenotype_misclassification}}.
 #'
 #' @name case_control_genotype_misclassification
 #' @importFrom stats pchisq qchisq uniroot
@@ -1576,6 +1623,15 @@ cc_fmt_e <- function(x, digits = 2) {
 #'   weights cannot all be equal.
 #' @param verbose Logical. If \code{TRUE}, prints a formatted summary.
 #'
+#' @details
+#' The associated case distribution is mixed with the control distribution as
+#' \eqn{\pi g_{case,assoc} + (1-\pi)g_{ctrl}}, following textbook Eq. 2.16
+#' (p. 88). Thus \code{pi} is the homogeneous/associated fraction and
+#' \eqn{1-\pi} is the heterogeneous fraction. The adjusted probabilities are
+#' then passed to either the genotype chi-square NCP in Eq. 1.22 (p. 26) or the
+#' trend-test NCP in Eq. 1.24 (p. 27). The trend construction under locus
+#' heterogeneity is given more specifically by Eqs. 5.29a--b (pp. 287--288).
+#'
 #' @return A list with class matching the function name. MSSN functions include
 #' target non-centrality parameter, sample sizes, internal \code{S} values, and
 #' adjusted frequencies. Power functions include sample sizes,
@@ -1601,11 +1657,20 @@ cc_fmt_e <- function(x, digits = 2) {
 #' )
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
 #'
-#' TODO: Provide exact textbook equation numbers/pages for the specialized
-#' case-control locus-heterogeneity calculations.
+#' Armitage, P. (1955). Tests for linear trends in proportions and frequencies.
+#' \emph{Biometrics}, 11(3), 375--386. \doi{10.2307/3001775}.
+#'
+#' Slager, S. L., & Schaid, D. J. (2001). Case-control studies of genetic
+#' markers: power and sample size approximations for Armitage's test for trend.
+#' \emph{Human Heredity}, 52(3), 149--153. \doi{10.1159/000053370}.
+#'
+#' @seealso \code{\link{cc_power}}, \code{\link{cc_mssn}}, and
+#' \code{\link{case_control_genotype_misclassification}}.
 #'
 #' @name case_control_locus_heterogeneity
 #' @importFrom stats pchisq qchisq uniroot
@@ -2069,6 +2134,9 @@ cc_trend_power_locus_heterogeneity <- function(
 #' phenotype misclassification; use the full case-control functions for
 #' combined phenotype misclassification, locus heterogeneity, genotype
 #' misclassification, or trend tests.
+#' The observed case distribution is a prevalence-weighted mixture of true
+#' affected and unaffected genotype probabilities conditional on being
+#' classified as a case; the control distribution is constructed analogously.
 #'
 #' @return
 #' \code{cc_chisq_power_phenotype_misclassification()} returns a list containing sample sizes,
@@ -2099,7 +2167,15 @@ cc_trend_power_locus_heterogeneity <- function(
 #' Edwards, B. J., Haynes, C., Levenstien, M. A., Finch, S. J., & Gordon, D.
 #' (2005). Power and sample size calculations in the presence of phenotype
 #' errors for case/control genetic association studies. \emph{BMC Genetics},
-#' 6, 18.
+#' 6, 18. \doi{10.1186/1471-2156-6-18}. PMID: 15819990.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{cc_power}}, \code{\link{cc_mssn}}, and
+#' \code{\link{case_control_genotype_misclassification}}.
 #'
 #' @name case_control_phenotype_misclassification
 #' @importFrom stats pchisq qchisq uniroot

@@ -19,6 +19,12 @@
 #' threshold. The middle portion is excluded, so the affected and unaffected
 #' selection events are not complements. Percentile inputs refer to standard
 #' normal population percentiles before conditioning on genotype.
+#' The genotype-specific normal mixture follows Eq. 6.1 (pp. 324--325).
+#' Genotype-specific upper- and lower-tail probabilities, their population
+#' prevalences, and conditional genotype frequencies follow Eqs. 6.3--6.5
+#' (p. 326). Eq. 6.6 (p. 327) is a numerical worked example, not an additional
+#' symbolic step. This is a classical/Falconer-style parameterization as
+#' formulated for this design framework by Gordon, Finch, and Kim (2020).
 #'
 #' @return An object of class \code{"qtl_falconer_threshold_parameters"} containing
 #'   thresholds, genotype-specific penetrances, selected-population
@@ -31,8 +37,18 @@
 #' )
 #'
 #' @references
-#' Gordon et al. (2020), \emph{Heterogeneity in Statistical Genetics},
-#' Chapter 6, Section 6.1, Equations 6.3--6.5.
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer, Chapter 6,
+#' Section 6.1, Eqs. 6.3--6.5, p. 326.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' Falconer, D. S., & Mackay, T. F. C. (1996). \emph{Introduction to
+#' Quantitative Genetics}, 4th ed. Longman.
+#'
+#' @seealso \code{\link{qtl_falconer_parameters}},
+#' \code{\link{qtl_threshold_chisq_power}}, and
+#' \code{\link{qtl_threshold_chisq_mssn}}.
 #'
 #' @importFrom stats pnorm qnorm
 #' @export
@@ -188,6 +204,15 @@ qtl_falconer_threshold_parameters <- function(
 #' @param k Positive control-to-case ratio \eqn{N_{control}/N_{case}}.
 #' @param verbose Logical. If \code{TRUE}, prints a concise summary.
 #'
+#' @details
+#' Genotype-specific normal means and the common residual variance follow the
+#' mixture in Eq. 6.1. Upper-tail cases and lower-tail controls are constructed
+#' with Eqs. 6.3--6.5 (pp. 324--326); the middle of the trait distribution is
+#' excluded. The resulting conditional genotype probabilities are compared by
+#' the two-degree-of-freedom genotype chi-square test using Eq. 1.22 (p. 26).
+#' \code{N_case} and \code{k * N_case} are selected case and control counts,
+#' not numbers screened from the source population.
+#'
 #' @return An object of class \code{"qtl_threshold_chisq_power"} containing
 #'   selected sample sizes, power, non-centrality parameter, internal effect
 #'   component \code{S}, thresholds, penetrances, prevalences, conditional
@@ -201,8 +226,14 @@ qtl_falconer_threshold_parameters <- function(
 #' )
 #'
 #' @references
-#' Gordon et al. (2020), \emph{Heterogeneity in Statistical Genetics},
-#' Chapter 6, Section 6.1, Equations 6.1 and 6.3--6.5.
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer, Eqs. 1.22, 6.1,
+#' and 6.3--6.5, pp. 26 and 324--326.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{qtl_threshold_chisq_mssn}} and
+#' \code{\link{qtl_falconer_threshold_parameters}}.
 #'
 #' @export
 qtl_threshold_chisq_power <- function(
@@ -356,6 +387,10 @@ qtl_threshold_chisq_power <- function(
 #' association test. The separately reported screening quantities are expected
 #' population counts needed to obtain those selected samples under simple
 #' population sampling; they are not statistical MSSN values.
+#' Genotype-specific distributions and threshold selection follow Eqs. 6.1 and
+#' 6.3--6.5 (pp. 324--326). The downstream genotype-test NCP is Eq. 1.22
+#' (p. 26). The function solves for selected cases and controls; expected
+#' screening counts are reported separately and are not rounded MSSNs.
 #'
 #' @return An object of class \code{"qtl_threshold_chisq_mssn"} containing
 #'   selected MSSN values, target NCP, internal \code{S}, thresholds,
@@ -368,6 +403,16 @@ qtl_threshold_chisq_power <- function(
 #'   qtl_var = 0.025, tau = 0.5, pd = 0.15,
 #'   x_upper = 5, x_lower = 5, verbose = FALSE
 #' )
+#'
+#' @references
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer, Eqs. 1.22, 6.1,
+#' and 6.3--6.5, pp. 26 and 324--326.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{qtl_threshold_chisq_power}} and
+#' \code{\link{qtl_falconer_threshold_parameters}}.
 #'
 #' @export
 qtl_threshold_chisq_mssn <- function(

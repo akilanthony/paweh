@@ -48,8 +48,17 @@ lower threshold (joint AND).}
 \item{verbose}{Logical; whether to print a polished summary.}
 }
 \value{
-An object of class \code{"qtl_multivariate_power_full"}. Both test
-modes retain the complete Falconer model and auditable intermediates.
+An object of class \code{"qtl_multivariate_power_full"}. Both modes
+contain \code{test}, \code{alpha}, \code{power}, and \code{falconer}, the
+complete multivariate mixture model. For \code{test = "pillai"}, additional
+components include total \code{N}, genotype frequencies/counts, the NCP,
+numerator and denominator degrees of freedom, critical value, and
+\code{pillai}, containing contrasts, characteristic roots, Pillai trace,
+and matrix intermediates. For \code{test = "threshold_chisq"}, components
+include selected \code{N_case}, \code{N_control}, and \code{N_total},
+\code{k}, two-df NCP, internal \code{S}, \code{thresholds} (bounds,
+penetrances, prevalences, conditional genotype frequencies, and integration
+diagnostics), expected genotype counts, and sparse-cell diagnostics.
 }
 \description{
 Computes prospective power for a one-way MANOVA using Pillai's trace or for
@@ -67,6 +76,20 @@ Pillai power follows Gordon et al.'s general matrix derivation: the
 characteristic roots of Phi-star determine V-star and
 lambda = N s V-star / (s - V-star). The null critical value and
 alternative power use central and noncentral F distributions.
+
+The two \code{test} branches are distinct. With \code{test = "pillai"},
+\code{N} is a total sample size and the function performs a three-genotype
+one-way MANOVA using Pillai's trace. With
+\code{test = "threshold_chisq"}, \code{N_case} is a selected case count;
+cases must exceed every upper threshold and controls must fall below every
+lower threshold, after which their conditional genotype probabilities are
+compared by a two-df chi-square test. The latter is not a MANOVA.
+
+The multivariate mixture and component densities correspond to textbook
+Eqs. 6.9--6.10; rectangular probabilities to Eq. 6.11; and prevalence and
+bound construction to Eqs. 6.12--6.14 (Chapter 6, Section 6.2,
+pp. 332--333). The threshold branch then uses genotype chi-square Eq. 1.22
+(p. 26). Eq. 6.15 is not used by this direct-integration implementation.
 }
 \examples{
 cor_matrix <- matrix(c(1, 0.15, 0.15, 1), 2, byrow = TRUE)
@@ -78,11 +101,26 @@ qtl_multivariate_power_full(
 
 }
 \references{
-Gordon, Finch, and Kim (2020), \emph{Heterogeneity in Statistical
-Genetics}, Chapter 6, Sections 6.2.1--6.2.5, including Equations 6.9--6.10.
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer, Chapter 6,
+Section 6.2, Eqs. 6.9--6.14, pp. 332--333; validation in Section 6.2.4,
+pp. 336--339. \doi{10.1007/978-3-030-61121-7}.
 
-Gordon D, Londono D, Patel P, Kim W, Finch SJ, Heiman GA (2017).
-"An Analytic Solution to the Computation of Power and Sample Size for
-Genetic Association Studies under a Pleiotropic Mode of Inheritance."
-\emph{Human Heredity}, 81(4), 194--209. doi:10.1159/000457135.
+Gordon, D., Londono, D., Patel, P., Kim, W., Finch, S. J., & Heiman, G. A.
+(2017). An analytic solution to computation of power and sample size for
+genetic association studies under a pleiotropic mode of inheritance.
+\emph{Human Heredity}, 81(4), 194--209. \doi{10.1159/000457135}.
+
+Pillai, K. C. S. (1955). Some new test criteria in multivariate analysis.
+\emph{Annals of Mathematical Statistics}, 26(1), 117--121.
+\doi{10.1214/aoms/1177728599}.
+
+Genz, A., & Bretz, F. (2009). \emph{Computation of Multivariate Normal and
+t Probabilities}. Springer. \doi{10.1007/978-3-642-01689-9}.
+}
+\seealso{
+\code{\link{qtl_multivariate_mssn_full}},
+\code{\link{qtl_falconer_parameters}}, and
+\code{\link{qtl_threshold_chisq_power}}.
 }

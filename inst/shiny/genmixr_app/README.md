@@ -1,10 +1,7 @@
 # genmixr alpha-test Shiny app
 
-This is a draft stepwise Shiny interface for exploring `genmixr`
+This is a stepwise Shiny interface for exploring `genmixr`
 case-control and TDT power/sample-size workflows.
-
-Draft note: equation/page references will be finalized after textbook
-verification.
 
 ## Run locally
 

@@ -2,8 +2,8 @@
 #'
 #' Computes the statistical power of the Transmission Disequilibrium Test (TDT)
 #' given the expected number of transmissions (ET) and non-transmissions (ENT)
-#' under a specified significance level. Implements Equation 1.25 from
-#' *Gordon et al. (2020), Heterogeneity in Statistical Genetics*.
+#' under a specified significance level. Implements Eq. 1.25 (Chapter 1,
+#' Section 1.6.1.3, p. 27) of Gordon, Finch, and Kim (2020).
 
 #' @param ET Numeric. Expected number of transmissions.
 #' @param ENT Numeric. Expected number of non-transmissions.
@@ -13,6 +13,8 @@
 #' @details
 #' The function calculates the non-centrality parameter and statistical power for the TDT
 #' using the chi-square distribution with 1 degree of freedom.
+#' \code{ET} and \code{ENT} are expected counts, not probabilities, and must
+#' refer to the same affected-trio design.
 #'
 #' The non-centrality parameter is computed as:
 #' \deqn{\lambda = \frac{(ET - ENT)^2}{ET + ENT}}
@@ -34,8 +36,17 @@
 #' tdt_power_from_expected_counts(ET = 140, ENT = 100, alpha = 0.05)
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#' Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
+#' for linkage disequilibrium: the insulin gene region and insulin-dependent
+#' diabetes mellitus. \emph{American Journal of Human Genetics}, 52(3),
+#' 506--516. PMID: 8447318; PMCID: PMC1682161.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{tdt_power}} and \code{\link{tdt_power_from_model}}.
 #'
 #'@export
 
@@ -69,8 +80,9 @@ tdt_power_from_expected_counts <- function(ET, ENT, alpha = 0.05) {
 #'
 #' Computes the statistical power of the Transmission Disequilibrium Test (TDT)
 #' using genetic model parameters such as allele frequency, relative risks,
-#' disease prevalence, and the number of affected trios. Implements Equation 1.25
-#' from *Gordon et al. (2020), Heterogeneity in Statistical Genetics*.
+#' disease prevalence, and the number of affected trios. Implements the
+#' penetrance construction in Eqs. 1.6--1.7 (p. 13) and TDT Eq. 1.25
+#' (p. 27) of Gordon, Finch, and Kim (2020).
 #'
 #' @param pd Numeric. Frequency of the disease-associated allele.
 #' @param N Numeric. Number of affected trios.
@@ -92,6 +104,9 @@ tdt_power_from_expected_counts <- function(ET, ENT, alpha = 0.05) {
 #' Expected transmission (\eqn{ET}) and non-transmission (\eqn{ENT}) counts are
 #' computed based on the allele frequency and penetrance model, and the power
 #' is derived from the non-central chi-square distribution with 1 degree of freedom.
+#' Here \code{N} is the number of affected-child trios. \code{delta_prime}
+#' scales \eqn{D=p_d(1-p_d)D'} in the implemented model; the disease-locus and
+#' marker-locus assumptions should be considered when interpreting \code{pd}.
 #'
 #' @return A list containing:
 #' \item{lambda}{Non-centrality parameter.}
@@ -108,8 +123,19 @@ tdt_power_from_expected_counts <- function(ET, ENT, alpha = 0.05) {
 #' )
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#' Spielman, R. S., McGinnis, R. E., & Ewens, W. J. (1993). Transmission test
+#' for linkage disequilibrium: the insulin gene region and insulin-dependent
+#' diabetes mellitus. \emph{American Journal of Human Genetics}, 52(3),
+#' 506--516. PMID: 8447318; PMCID: PMC1682161.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{tdt_power}},
+#' \code{\link{tdt_power_from_expected_counts}}, and
+#' \code{\link{tdt_mssn_from_model}}.
 #'
 #' @importFrom stats pchisq qchisq
 #' @export
@@ -172,8 +198,9 @@ tdt_power_from_model <- function(pd, N, delta_prime,
 #' Computes the required number of affected trios (\eqn{N^*}) needed to achieve
 #' a specified statistical power in the Transmission Disequilibrium Test (TDT),
 #' given model parameters for allele frequency, relative risks, disease prevalence,
-#' and heterogeneity. Implements Equation 5.34b from
-#' *Gordon et al. (2020), Heterogeneity in Statistical Genetics*.
+#' and heterogeneity. Implements the probability and MSSN chain in
+#' Eqs. 5.33--5.34b (Chapter 5, Section 5.3.3, pp. 293--294) of Gordon,
+#' Finch, and Kim (2020).
 #'
 #' @param power Numeric. Desired power (e.g., 0.8).
 #' @param alpha Numeric. Significance level (e.g., 0.05).
@@ -183,8 +210,8 @@ tdt_power_from_model <- function(pd, N, delta_prime,
 #' @param R1 Numeric. Relative risk for heterozygotes.
 #' @param R2 Numeric. Relative risk for homozygotes.
 #' @param delta_prime Numeric. Linkage disequilibrium (LD) scale factor (default = 1).
-#' @param pi Numeric. Heterogeneity parameter, where 1 represents full homogeneity
-#' and values between 0–1 allow for mixed genetic effects (default = 1).
+#' @param pi Numeric in \eqn{[0,1]}. Linked/homogeneous trio fraction; \code{1}
+#'   is complete homogeneity and \eqn{1-\pi} is the heterogeneous fraction.
 #'
 #' @details
 #' This function determines the non-centrality parameter (\eqn{\lambda^*}) via
@@ -194,7 +221,8 @@ tdt_power_from_model <- function(pd, N, delta_prime,
 #' \deqn{N^* = \frac{\lambda^*}{2} \frac{(gT^* + gNT^*)}{(gT^* - gNT^*)^2}}
 #'
 #' The expected transmission and non-transmission components are calculated
-#' under allele frequency and penetrance model assumptions (see Eq. 5.34b).
+#' under allele frequency and penetrance model assumptions in Eq. 5.33. Their
+#' NCP and MSSN are Eqs. 5.34a--b.
 #'
 #' @return A list containing:
 #' \item{lambda_star}{Non-centrality parameter (\eqn{\lambda^*}).}
@@ -211,8 +239,18 @@ tdt_power_from_model <- function(pd, N, delta_prime,
 #' )
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#' Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+#' (2009). Transmission disequilibrium test power and sample size in the
+#' presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+#' and Molecular Biology}, 8, Article 44. \doi{10.2202/1544-6115.1501}.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{tdt_mssn}}, \code{\link{tdt_power_from_model}}, and
+#' \code{\link{tdt_expected_transmission_counts}}.
 #'
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
@@ -267,8 +305,9 @@ tdt_mssn_from_model <- function(power, alpha, df,
 #'
 #' Computes the expected transmissions (\eqn{gT^*}) and non-transmissions (\eqn{gNT^*})
 #' as well as the required number of trios (\eqn{N^*}) for a specified non-centrality parameter
-#' (\eqn{\lambda^*}) under a misclassification model. Implements Equations 5.26-5.28
-#' and Equation 5.27b from *Gordon et al. (2020), Heterogeneity in Statistical Genetics*.
+#' (\eqn{\lambda^*}) under a misclassification model. Implements Eq. 5.26 and
+#' Eqs. 5.27a--b (Chapter 5, Section 5.2.6, pp. 284--285) of Gordon, Finch,
+#' and Kim (2020). Eq. 5.28a--b is the book's numerical worked example.
 #'
 #' @param lambda_star Numeric. Non-centrality parameter (\eqn{\lambda^*}) derived from
 #' desired power (e.g., from \code{tdt_mssn_from_model()}).
@@ -300,7 +339,7 @@ tdt_mssn_from_model <- function(power, alpha, df,
 #' \item{gNT_star}{Expected non-transmission probability.}
 #' \item{N_required}{Required number of trios (\eqn{N^*}).}
 #' \item{lambda_star}{Non-centrality parameter.}
-#' \item{C, f0, f1, f2}{Intermediate derived values used in Eq. 5.26-5.28.}
+#' \item{C, f0, f1, f2}{Intermediate derived values used in Eq. 5.26.}
 #'
 #' @examples
 #' # Example: Compute N* with misclassification adjustment (pi01 = 0.1)
@@ -313,8 +352,20 @@ tdt_mssn_from_model <- function(power, alpha, df,
 #' )
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#' Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+#' a case: Effects of phenotype misclassification on power and sample size
+#' requirements for the transmission disequilibrium test with affected child
+#' trios. \emph{Human Heredity}, 67(4), 287--292.
+#' \doi{10.1159/000194981}. PMID: 19172087.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{tdt_mssn}},
+#' \code{\link{tdt_expected_transmission_probability}}, and
+#' \code{\link{tdt_expected_nontransmission_probability}}.
 #'
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
@@ -342,7 +393,7 @@ tdt_mssn_phenotype_misclassification_from_ncp <- function(
   DpT <- D * p_plus
   DpA <- D * pd
 
-  # Eqs. (5.28a,b)
+  # General adjusted probabilities in Eq. 5.26; Eq. 5.28 is a worked example.
   denom    <- prev + pi01 * phi0
   gT_star  <- (pd * p_plus) + (DpT * C * (1 - pi01)) / denom
   gNT_star <- (pd * p_plus) + (DpA * C * (pi01 - 1)) / denom
@@ -350,7 +401,7 @@ tdt_mssn_phenotype_misclassification_from_ncp <- function(
   N_star <- (lambda_star * (gT_star + gNT_star)) / (2 * (gT_star - gNT_star)^2)
 
   message("\n--- Transmission Disequilibrium Test (Trios) with Misclassification ---")
-  message("Implements Eqs. 5.26-5.28 (gT_star, gNT_star) and Eq. 5.27b for N_star")
+  message("Implements Eq. 5.26 (gT_star, gNT_star) and Eq. 5.27b for N_star")
   message("-----------------------------------------------------------------------")
   message("Parameters")
   message(sprintf("%-38s %10.3f", "Misclassification Rate (pi01):", pi01))
@@ -422,6 +473,8 @@ tdt_mssn_phenotype_misclassification_from_ncp <- function(
 #' }
 #'
 #' When \eqn{\pi_{01}=0}, this reduces to the standard non-misclassified case.
+#' This is Eq. 5.24 in Chapter 5, Section 5.2.6 (p. 284).
+#' \code{gT_star} is a probability, not an expected count.
 #'
 #' @return A list containing:
 #' \item{gT_star}{Expected transmission probability (\eqn{g_T^*}).}
@@ -445,8 +498,19 @@ tdt_mssn_phenotype_misclassification_from_ncp <- function(
 #' )
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#' Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+#' a case: Effects of phenotype misclassification on power and sample size
+#' requirements for the transmission disequilibrium test with affected child
+#' trios. \emph{Human Heredity}, 67(4), 287--292.
+#' \doi{10.1159/000194981}. PMID: 19172087.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{tdt_expected_nontransmission_probability}},
+#' \code{\link{tdt_expected_transmission_counts}}, and \code{\link{tdt_power}}.
 #'
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
@@ -543,6 +607,8 @@ tdt_expected_transmission_probability <- function(pd, prev, R1, R2,
 #' }
 #'
 #' When \eqn{\pi_{01}=0}, this reduces to the standard non-misclassified case.
+#' This is Eq. 5.25 in Chapter 5, Section 5.2.6 (pp. 284--285).
+#' \code{gNT_star} is a probability, not an expected count.
 #'
 #' @return A list containing:
 #' \item{gNT_star}{Expected non-transmission probability (\eqn{g_{NT}^*}).}
@@ -566,8 +632,19 @@ tdt_expected_transmission_probability <- function(pd, prev, R1, R2,
 #' )
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#' Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+#' a case: Effects of phenotype misclassification on power and sample size
+#' requirements for the transmission disequilibrium test with affected child
+#' trios. \emph{Human Heredity}, 67(4), 287--292.
+#' \doi{10.1159/000194981}. PMID: 19172087.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{tdt_expected_transmission_probability}},
+#' \code{\link{tdt_expected_transmission_counts}}, and \code{\link{tdt_power}}.
 #'
 #' @importFrom stats pchisq qchisq uniroot
 #' @export
@@ -643,7 +720,8 @@ tdt_expected_nontransmission_probability <- function(pd, prev, R1, R2,
 #' @param R1 Numeric. Relative risk for heterozygotes.
 #' @param R2 Numeric. Relative risk for homozygotes.
 #' @param delta_prime Numeric. Linkage disequilibrium scale parameter (\eqn{D'}) (default = 1).
-#' @param pi Numeric. Heterogeneity parameter controlling the proportion of homogeneous trios (default = 1).
+#' @param pi Numeric in \eqn{[0,1]}. Linked/homogeneous trio fraction
+#'   (default \code{1}); \eqn{1-\pi} is the heterogeneous fraction.
 #' @param theta1 Numeric. Population allele frequency (defaults to `pd` if `NULL`).
 #' @param digits Integer. Number of digits for printing (default = 6).
 #' @param verbose Logical. If `TRUE`, prints intermediate quantities (default = TRUE).
@@ -665,8 +743,11 @@ tdt_expected_nontransmission_probability <- function(pd, prev, R1, R2,
 #' \right]
 #' }
 #'
-#' These expressions generalize the basic TDT expectations (Eq. 5.24-5.25) to include
-#' heterogeneity across trios through the parameter \eqn{\pi}.
+#' These are Eqs. 5.31--5.32 in Chapter 5, Section 5.3.3 (pp. 293--294).
+#' They are expected counts over \code{N_star} affected trios. Dividing by
+#' \eqn{2N^*} gives the corresponding \eqn{g_T^*} and \eqn{g_{NT}^*}
+#' probabilities. The canonical \code{heter_rate} used by \code{tdt_power()}
+#' and \code{tdt_mssn()} equals \eqn{1-\pi}.
 #'
 #' @return A list containing:
 #' \item{ET_star}{Expected transmissions (\eqn{ET^*}).}
@@ -691,8 +772,19 @@ tdt_expected_nontransmission_probability <- function(pd, prev, R1, R2,
 #' )
 #'
 #' @references
-#' Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-#' *Heterogeneity in Statistical Genetics*. Springer Nature.
+#' Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+#' (2009). Transmission disequilibrium test power and sample size in the
+#' presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+#' and Molecular Biology}, 8, Article 44. \doi{10.2202/1544-6115.1501}.
+#' PMID: 19883370.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
+#' @seealso \code{\link{tdt_power}}, \code{\link{tdt_mssn}}, and
+#' \code{\link{tdt_mssn_from_model}}.
 #'
 #' @importFrom stats pchisq qchisq uniroot
 #' @export

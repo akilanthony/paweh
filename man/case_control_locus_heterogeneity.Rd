@@ -90,6 +90,15 @@ genotype trend calculations one test at a time. The all-in-one case-control
 functions remain the recommended interface when multiple tests or modifiers
 are needed in one call.
 }
+\details{
+The associated case distribution is mixed with the control distribution as
+\eqn{\pi g_{case,assoc} + (1-\pi)g_{ctrl}}, following textbook Eq. 2.16
+(p. 88). Thus \code{pi} is the homogeneous/associated fraction and
+\eqn{1-\pi} is the heterogeneous fraction. The adjusted probabilities are
+then passed to either the genotype chi-square NCP in Eq. 1.22 (p. 26) or the
+trend-test NCP in Eq. 1.24 (p. 27). The trend construction under locus
+heterogeneity is given more specifically by Eqs. 5.29a--b (pp. 287--288).
+}
 \examples{
 cc_chisq_mssn_locus_heterogeneity(
   power = 0.8, alpha = 0.05,
@@ -109,9 +118,19 @@ cc_trend_power_locus_heterogeneity(
 
 }
 \references{
-Gordon, D., Finch, S. J., & Nothnagel, M. (2020).
-\emph{Heterogeneity in Statistical Genetics}. Springer Nature.
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
 
-TODO: Provide exact textbook equation numbers/pages for the specialized
-case-control locus-heterogeneity calculations.
+Armitage, P. (1955). Tests for linear trends in proportions and frequencies.
+\emph{Biometrics}, 11(3), 375--386. \doi{10.2307/3001775}.
+
+Slager, S. L., & Schaid, D. J. (2001). Case-control studies of genetic
+markers: power and sample size approximations for Armitage's test for trend.
+\emph{Human Heredity}, 52(3), 149--153. \doi{10.1159/000053370}.
+}
+\seealso{
+\code{\link{cc_power}}, \code{\link{cc_mssn}}, and
+\code{\link{case_control_genotype_misclassification}}.
 }

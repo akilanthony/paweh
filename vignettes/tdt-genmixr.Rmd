@@ -428,15 +428,13 @@ Together, these tools offer a comprehensive workflow that supports both retrospe
 
 # References
 
-Ambrosio AM, Kennedy JL, Macciardi F, Berrettini W, Mutlu C, King N, Muglia P, Vetrugno R, Vincent JB, Macciardi F. **Dopamine D2 and D3 receptor gene polymorphisms in Portuguese schizophrenia trios: No evidence for transmission disequilibrium.** *Psychiatry Research*. 2004;125(3):225–231.  
+Ambrósio AM, Kennedy JL, Macciardi F, Macedo A, Valente J, Dourado A, Oliveira CR, Pato C. **Family association study between DRD2 and DRD3 gene polymorphisms and schizophrenia in a Portuguese population.** *Psychiatry Research*. 2004;125(3):185–191. DOI: 10.1016/j.psychres.2003.12.016.
 Available in this vignette’s supporting files.
 
 Spielman RS, McGinnis RE, Ewens WJ. **Transmission test for linkage disequilibrium: The insulin gene region and insulin-dependent diabetes mellitus (IDDM).** *The American Journal of Human Genetics*. 1993;52(3):506–516.  
 Available in this vignette’s supporting files.
 
-Gordon D, Finch SJ, Nothnagel M, Ott J. **Heterogeneity in Statistical Genetics.** Oxford University Press; 2020.  
+Gordon D, Finch SJ, Kim W. **Heterogeneity in Statistical Genetics: How to Assess, Address, and Account for Mixtures in Association Studies.** Springer; 2020. DOI: 10.1007/978-3-030-61121-7.
 (Primary theoretical reference for the extended TDT framework used in **genmixr**.)
 
 ---
-
-

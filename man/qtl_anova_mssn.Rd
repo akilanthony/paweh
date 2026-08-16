@@ -47,10 +47,30 @@ Finds the smallest sufficient integer total sample size for the three-group
 one-way ANOVA. Both denominator degrees of freedom and the non-centrality
 parameter are recalculated for every candidate sample size.
 }
+\details{
+For every candidate integer \code{N}, the genotype counts, denominator
+degrees of freedom, noncentrality parameter, critical F value, and achieved
+power are recomputed. With \code{count_method = "rounded"}, candidates for
+which any genotype group has zero members are excluded. The first candidate
+attaining \code{power} is returned; setting \code{multiple_of_three = TRUE}
+restricts the search grid rather than changing the ANOVA formula. The model
+and NCP follow textbook Eqs. 6.7--6.8 (p. 328).
+}
 \examples{
 qtl_anova_mssn(
   power = 0.8, alpha = 0.0001, qtl_var = 0.025,
   tau = 0.5, pd = 0.15, verbose = FALSE
 )
 
+}
+\references{
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer, Chapter 6,
+Section 6.1.1, Eqs. 6.7--6.8, p. 328.
+\doi{10.1007/978-3-030-61121-7}.
+}
+\seealso{
+\code{\link{qtl_anova_power}} and
+\code{\link{qtl_falconer_parameters}}.
 }

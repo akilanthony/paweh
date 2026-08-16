@@ -53,6 +53,10 @@ The primary MSSN is the selected case-control sample size used by the
 association test. The separately reported screening quantities are expected
 population counts needed to obtain those selected samples under simple
 population sampling; they are not statistical MSSN values.
+Genotype-specific distributions and threshold selection follow Eqs. 6.1 and
+6.3--6.5 (pp. 324--326). The downstream genotype-test NCP is Eq. 1.22
+(p. 26). The function solves for selected cases and controls; expected
+screening counts are reported separately and are not rounded MSSNs.
 }
 \examples{
 qtl_threshold_chisq_mssn(
@@ -61,4 +65,15 @@ qtl_threshold_chisq_mssn(
   x_upper = 5, x_lower = 5, verbose = FALSE
 )
 
+}
+\references{
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer, Eqs. 1.22, 6.1,
+and 6.3--6.5, pp. 26 and 324--326.
+\doi{10.1007/978-3-030-61121-7}.
+}
+\seealso{
+\code{\link{qtl_threshold_chisq_power}} and
+\code{\link{qtl_falconer_threshold_parameters}}.
 }
