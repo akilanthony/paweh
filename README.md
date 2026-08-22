@@ -66,12 +66,12 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 remotes::install_github("akilanthony/pawh")
 ```
 
-## Dashboard skeleton
+## Interactive dashboard
 
-`pawh` includes an early modular dashboard shell for the planned interactive
-study-design workflows. It currently provides navigation and transparent
-placeholders rather than performing calculations. Construct and launch it
-explicitly with:
+`pawh` includes an interactive Case-Control study-design workspace with power,
+minimum-sample-size, sensitivity, and genotype-distribution results. TDT /
+Family and Quantitative Trait workspaces are forthcoming. Construct and launch
+the dashboard explicitly with:
 
 ```r
 app <- pawh_app()

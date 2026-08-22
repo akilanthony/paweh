@@ -10,10 +10,10 @@ pawh_app()
 A Shiny application object inheriting from \code{shiny.appobj}.
 }
 \description{
-Creates the modular \code{bslib} dashboard for \code{pawh} study design. The current
-application provides the landing page, study navigation, and transparent
-placeholders for future Case-Control, TDT / Family, and Quantitative Trait
-workflows. It does not yet perform dashboard calculations.
+Creates the modular \code{bslib} dashboard for \code{pawh} study design. The
+Case-Control workspace provides canonical power, minimum-sample-size,
+sensitivity, and genotype-distribution results. Other study workspaces are
+clearly marked as forthcoming.
 }
 \details{
 \code{pawh_app()} returns the application object without launching it. This makes
