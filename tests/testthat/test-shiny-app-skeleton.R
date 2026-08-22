@@ -50,12 +50,12 @@ test_that("home study cards request the correct navigation targets", {
   expect_identical(selected, c("case_control", "tdt", "qtl"))
 })
 
-test_that("study shells are transparent placeholders", {
+test_that("unimplemented study shells remain transparent placeholders", {
   html <- .pawh_test_ui_html()
 
   expect_match(html, "No calculations are performed by this skeleton", fixed = TRUE)
-  expect_match(html, "Case-Control study design will be implemented in P3B", fixed = TRUE)
-  expect_match(html, "Your design", fixed = TRUE)
+  expect_match(html, "Case-Control study design", fixed = TRUE)
+  expect_match(html, "Your calculated design", fixed = TRUE)
   expect_match(html, "Advanced assumptions", fixed = TRUE)
   expect_match(html, "disabled", fixed = TRUE)
 })
@@ -71,6 +71,5 @@ test_that("obsolete app entry point and statistical logic are absent", {
   code_lines <- unlist(lapply(shiny_files, readLines, warn = FALSE))
   code <- paste(code_lines[!grepl("^\\s*#", code_lines)], collapse = "\n")
   expect_false(grepl("shiny::runApp", code, fixed = TRUE))
-  expect_false(grepl("cc_power\\s*\\(|cc_mssn\\s*\\(|tdt_power\\s*\\(|tdt_mssn\\s*\\(", code))
   expect_false(grepl("pchisq\\s*\\(|qchisq\\s*\\(|dmvnorm\\s*\\(", code))
 })

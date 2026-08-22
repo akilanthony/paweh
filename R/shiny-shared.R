@@ -23,6 +23,12 @@
     .pawh-sidebar-section + .pawh-sidebar-section { margin-top: 1.25rem; }
     .pawh-sidebar-section p, .pawh-placeholder p { color: #52636d; }
     .pawh-design-summary { margin-top: 1.25rem; }
+    .pawh-changed-notice, .pawh-caution {
+      margin-top: .75rem; padding: .7rem; border-left: 4px solid #b26a00;
+      background: #fff4df; color: #603b00;
+    }
+    .pawh-error { padding: .8rem; background: #fdebec; color: #842029; }
+    .pawh-interpretation { margin-top: 1rem; padding: 1rem; background: #eef5f8; }
     "
   )
 }

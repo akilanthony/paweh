@@ -23,7 +23,7 @@
       ),
       shiny::p(
         class = "text-muted",
-        "Choose a study type to enter its design workspace. Calculations will be added in subsequent development phases."
+        "Choose a study type. Case-Control study design is available now; additional workflows are forthcoming."
       )
     ),
     bslib::layout_column_wrap(
