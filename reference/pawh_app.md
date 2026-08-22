@@ -1,9 +1,11 @@
 # Construct the pawh Shiny Dashboard
 
 Creates the modular `bslib` dashboard for `pawh` study design. The
-Case-Control workspace provides canonical power, minimum-sample-size,
-sensitivity, and genotype-distribution results. Other study workspaces
-are clearly marked as forthcoming.
+Case-Control and TDT / Family workspaces provide canonical power,
+minimum-sample-size, sensitivity, and study-specific visual results. The
+concise results are complemented by collapsed calculation details and
+reproducible canonical R calls. The Quantitative Trait workspace is
+clearly marked as forthcoming.
 
 ## Usage
 
