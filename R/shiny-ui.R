@@ -23,7 +23,7 @@
       ),
       shiny::p(
         class = "text-muted",
-        "Choose a study type. Case-Control study design is available now; additional workflows are forthcoming."
+        "Choose a study type. Case-Control and TDT / Family study-design workflows are available now."
       )
     ),
     shiny::div(
