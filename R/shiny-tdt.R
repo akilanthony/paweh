@@ -101,7 +101,18 @@
         ),
         bslib::nav_panel(
           "Visualize", shiny::uiOutput(ns("visualize_intro")),
-          shiny::plotOutput(ns("transmission_plot"), height = "430px")
+          shiny::plotOutput(ns("transmission_plot"), height = "430px"),
+          shiny::tags$details(
+            class = "pawh-advanced-visualization",
+            shiny::tags$summary("Advanced visualization"),
+            shiny::div(
+              class = "pawh-advanced-body",
+              shiny::p(class = "pawh-advanced-subtitle", "Explore two assumptions simultaneously using the frozen model-based design."),
+              shiny::uiOutput(ns("surface_controls")),
+              shiny::uiOutput(ns("surface_message")),
+              shiny::uiOutput(ns("surface_container"))
+            )
+          )
         ),
         bslib::nav_panel("Methods", shiny::uiOutput(ns("methods")))
       )
@@ -211,6 +222,100 @@
     if (calculation$active$heterogeneity) "heterogeneity"
   )
 }
+.pawh_tdt_model_summary <- function(calculation) {
+  s <- calculation$snapshot
+  v <- s$display
+  if (s$input_mode == "model_based") {
+    paste0(
+      "Genetic model | allele frequency ", v$pd, "% | prevalence ", v$prev,
+      "% | R1 ", v$R1, " | R2 ", v$R2, " | D-prime ", v$delta_prime
+    )
+  } else {
+    "Direct transmission quantities"
+  }
+}
+.pawh_tdt_repro_args <- function(calculation) {
+  s <- calculation$snapshot
+  args <- if (s$objective == "power") {
+    list(N = s$objective_value)
+  } else {
+    list(target_power = s$objective_value)
+  }
+  args <- c(args, s$backend_args)
+  args$verbose <- FALSE
+  args
+}
+.pawh_tdt_repro_call <- function(calculation) {
+  .pawh_repro_call(
+    if (calculation$snapshot$objective == "power") "tdt_power" else "tdt_mssn",
+    .pawh_tdt_repro_args(calculation)
+  )
+}
+.pawh_tdt_scenario_detail_rows <- function(calculation, scenario) {
+  result <- calculation$result
+  rows <- list(
+    .pawh_summary_row("Expected transmitted probability (gT*)", formatC(result$gT_star[[scenario]], format = "f", digits = 4)),
+    .pawh_summary_row("Expected non-transmitted probability (gNT*)", formatC(result$gNT_star[[scenario]], format = "f", digits = 4))
+  )
+  if (calculation$snapshot$objective == "power") rows <- c(rows, list(
+    .pawh_summary_row("Expected transmitted count", formatC(result$ET[[scenario]], format = "f", digits = 2)),
+    .pawh_summary_row("Expected non-transmitted count", formatC(result$ENT[[scenario]], format = "f", digits = 2)),
+    .pawh_summary_row("Non-centrality parameter", formatC(result$lambda[[scenario]], format = "f", digits = 4)),
+    .pawh_summary_row("Power", .pawh_tdt_pct(result$power[[scenario]], 2))
+  )) else {
+    rows <- c(rows, list(
+      .pawh_summary_row("Required affected-child trios", .pawh_tdt_count(result$N[[scenario]], plan = TRUE)),
+      if (scenario != "no_error") .pawh_summary_row(
+        "Percent increase", if (is.finite(result$percent_increase[[scenario]])) {
+          paste0(formatC(result$percent_increase[[scenario]], format = "f", digits = 2), "%")
+        } else "not defined"
+      ),
+      .pawh_summary_row("Power at baseline trio count", .pawh_tdt_pct(result$power_at_N_no_error[[scenario]], 2))
+    ))
+  }
+  rows
+}
+.pawh_tdt_advanced_ui <- function(calculation) {
+  s <- calculation$snapshot
+  result <- calculation$result
+  model_rows <- if (s$input_mode == "model_based") list(
+    .pawh_summary_row("Disease prevalence", formatC(result$model_parameters$prev, format = "f", digits = 4)),
+    .pawh_summary_row("Modeled-allele frequency", formatC(result$model_parameters$pd, format = "f", digits = 4)),
+    .pawh_summary_row("R1", formatC(result$model_parameters$R1, format = "f", digits = 4)),
+    .pawh_summary_row("R2", formatC(result$model_parameters$R2, format = "f", digits = 4)),
+    .pawh_summary_row("D-prime", formatC(result$model_parameters$delta_prime, format = "f", digits = 4)),
+    .pawh_summary_row("Alpha", format(result$alpha))
+  ) else list(
+    .pawh_summary_row("Input specification", "Direct transmission quantities"),
+    .pawh_summary_row("ET", format(s$backend_args$ET)),
+    .pawh_summary_row("ENT", format(s$backend_args$ENT)),
+    if (s$objective == "mssn") .pawh_summary_row("Represented affected-child trios", format(s$backend_args$n_trios)),
+    .pawh_summary_row("Alpha", format(result$alpha))
+  )
+  scenarios <- .pawh_tdt_scenarios(calculation)
+  .pawh_advanced_details_ui(
+    .pawh_detail_section("Model specification", model_rows),
+    lapply(scenarios, function(scenario) {
+      .pawh_detail_section(
+        paste(unname(.pawh_tdt_scenario_labels[scenario]), "transmission quantities"),
+        .pawh_tdt_scenario_detail_rows(calculation, scenario)
+      )
+    }),
+    if (calculation$active$misclassification) .pawh_detail_section(
+      "Phenotype misclassification details",
+      list(.pawh_summary_row("Control-to-affected rate", .pawh_tdt_rate(result$model_parameters$misclass_rate)))
+    ),
+    if (calculation$active$heterogeneity) .pawh_detail_section(
+      "Locus heterogeneity details",
+      list(.pawh_summary_row("Heterogeneous affected trios", .pawh_tdt_rate(result$model_parameters$heter_rate)))
+    ),
+    if (s$objective == "mssn") .pawh_detail_section(
+      "Statistical result details",
+      list(.pawh_summary_row("Target-power non-centrality", formatC(result$lambda_star, format = "f", digits = 4)))
+    ),
+    .pawh_reproduce_ui(.pawh_tdt_repro_call(calculation))
+  )
+}
 
 .pawh_tdt_result_card <- function(calculation, scenario) {
   snapshot <- calculation$snapshot
@@ -287,6 +392,7 @@
 .pawh_tdt_results_ui <- function(calculation) {
   scenarios <- .pawh_tdt_scenarios(calculation)
   shiny::tagList(
+    shiny::div(class = "pawh-model-specification", .pawh_tdt_model_summary(calculation)),
     bslib::layout_column_wrap(
       width = "300px",
       lapply(scenarios, function(scenario) .pawh_tdt_result_card(calculation, scenario))
@@ -298,7 +404,8 @@
     shiny::div(
       class = "pawh-interpretation", shiny::h4("Interpretation"),
       shiny::p(.pawh_tdt_interpretation(calculation))
-    )
+    ),
+    .pawh_tdt_advanced_ui(calculation)
   )
 }
 
@@ -367,9 +474,9 @@
 .pawh_tdt_sensitivity_plot <- function(sensitivity) {
   colors <- .pawh_plot_colors()
   values <- c(
-    `No-error design` = unname(colors["genotype"]),
-    `Phenotype misclassification` = unname(colors["trend"]),
-    `Locus heterogeneity` = unname(colors["controls"])
+    `No-error design` = unname(colors["tdt_baseline"]),
+    `Phenotype misclassification` = unname(colors["tdt_misclassification"]),
+    `Locus heterogeneity` = unname(colors["tdt_heterogeneity"])
   )
   lines <- c(
     `No-error design` = "solid", `Phenotype misclassification` = "dashed",
@@ -399,7 +506,11 @@
   do.call(rbind, lapply(scenarios, function(scenario) data.frame(
     Scenario = unname(.pawh_tdt_scenario_labels[scenario]),
     Quantity = c("Transmitted", "Non-transmitted"),
-    Probability = c(result$gT_star[[scenario]], result$gNT_star[[scenario]])
+    Probability = c(result$gT_star[[scenario]], result$gNT_star[[scenario]]),
+    Label = formatC(
+      c(result$gT_star[[scenario]], result$gNT_star[[scenario]]),
+      format = "f", digits = 3
+    )
   )))
 }
 
@@ -409,10 +520,14 @@
     .data$Quantity, .data$Probability, fill = .data$Quantity
   )) +
     ggplot2::geom_col(width = 0.68, alpha = 0.92) +
+    ggplot2::geom_text(
+      ggplot2::aes(label = .data$Label), vjust = -0.45,
+      color = "#3F4850", size = 3.4
+    ) +
     ggplot2::facet_wrap(~Scenario) +
     ggplot2::scale_fill_manual(values = c(
-      Transmitted = unname(colors["genotype"]),
-      `Non-transmitted` = unname(colors["controls"])
+      Transmitted = unname(colors["transmitted"]),
+      `Non-transmitted` = unname(colors["nontransmitted"])
     )) +
     ggplot2::labs(x = NULL, y = "Expected transmission probability", fill = NULL) +
     .pawh_plot_theme() +
@@ -480,10 +595,72 @@
   )
 }
 
+.pawh_tdt_surface_axis_labels <- c(
+  pd = "Modeled-allele frequency", prev = "Disease prevalence",
+  R1 = "Heterozygote relative risk (R1)", R2 = "Homozygote relative risk (R2)",
+  alpha = "Significance level", delta_prime = "D-prime",
+  misclass_rate = "Phenotype misclassification rate",
+  heter_rate = "Locus heterogeneity rate"
+)
+.pawh_tdt_surface_scenarios <- function(calculation) {
+  c(
+    if (calculation$active$misclassification) "misclassification",
+    if (calculation$active$heterogeneity) "heterogeneity",
+    "no_error"
+  )
+}
+.pawh_tdt_surface_axes <- function(scenario) {
+  c(
+    "pd", "prev", "R1", "R2", "alpha", "delta_prime",
+    if (identical(scenario, "misclassification")) "misclass_rate",
+    if (identical(scenario, "heterogeneity")) "heter_rate"
+  )
+}
+.pawh_tdt_surface_grid <- function(parameter, n = 12L) {
+  defaults <- .tdt_surface_axis_specs()[[parameter]]$default
+  seq(min(defaults), max(defaults), length.out = n)
+}
+.pawh_tdt_surface_args <- function(calculation, scenario, x, y, n = 12L) {
+  if (calculation$snapshot$input_mode != "model_based") {
+    stop("Advanced surfaces require a genetic-model design.", call. = FALSE)
+  }
+  if (!scenario %in% .pawh_tdt_surface_scenarios(calculation)) {
+    stop("Choose an available frozen-design scenario.", call. = FALSE)
+  }
+  axes <- .pawh_tdt_surface_axes(scenario)
+  if (!x %in% axes || !y %in% axes || identical(x, y)) {
+    stop("Choose two distinct parameters supported by this scenario.", call. = FALSE)
+  }
+  a <- calculation$snapshot$backend_args
+  list(
+    metric = calculation$snapshot$objective, scenario = scenario,
+    x = x, y = y, x_values = .pawh_tdt_surface_grid(x, n),
+    y_values = .pawh_tdt_surface_grid(y, n),
+    N = if (calculation$snapshot$objective == "power") calculation$snapshot$objective_value else 600,
+    target_power = if (calculation$snapshot$objective == "mssn") calculation$snapshot$objective_value else 0.8,
+    pd = a$pd, prev = a$prev, R1 = a$R1, R2 = a$R2,
+    alpha = a$alpha, delta_prime = a$delta_prime,
+    misclass_rate = a$misclass_rate, heter_rate = a$heter_rate
+  )
+}
+.pawh_tdt_surface <- function(calculation, scenario, x, y, n = 12L) {
+  plot <- do.call(
+    plot_tdt_surface3d,
+    .pawh_tdt_surface_args(calculation, scenario, x, y, n)
+  )
+  plotly::style(
+    plot,
+    colorscale = list(c(0, "#E3E7EA"), c(0.5, "#8FA1AF"), c(1, "#3F4850"))
+  )
+}
+
 .pawh_tdt_server <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    state <- shiny::reactiveValues(calculation = NULL, error = NULL, signature = NULL, sensitivity = NULL)
+    state <- shiny::reactiveValues(
+      calculation = NULL, error = NULL, signature = NULL, sensitivity = NULL,
+      surface = NULL, surface_error = NULL
+    )
     values <- shiny::reactive(.pawh_tdt_values(input))
     changed <- shiny::reactive(!is.null(state$signature) && !identical(state$signature, .pawh_tdt_sig(values())))
 
@@ -515,6 +692,8 @@
     shiny::observeEvent(input$calculate, {
       state$error <- NULL
       state$sensitivity <- NULL
+      state$surface <- NULL
+      state$surface_error <- NULL
       submitted <- values()
       tryCatch({
         state$calculation <- .pawh_tdt_calculate(.pawh_tdt_snapshot(submitted))
@@ -567,6 +746,8 @@
       shiny::p(class = "text-muted", "Each point is a canonical calculation of the frozen design.")
     } else if (!is.null(state$sensitivity) && state$sensitivity$has_nonfinite) {
       shiny::div(class = "pawh-caution", "Some explored designs have infinite or undefined required sample size and are omitted from the line geometry.")
+    } else if (.pawh_power_axis_zoomed(state$sensitivity)) {
+      shiny::p(class = "pawh-zoom-note", "Y-axis is zoomed to show variation in power.")
     })
     output$sensitivity_plot <- shiny::renderPlot({
       shiny::req(state$sensitivity)
@@ -582,11 +763,63 @@
       shiny::req(state$calculation)
       .pawh_tdt_transmission_plot(state$calculation)
     })
+    output$surface_controls <- shiny::renderUI({
+      if (is.null(state$calculation)) return(shiny::p(class = "text-muted", "Calculate a design first."))
+      if (state$calculation$snapshot$input_mode != "model_based") {
+        return(shiny::p(class = "text-muted", "Advanced surfaces are available for genetic-model designs only."))
+      }
+      if (!requireNamespace("plotly", quietly = TRUE)) {
+        return(shiny::p(class = "text-muted", "Install the suggested plotly package to generate this optional visualization."))
+      }
+      scenarios <- .pawh_tdt_surface_scenarios(state$calculation)
+      scenario <- if (!is.null(input$surface_scenario) && input$surface_scenario %in% scenarios) input$surface_scenario else scenarios[[1L]]
+      axes <- .pawh_tdt_surface_axes(scenario)
+      x <- if (!is.null(input$surface_x) && input$surface_x %in% axes) input$surface_x else "pd"
+      y_default <- if (scenario == "misclassification") "misclass_rate" else if (scenario == "heterogeneity") "heter_rate" else "prev"
+      y <- if (!is.null(input$surface_y) && input$surface_y %in% setdiff(axes, x)) input$surface_y else y_default
+      shiny::div(
+        class = "pawh-sensitivity-controls",
+        shiny::selectInput(ns("surface_scenario"), "Scenario", stats::setNames(scenarios, .pawh_tdt_scenario_labels[scenarios]), selected = scenario),
+        shiny::selectInput(ns("surface_x"), "X parameter", stats::setNames(axes, .pawh_tdt_surface_axis_labels[axes]), selected = x),
+        shiny::selectInput(ns("surface_y"), "Y parameter", stats::setNames(setdiff(axes, x), .pawh_tdt_surface_axis_labels[setdiff(axes, x)]), selected = y),
+        shiny::actionButton(ns("generate_surface"), "Generate 3D surface")
+      )
+    })
+    shiny::observeEvent(input$generate_surface, {
+      shiny::req(state$calculation, input$surface_scenario, input$surface_x, input$surface_y)
+      state$surface_error <- NULL
+      tryCatch({
+        state$surface <- shiny::withProgress(
+          message = "Generating canonical TDT surface", value = 0.5,
+          expr = .pawh_tdt_surface(
+            state$calculation, input$surface_scenario,
+            input$surface_x, input$surface_y
+          )
+        )
+      }, error = function(error) {
+        state$surface_error <- paste("The surface could not be generated.", conditionMessage(error))
+      })
+    }, ignoreInit = TRUE)
+    output$surface_message <- shiny::renderUI(if (!is.null(state$surface_error)) {
+      shiny::div(class = "pawh-error", role = "alert", state$surface_error)
+    } else if (!is.null(state$calculation) && is.null(state$surface)) {
+      shiny::p(class = "text-muted", "The 3D surface is generated only on request and uses the last calculated design.")
+    })
+    output$surface_container <- shiny::renderUI(if (!is.null(state$surface)) {
+      plotly::plotlyOutput(ns("surface_plot"), height = "480px")
+    })
+    if (requireNamespace("plotly", quietly = TRUE)) {
+      output$surface_plot <- plotly::renderPlotly({
+        shiny::req(state$surface)
+        state$surface
+      })
+    }
     output$methods <- shiny::renderUI(.pawh_tdt_methods_ui(state$calculation))
 
     list(
       calculation = shiny::reactive(state$calculation), changed = changed,
-      error = shiny::reactive(state$error), sensitivity = shiny::reactive(state$sensitivity)
+      error = shiny::reactive(state$error), sensitivity = shiny::reactive(state$sensitivity),
+      surface = shiny::reactive(state$surface), surface_error = shiny::reactive(state$surface_error)
     )
   })
 }

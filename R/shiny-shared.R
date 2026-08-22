@@ -152,8 +152,38 @@
     .pawh-result-card .card-body { padding: 8px 14px 12px; }
     .pawh-result-card .table { margin-bottom: 0; font-size: .88rem; }
     .pawh-result-card .table > :not(caption) > * > * { padding: 7px 8px; }
-    .pawh-sensitivity-controls { max-width: 680px; margin-bottom: 12px; }
+    .pawh-model-specification {
+      margin: 0 0 12px; padding: 9px 11px; color: var(--pawh-secondary);
+      background: #F7F8FA; border: 1px solid var(--pawh-divider); font-size: .86rem;
+    }
+    .pawh-advanced-details, .pawh-advanced-visualization {
+      margin-top: 12px; border: 1px solid var(--pawh-border); border-radius: 6px;
+      background: #FFFFFF;
+    }
+    .pawh-advanced-details > summary, .pawh-advanced-visualization > summary {
+      cursor: pointer; padding: 11px 13px; color: var(--pawh-text); font-weight: 500;
+    }
+    .pawh-advanced-details[open] > summary, .pawh-advanced-visualization[open] > summary {
+      border-bottom: 1px solid var(--pawh-divider);
+    }
+    .pawh-advanced-body { padding: 10px 13px 13px; }
+    .pawh-advanced-subtitle { margin: 0 0 10px; color: var(--pawh-secondary); font-size: .84rem; }
+    .pawh-detail-section { margin-top: 12px; }
+    .pawh-detail-section:first-of-type { margin-top: 0; }
+    .pawh-detail-section h5 { margin: 0 0 4px; font-size: .92rem; font-weight: 500; }
+    .pawh-reproduce { margin-top: 14px; }
+    .pawh-reproduce h5 { margin-bottom: 5px; font-size: .92rem; font-weight: 500; }
+    .pawh-reproduce pre {
+      margin: 0; padding: 10px 12px; max-height: 280px; overflow: auto;
+      color: #303840; background: #F7F8FA; border: 1px solid var(--pawh-divider);
+      border-radius: 4px; font-size: .78rem; line-height: 1.45; user-select: text;
+    }
+    .pawh-sensitivity-controls {
+      display: grid; grid-template-columns: minmax(240px, 320px) minmax(280px, 380px);
+      gap: 0 18px; align-items: end; max-width: 720px; margin-bottom: 12px;
+    }
     .pawh-sensitivity-controls .btn { width: auto; padding-left: 16px; padding-right: 16px; }
+    .pawh-zoom-note { margin: 2px 0 8px; color: var(--pawh-muted); font-size: .82rem; }
     .pawh-visual-intro h3 { margin: 0 0 5px; font-size: 1.1rem; font-weight: 500; }
     .pawh-visual-intro p { margin-bottom: 8px; color: var(--pawh-secondary); }
     .text-muted { color: var(--pawh-muted) !important; }
@@ -162,6 +192,7 @@
       .pawh-page-heading { margin-top: 16px; }
       .pawh-workspace .bslib-sidebar-layout > .main { padding: 12px 0 0; }
       .pawh-workspace .bslib-sidebar-layout > .sidebar { width: auto; border-radius: 7px; }
+      .pawh-sensitivity-controls { display: block; max-width: 100%; }
     }
     "
   )
@@ -171,6 +202,9 @@
   c(
     cases = "#3F4850", controls = "#6F879A",
     genotype = "#3F4850", trend = "#355C7D",
+    tdt_baseline = "#3F4850", tdt_misclassification = "#355C7D",
+    tdt_heterogeneity = "#6F879A", transmitted = "#3F4850",
+    nontransmitted = "#8FA1AF",
     baseline = "#C7CDD2", adjusted = "#3F4850",
     reference = "#7A848C"
   )
@@ -207,6 +241,52 @@
     shiny::span(class = "pawh-summary-label", label),
     shiny::span(class = "pawh-summary-value", value)
   )
+}
+
+.pawh_detail_section <- function(title, rows) {
+  shiny::div(
+    class = "pawh-detail-section", shiny::h5(title),
+    shiny::div(class = "pawh-summary-grid", rows)
+  )
+}
+
+.pawh_repro_call <- function(function_name, args) {
+  stopifnot(is.character(function_name), length(function_name) == 1L)
+  call <- as.call(c(list(as.name(function_name)), unname(args)))
+  names(call) <- c("", names(args))
+  call
+}
+
+.pawh_call_text <- function(call) {
+  paste(deparse(call, width.cutoff = 72L), collapse = "\n")
+}
+
+.pawh_reproduce_ui <- function(call) {
+  shiny::div(
+    class = "pawh-reproduce", shiny::h5("Reproduce in R"),
+    shiny::tags$pre(shiny::tags$code(.pawh_call_text(call)))
+  )
+}
+
+.pawh_advanced_details_ui <- function(...) {
+  shiny::tags$details(
+    class = "pawh-advanced-details",
+    shiny::tags$summary("Advanced calculation details"),
+    shiny::div(
+      class = "pawh-advanced-body",
+      shiny::p(
+        class = "pawh-advanced-subtitle",
+        "Inspect model probabilities and intermediate quantities returned by the canonical calculation."
+      ),
+      ...
+    )
+  )
+}
+
+.pawh_power_axis_zoomed <- function(sensitivity) {
+  if (is.null(sensitivity) || !identical(sensitivity$objective, "power")) return(FALSE)
+  values <- sensitivity$data$y[is.finite(sensitivity$data$y)]
+  length(values) > 1L && diff(range(values)) < 0.5
 }
 
 .pawh_placeholder_ui <- function(title, message) {

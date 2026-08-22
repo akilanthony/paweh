@@ -70,8 +70,10 @@ remotes::install_github("akilanthony/pawh")
 
 `pawh` includes interactive Case-Control and TDT / Family study-design
 workspaces with power, minimum-sample-size, sensitivity, and study-specific
-visual results. The Quantitative Trait workspace is forthcoming. Construct and
-launch the dashboard explicitly with:
+visual results. Compact primary results are complemented by collapsed expert
+calculation details and reproducible canonical R calls; model-based TDT designs
+also offer an optional on-demand two-parameter surface. The Quantitative Trait
+workspace is forthcoming. Construct and launch the dashboard explicitly with:
 
 ```r
 app <- pawh_app()

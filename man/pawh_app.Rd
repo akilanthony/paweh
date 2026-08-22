@@ -13,7 +13,9 @@ A Shiny application object inheriting from \code{shiny.appobj}.
 Creates the modular \code{bslib} dashboard for \code{pawh} study design. The
 Case-Control and TDT / Family workspaces provide canonical power,
 minimum-sample-size, sensitivity, and study-specific visual results. The
-Quantitative Trait workspace is clearly marked as forthcoming.
+concise results are complemented by collapsed calculation details and
+reproducible canonical R calls. The Quantitative Trait workspace is clearly
+marked as forthcoming.
 }
 \details{
 \code{pawh_app()} returns the application object without launching it. This makes

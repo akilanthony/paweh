@@ -221,3 +221,107 @@ test_that("TDT literature anchors remain unchanged", {
   expect_equal(do.call(tdt_mssn, c(common, list(heter_rate = 0)))$N$heterogeneity, 3430.696, tolerance = 1e-3)
   expect_equal(do.call(tdt_mssn, c(common, list(heter_rate = .5)))$N$heterogeneity, 13722.79, tolerance = 1e-2)
 })
+
+test_that("TDT advanced details use separate canonical quantities", {
+  values <- pawh:::.pawh_tdt_defaults()
+  values$misclassification <- values$heterogeneity <- TRUE
+  values$misclass_rate <- 5
+  values$heter_rate <- 20
+  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+  html <- paste(as.character(pawh:::.pawh_tdt_advanced_ui(calculation)), collapse = "\n")
+  expect_match(html, "Advanced calculation details", fixed = TRUE)
+  expect_false(grepl("<details[^>]* open", html))
+  expect_match(html, "No-error design transmission quantities", fixed = TRUE)
+  expect_match(html, "Phenotype misclassification transmission quantities", fixed = TRUE)
+  expect_match(html, "Locus heterogeneity transmission quantities", fixed = TRUE)
+  expect_match(html, formatC(calculation$result$gT_star$misclassification, format = "f", digits = 4), fixed = TRUE)
+  expect_match(html, formatC(calculation$result$gNT_star$heterogeneity, format = "f", digits = 4), fixed = TRUE)
+  expect_match(html, formatC(calculation$result$ET$no_error, format = "f", digits = 2), fixed = TRUE)
+  expect_false(grepl("combined", html, ignore.case = TRUE))
+
+  values$objective <- "mssn"
+  values$input_mode <- "model_free"
+  values$ET <- values$ENT <- 100
+  null <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+  null_html <- paste(as.character(pawh:::.pawh_tdt_advanced_ui(null)), collapse = "\n")
+  expect_match(null_html, "Direct transmission quantities", fixed = TRUE)
+  expect_match(null_html, ">Inf<", fixed = TRUE)
+  expect_match(null_html, "not defined", fixed = TRUE)
+  expect_false(grepl("NaN%|Inf%", null_html))
+})
+
+test_that("TDT reproducible calls exactly reproduce frozen calculations", {
+  values <- pawh:::.pawh_tdt_defaults()
+  values$misclassification <- values$heterogeneity <- TRUE
+  values$misclass_rate <- 5
+  values$heter_rate <- 20
+  power <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+  args <- pawh:::.pawh_tdt_repro_args(power)
+  reproduced <- do.call(tdt_power, args)
+  expect_equal(reproduced$power, power$result$power)
+  expect_identical(args$misclass_rate, .05)
+  expect_identical(args$heter_rate, .2)
+  expect_false(any(c("objective", "display") %in% names(args)))
+  expect_match(pawh:::.pawh_call_text(pawh:::.pawh_tdt_repro_call(power)), "tdt_power", fixed = TRUE)
+
+  values$objective <- "mssn"
+  mssn <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+  reproduced <- do.call(tdt_mssn, pawh:::.pawh_tdt_repro_args(mssn))
+  expect_equal(reproduced$N, mssn$result$N)
+  expect_match(pawh:::.pawh_call_text(pawh:::.pawh_tdt_repro_call(mssn)), "tdt_mssn", fixed = TRUE)
+})
+
+test_that("shared colors and transmission labels use canonical values", {
+  colors <- pawh:::.pawh_plot_colors()
+  expect_identical(unname(colors[c("tdt_baseline", "tdt_misclassification", "tdt_heterogeneity")]),
+    c("#3F4850", "#355C7D", "#6F879A"))
+  expect_identical(unname(colors[c("transmitted", "nontransmitted")]), c("#3F4850", "#8FA1AF"))
+  values <- pawh:::.pawh_tdt_defaults()
+  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+  data <- pawh:::.pawh_tdt_transmissions(calculation)
+  expect_equal(data$Probability, c(calculation$result$gT_star$no_error, calculation$result$gNT_star$no_error))
+  expect_identical(data$Label, formatC(data$Probability, format = "f", digits = 3))
+  plot <- pawh:::.pawh_tdt_transmission_plot(calculation)
+  expect_true(any(vapply(plot$layers, function(layer) inherits(layer$geom, "GeomText"), logical(1))))
+})
+
+test_that("TDT 3D surface is canonical, modest, and frozen", {
+  skip_if_not_installed("plotly")
+  values <- pawh:::.pawh_tdt_defaults()
+  values$misclassification <- TRUE
+  values$misclass_rate <- 5
+  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+  args <- pawh:::.pawh_tdt_surface_args(
+    calculation, "misclassification", "pd", "misclass_rate", n = 4
+  )
+  expect_length(args$x_values, 4)
+  expect_length(args$y_values, 4)
+  expect_identical(args$alpha, .05)
+  surface <- pawh:::.pawh_tdt_surface(
+    calculation, "misclassification", "pd", "misclass_rate", n = 4
+  )
+  expect_s3_class(surface, "plotly")
+  expect_equal(nrow(attr(surface, "surface_data")), 16)
+  expect_identical(attr(surface, "surface_spec")$fixed_parameters$alpha, .05)
+
+  shiny::testServer(pawh:::.pawh_tdt_server, {
+    session$setInputs(
+      objective = "power", input_mode = "model_based", N = 600,
+      alpha = .05, prev = 5, pd = 30, R1 = 1.5, R2 = 2.25,
+      delta_prime = 1, misclassification = TRUE, misclass_rate = 5,
+      heterogeneity = FALSE, heter_rate = 0
+    )
+    session$setInputs(calculate = 1)
+    expect_null(session$returned$surface())
+    session$setInputs(alpha = .01)
+    session$setInputs(
+      surface_scenario = "misclassification", surface_x = "pd",
+      surface_y = "misclass_rate", generate_surface = 1
+    )
+    expect_s3_class(session$returned$surface(), "plotly")
+    expect_identical(
+      attr(session$returned$surface(), "surface_spec")$fixed_parameters$alpha,
+      .05
+    )
+  })
+})
