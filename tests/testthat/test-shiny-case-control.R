@@ -69,3 +69,21 @@ test_that("sensitivity points are direct canonical calls of frozen input", {
   expect_equal(middle$y, c(expected$tests$genotypes$power, expected$tests$trend$power))
   expect_equal(sens$baseline_x, 500)
 })
+
+test_that("Case-Control plots use semantic colors and redundant line styles", {
+  v <- pawh:::.pawh_cc_defaults()
+  calc <- pawh:::.pawh_cc_calculate(pawh:::.pawh_cc_snapshot(v))
+  sens <- pawh:::.pawh_cc_sensitivity(calc, "N_case", c(400, 600), n = 5)
+
+  sensitivity_plot <- pawh:::.pawh_cc_sensitivity_plot(sens)
+  genotype_plot <- pawh:::.pawh_cc_genotype_plot(calc)
+
+  expect_s3_class(sensitivity_plot, "ggplot")
+  expect_s3_class(genotype_plot, "ggplot")
+  expect_true(any(vapply(sensitivity_plot$scales$scales,
+    function(scale) "colour" %in% scale$aesthetics, logical(1))))
+  expect_true(any(vapply(sensitivity_plot$scales$scales,
+    function(scale) "linetype" %in% scale$aesthetics, logical(1))))
+  expect_true(any(vapply(genotype_plot$scales$scales,
+    function(scale) "fill" %in% scale$aesthetics, logical(1))))
+})

@@ -15,7 +15,7 @@
   ns <- shiny::NS(id)
   shiny::tagList(
     shiny::div(
-      class = "py-4 py-lg-5",
+      class = "pawh-home-hero",
       shiny::h1("pawh"),
       shiny::p(
         class = "lead",
@@ -26,25 +26,28 @@
         "Choose a study type. Case-Control study design is available now; additional workflows are forthcoming."
       )
     ),
-    bslib::layout_column_wrap(
-      width = "280px",
-      .pawh_home_card_ui(
-        ns("case_control"),
-        "Case-Control",
-        "Compare genetic variation between cases and controls.",
-        "Open Case-Control"
-      ),
-      .pawh_home_card_ui(
-        ns("tdt"),
-        "TDT / Family",
-        "Design affected-child trio / transmission disequilibrium studies.",
-        "Open TDT / Family"
-      ),
-      .pawh_home_card_ui(
-        ns("qtl"),
-        "Quantitative Trait",
-        "Design studies involving continuous phenotypes.",
-        "Open Quantitative Trait"
+    shiny::div(
+      class = "pawh-home-grid",
+      bslib::layout_column_wrap(
+        width = "280px",
+        .pawh_home_card_ui(
+          ns("case_control"),
+          "Case-Control",
+          "Compare genetic variation between cases and controls.",
+          "Open Case-Control"
+        ),
+        .pawh_home_card_ui(
+          ns("tdt"),
+          "TDT / Family",
+          "Design affected-child trio / transmission disequilibrium studies.",
+          "Open TDT / Family"
+        ),
+        .pawh_home_card_ui(
+          ns("qtl"),
+          "Quantitative Trait",
+          "Design studies involving continuous phenotypes.",
+          "Open Quantitative Trait"
+        )
       )
     )
   )

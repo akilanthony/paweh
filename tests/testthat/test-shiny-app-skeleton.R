@@ -32,6 +32,20 @@ test_that("dashboard shell exposes study and workspace navigation", {
   }
 })
 
+test_that("dashboard uses compact scientific presentation helpers", {
+  colors <- pawh:::.pawh_plot_colors()
+  expect_identical(unname(colors[c("cases", "controls")]), c("#3F4850", "#6F879A"))
+  expect_identical(unname(colors[c("genotype", "trend")]), c("#3F4850", "#355C7D"))
+  expect_identical(unname(colors[c("baseline", "adjusted", "reference")]),
+    c("#C7CDD2", "#3F4850", "#7A848C"))
+  expect_s3_class(pawh:::.pawh_plot_theme(), "theme")
+
+  css <- paste(as.character(pawh:::.pawh_dashboard_theme()), collapse = "\n")
+  expect_match(css, "#F7F8FA", fixed = TRUE)
+  expect_match(css, ".pawh-study-card { min-height: 0", fixed = TRUE)
+  expect_false(grepl("#00FFFF|cyan|coral|#FF0000", css, ignore.case = TRUE))
+})
+
 test_that("home study cards request the correct navigation targets", {
   selected <- character()
   shiny::testServer(
