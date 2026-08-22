@@ -81,6 +81,9 @@ reference:
   - plot_qtl_multivariate_surface3d
   - plot_qtl_threshold_chisq_mssn
   - plot_qtl_threshold_chisq_power
+- title: 'Interactive application'
+  contents:
+  - pawh_app
 articles:
 - title: Getting Started
   navbar: Getting Started
