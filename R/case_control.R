@@ -71,6 +71,10 @@
 #' \item Compute genotype chi-square and genotype trend-test MSSN values from
 #' the observed genotype frequencies.
 #' }
+#' The defaults (\code{locus_het = FALSE}, \code{pheno_misclass = FALSE}, and
+#' \code{geno_misclass = "none"}) give the ordinary no-error design. When
+#' modifiers are active, they are applied sequentially in the order above and
+#' therefore form one combined adjusted design.
 #'
 #' With \code{input_mode = "model_based"}, conditional case and control genotype
 #' frequencies are derived from \code{prev}, \code{pd}, \code{R2}, and
@@ -726,132 +730,55 @@ cc_mssn <- function(
 
   # ---- clean printed output ----
   if (isTRUE(verbose)) {
+    locus_active <- isTRUE(locus_het) && pi < 1
+    pheno_active <- isTRUE(pheno_misclass) && (theta > 0 || phi > 0)
+    geno_active <- isTRUE(misclass_info$enabled)
+    any_modifier <- locus_active || pheno_active || geno_active
 
-    message("\n--- Case-Control: Minimum Sample Size Necessary (MSSN) ---")
-    message("Outputs: Genotype chi-square and genotype trend test")
-    message("--------------------------------------------------------------------------")
+    base_S_g <- sum((g1_base - g0_base)^2 / (g1_base + k * g0_base))
+    base_case_g <- ceiling(lambda_star_g / (k * base_S_g))
+    base_ctrl_g <- ceiling(k * base_case_g)
+    base_num_t <- (sum(w * (g1_base - g0_base)))^2
+    base_den_t <- sum(w^2 * (g1_base + k * g0_base)) -
+      (sum(w * (g1_base + k * g0_base)))^2 / (1 + k)
+    base_case_t <- ceiling(lambda_star_1 / (k * (base_num_t / base_den_t)))
+    base_ctrl_t <- ceiling(k * base_case_t)
 
-    fmt2 <- "%-32s %12s  |  %-28s %12s"
+    message("Case-control minimum sample size")
+    message(sprintf("Target power: %.1f%%", 100 * power))
+    message("")
+    message("No-error design")
+    message(sprintf("  Genotype test: %d cases, %d controls, %d total",
+                    base_case_g, base_ctrl_g, base_case_g + base_ctrl_g))
+    message(sprintf("  Trend test: %d cases, %d controls, %d total",
+                    base_case_t, base_ctrl_t, base_case_t + base_ctrl_t))
 
-    message(sprintf(
-      fmt2,
-      "Input Mode:", input_mode,
-      "Significance Level (alpha):", .fmt_e(alpha, 2)
-    ))
-
-    message(sprintf(
-      fmt2,
-      "Target Power:", .fmt_f(power, 3),
-      "Case:Control Ratio (k):", .fmt_f(k, 3)
-    ))
-
-    message(sprintf(
-      "%-32s %12s",
-      "Trend Weights (w):", paste0(w, collapse = ",")
-    ))
-
-    if (input_mode == "model_based") {
-      message(sprintf(
-        fmt2,
-        "Disease Prevalence (prev):", .fmt_f(prev, 4),
-        "Risk Allele Freq (p_d):", .fmt_f(pd, 4)
-      ))
-      message(sprintf(
-        fmt2,
-        "MOI:", MOI,
-        "R2:", .fmt_f(R2, 4)
-      ))
-    } else if (input_mode == "model_free") {
-      message("Model-free input: user-supplied genotype frequencies g1 and g0")
-    }
-
-    if (isTRUE(locus_het)) {
-      message(sprintf(
-        "%-32s %12s",
-        "Locus heterogeneity:", paste0("enabled, pi=", .fmt_f(pi, 3))
-      ))
-    } else {
-      message(sprintf(
-        "%-32s %12s",
-        "Locus heterogeneity:", "none"
-      ))
-    }
-
-    if (isTRUE(pheno_misclass)) {
-      message(sprintf(
-        "%-32s %12s",
-        "Phenotype misclassification:",
-        paste0("enabled, theta=", .fmt_f(theta, 4), ", phi=", .fmt_f(phi, 4))
-      ))
-    } else {
-      message(sprintf(
-        "%-32s %12s",
-        "Phenotype misclassification:", "none"
-      ))
-    }
-
-if (geno_misclass == "none") {
-      message(sprintf("%-32s %12s", "Genotype misclassification:", "none"))
-    } else if (geno_misclass == "1p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0("1-parameter, e=", .fmt_f(e, 4))
-      ))
-    } else if (geno_misclass == "2p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0("2-parameter, e1=", .fmt_f(e1, 4), ", e2=", .fmt_f(e2, 4))
-      ))
-    } else if (geno_misclass == "3p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0(
-          "3-parameter, e01=", .fmt_f(e01, 4),
-          ", e02=", .fmt_f(e02, 4),
-          ", e03=", .fmt_f(e03, 4)
+    if (any_modifier) {
+      message("")
+      message("Adjusted design")
+      message("  Active modifiers:")
+      if (locus_active) {
+        message(sprintf("    Locus heterogeneity: %.1f%%", 100 * (1 - pi)))
+      }
+      if (pheno_active) {
+        message(sprintf(
+          "    Phenotype misclassification: theta %.1f%%, phi %.1f%%",
+          100 * theta, 100 * phi
+        ))
+      }
+      if (geno_active) {
+        geno_label <- switch(
+          geno_misclass,
+          `1p` = "1-parameter", `2p` = "2-parameter",
+          `3p` = "3-parameter", diff3p = "differential 3-parameter"
         )
-      ))
-    } else if (geno_misclass == "diff3p") {
-      message("Genotype misclassification:     differential 3-parameter")
-      message(sprintf("  diff_source:                  %s", misclass_info$diff_source))
-      message(sprintf("  diff_multiplier:              %s", .fmt_f(misclass_info$diff_multiplier, 4)))
-      message(sprintf(
-        "  Case parameters:              e01=%s, e02=%s, e03=%s",
-        .fmt_f(misclass_info$case_params["e01"], 4),
-        .fmt_f(misclass_info$case_params["e02"], 4),
-        .fmt_f(misclass_info$case_params["e03"], 4)
-      ))
-      message(sprintf(
-        "  Control parameters:           e01=%s, e02=%s, e03=%s",
-        .fmt_f(misclass_info$ctrl_params["e01"], 4),
-        .fmt_f(misclass_info$ctrl_params["e02"], 4),
-        .fmt_f(misclass_info$ctrl_params["e03"], 4)
-      ))
+        message(paste0("    Genotype misclassification: ", geno_label))
+      }
+      message(sprintf("  Genotype test: %d cases, %d controls, %d total",
+                      MSSN_case_g, MSSN_ctrl_g, MSSN_case_g + MSSN_ctrl_g))
+      message(sprintf("  Trend test: %d cases, %d controls, %d total",
+                      MSSN_case_t, MSSN_ctrl_t, MSSN_case_t + MSSN_ctrl_t))
     }
-
-    message("--------------------------------------------------------------------------")
-    message("Minimum Sample Size Necessary")
-
-    message(sprintf(
-      "  %-16s MSSN_case=%8d  |  MSSN_ctrl=%8d  |  MSSN_total=%8d",
-      "Genotypes:", MSSN_case_g, MSSN_ctrl_g, MSSN_case_g + MSSN_ctrl_g
-    ))
-
-    message(sprintf(
-      "  %-16s MSSN_case=%8d  |  MSSN_ctrl=%8d  |  MSSN_total=%8d",
-      "Trend:", MSSN_case_t, MSSN_ctrl_t, MSSN_case_t + MSSN_ctrl_t
-    ))
-
-    message("--------------------------------------------------------------------------")
-    message("Observed genotype frequencies: cases vs controls")
-    message(sprintf("  g0: %6.3f vs %6.3f", g1_obs[1], g0_obs[1]))
-    message(sprintf("  g1: %6.3f vs %6.3f", g1_obs[2], g0_obs[2]))
-    message(sprintf("  g2: %6.3f vs %6.3f", g1_obs[3], g0_obs[3]))
-
-    message("--------------------------------------------------------------------------")
   }
 
   invisible(out)
@@ -933,6 +860,10 @@ if (geno_misclass == "none") {
 #' \item Compute genotype chi-square and genotype trend-test non-centrality
 #' parameters and powers from the observed genotype frequencies.
 #' }
+#' The defaults (\code{locus_het = FALSE}, \code{pheno_misclass = FALSE}, and
+#' \code{geno_misclass = "none"}) give the ordinary no-error design. When
+#' modifiers are active, they are applied sequentially in the order above and
+#' therefore form one combined adjusted design.
 #'
 #' With \code{input_mode = "model_based"}, conditional case and control genotype
 #' frequencies are derived from \code{prev}, \code{pd}, \code{R2}, and
@@ -1605,146 +1536,57 @@ cc_power <- function(
 
   # ---- clean printed output ----
   if (isTRUE(verbose)) {
+    locus_active <- isTRUE(locus_het) && pi < 1
+    pheno_active <- isTRUE(pheno_misclass) && (theta > 0 || phi > 0)
+    geno_active <- isTRUE(misclass_info$enabled)
+    any_modifier <- locus_active || pheno_active || geno_active
 
-    message("\n--- Case-Control: Power for Fixed Sample Size ---")
-    message("Outputs: Genotype chi-square and genotype trend test")
-    message("--------------------------------------------------------------------------")
+    base_S_g <- sum((g1_base - g0_base)^2 / (g1_base + k * g0_base))
+    base_lambda_g <- k * N_case * base_S_g
+    base_power_g <- pchisq(crit_g, df = 2, ncp = base_lambda_g,
+                           lower.tail = FALSE)
+    base_num_t <- (sum(w * (g1_base - g0_base)))^2
+    base_den_t <- sum(w^2 * (g1_base + k * g0_base)) -
+      (sum(w * (g1_base + k * g0_base)))^2 / (1 + k)
+    base_lambda_t <- k * N_case * (base_num_t / base_den_t)
+    base_power_t <- pchisq(crit_1, df = 1, ncp = base_lambda_t,
+                           lower.tail = FALSE)
 
-    fmt2 <- "%-32s %12s  |  %-28s %12s"
+    message("Case-control power")
+    message(sprintf("Cases: %s; controls: %s; total: %s",
+                    formatC(N_case, format = "f", digits = 0, big.mark = ","),
+                    formatC(N_ctrl, format = "f", digits = 0, big.mark = ","),
+                    formatC(N_case + N_ctrl, format = "f", digits = 0,
+                            big.mark = ",")))
+    message("")
+    message("No-error design")
+    message(sprintf("  Genotype test power: %.1f%%", 100 * base_power_g))
+    message(sprintf("  Trend test power: %.1f%%", 100 * base_power_t))
 
-    message(sprintf(
-      fmt2,
-      "Input Mode:", input_mode,
-      "Significance Level (alpha):", .fmt_e(alpha, 2)
-    ))
-
-    message(sprintf(
-      fmt2,
-      "N_case:", .fmt_f(N_case, 0),
-      "N_ctrl:", .fmt_f(N_ctrl, 0)
-    ))
-
-    message(sprintf(
-      fmt2,
-      "Case:Control Ratio (k):", .fmt_f(k, 3),
-      "Trend Weights (w):", paste0(w, collapse = ",")
-    ))
-
-    if (input_mode == "model_based") {
-      message(sprintf(
-        fmt2,
-        "Disease Prevalence (prev):", .fmt_f(prev, 4),
-        "Risk Allele Freq (p_d):", .fmt_f(pd, 4)
-      ))
-      message(sprintf(
-        fmt2,
-        "MOI:", MOI,
-        "R2:", .fmt_f(R2, 4)
-      ))
-    } else if (input_mode == "model_free") {
-      message("Model-free input: user-supplied genotype frequencies g1 and g0")
-    }
-
-    if (isTRUE(locus_het)) {
-      message(sprintf(
-        "%-32s %12s",
-        "Locus heterogeneity:", paste0("enabled, pi=", .fmt_f(pi, 3))
-      ))
-    } else {
-      message(sprintf(
-        "%-32s %12s",
-        "Locus heterogeneity:", "none"
-      ))
-    }
-
-    if (isTRUE(pheno_misclass)) {
-      message(sprintf(
-        "%-32s %12s",
-        "Phenotype misclassification:",
-        paste0("enabled, theta=", .fmt_f(theta, 4), ", phi=", .fmt_f(phi, 4))
-      ))
-    } else {
-      message(sprintf(
-        "%-32s %12s",
-        "Phenotype misclassification:", "none"
-      ))
-    }
-
-if (geno_misclass == "none") {
-      message(sprintf("%-32s %12s", "Genotype misclassification:", "none"))
-    } else if (geno_misclass == "1p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0("1-parameter, e=", .fmt_f(e, 4))
-      ))
-    } else if (geno_misclass == "2p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0("2-parameter, e1=", .fmt_f(e1, 4), ", e2=", .fmt_f(e2, 4))
-      ))
-    } else if (geno_misclass == "3p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0(
-          "3-parameter, e01=", .fmt_f(e01, 4),
-          ", e02=", .fmt_f(e02, 4),
-          ", e03=", .fmt_f(e03, 4)
+    if (any_modifier) {
+      message("")
+      message("Adjusted design")
+      message("  Active modifiers:")
+      if (locus_active) {
+        message(sprintf("    Locus heterogeneity: %.1f%%", 100 * (1 - pi)))
+      }
+      if (pheno_active) {
+        message(sprintf(
+          "    Phenotype misclassification: theta %.1f%%, phi %.1f%%",
+          100 * theta, 100 * phi
+        ))
+      }
+      if (geno_active) {
+        geno_label <- switch(
+          geno_misclass,
+          `1p` = "1-parameter", `2p` = "2-parameter",
+          `3p` = "3-parameter", diff3p = "differential 3-parameter"
         )
-      ))
-    } else if (geno_misclass == "diff3p") {
-      message("Genotype misclassification:     differential 3-parameter")
-      message(sprintf("  diff_source:                  %s", misclass_info$diff_source))
-      message(sprintf("  diff_multiplier:              %s", .fmt_f(misclass_info$diff_multiplier, 4)))
-      message(sprintf(
-        "  Case parameters:              e01=%s, e02=%s, e03=%s",
-        .fmt_f(misclass_info$case_params["e01"], 4),
-        .fmt_f(misclass_info$case_params["e02"], 4),
-        .fmt_f(misclass_info$case_params["e03"], 4)
-      ))
-      message(sprintf(
-        "  Control parameters:           e01=%s, e02=%s, e03=%s",
-        .fmt_f(misclass_info$ctrl_params["e01"], 4),
-        .fmt_f(misclass_info$ctrl_params["e02"], 4),
-        .fmt_f(misclass_info$ctrl_params["e03"], 4)
-      ))
+        message(paste0("    Genotype misclassification: ", geno_label))
+      }
+      message(sprintf("  Genotype test power: %.1f%%", 100 * power_g))
+      message(sprintf("  Trend test power: %.1f%%", 100 * power_t))
     }
-
-    message("--------------------------------------------------------------------------")
-    message("Power")
-
-    message(sprintf(
-      "  %-16s %12.6f",
-      "Genotypes:", power_g
-    ))
-
-    message(sprintf(
-      "  %-16s %12.6f",
-      "Trend:", power_t
-    ))
-
-    message("--------------------------------------------------------------------------")
-    message("Non-Centrality Parameters")
-
-    message(sprintf(
-      "  %-16s %12.5f  | df=%d",
-      "Genotypes:", lambda_g, 2
-    ))
-
-    message(sprintf(
-      "  %-16s %12.5f  | df=%d",
-      "Trend:", lambda_t, 1
-    ))
-
-    message("--------------------------------------------------------------------------")
-    message("Observed genotype frequencies: cases vs controls")
-    message(sprintf("  g0: %6.3f vs %6.3f", g1_obs[1], g0_obs[1]))
-    message(sprintf("  g1: %6.3f vs %6.3f", g1_obs[2], g0_obs[2]))
-    message(sprintf("  g2: %6.3f vs %6.3f", g1_obs[3], g0_obs[3]))
-
-    message("--------------------------------------------------------------------------")
   }
 
   invisible(out)

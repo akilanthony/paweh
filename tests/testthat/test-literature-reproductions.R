@@ -36,6 +36,11 @@ test_that("Buyske 2009 TDT phenotype-error inflation is reproduced", {
     39.22715,
     tolerance = 1e-5
   )
+  expect_equal(
+    out$percent_increase$misclassification,
+    3822.715,
+    tolerance = 1e-3
+  )
 })
 
 test_that("Chen 2009 TDT locus-heterogeneity MSSNs are reproduced", {

@@ -283,21 +283,25 @@ test_that("input validation rejects malformed arguments", {
 # ---- verbose output ----------------------------------------------------------
 
 test_that("verbose output is emitted as messages and returns invisibly", {
-  expect_message(
-    tdt_power(
+  power_text <- capture.output(
+    power_result <- tdt_power(
       N = 600, input_mode = "model_based",
       pd = anchor$pd, prev = anchor$prev, R1 = anchor$R1, R2 = anchor$R2,
       verbose = TRUE
     ),
-    "POWER FOR A FIXED SAMPLE SIZE"
+    type = "message"
   )
+  expect_match(paste(power_text, collapse = "\n"), "TDT power")
+  expect_s3_class(power_result, "tdt_power")
 
-  expect_message(
-    tdt_mssn(
+  mssn_text <- capture.output(
+    mssn_result <- tdt_mssn(
       target_power = 0.8, input_mode = "model_based",
       pd = anchor$pd, prev = anchor$prev, R1 = anchor$R1, R2 = anchor$R2,
       verbose = TRUE
     ),
-    "MINIMUM SAMPLE SIZE NECESSARY FOR A FIXED POWER"
+    type = "message"
   )
+  expect_match(paste(mssn_text, collapse = "\n"), "TDT minimum sample size")
+  expect_s3_class(mssn_result, "tdt_mssn")
 })
