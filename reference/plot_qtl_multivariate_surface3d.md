@@ -1,8 +1,10 @@
 # Plot an Interactive 3D Two-Phenotype Falconer Surface
 
-Creates an interactive Plotly surface for the population mixture of
-three genotype-specific bivariate-normal distributions. The plot
-displays exactly two quantitative phenotypes and complements
+Creates an interactive Plotly visualization of three genotype-specific
+bivariate-normal distributions. It can display either one
+population-mixture surface or three separate genotype-conditional
+surfaces. The plot displays exactly two quantitative phenotypes and
+complements
 [`plot_qtl_multivariate_contour()`](https://akilanthony.github.io/pawh/reference/plot_qtl_multivariate_contour.md),
 which provides a static 2D view.
 
@@ -16,7 +18,7 @@ plot_qtl_multivariate_surface3d(
   cor_matrix,
   x_upper = NULL,
   x_lower = NULL,
-  surface = c("density", "cdf"),
+  surface = c("density", "genotype_density", "cdf"),
   show_means = TRUE,
   show_thresholds = TRUE,
   show_labels = TRUE,
@@ -51,12 +53,12 @@ plot_qtl_multivariate_surface3d(
 
 - surface:
 
-  Either `"density"` or `"cdf"`.
+  One of `"density"`, `"genotype_density"`, or `"cdf"`.
 
 - show_means:
 
   Logical; show the three genotype-specific mean vectors at their
-  corresponding mixture-surface heights.
+  corresponding surface heights.
 
 - show_thresholds:
 
@@ -88,14 +90,19 @@ data are attached as attributes.
 
 ## Details
 
-Density mode plots the genotype-weighted mixture
+Density mode plots the marginal genotype-weighted mixture
 `sum(pi[j] * f[j](y1, y2))`, where each `f[j]` is a bivariate-normal
 density. CDF mode plots the lower-tail mixture
 `sum(pi[j] * P(Y1 <= y1, Y2 <= y2 | G = j))`. Thus, the density surface
-has genotype-related peaks, whereas the CDF surface is cumulative and
-monotone. Normalizing the z axis changes only its displayed scale; the
-raw calculated values remain available in the plot's `plot_data`
-attribute.
+can have genotype-related peaks, but a three-component mixture need not
+have three distinct modes. The CDF surface is cumulative and monotone.
+
+Genotype-density mode adds three Plotly surface traces, one for each
+conditional density `f[j](y1, y2)`, without genotype-frequency weighting
+or summation. This is the multivariate analogue of
+[`plot_qtl_genotype_distribution()`](https://akilanthony.github.io/pawh/reference/plot_qtl_genotype_distribution.md).
+Normalizing the z axis changes only its displayed scale; raw calculated
+values remain available in the plot's long-form `plot_data` attribute.
 
 Affected subjects are defined only by the joint upper-right region
 `Y1 >= TU1 AND Y2 >= TU2`. Unaffected subjects are defined only by the

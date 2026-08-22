@@ -245,8 +245,13 @@ gordon_mv_power$power
 ## Visualizing the same validated multivariate model
 
 The next contour uses the exact Gordon parameter vector rather than a
-visually convenient replacement. It shows the two-phenotype genotype
-mixture underlying the MSSN calculation.
+visually convenient replacement. It shows the marginal two-phenotype
+distribution underlying the MSSN calculation: the three
+genotype-conditional densities are weighted by their Hardy–Weinberg
+frequencies and summed. Consequently, three genotypes do not imply three
+visible mixture modes. In this example the increaser allele is rare and
+the conditional distributions overlap, so the common genotype dominates
+the marginal surface.
 
 ``` r
 
@@ -266,9 +271,58 @@ example.](pawh-04-quantitative-trait-study-design_files/figure-html/gordon-conto
 Bivariate mixture density for the exact Gordon et al. Pillai MSSN
 example.
 
-The visualization is two-dimensional in phenotype space. The documented
-statistical backend can support more traits, but the contour and 3D
-surface interfaces require exactly two.
+To inspect the model components themselves, use
+`surface = "genotype_density"`. These curves are conditional on
+genotype: they are not frequency weighted, and each bivariate-normal
+density integrates to one. The rare genotype therefore remains visible
+even though it contributes little mass to the Gordon mixture.
+
+``` r
+
+plot_qtl_multivariate_contour(
+  qtl_var = c(0.10, 0.05),
+  tau = c(0, 0.50),
+  pd = 0.05,
+  cor_matrix = diag(2),
+  surface = "genotype_density",
+  grid_n = 60
+)
+```
+
+![Separate genotype-conditional densities for the exact Gordon et al.
+model
+parameters.](pawh-04-quantitative-trait-study-design_files/figure-html/gordon-genotype-contours-1.png)
+
+Separate genotype-conditional densities for the exact Gordon et
+al. model parameters.
+
+An interactive 3D view can display the same three conditional
+distributions as separate translucent surfaces. The following parameters
+are deliberately more separated than the published Gordon example so
+that the three hills and their mean locations are easy to inspect; this
+is an illustration, not a literature reproduction.
+
+The guarded example is left unevaluated in the installed vignette to
+avoid embedding a multi-megabyte interactive widget; run it in an
+interactive R session to rotate and inspect the surfaces.
+
+``` r
+
+if (requireNamespace("plotly", quietly = TRUE)) {
+  plot_qtl_multivariate_surface3d(
+    qtl_var = c(0.95, 0.92),
+    tau = c(0, 0.50),
+    pd = 0.50,
+    cor_matrix = matrix(c(1, 0.15, 0.15, 1), 2, byrow = TRUE),
+    surface = "genotype_density",
+    grid_n = 35
+  )
+}
+```
+
+Both visualization interfaces are restricted to two phenotypes. The
+documented statistical backend can support more traits, but a contour
+plane or 3D surface over phenotype space requires exactly two.
 
 ## Multivariate threshold selection uses AND logic
 

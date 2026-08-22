@@ -132,7 +132,7 @@
 - [`plot_qtl_genotype_distribution()`](https://akilanthony.github.io/pawh/reference/plot_qtl_genotype_distribution.md)
   : Plot Falconer Genotype-Specific Quantitative-Trait Distributions
 - [`plot_qtl_multivariate_contour()`](https://akilanthony.github.io/pawh/reference/plot_qtl_multivariate_contour.md)
-  : Plot a Two-Phenotype Falconer Mixture Surface
+  : Plot Two-Phenotype Falconer Density or CDF Contours
 - [`plot_qtl_multivariate_surface3d()`](https://akilanthony.github.io/pawh/reference/plot_qtl_multivariate_surface3d.md)
   : Plot an Interactive 3D Two-Phenotype Falconer Surface
 - [`plot_qtl_threshold_chisq_mssn()`](https://akilanthony.github.io/pawh/reference/plot_qtl_threshold_chisq_mssn.md)

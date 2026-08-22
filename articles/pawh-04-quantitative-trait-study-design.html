@@ -305,8 +305,13 @@ the same published parameters:</p>
 <h2 id="visualizing-the-same-validated-multivariate-model">Visualizing the same validated multivariate model<a class="anchor" aria-label="anchor" href="#visualizing-the-same-validated-multivariate-model"></a>
 </h2>
 <p>The next contour uses the exact Gordon parameter vector rather than a
-visually convenient replacement. It shows the two-phenotype genotype
-mixture underlying the MSSN calculation.</p>
+visually convenient replacement. It shows the marginal two-phenotype
+distribution underlying the MSSN calculation: the three
+genotype-conditional densities are weighted by their Hardy–Weinberg
+frequencies and summed. Consequently, three genotypes do not imply three
+visible mixture modes. In this example the increaser allele is rare and
+the conditional distributions overlap, so the common genotype dominates
+the marginal surface.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_multivariate_contour.html">plot_qtl_multivariate_contour</a></span><span class="op">(</span></span>
 <span>  qtl_var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
@@ -322,9 +327,48 @@ Bivariate mixture density for the exact Gordon et al. Pillai MSSN
 example.
 </p>
 </div>
-<p>The visualization is two-dimensional in phenotype space. The
-documented statistical backend can support more traits, but the contour
-and 3D surface interfaces require exactly two.</p>
+<p>To inspect the model components themselves, use
+<code>surface = "genotype_density"</code>. These curves are conditional
+on genotype: they are not frequency weighted, and each bivariate-normal
+density integrates to one. The rare genotype therefore remains visible
+even though it contributes little mass to the Gordon mixture.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_multivariate_contour.html">plot_qtl_multivariate_contour</a></span><span class="op">(</span></span>
+<span>  qtl_var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
+<span>  tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.50</span><span class="op">)</span>,</span>
+<span>  pd <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  cor_matrix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>,</span>
+<span>  surface <span class="op">=</span> <span class="st">"genotype_density"</span>,</span>
+<span>  grid_n <span class="op">=</span> <span class="fl">60</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="figure">
+<img src="pawh-04-quantitative-trait-study-design_files/figure-html/gordon-genotype-contours-1.png" class="r-plt" alt="Separate genotype-conditional densities for the exact Gordon et al. model parameters." width="672"><p class="caption">
+Separate genotype-conditional densities for the exact Gordon et
+al. model parameters.
+</p>
+</div>
+<p>An interactive 3D view can display the same three conditional
+distributions as separate translucent surfaces. The following parameters
+are deliberately more separated than the published Gordon example so
+that the three hills and their mean locations are easy to inspect; this
+is an illustration, not a literature reproduction.</p>
+<p>The guarded example is left unevaluated in the installed vignette to
+avoid embedding a multi-megabyte interactive widget; run it in an
+interactive R session to rotate and inspect the surfaces.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"plotly"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="../reference/plot_qtl_multivariate_surface3d.html">plot_qtl_multivariate_surface3d</a></span><span class="op">(</span></span>
+<span>    qtl_var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">0.92</span><span class="op">)</span>,</span>
+<span>    tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.50</span><span class="op">)</span>,</span>
+<span>    pd <span class="op">=</span> <span class="fl">0.50</span>,</span>
+<span>    cor_matrix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.15</span>, <span class="fl">0.15</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">2</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>    surface <span class="op">=</span> <span class="st">"genotype_density"</span>,</span>
+<span>    grid_n <span class="op">=</span> <span class="fl">35</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>Both visualization interfaces are restricted to two phenotypes. The
+documented statistical backend can support more traits, but a contour
+plane or 3D surface over phenotype space requires exactly two.</p>
 </div>
 <div class="section level2">
 <h2 id="multivariate-threshold-selection-uses-and-logic">Multivariate threshold selection uses AND logic<a class="anchor" aria-label="anchor" href="#multivariate-threshold-selection-uses-and-logic"></a>
@@ -341,7 +385,7 @@ lower-tail condition:</p>
 Gordon model parameters and adds 10% joint-tail thresholds solely to
 demonstrate the selection geometry; it is not part of the published
 reproduction.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_multivariate_contour.html">plot_qtl_multivariate_contour</a></span><span class="op">(</span></span>
 <span>  qtl_var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
 <span>  tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.50</span><span class="op">)</span>,</span>
@@ -404,7 +448,7 @@ association studies by combining univariate association tests.
 <div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
