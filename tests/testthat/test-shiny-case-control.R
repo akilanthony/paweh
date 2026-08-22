@@ -87,3 +87,61 @@ test_that("Case-Control plots use semantic colors and redundant line styles", {
   expect_true(any(vapply(genotype_plot$scales$scales,
     function(scale) "fill" %in% scale$aesthetics, logical(1))))
 })
+
+test_that("Case-Control advanced details are collapsed and canonical", {
+  values <- pawh:::.pawh_cc_defaults()
+  calculation <- pawh:::.pawh_cc_calculate(pawh:::.pawh_cc_snapshot(values))
+  html <- paste(as.character(pawh:::.pawh_cc_advanced_ui(calculation)), collapse = "\n")
+  expect_match(html, "Advanced calculation details", fixed = TRUE)
+  expect_match(html, "Case genotype probabilities", fixed = TRUE)
+  expect_match(html, formatC(calculation$adjusted$freqs$g_base_case[1], format = "f", digits = 4), fixed = TRUE)
+  expect_match(html, formatC(calculation$adjusted$tests$genotypes$lambda, format = "f", digits = 4), fixed = TRUE)
+  expect_false(grepl("<details[^>]* open", html))
+
+  values$input_mode <- "model_free"
+  direct <- pawh:::.pawh_cc_calculate(pawh:::.pawh_cc_snapshot(values))
+  direct_html <- paste(as.character(pawh:::.pawh_cc_advanced_ui(direct)), collapse = "\n")
+  expect_match(direct_html, "Direct genotype probabilities", fixed = TRUE)
+  expect_match(direct_html, "0.3500", fixed = TRUE)
+  expect_equal(direct$adjusted$freqs$g_base_case, c(.35, .45, .2))
+
+  values <- pawh:::.pawh_cc_defaults()
+  values$locus_het <- TRUE; values$pi <- 75
+  values$pheno_misclass <- TRUE; values$theta <- 3; values$phi <- 1
+  values$genotype_error <- TRUE; values$e <- 2
+  modified <- pawh:::.pawh_cc_calculate(pawh:::.pawh_cc_snapshot(values))
+  modifier_html <- paste(as.character(pawh:::.pawh_cc_advanced_ui(modified)), collapse = "\n")
+  expect_match(modifier_html, "Disease attributable to locus", fixed = TRUE)
+  expect_match(modifier_html, "Affected classified as control", fixed = TRUE)
+  expect_match(modifier_html, modified$adjusted$errors$genotype_misclass$model, fixed = TRUE)
+  expect_match(modifier_html, "Observed genotype probabilities after misclassification", fixed = TRUE)
+})
+
+test_that("Case-Control reproducible calls use frozen public arguments", {
+  values <- pawh:::.pawh_cc_defaults()
+  values$locus_het <- TRUE; values$pi <- 80
+  values$pheno_misclass <- TRUE; values$theta <- 2; values$phi <- 1
+  power <- pawh:::.pawh_cc_calculate(pawh:::.pawh_cc_snapshot(values))
+  args <- pawh:::.pawh_cc_repro_args(power)
+  reproduced <- do.call(cc_power, args)
+  expect_equal(reproduced$tests, power$adjusted$tests)
+  expect_identical(args$pi, .8)
+  expect_identical(args$theta, .02)
+  expect_false(any(c("target_power", "objective", "display") %in% names(args)))
+  expect_match(pawh:::.pawh_call_text(pawh:::.pawh_cc_repro_call(power)), "cc_power", fixed = TRUE)
+
+  values$objective <- "mssn"
+  mssn <- pawh:::.pawh_cc_calculate(pawh:::.pawh_cc_snapshot(values))
+  reproduced <- do.call(cc_mssn, pawh:::.pawh_cc_repro_args(mssn))
+  expect_equal(reproduced$tests, mssn$adjusted$tests)
+  expect_match(pawh:::.pawh_call_text(pawh:::.pawh_cc_repro_call(mssn)), "cc_mssn", fixed = TRUE)
+})
+
+test_that("power sensitivity zoom note detects only narrow ranges", {
+  narrow <- list(objective = "power", data = data.frame(y = c(.991, .999)))
+  broad <- list(objective = "power", data = data.frame(y = c(.1, .9)))
+  mssn <- list(objective = "mssn", data = data.frame(y = c(100, 200)))
+  expect_true(pawh:::.pawh_power_axis_zoomed(narrow))
+  expect_false(pawh:::.pawh_power_axis_zoomed(broad))
+  expect_false(pawh:::.pawh_power_axis_zoomed(mssn))
+})

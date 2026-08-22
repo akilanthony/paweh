@@ -256,6 +256,127 @@
     ), Total = c(r$tests$genotypes$MSSN_total, r$tests$trend$MSSN_total))
   }
 }
+.pawh_cc_probability_rows <- function(values) {
+  lapply(seq_along(values), function(i) {
+    .pawh_summary_row(
+      paste(i - 1L, "modeled alleles"),
+      formatC(values[[i]], format = "f", digits = 4)
+    )
+  })
+}
+.pawh_cc_model_summary <- function(calculation) {
+  s <- calculation$snapshot
+  v <- s$display
+  if (s$input_mode == "model_based") {
+    paste0(
+      "Genetic model | allele frequency ", v$pd, "% | prevalence ", v$prev,
+      "% | RR2 ", v$R2, " | ", format(v$k), ":1 controls"
+    )
+  } else {
+    paste0("Direct genotype probabilities | ", format(v$k), ":1 controls")
+  }
+}
+.pawh_cc_repro_args <- function(calculation) {
+  s <- calculation$snapshot
+  a <- s$backend_args
+  args <- if (s$objective == "power") {
+    list(N_case = s$objective_value)
+  } else {
+    list(power = s$objective_value)
+  }
+  args <- c(args, list(alpha = a$alpha, input_mode = a$input_mode))
+  if (s$input_mode == "model_based") {
+    args <- c(args, a[c("prev", "pd", "R2", "MOI")])
+  } else {
+    args <- c(args, a[c("g1", "g0")])
+  }
+  args$k <- a$k
+  if (isTRUE(a$locus_het)) args <- c(args, a[c("locus_het", "pi")])
+  if (isTRUE(a$pheno_misclass)) args <- c(args, a[c("pheno_misclass", "theta", "phi")])
+  if (!identical(a$geno_misclass, "none")) {
+    error_names <- switch(a$geno_misclass,
+      `1p` = "e", `2p` = c("e1", "e2"), `3p` = c("e01", "e02", "e03"),
+      diff3p = c(
+        "case_e01", "case_e02", "case_e03", "ctrl_e01", "ctrl_e02",
+        "ctrl_e03", "diff_source", "diff_multiplier"
+      )
+    )
+    args$geno_misclass <- a$geno_misclass
+    args <- c(args, a[error_names])
+  }
+  args$verbose <- FALSE
+  args
+}
+.pawh_cc_repro_call <- function(calculation) {
+  .pawh_repro_call(
+    if (calculation$snapshot$objective == "power") "cc_power" else "cc_mssn",
+    .pawh_cc_repro_args(calculation)
+  )
+}
+.pawh_cc_advanced_ui <- function(calculation) {
+  s <- calculation$snapshot
+  r <- calculation$adjusted
+  model_rows <- if (s$input_mode == "model_based") list(
+    .pawh_summary_row("Disease prevalence", formatC(r$model_info$prev, format = "f", digits = 4)),
+    .pawh_summary_row("Modeled-allele frequency", formatC(r$model_info$pd, format = "f", digits = 4)),
+    .pawh_summary_row("Inheritance model", r$model_info$MOI),
+    .pawh_summary_row("R1", formatC(r$model_info$R1, format = "f", digits = 4)),
+    .pawh_summary_row("R2", formatC(r$model_info$R2, format = "f", digits = 4)),
+    .pawh_summary_row("Case:control ratio", paste0("1:", format(r$k))),
+    .pawh_summary_row("Alpha", format(r$alpha))
+  ) else list(
+    .pawh_summary_row("Input specification", "Direct genotype probabilities"),
+    .pawh_summary_row("Case:control ratio", paste0("1:", format(r$k))),
+    .pawh_summary_row("Alpha", format(r$alpha))
+  )
+  modifier_rows <- list()
+  if (calculation$active$locus) modifier_rows <- c(modifier_rows, list(
+    .pawh_summary_row("Disease attributable to locus", .pawh_cc_pct(r$locus_het$pi))
+  ))
+  if (calculation$active$phenotype) modifier_rows <- c(modifier_rows, list(
+    .pawh_summary_row("Affected classified as control", .pawh_cc_pct(r$errors$phenotype_misclass$theta)),
+    .pawh_summary_row("Unaffected classified as case", .pawh_cc_pct(r$errors$phenotype_misclass$phi))
+  ))
+  if (calculation$active$genotype) {
+    error <- r$errors$genotype_misclass
+    modifier_rows <- c(modifier_rows, list(
+      .pawh_summary_row("Genotype-error model", error$model)
+    ), lapply(setdiff(names(error), c("enabled", "model", "M")), function(name) {
+      .pawh_summary_row(name, formatC(error[[name]], format = "f", digits = 4))
+    }))
+  }
+  test_value <- function(test) {
+    if (s$objective == "power") {
+      paste0("df ", test$df, " | lambda ", formatC(test$lambda, format = "f", digits = 4),
+        " | power ", .pawh_cc_pct(test$power, 2))
+    } else {
+      paste0("df ", test$df, " | lambda* ", formatC(test$lambda_star, format = "f", digits = 4),
+        " | total N ", .pawh_cc_count(test$MSSN_total))
+    }
+  }
+  .pawh_advanced_details_ui(
+    .pawh_detail_section("Model specification", model_rows),
+    .pawh_detail_section("Case genotype probabilities", .pawh_cc_probability_rows(r$freqs$g_base_case)),
+    .pawh_detail_section("Control genotype probabilities", .pawh_cc_probability_rows(r$freqs$g_base_ctrl)),
+    if (calculation$active$genotype) .pawh_detail_section(
+      "Observed genotype probabilities after misclassification",
+      c(
+        lapply(seq_along(r$freqs$g_obs_case), function(i) .pawh_summary_row(
+          paste0("Cases | ", i - 1L, " alleles"), formatC(r$freqs$g_obs_case[[i]], format = "f", digits = 4)
+        )),
+        lapply(seq_along(r$freqs$g_obs_ctrl), function(i) .pawh_summary_row(
+          paste0("Controls | ", i - 1L, " alleles"), formatC(r$freqs$g_obs_ctrl[[i]], format = "f", digits = 4)
+        ))
+      )
+    ),
+    if (length(modifier_rows)) .pawh_detail_section("Modifier details", modifier_rows),
+    .pawh_detail_section("Statistical result details", list(
+      .pawh_summary_row("Genotype chi-square", test_value(r$tests$genotypes)),
+      .pawh_summary_row("Trend test", test_value(r$tests$trend))
+    )),
+    .pawh_reproduce_ui(.pawh_cc_repro_call(calculation))
+  )
+}
 .pawh_cc_results_ui <- function(c) {
   o <- c$snapshot$objective
   card <- function(r, t) {
@@ -287,7 +408,7 @@
   } else {
     paste("The tests require", paste(.pawh_cc_count(z$Total), collapse = " and "), "total participants; plan for the prespecified analysis.")
   }
-  shiny::tagList(if (on) {
+  shiny::tagList(shiny::div(class = "pawh-model-specification", .pawh_cc_model_summary(c)), if (on) {
     bslib::layout_column_wrap(width = "360px", card(c$baseline, "No-error design"), card(
       c$adjusted,
       "Adjusted design"
@@ -297,7 +418,7 @@
   }, shiny::div(
     class = "pawh-interpretation", shiny::h4("Interpretation"),
     shiny::p(txt)
-  ))
+  ), .pawh_cc_advanced_ui(c))
 }
 .pawh_cc_specs <- function(c) {
   s <- c$snapshot
@@ -566,6 +687,8 @@
     )
     output$sensitivity_message <- shiny::renderUI(if (!is.null(st$calculation) && is.null(st$sensitivity)) {
       shiny::p(class = "text-muted", "Each point is a canonical calculation of the frozen design.")
+    } else if (.pawh_power_axis_zoomed(st$sensitivity)) {
+      shiny::p(class = "pawh-zoom-note", "Y-axis is zoomed to show variation in power.")
     })
     output$sensitivity_plot <- shiny::renderPlot({
       shiny::req(st$sensitivity)
