@@ -22,6 +22,123 @@ test_that("multivariate density plot reuses validated model quantities", {
   expect_true(all(is.finite(dat$value)))
   expect_true(all(dat$value >= 0))
   expect_equal(nrow(dat), 20^2)
+  expect_equal(
+    dat$value,
+    as.numeric(attr(dat, "component_values") %*% model$genotype_frequencies)
+  )
+})
+
+test_that("genotype-density data are unweighted conditional distributions", {
+  grid_n <- 61L
+  dat <- do.call(plot_qtl_multivariate_contour, c(
+    mv_plot_args,
+    list(surface = "genotype_density", grid_n = grid_n, return_data = TRUE)
+  ))
+  model <- attr(dat, "falconer_model")
+
+  expect_equal(nrow(dat), 3 * grid_n^2)
+  expect_identical(levels(dat$genotype), paste("Genotype", 0:2))
+  expect_equal(as.numeric(sort(table(dat$genotype))), rep(grid_n^2, 3))
+  expect_equal(dat$value, dat$conditional_density)
+  expect_true(all(is.finite(dat$conditional_density)))
+  expect_true(all(dat$conditional_density >= 0))
+
+  for (j in 1:3) {
+    component <- dat[dat$genotype == paste("Genotype", j - 1L), ]
+    direct <- mvtnorm::dmvnorm(
+      cbind(component$phenotype_1, component$phenotype_2),
+      mean = model$mean_matrix[, j],
+      sigma = model$residual_covariance_matrix
+    )
+    expect_equal(component$conditional_density, direct)
+
+    dx <- diff(sort(unique(component$phenotype_1)))[1]
+    dy <- diff(sort(unique(component$phenotype_2)))[1]
+    expect_equal(sum(component$conditional_density) * dx * dy, 1,
+                 tolerance = 0.006)
+  }
+})
+
+test_that("conditional densities locate genotype means with correct axes", {
+  dat <- do.call(plot_qtl_multivariate_contour, c(
+    mv_plot_args[1:4],
+    list(surface = "genotype_density", grid_n = 75, return_data = TRUE)
+  ))
+  model <- attr(dat, "falconer_model")
+
+  for (j in 1:3) {
+    component <- dat[dat$genotype == paste("Genotype", j - 1L), ]
+    nearest <- which.min(
+      (component$phenotype_1 - model$mean_matrix[1, j])^2 +
+        (component$phenotype_2 - model$mean_matrix[2, j])^2
+    )
+    direct <- mvtnorm::dmvnorm(
+      c(component$phenotype_1[nearest], component$phenotype_2[nearest]),
+      mean = model$mean_matrix[, j],
+      sigma = model$residual_covariance_matrix
+    )
+    expect_equal(component$conditional_density[nearest], direct)
+    expect_gte(component$conditional_density[nearest],
+               0.97 * max(component$conditional_density))
+  }
+})
+
+test_that("rare and overlapping genotypes remain separate conditional curves", {
+  rare_args <- list(
+    qtl_var = c(0.10, 0.05), tau = c(0, 0.5), pd = 0.01,
+    cor_matrix = matrix(c(1, 0.4, 0.4, 1), 2, byrow = TRUE)
+  )
+  dat <- do.call(plot_qtl_multivariate_contour, c(
+    rare_args,
+    list(surface = "genotype_density", grid_n = 40, return_data = TRUE)
+  ))
+  model <- attr(dat, "falconer_model")
+
+  expect_equal(unname(model$genotype_frequencies), c(0.9801, 0.0198, 0.0001))
+  expect_identical(levels(dat$genotype), paste("Genotype", 0:2))
+  expect_equal(as.numeric(table(dat$genotype)), rep(40^2, 3))
+  expect_true(all(is.finite(dat$conditional_density)))
+  expect_true(all(dat$conditional_density >= 0))
+
+  peak_at_mean <- vapply(1:3, function(j) {
+    mvtnorm::dmvnorm(
+      model$mean_matrix[, j], mean = model$mean_matrix[, j],
+      sigma = model$residual_covariance_matrix
+    )
+  }, numeric(1))
+  expect_equal(peak_at_mean, rep(peak_at_mean[1], 3))
+})
+
+test_that("near-fixed alleles and coincident means keep three finite components", {
+  dat <- plot_qtl_multivariate_contour(
+    qtl_var = c(0.10, 0.08), tau = c(1, -1), pd = 0.99,
+    cor_matrix = matrix(c(1, -0.35, -0.35, 1), 2, byrow = TRUE),
+    surface = "genotype_density", grid_n = 30, return_data = TRUE
+  )
+  model <- attr(dat, "falconer_model")
+
+  expect_equal(as.numeric(table(dat$genotype)), rep(30^2, 3))
+  expect_true(all(is.finite(dat$conditional_density)))
+  expect_true(all(dat$conditional_density >= 0))
+  expect_silent(chol(model$residual_covariance_matrix))
+  expect_equal(model$mean_matrix[1, 2], model$mean_matrix[1, 3])
+  expect_equal(model$mean_matrix[2, 1], model$mean_matrix[2, 2])
+})
+
+test_that("genotype-density mode retains joint threshold classifications", {
+  dat <- do.call(plot_qtl_multivariate_contour, c(
+    mv_plot_args,
+    list(surface = "genotype_density", grid_n = 25, return_data = TRUE)
+  ))
+  threshold <- attr(dat, "thresholds")
+
+  expect_true(all(dat$affected ==
+    (dat$phenotype_1 >= threshold$upper_threshold[1] &
+       dat$phenotype_2 >= threshold$upper_threshold[2])))
+  expect_true(all(dat$unaffected ==
+    (dat$phenotype_1 <= threshold$lower_threshold[1] &
+       dat$phenotype_2 <= threshold$lower_threshold[2])))
+  expect_false(any(dat$affected & dat$unaffected))
 })
 
 test_that("multivariate CDF is bounded and agrees with direct probabilities", {

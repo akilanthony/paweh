@@ -1,10 +1,11 @@
-# Interactive 3D visualization for the bivariate Falconer mixture.
+# Interactive 3D visualization for bivariate Falconer distributions.
 
 #' Plot an Interactive 3D Two-Phenotype Falconer Surface
 #'
-#' Creates an interactive Plotly surface for the population mixture of three
-#' genotype-specific bivariate-normal distributions. The plot displays exactly
-#' two quantitative phenotypes and complements
+#' Creates an interactive Plotly visualization of three genotype-specific
+#' bivariate-normal distributions. It can display either one population-mixture
+#' surface or three separate genotype-conditional surfaces. The plot displays
+#' exactly two quantitative phenotypes and complements
 #' [plot_qtl_multivariate_contour()], which provides a static 2D view.
 #'
 #' @param qtl_var Numeric vector of two phenotype-specific QTL variances.
@@ -14,9 +15,9 @@
 #' @param cor_matrix A positive-definite `2 x 2` phenotype correlation matrix.
 #' @param x_upper,x_lower Optional length-two vectors of upper- and lower-tail
 #'   selection percentages. Supply both or neither.
-#' @param surface Either `"density"` or `"cdf"`.
+#' @param surface One of `"density"`, `"genotype_density"`, or `"cdf"`.
 #' @param show_means Logical; show the three genotype-specific mean vectors at
-#'   their corresponding mixture-surface heights.
+#'   their corresponding surface heights.
 #' @param show_thresholds Logical; draw the two joint threshold rectangles on
 #'   the `z = 0` base plane when thresholds are supplied.
 #' @param show_labels Logical; label the affected and unaffected rectangles.
@@ -26,13 +27,19 @@
 #' @param title Optional plot title.
 #'
 #' @details
-#' Density mode plots the genotype-weighted mixture
+#' Density mode plots the marginal genotype-weighted mixture
 #' `sum(pi[j] * f[j](y1, y2))`, where each `f[j]` is a bivariate-normal
 #' density. CDF mode plots the lower-tail mixture
 #' `sum(pi[j] * P(Y1 <= y1, Y2 <= y2 | G = j))`. Thus, the density surface
-#' has genotype-related peaks, whereas the CDF surface is cumulative and
-#' monotone. Normalizing the z axis changes only its displayed scale; the raw
-#' calculated values remain available in the plot's `plot_data` attribute.
+#' can have genotype-related peaks, but a three-component mixture need not have
+#' three distinct modes. The CDF surface is cumulative and monotone.
+#'
+#' Genotype-density mode adds three Plotly surface traces, one for each
+#' conditional density `f[j](y1, y2)`, without genotype-frequency weighting or
+#' summation. This is the multivariate analogue of
+#' [plot_qtl_genotype_distribution()]. Normalizing the z axis changes only its
+#' displayed scale; raw calculated values remain available in the plot's
+#' long-form `plot_data` attribute.
 #'
 #' Affected subjects are defined only by the joint upper-right region
 #' `Y1 >= TU1 AND Y2 >= TU2`. Unaffected subjects are defined only by the
@@ -69,7 +76,7 @@ plot_qtl_multivariate_surface3d <- function(
     cor_matrix,
     x_upper = NULL,
     x_lower = NULL,
-    surface = c("density", "cdf"),
+    surface = c("density", "genotype_density", "cdf"),
     show_means = TRUE,
     show_thresholds = TRUE,
     show_labels = TRUE,
@@ -120,21 +127,11 @@ plot_qtl_multivariate_surface3d <- function(
     pmin(1, pmax(0, (z - raw_range[1L]) / raw_span))
   }
   grid$z_value <- scale_z(grid$value)
-  z_matrix <- matrix(
-    grid$z_value, nrow = length(x_values), ncol = length(y_values)
-  )
 
-  hover_template <- paste(
-    "Phenotype 1: %{x:.4f}",
-    "Phenotype 2: %{y:.4f}",
-    if (identical(z_scale, "raw")) {
-      paste0(if (identical(surface, "density")) "Mixture density" else "Mixture CDF",
-             ": %{z:.6f}")
-    } else "Normalized surface: %{z:.6f}",
-    "<extra></extra>", sep = "<br>"
-  )
   z_title <- if (identical(z_scale, "normalized")) {
     "Normalized surface"
+  } else if (identical(surface, "genotype_density")) {
+    "Conditional density"
   } else if (identical(surface, "density")) {
     "Mixture density"
   } else {
@@ -142,21 +139,64 @@ plot_qtl_multivariate_surface3d <- function(
   }
 
   p <- plotly::plot_ly()
-  p <- plotly::add_surface(
-    p,
-    x = x_values,
-    y = y_values,
-    z = t(z_matrix),
-    colorscale = "Viridis",
-    reversescale = TRUE,
-    opacity = 0.90,
-    hovertemplate = hover_template,
-    colorbar = list(title = list(text = z_title)),
-    contours = list(z = list(show = TRUE, usecolormap = TRUE,
-                             project = list(z = TRUE))),
-    name = z_title,
-    showscale = TRUE
-  )
+  if (identical(surface, "genotype_density")) {
+    palette <- c("#0072B2", "#D55E00", "#009E73")
+    genotype_levels <- levels(grid$genotype)
+    for (j in seq_along(genotype_levels)) {
+      component_grid <- grid[grid$genotype == genotype_levels[j], , drop = FALSE]
+      z_matrix <- matrix(
+        component_grid$z_value,
+        nrow = length(x_values), ncol = length(y_values)
+      )
+      hover_template <- paste(
+        genotype_levels[j],
+        "Phenotype 1: %{x:.4f}",
+        "Phenotype 2: %{y:.4f}",
+        paste0(z_title, ": %{z:.6f}"),
+        "<extra></extra>", sep = "<br>"
+      )
+      p <- plotly::add_surface(
+        p,
+        x = x_values, y = y_values, z = t(z_matrix),
+        colorscale = list(c(0, palette[j]), c(1, palette[j])),
+        opacity = 0.62,
+        hovertemplate = hover_template,
+        contours = list(z = list(show = TRUE, usecolormap = TRUE,
+                                 project = list(z = TRUE))),
+        name = genotype_levels[j],
+        showscale = FALSE,
+        showlegend = TRUE
+      )
+    }
+  } else {
+    z_matrix <- matrix(
+      grid$z_value, nrow = length(x_values), ncol = length(y_values)
+    )
+    hover_template <- paste(
+      "Phenotype 1: %{x:.4f}",
+      "Phenotype 2: %{y:.4f}",
+      if (identical(z_scale, "raw")) {
+        paste0(if (identical(surface, "density")) "Mixture density" else "Mixture CDF",
+               ": %{z:.6f}")
+      } else "Normalized surface: %{z:.6f}",
+      "<extra></extra>", sep = "<br>"
+    )
+    p <- plotly::add_surface(
+      p,
+      x = x_values,
+      y = y_values,
+      z = t(z_matrix),
+      colorscale = "Viridis",
+      reversescale = TRUE,
+      opacity = 0.90,
+      hovertemplate = hover_template,
+      colorbar = list(title = list(text = z_title)),
+      contours = list(z = list(show = TRUE, usecolormap = TRUE,
+                               project = list(z = TRUE))),
+      name = z_title,
+      showscale = TRUE
+    )
+  }
 
   threshold_overlays <- NULL
   if (isTRUE(show_thresholds) && !is.null(threshold)) {
@@ -213,7 +253,7 @@ plot_qtl_multivariate_surface3d <- function(
       genotype = paste("Genotype", 0:2)
     )
     mean_components <- vapply(1:3, function(j) {
-      if (identical(surface, "density")) {
+      if (surface %in% c("density", "genotype_density")) {
         .falconer_mv_plot_density(
           mean_markers, model$mean_matrix[, j],
           model$residual_covariance_matrix
@@ -225,9 +265,11 @@ plot_qtl_multivariate_surface3d <- function(
         )
       }
     }, numeric(3L))
-    mean_markers$value <- as.numeric(
-      mean_components %*% model$genotype_frequencies
-    )
+    mean_markers$value <- if (identical(surface, "genotype_density")) {
+      diag(mean_components)
+    } else {
+      as.numeric(mean_components %*% model$genotype_frequencies)
+    }
     mean_markers$z_value <- scale_z(mean_markers$value)
     mean_markers$hover_text <- sprintf(
       "%s<br>Phenotype 1: %.4f<br>Phenotype 2: %.4f<br>%s: %.6f",
@@ -258,7 +300,11 @@ plot_qtl_multivariate_surface3d <- function(
   p <- plotly::layout(
     p,
     title = list(text = if (is.null(title)) {
-      paste("Bivariate Falconer mixture", surface, "surface")
+      if (identical(surface, "genotype_density")) {
+        "Bivariate Falconer genotype-conditional density surfaces"
+      } else {
+        paste("Bivariate Falconer mixture", surface, "surface")
+      }
     } else title),
     scene = list(
       xaxis = list(title = "Phenotype 1 value", range = range(x_values)),
