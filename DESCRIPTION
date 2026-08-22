@@ -21,18 +21,16 @@ BugReports: https://github.com/akilanthony/pawh/issues
 Roxygen: list(markdown = TRUE)
 Suggests: 
     BiocStyle,
-    bslib,
-    DT,
     knitr,
     plotly,
-    pkgload,
     rmarkdown,
-    shiny,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
+    bslib,
     ggplot2,
     mvtnorm,
-    rlang
+    rlang,
+    shiny
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.1.0
