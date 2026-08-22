@@ -587,7 +587,8 @@ tdt_power <- function(
 #' \code{heterogeneity} required affected-trio counts.}
 #' \item{percent_increase}{Modifier-specific conventional percentage inflation,
 #' \eqn{100(N_{adjusted}/N_{no-error}-1)}, relative to the no-error required
-#' count.}
+#' count. Values are \code{NA} when the no-error required count is not finite
+#' and positive.}
 #' \item{power_at_N_no_error, power_loss_at_N_no_error}{Power and power loss
 #' obtained if the no-error design size is used under each modifier.}
 #' \item{gT_star, gNT_star}{Scenario-specific transmission and
@@ -779,6 +780,12 @@ tdt_mssn <- function(
       (2 * (gT_star - gNT_star)^2)
   }
 
+  percent_increase_from_baseline <- function(adjusted, baseline) {
+    if (!is.finite(baseline) || baseline <= 0)
+      return(NA_real_)
+    100 * (adjusted / baseline - 1)
+  }
+
   ## ---------- solve for lambda_star from target power ----------
   crit <- qchisq(1 - alpha, df = 1)
   f_lambda <- function(lambda) {
@@ -870,10 +877,8 @@ tdt_mssn <- function(
   }
 
   ## ===== Percent increase relative to no-error N =====
-  infl_misc <- N_misc / N_nomisc
-  infl_het  <- N_het  / N_nomisc
-  perc_increase_misc <- 100 * (infl_misc - 1)
-  perc_increase_het  <- 100 * (infl_het  - 1)
+  perc_increase_misc <- percent_increase_from_baseline(N_misc, N_nomisc)
+  perc_increase_het <- percent_increase_from_baseline(N_het, N_nomisc)
 
   ## ===== Power loss if you DON'T inflate N (design at N_nomisc) =====
   lambda_nomisc_fixed <- 2 * N_nomisc * (gT_nomisc - gNT_nomisc)^2 /
@@ -892,29 +897,39 @@ tdt_mssn <- function(
   power_loss_het  <- power_nomisc_fixed - power_het_fixed
 
   if (isTRUE(verbose)) {
+    format_trios <- function(x) {
+      if (is.finite(x)) {
+        formatC(ceiling(x), format = "d", big.mark = ",")
+      } else {
+        as.character(x)
+      }
+    }
+    format_percent_increase <- function(x) {
+      if (is.na(x)) "not defined" else sprintf("%.1f%%", x)
+    }
+
     message("TDT minimum sample size")
     message(sprintf("Target power: %.1f%%", 100 * target_power))
     message("")
     message("No-error design")
-    message(sprintf("  Required trios: %s",
-                    formatC(ceiling(N_nomisc), format = "d", big.mark = ",")))
+    message(sprintf("  Required trios: %s", format_trios(N_nomisc)))
 
     if (misclass_rate > 0) {
       message("")
       message("Phenotype misclassification")
       message(sprintf("  Misclassification rate: %.1f%%", 100 * misclass_rate))
-      message(sprintf("  Required trios: %s",
-                      formatC(ceiling(N_misc), format = "d", big.mark = ",")))
-      message(sprintf("  Percent increase: %.1f%%", perc_increase_misc))
+      message(sprintf("  Required trios: %s", format_trios(N_misc)))
+      message(sprintf("  Percent increase: %s",
+                      format_percent_increase(perc_increase_misc)))
     }
 
     if (heter_rate > 0) {
       message("")
       message("Locus heterogeneity")
       message(sprintf("  Heterogeneity rate: %.1f%%", 100 * heter_rate))
-      message(sprintf("  Required trios: %s",
-                      formatC(ceiling(N_het), format = "d", big.mark = ",")))
-      message(sprintf("  Percent increase: %.1f%%", perc_increase_het))
+      message(sprintf("  Required trios: %s", format_trios(N_het)))
+      message(sprintf("  Percent increase: %s",
+                      format_percent_increase(perc_increase_het)))
     }
   }
 

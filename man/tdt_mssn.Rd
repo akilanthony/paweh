@@ -83,7 +83,8 @@ one-df NCP, and input mode.}
 \code{heterogeneity} required affected-trio counts.}
 \item{percent_increase}{Modifier-specific conventional percentage inflation,
 \eqn{100(N_{adjusted}/N_{no-error}-1)}, relative to the no-error required
-count.}
+count. Values are \code{NA} when the no-error required count is not finite
+and positive.}
 \item{power_at_N_no_error, power_loss_at_N_no_error}{Power and power loss
 obtained if the no-error design size is used under each modifier.}
 \item{gT_star, gNT_star}{Scenario-specific transmission and

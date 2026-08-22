@@ -111,6 +111,72 @@ test_that("case-control verbose output reports baseline then one adjusted design
   }
 })
 
+test_that("zero-valued genotype error models remain no-error designs", {
+  base <- cc_design_args[names(cc_design_args) != "verbose"]
+  zero_models <- list(
+    `1p` = list(geno_misclass = "1p", e = 0),
+    `2p` = list(geno_misclass = "2p", e1 = 0, e2 = 0),
+    `3p` = list(geno_misclass = "3p", e01 = 0, e02 = 0, e03 = 0),
+    diff3p = list(
+      geno_misclass = "diff3p",
+      case_e01 = 0, case_e02 = 0, case_e03 = 0,
+      ctrl_e01 = 0, ctrl_e02 = 0, ctrl_e03 = 0
+    )
+  )
+
+  for (fun in list(cc_power, cc_mssn)) {
+    first <- if (identical(fun, cc_power)) list(N_case = 400) else list(power = 0.8)
+    no_error <- do.call(fun, c(first, base, list(verbose = FALSE)))
+
+    for (model in zero_models) {
+      zero_error <- do.call(fun, c(first, base, model, list(verbose = FALSE)))
+      expect_equal(zero_error$tests, no_error$tests)
+      expect_equal(zero_error$freqs$g_obs_case, no_error$freqs$g_obs_case)
+      expect_equal(zero_error$freqs$g_obs_ctrl, no_error$freqs$g_obs_ctrl)
+      expect_false(zero_error$errors$genotype_misclass$enabled)
+
+      text <- capture_canonical_messages(
+        do.call(fun, c(first, base, model, list(verbose = TRUE)))
+      )
+      expect_match(text, "No-error design", fixed = TRUE)
+      expect_false(grepl("Adjusted design", text, fixed = TRUE))
+      expect_false(grepl("Genotype misclassification", text, fixed = TRUE))
+    }
+  }
+})
+
+test_that("nonzero effective genotype error triggers adjusted narration", {
+  base <- cc_design_args[names(cc_design_args) != "verbose"]
+  for (fun in list(cc_power, cc_mssn)) {
+    first <- if (identical(fun, cc_power)) list(N_case = 400) else list(power = 0.8)
+    text <- capture_canonical_messages(do.call(
+      fun,
+      c(first, base, list(geno_misclass = "1p", e = 0.01, verbose = TRUE))
+    ))
+    expect_match(text, "Adjusted design", fixed = TRUE)
+    expect_match(text, "Genotype misclassification", fixed = TRUE)
+  }
+})
+
+test_that("TDT percent increase handles a non-finite no-error baseline", {
+  out <- tdt_mssn(
+    target_power = 0.8, input_mode = "model_free",
+    ET = 100, ENT = 100, n_trios = 100,
+    pd = 0.3, heter_rate = 0.1, verbose = FALSE
+  )
+  expect_true(is.infinite(out$N$no_error))
+  expect_true(is.na(out$percent_increase$misclassification))
+  expect_true(is.na(out$percent_increase$heterogeneity))
+
+  text <- capture_canonical_messages(tdt_mssn(
+    target_power = 0.8, input_mode = "model_free",
+    ET = 100, ENT = 100, n_trios = 100,
+    pd = 0.3, heter_rate = 0.1, verbose = TRUE
+  ))
+  expect_match(text, "Required trios: Inf", fixed = TRUE)
+  expect_match(text, "Percent increase: not defined", fixed = TRUE)
+})
+
 test_that("canonical verbose FALSE calls emit no narrative", {
   expect_silent(do.call(tdt_power, c(list(N = 600), tdt_design_args)))
   expect_silent(do.call(tdt_mssn, c(list(target_power = 0.8), tdt_design_args)))
