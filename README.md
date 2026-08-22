@@ -66,6 +66,21 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 remotes::install_github("akilanthony/pawh")
 ```
 
+## Dashboard skeleton
+
+`pawh` includes an early modular dashboard shell for the planned interactive
+study-design workflows. It currently provides navigation and transparent
+placeholders rather than performing calculations. Construct and launch it
+explicitly with:
+
+```r
+app <- pawh_app()
+shiny::runApp(app)
+```
+
+`pawh_app()` returns a Shiny application object and does not launch a browser
+or server on its own.
+
 ## Quick start
 
 The canonical case-control interface can calculate genotype-test power for a
