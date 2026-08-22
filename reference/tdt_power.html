@@ -80,8 +80,8 @@ user-supplied expected transmission and non-transmission counts
 <span>  R2 <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  delta_prime <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  misclass_rate <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>  heter_rate <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  misclass_rate <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  heter_rate <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  ET <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ENT <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
@@ -141,14 +141,14 @@ only.</p></dd>
 <dt id="arg-misclass-rate">misclass_rate<a class="anchor" aria-label="anchor" href="#arg-misclass-rate"></a></dt>
 <dd><p>Numeric in \([0,1)\). Phenotype misclassification
 rate for controls (\(\pi_{01}\)). A value of <code>0</code> corresponds to
-no misclassification.</p></dd>
+no misclassification and is the default.</p></dd>
 
 
 <dt id="arg-heter-rate">heter_rate<a class="anchor" aria-label="anchor" href="#arg-heter-rate"></a></dt>
 <dd><p>Numeric in \([0,1)\). Proportion of trios whose
 affection status is <em>not</em> due to the locus of interest
 (\(1 - \pi\)). A value of <code>0</code> corresponds to complete
-homogeneity.</p></dd>
+homogeneity and is the default.</p></dd>
 
 
 <dt id="arg-et-ent">ET, ENT<a class="anchor" aria-label="anchor" href="#arg-et-ent"></a></dt>
@@ -159,8 +159,7 @@ be accumulated over the same <code>N</code> trios that power is computed for.</p
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Logical. If <code>TRUE</code> (default), prints a formatted
-summary of non-centrality parameters, power, and expected transmission
-probabilities.</p></dd>
+summary of no-error power and any requested modifier-specific power.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -202,13 +201,17 @@ scenarios are computed from the standard TDT formulation in Eq. 1.25
 probabilities in Eqs. 5.24–5.27 (Section 5.2.6, pp. 284–285), and the
 locus-heterogeneity construction in Eqs. 5.30–5.34a (Section 5.3.3,
 pp. 293–294) of Gordon, Finch, and Kim (2020). Eq. 5.28 is a numerical
-worked example, not the general symbolic formula.</p>
+worked example, not the general symbolic formula.
+Phenotype misclassification and locus heterogeneity are reported as
+separate sensitivity scenarios; supplying both rates does not create a
+combined-error scenario.</p>
 <p><code>N</code> is the number of affected-child trios, with both parents genotyped.
 <code>ET</code> and <code>ENT</code> are expected counts accumulated over trios, whereas
 \(g_T\) and \(g_{NT}\) are per-parental-allele transmission and
 non-transmission probabilities. <code>heter_rate</code> is the heterogeneous
 fraction; in lower-level formulas written with the linked/homogeneous
-fraction \(\pi\), \(\text{heter_rate}=1-\pi\).</p>
+fraction \(\pi\); equivalently, the heterogeneous fraction is
+\(1-\pi\).</p>
 <p>With <code>input_mode = "model_free"</code>, the no-error scenario uses
 \(g_T = ET / (2N)\) and \(g_{NT} = ENT / (2N)\) directly. The
 misclassification and heterogeneity scenarios are then computed from the

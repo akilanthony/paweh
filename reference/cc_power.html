@@ -267,7 +267,11 @@ controls.</p></li>
 case and control genotype frequencies.</p></li>
 <li><p>Compute genotype chi-square and genotype trend-test non-centrality
 parameters and powers from the observed genotype frequencies.</p></li>
-</ol><p>With <code>input_mode = "model_based"</code>, conditional case and control genotype
+</ol><p>The defaults (<code>locus_het = FALSE</code>, <code>pheno_misclass = FALSE</code>, and
+<code>geno_misclass = "none"</code>) give the ordinary no-error design. When
+modifiers are active, they are applied sequentially in the order above and
+therefore form one combined adjusted design.</p>
+<p>With <code>input_mode = "model_based"</code>, conditional case and control genotype
 frequencies are derived from <code>prev</code>, <code>pd</code>, <code>R2</code>, and
 <code>MOI</code> using Chapter 1, Section 1.4.2, Eqs. 1.6–1.7 (p. 13) of
 Gordon, Finch, and Kim (2020). With <code>input_mode = "model_free"</code>, the user supplies

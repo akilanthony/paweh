@@ -219,6 +219,11 @@ The workflow is:
 5.  Compute genotype chi-square and genotype trend-test non-centrality
     parameters and powers from the observed genotype frequencies.
 
+The defaults (`locus_het = FALSE`, `pheno_misclass = FALSE`, and
+`geno_misclass = "none"`) give the ordinary no-error design. When
+modifiers are active, they are applied sequentially in the order above
+and therefore form one combined adjusted design.
+
 With `input_mode = "model_based"`, conditional case and control genotype
 frequencies are derived from `prev`, `pd`, `R2`, and `MOI` using Chapter
 1, Section 1.4.2, Eqs. 1.6–1.7 (p. 13) of Gordon, Finch, and Kim (2020).

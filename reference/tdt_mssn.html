@@ -80,8 +80,8 @@ expected transmission and non-transmission counts (<code>"model_free"</code>).</
 <span>  R2 <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  delta_prime <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  misclass_rate <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>  heter_rate <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  misclass_rate <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  heter_rate <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  ET <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ENT <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_trios <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -141,13 +141,15 @@ only.</p></dd>
 
 <dt id="arg-misclass-rate">misclass_rate<a class="anchor" aria-label="anchor" href="#arg-misclass-rate"></a></dt>
 <dd><p>Numeric in \([0,1)\). Phenotype misclassification
-rate for controls (\(\pi_{01}\)) in the misclassification scenario.</p></dd>
+rate for controls (\(\pi_{01}\)) in the misclassification scenario.
+Zero means no misclassification and is the default.</p></dd>
 
 
 <dt id="arg-heter-rate">heter_rate<a class="anchor" aria-label="anchor" href="#arg-heter-rate"></a></dt>
 <dd><p>Numeric in \([0,1)\). Proportion of trios whose
 affection status is not due to the locus of interest (\(1 - \pi\))
-in the heterogeneity scenario.</p></dd>
+in the heterogeneity scenario. Zero means complete homogeneity and is the
+default.</p></dd>
 
 
 <dt id="arg-et-ent">ET, ENT<a class="anchor" aria-label="anchor" href="#arg-et-ent"></a></dt>
@@ -165,8 +167,8 @@ required number of trios).</p></dd>
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Logical. If <code>TRUE</code> (default), prints a formatted
-summary of the required numbers of trios, percent inflation, and the
-resulting power when the no-error design is used.</p></dd>
+summary of the no-error required number of trios and any requested
+modifier-specific required counts and percentage increases.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -180,8 +182,10 @@ one-df NCP, and input mode.</p></dd>
 <code>heterogeneity</code> required affected-trio counts.</p></dd>
 
 <dt>percent_increase</dt>
-<dd><p>Modifier-specific percentage inflation relative to
-the no-error required count.</p></dd>
+<dd><p>Modifier-specific conventional percentage inflation,
+\(100(N_{adjusted}/N_{no-error}-1)\), relative to the no-error required
+count. Values are <code>NA</code> when the no-error required count is not finite
+and positive.</p></dd>
 
 <dt>power_at_N_no_error, power_loss_at_N_no_error</dt>
 <dd><p>Power and power loss
@@ -208,7 +212,10 @@ misclassification follows Eqs. 5.24–5.27 (pp. 284–285); and locus
 heterogeneity follows Eqs. 5.30–5.34b (pp. 293–294). Eq. 5.28 is a
 numerical example. Here <code>heter_rate</code> is the heterogeneous fraction,
 equal to \(1-\pi\) when lower-level formulas use homogeneous fraction
-\(\pi\).</p>
+\(\pi\).
+Phenotype misclassification and locus heterogeneity are reported as
+separate sensitivity scenarios; supplying both rates does not create a
+combined-error scenario.</p>
 <p>With <code>input_mode = "model_free"</code>, the no-error scenario uses
 \(g_T = ET / (2\,n_{trios})\) and \(g_{NT} = ENT / (2\,n_{trios})\).
 The misclassification and heterogeneity scenarios then use the same

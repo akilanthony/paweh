@@ -20,8 +20,8 @@ tdt_power(
   R2 = NULL,
   alpha = 0.05,
   delta_prime = 1,
-  misclass_rate = 0.01,
-  heter_rate = 0.01,
+  misclass_rate = 0,
+  heter_rate = 0,
   ET = NULL,
   ENT = NULL,
   verbose = TRUE
@@ -75,13 +75,14 @@ tdt_power(
 - misclass_rate:
 
   Numeric in \\\[0,1)\\. Phenotype misclassification rate for controls
-  (\\\pi\_{01}\\). A value of `0` corresponds to no misclassification.
+  (\\\pi\_{01}\\). A value of `0` corresponds to no misclassification
+  and is the default.
 
 - heter_rate:
 
   Numeric in \\\[0,1)\\. Proportion of trios whose affection status is
   *not* due to the locus of interest (\\1 - \pi\\). A value of `0`
-  corresponds to complete homogeneity.
+  corresponds to complete homogeneity and is the default.
 
 - ET, ENT:
 
@@ -91,9 +92,8 @@ tdt_power(
 
 - verbose:
 
-  Logical. If `TRUE` (default), prints a formatted summary of
-  non-centrality parameters, power, and expected transmission
-  probabilities.
+  Logical. If `TRUE` (default), prints a formatted summary of no-error
+  power and any requested modifier-specific power.
 
 ## Value
 
@@ -137,14 +137,17 @@ Section 1.6.1.3, p. 27), the phenotype-misclassification probabilities
 in Eqs. 5.24–5.27 (Section 5.2.6, pp. 284–285), and the
 locus-heterogeneity construction in Eqs. 5.30–5.34a (Section 5.3.3, pp.
 293–294) of Gordon, Finch, and Kim (2020). Eq. 5.28 is a numerical
-worked example, not the general symbolic formula.
+worked example, not the general symbolic formula. Phenotype
+misclassification and locus heterogeneity are reported as separate
+sensitivity scenarios; supplying both rates does not create a
+combined-error scenario.
 
 `N` is the number of affected-child trios, with both parents genotyped.
 `ET` and `ENT` are expected counts accumulated over trios, whereas
 \\g_T\\ and \\g\_{NT}\\ are per-parental-allele transmission and
 non-transmission probabilities. `heter_rate` is the heterogeneous
 fraction; in lower-level formulas written with the linked/homogeneous
-fraction \\\pi\\, \\\text{heter_rate}=1-\pi\\.
+fraction \\\pi\\; equivalently, the heterogeneous fraction is \\1-\pi\\.
 
 With `input_mode = "model_free"`, the no-error scenario uses \\g_T = ET
 / (2N)\\ and \\g\_{NT} = ENT / (2N)\\ directly. The misclassification

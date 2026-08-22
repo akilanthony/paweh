@@ -20,8 +20,8 @@ tdt_mssn(
   R2 = NULL,
   alpha = 0.05,
   delta_prime = 1,
-  misclass_rate = 0.01,
-  heter_rate = 0.01,
+  misclass_rate = 0,
+  heter_rate = 0,
   ET = NULL,
   ENT = NULL,
   n_trios = NULL,
@@ -76,13 +76,14 @@ tdt_mssn(
 - misclass_rate:
 
   Numeric in \\\[0,1)\\. Phenotype misclassification rate for controls
-  (\\\pi\_{01}\\) in the misclassification scenario.
+  (\\\pi\_{01}\\) in the misclassification scenario. Zero means no
+  misclassification and is the default.
 
 - heter_rate:
 
   Numeric in \\\[0,1)\\. Proportion of trios whose affection status is
   not due to the locus of interest (\\1 - \pi\\) in the heterogeneity
-  scenario.
+  scenario. Zero means complete homogeneity and is the default.
 
 - ET, ENT:
 
@@ -99,8 +100,8 @@ tdt_mssn(
 - verbose:
 
   Logical. If `TRUE` (default), prints a formatted summary of the
-  required numbers of trios, percent inflation, and the resulting power
-  when the no-error design is used.
+  no-error required number of trios and any requested modifier-specific
+  required counts and percentage increases.
 
 ## Value
 
@@ -117,8 +118,10 @@ An object of class `"tdt_mssn"`, containing:
 
 - percent_increase:
 
-  Modifier-specific percentage inflation relative to the no-error
-  required count.
+  Modifier-specific conventional percentage inflation,
+  \\100(N\_{adjusted}/N\_{no-error}-1)\\, relative to the no-error
+  required count. Values are `NA` when the no-error required count is
+  not finite and positive.
 
 - power_at_N_no_error, power_loss_at_N_no_error:
 
@@ -145,7 +148,9 @@ phenotype misclassification follows Eqs. 5.24–5.27 (pp. 284–285); and
 locus heterogeneity follows Eqs. 5.30–5.34b (pp. 293–294). Eq. 5.28 is a
 numerical example. Here `heter_rate` is the heterogeneous fraction,
 equal to \\1-\pi\\ when lower-level formulas use homogeneous fraction
-\\\pi\\.
+\\\pi\\. Phenotype misclassification and locus heterogeneity are
+reported as separate sensitivity scenarios; supplying both rates does
+not create a combined-error scenario.
 
 With `input_mode = "model_free"`, the no-error scenario uses \\g_T = ET
 / (2\\n\_{trios})\\ and \\g\_{NT} = ENT / (2\\n\_{trios})\\. The
