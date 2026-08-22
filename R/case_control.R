@@ -1,3 +1,91 @@
+.cc_test_components <- function(g_case, g_ctrl, k, w) {
+  S_g <- sum((g_case - g_ctrl)^2 / (g_case + k * g_ctrl))
+  numerator_t <- (sum(w * (g_case - g_ctrl)))^2
+  denominator_t <- sum(w^2 * (g_case + k * g_ctrl)) -
+    (sum(w * (g_case + k * g_ctrl)))^2 / (1 + k)
+
+  list(
+    S_g = S_g,
+    numerator_t = numerator_t,
+    denominator_t = denominator_t,
+    S_t = numerator_t / denominator_t
+  )
+}
+
+.cc_validate_test_components <- function(components) {
+  if (!is.finite(components$S_g) || components$S_g <= 0)
+    stop("Genotype S <= 0; check inputs.")
+  if (!is.finite(components$denominator_t) || components$denominator_t <= 0)
+    stop("Trend denominator <= 0; check inputs/weights.")
+  if (components$numerator_t < 1e-15)
+    stop("Trend numerator is approximately 0; implies no weighted mean difference.")
+  invisible(components)
+}
+
+.cc_mssn_test_results <- function(g_case, g_ctrl, k, w,
+                                  lambda_star_g, lambda_star_t,
+                                  validate = TRUE) {
+  components <- .cc_test_components(g_case, g_ctrl, k, w)
+  if (isTRUE(validate))
+    .cc_validate_test_components(components)
+
+  case_g <- ceiling(lambda_star_g / (k * components$S_g))
+  ctrl_g <- ceiling(k * case_g)
+  case_t <- ceiling(lambda_star_t / (k * components$S_t))
+  ctrl_t <- ceiling(k * case_t)
+
+  list(
+    genotypes = list(
+      lambda_star = lambda_star_g,
+      S = components$S_g,
+      MSSN_case = case_g,
+      MSSN_ctrl = ctrl_g,
+      MSSN_total = case_g + ctrl_g
+    ),
+    trend = list(
+      lambda_star = lambda_star_t,
+      S = components$S_t,
+      numerator = components$numerator_t,
+      denominator = components$denominator_t,
+      MSSN_case = case_t,
+      MSSN_ctrl = ctrl_t,
+      MSSN_total = case_t + ctrl_t
+    )
+  )
+}
+
+.cc_power_test_results <- function(g_case, g_ctrl, k, w, N_case, alpha,
+                                   validate = TRUE) {
+  components <- .cc_test_components(g_case, g_ctrl, k, w)
+  if (isTRUE(validate))
+    .cc_validate_test_components(components)
+
+  lambda_g <- k * N_case * components$S_g
+  lambda_t <- k * N_case * components$S_t
+
+  list(
+    genotypes = list(
+      lambda = lambda_g,
+      S = components$S_g,
+      power = pchisq(qchisq(1 - alpha, df = 2), df = 2, ncp = lambda_g,
+                     lower.tail = FALSE)
+    ),
+    trend = list(
+      lambda = lambda_t,
+      S = components$S_t,
+      numerator = components$numerator_t,
+      denominator = components$denominator_t,
+      power = pchisq(qchisq(1 - alpha, df = 1), df = 1, ncp = lambda_t,
+                     lower.tail = FALSE)
+    )
+  )
+}
+
+.cc_genotype_error_active <- function(M_case, M_ctrl) {
+  identity <- diag(3)
+  any(M_case != identity) || any(M_ctrl != identity)
+}
+
 #' Case-Control Minimum Sample Size for Conditional Genotype Frequencies
 #'
 #' Computes the minimum sample size necessary (MSSN) for case-control association
@@ -71,6 +159,10 @@
 #' \item Compute genotype chi-square and genotype trend-test MSSN values from
 #' the observed genotype frequencies.
 #' }
+#' The defaults (\code{locus_het = FALSE}, \code{pheno_misclass = FALSE}, and
+#' \code{geno_misclass = "none"}) give the ordinary no-error design. When
+#' modifiers are active, they are applied sequentially in the order above and
+#' therefore form one combined adjusted design.
 #'
 #' With \code{input_mode = "model_based"}, conditional case and control genotype
 #' frequencies are derived from \code{prev}, \code{pd}, \code{R2}, and
@@ -649,31 +741,19 @@ cc_mssn <- function(
   lambda_star_g <- chisq_ncp_target(power = power, alpha = alpha, df = 2)
   lambda_star_1 <- chisq_ncp_target(power = power, alpha = alpha, df = 1)
 
-  # ---- genotype chi-square ----
-  S_g <- sum((g1_obs - g0_obs)^2 / (g1_obs + k * g0_obs))
-
-  if (!is.finite(S_g) || S_g <= 0)
-    stop("Genotype S <= 0; check inputs.")
-
-  MSSN_case_g <- ceiling(lambda_star_g / (k * S_g))
-  MSSN_ctrl_g <- ceiling(k * MSSN_case_g)
-
-  # ---- trend test ----
-  num_t <- (sum(w * (g1_obs - g0_obs)))^2
-
-  den_t <- sum(w^2 * (g1_obs + k * g0_obs)) -
-    (sum(w * (g1_obs + k * g0_obs)))^2 / (1 + k)
-
-  if (!is.finite(den_t) || den_t <= 0)
-    stop("Trend denominator <= 0; check inputs/weights.")
-
-  if (num_t < 1e-15)
-    stop("Trend numerator is approximately 0; implies no weighted mean difference.")
-
-  S_t <- num_t / den_t
-
-  MSSN_case_t <- ceiling(lambda_star_1 / (k * S_t))
-  MSSN_ctrl_t <- ceiling(k * MSSN_case_t)
+  adjusted_tests <- .cc_mssn_test_results(
+    g_case = g1_obs, g_ctrl = g0_obs, k = k, w = w,
+    lambda_star_g = lambda_star_g, lambda_star_t = lambda_star_1
+  )
+  baseline_tests <- if (isTRUE(verbose)) {
+    .cc_mssn_test_results(
+      g_case = g1_base, g_ctrl = g0_base, k = k, w = w,
+      lambda_star_g = lambda_star_g, lambda_star_t = lambda_star_1,
+      validate = FALSE
+    )
+  } else {
+    NULL
+  }
 
   # ---- output ----
   out <- list(
@@ -693,21 +773,21 @@ cc_mssn <- function(
         test = "case-control chi-square test of independence for genotypes",
         df = 2,
         lambda_star = lambda_star_g,
-        S = S_g,
-        MSSN_case = MSSN_case_g,
-        MSSN_ctrl = MSSN_ctrl_g,
-        MSSN_total = MSSN_case_g + MSSN_ctrl_g
+        S = adjusted_tests$genotypes$S,
+        MSSN_case = adjusted_tests$genotypes$MSSN_case,
+        MSSN_ctrl = adjusted_tests$genotypes$MSSN_ctrl,
+        MSSN_total = adjusted_tests$genotypes$MSSN_total
       ),
       trend = list(
         test = "trend test for genotypes",
         df = 1,
         lambda_star = lambda_star_1,
-        S = S_t,
-        numerator = num_t,
-        denominator = den_t,
-        MSSN_case = MSSN_case_t,
-        MSSN_ctrl = MSSN_ctrl_t,
-        MSSN_total = MSSN_case_t + MSSN_ctrl_t
+        S = adjusted_tests$trend$S,
+        numerator = adjusted_tests$trend$numerator,
+        denominator = adjusted_tests$trend$denominator,
+        MSSN_case = adjusted_tests$trend$MSSN_case,
+        MSSN_ctrl = adjusted_tests$trend$MSSN_ctrl,
+        MSSN_total = adjusted_tests$trend$MSSN_total
       )
     ),
     freqs = list(
@@ -726,132 +806,58 @@ cc_mssn <- function(
 
   # ---- clean printed output ----
   if (isTRUE(verbose)) {
+    locus_active <- isTRUE(locus_het) && pi < 1
+    pheno_active <- isTRUE(pheno_misclass) && (theta > 0 || phi > 0)
+    geno_active <- .cc_genotype_error_active(M_case, M_ctrl)
+    any_modifier <- locus_active || pheno_active || geno_active
 
-    message("\n--- Case-Control: Minimum Sample Size Necessary (MSSN) ---")
-    message("Outputs: Genotype chi-square and genotype trend test")
-    message("--------------------------------------------------------------------------")
-
-    fmt2 <- "%-32s %12s  |  %-28s %12s"
-
-    message(sprintf(
-      fmt2,
-      "Input Mode:", input_mode,
-      "Significance Level (alpha):", .fmt_e(alpha, 2)
-    ))
-
-    message(sprintf(
-      fmt2,
-      "Target Power:", .fmt_f(power, 3),
-      "Case:Control Ratio (k):", .fmt_f(k, 3)
-    ))
-
-    message(sprintf(
-      "%-32s %12s",
-      "Trend Weights (w):", paste0(w, collapse = ",")
-    ))
-
-    if (input_mode == "model_based") {
-      message(sprintf(
-        fmt2,
-        "Disease Prevalence (prev):", .fmt_f(prev, 4),
-        "Risk Allele Freq (p_d):", .fmt_f(pd, 4)
-      ))
-      message(sprintf(
-        fmt2,
-        "MOI:", MOI,
-        "R2:", .fmt_f(R2, 4)
-      ))
-    } else if (input_mode == "model_free") {
-      message("Model-free input: user-supplied genotype frequencies g1 and g0")
+    format_count <- function(x) {
+      if (is.finite(x)) formatC(x, format = "d", big.mark = ",") else as.character(x)
     }
 
-    if (isTRUE(locus_het)) {
-      message(sprintf(
-        "%-32s %12s",
-        "Locus heterogeneity:", paste0("enabled, pi=", .fmt_f(pi, 3))
-      ))
-    } else {
-      message(sprintf(
-        "%-32s %12s",
-        "Locus heterogeneity:", "none"
-      ))
-    }
+    message("Case-control minimum sample size")
+    message(sprintf("Target power: %.1f%%", 100 * power))
+    message("")
+    message("No-error design")
+    message(sprintf("  Genotype test: %s cases, %s controls, %s total",
+                    format_count(baseline_tests$genotypes$MSSN_case),
+                    format_count(baseline_tests$genotypes$MSSN_ctrl),
+                    format_count(baseline_tests$genotypes$MSSN_total)))
+    message(sprintf("  Trend test: %s cases, %s controls, %s total",
+                    format_count(baseline_tests$trend$MSSN_case),
+                    format_count(baseline_tests$trend$MSSN_ctrl),
+                    format_count(baseline_tests$trend$MSSN_total)))
 
-    if (isTRUE(pheno_misclass)) {
-      message(sprintf(
-        "%-32s %12s",
-        "Phenotype misclassification:",
-        paste0("enabled, theta=", .fmt_f(theta, 4), ", phi=", .fmt_f(phi, 4))
-      ))
-    } else {
-      message(sprintf(
-        "%-32s %12s",
-        "Phenotype misclassification:", "none"
-      ))
-    }
-
-if (geno_misclass == "none") {
-      message(sprintf("%-32s %12s", "Genotype misclassification:", "none"))
-    } else if (geno_misclass == "1p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0("1-parameter, e=", .fmt_f(e, 4))
-      ))
-    } else if (geno_misclass == "2p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0("2-parameter, e1=", .fmt_f(e1, 4), ", e2=", .fmt_f(e2, 4))
-      ))
-    } else if (geno_misclass == "3p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0(
-          "3-parameter, e01=", .fmt_f(e01, 4),
-          ", e02=", .fmt_f(e02, 4),
-          ", e03=", .fmt_f(e03, 4)
+    if (any_modifier) {
+      message("")
+      message("Adjusted design")
+      message("  Active modifiers:")
+      if (locus_active) {
+        message(sprintf("    Locus heterogeneity: %.1f%%", 100 * (1 - pi)))
+      }
+      if (pheno_active) {
+        message(sprintf(
+          "    Phenotype misclassification: theta %.1f%%, phi %.1f%%",
+          100 * theta, 100 * phi
+        ))
+      }
+      if (geno_active) {
+        geno_label <- switch(
+          geno_misclass,
+          `1p` = "1-parameter", `2p` = "2-parameter",
+          `3p` = "3-parameter", diff3p = "differential 3-parameter"
         )
-      ))
-    } else if (geno_misclass == "diff3p") {
-      message("Genotype misclassification:     differential 3-parameter")
-      message(sprintf("  diff_source:                  %s", misclass_info$diff_source))
-      message(sprintf("  diff_multiplier:              %s", .fmt_f(misclass_info$diff_multiplier, 4)))
-      message(sprintf(
-        "  Case parameters:              e01=%s, e02=%s, e03=%s",
-        .fmt_f(misclass_info$case_params["e01"], 4),
-        .fmt_f(misclass_info$case_params["e02"], 4),
-        .fmt_f(misclass_info$case_params["e03"], 4)
-      ))
-      message(sprintf(
-        "  Control parameters:           e01=%s, e02=%s, e03=%s",
-        .fmt_f(misclass_info$ctrl_params["e01"], 4),
-        .fmt_f(misclass_info$ctrl_params["e02"], 4),
-        .fmt_f(misclass_info$ctrl_params["e03"], 4)
-      ))
+        message(paste0("    Genotype misclassification: ", geno_label))
+      }
+      message(sprintf("  Genotype test: %s cases, %s controls, %s total",
+                      format_count(adjusted_tests$genotypes$MSSN_case),
+                      format_count(adjusted_tests$genotypes$MSSN_ctrl),
+                      format_count(adjusted_tests$genotypes$MSSN_total)))
+      message(sprintf("  Trend test: %s cases, %s controls, %s total",
+                      format_count(adjusted_tests$trend$MSSN_case),
+                      format_count(adjusted_tests$trend$MSSN_ctrl),
+                      format_count(adjusted_tests$trend$MSSN_total)))
     }
-
-    message("--------------------------------------------------------------------------")
-    message("Minimum Sample Size Necessary")
-
-    message(sprintf(
-      "  %-16s MSSN_case=%8d  |  MSSN_ctrl=%8d  |  MSSN_total=%8d",
-      "Genotypes:", MSSN_case_g, MSSN_ctrl_g, MSSN_case_g + MSSN_ctrl_g
-    ))
-
-    message(sprintf(
-      "  %-16s MSSN_case=%8d  |  MSSN_ctrl=%8d  |  MSSN_total=%8d",
-      "Trend:", MSSN_case_t, MSSN_ctrl_t, MSSN_case_t + MSSN_ctrl_t
-    ))
-
-    message("--------------------------------------------------------------------------")
-    message("Observed genotype frequencies: cases vs controls")
-    message(sprintf("  g0: %6.3f vs %6.3f", g1_obs[1], g0_obs[1]))
-    message(sprintf("  g1: %6.3f vs %6.3f", g1_obs[2], g0_obs[2]))
-    message(sprintf("  g2: %6.3f vs %6.3f", g1_obs[3], g0_obs[3]))
-
-    message("--------------------------------------------------------------------------")
   }
 
   invisible(out)
@@ -933,6 +939,10 @@ if (geno_misclass == "none") {
 #' \item Compute genotype chi-square and genotype trend-test non-centrality
 #' parameters and powers from the observed genotype frequencies.
 #' }
+#' The defaults (\code{locus_het = FALSE}, \code{pheno_misclass = FALSE}, and
+#' \code{geno_misclass = "none"}) give the ordinary no-error design. When
+#' modifiers are active, they are applied sequentially in the order above and
+#' therefore form one combined adjusted design.
 #'
 #' With \code{input_mode = "model_based"}, conditional case and control genotype
 #' frequencies are derived from \code{prev}, \code{pd}, \code{R2}, and
@@ -1528,33 +1538,18 @@ cc_power <- function(
   # ---- sample sizes ----
   N_ctrl <- k * N_case
 
-  # ---- genotype chi-square ----
-  S_g <- sum((g1_obs - g0_obs)^2 / (g1_obs + k * g0_obs))
-
-  if (!is.finite(S_g) || S_g <= 0)
-    stop("Genotype S <= 0; check inputs.")
-
-  lambda_g <- k * N_case * S_g
-  crit_g <- qchisq(1 - alpha, df = 2)
-  power_g <- pchisq(crit_g, df = 2, ncp = lambda_g, lower.tail = FALSE)
-
-  # ---- trend test ----
-  num_t <- (sum(w * (g1_obs - g0_obs)))^2
-
-  den_t <- sum(w^2 * (g1_obs + k * g0_obs)) -
-    (sum(w * (g1_obs + k * g0_obs)))^2 / (1 + k)
-
-  if (!is.finite(den_t) || den_t <= 0)
-    stop("Trend denominator <= 0; check inputs/weights.")
-
-  if (num_t < 1e-15)
-    stop("Trend numerator is approximately 0; implies no weighted mean difference.")
-
-  S_t <- num_t / den_t
-  lambda_t <- k * N_case * S_t
-
-  crit_1 <- qchisq(1 - alpha, df = 1)
-  power_t <- pchisq(crit_1, df = 1, ncp = lambda_t, lower.tail = FALSE)
+  adjusted_tests <- .cc_power_test_results(
+    g_case = g1_obs, g_ctrl = g0_obs, k = k, w = w,
+    N_case = N_case, alpha = alpha
+  )
+  baseline_tests <- if (isTRUE(verbose)) {
+    .cc_power_test_results(
+      g_case = g1_base, g_ctrl = g0_base, k = k, w = w,
+      N_case = N_case, alpha = alpha, validate = FALSE
+    )
+  } else {
+    NULL
+  }
 
   # ---- output ----
   out <- list(
@@ -1575,18 +1570,18 @@ cc_power <- function(
       genotypes = list(
         test = "case-control chi-square test of independence for genotypes",
         df = 2,
-        lambda = lambda_g,
-        S = S_g,
-        power = power_g
+        lambda = adjusted_tests$genotypes$lambda,
+        S = adjusted_tests$genotypes$S,
+        power = adjusted_tests$genotypes$power
       ),
       trend = list(
         test = "trend test for genotypes",
         df = 1,
-        lambda = lambda_t,
-        S = S_t,
-        numerator = num_t,
-        denominator = den_t,
-        power = power_t
+        lambda = adjusted_tests$trend$lambda,
+        S = adjusted_tests$trend$S,
+        numerator = adjusted_tests$trend$numerator,
+        denominator = adjusted_tests$trend$denominator,
+        power = adjusted_tests$trend$power
       )
     ),
     freqs = list(
@@ -1605,146 +1600,50 @@ cc_power <- function(
 
   # ---- clean printed output ----
   if (isTRUE(verbose)) {
+    locus_active <- isTRUE(locus_het) && pi < 1
+    pheno_active <- isTRUE(pheno_misclass) && (theta > 0 || phi > 0)
+    geno_active <- .cc_genotype_error_active(M_case, M_ctrl)
+    any_modifier <- locus_active || pheno_active || geno_active
 
-    message("\n--- Case-Control: Power for Fixed Sample Size ---")
-    message("Outputs: Genotype chi-square and genotype trend test")
-    message("--------------------------------------------------------------------------")
+    message("Case-control power")
+    message(sprintf("Cases: %s; controls: %s; total: %s",
+                    formatC(N_case, format = "f", digits = 0, big.mark = ","),
+                    formatC(N_ctrl, format = "f", digits = 0, big.mark = ","),
+                    formatC(N_case + N_ctrl, format = "f", digits = 0,
+                            big.mark = ",")))
+    message("")
+    message("No-error design")
+    message(sprintf("  Genotype test power: %.1f%%",
+                    100 * baseline_tests$genotypes$power))
+    message(sprintf("  Trend test power: %.1f%%",
+                    100 * baseline_tests$trend$power))
 
-    fmt2 <- "%-32s %12s  |  %-28s %12s"
-
-    message(sprintf(
-      fmt2,
-      "Input Mode:", input_mode,
-      "Significance Level (alpha):", .fmt_e(alpha, 2)
-    ))
-
-    message(sprintf(
-      fmt2,
-      "N_case:", .fmt_f(N_case, 0),
-      "N_ctrl:", .fmt_f(N_ctrl, 0)
-    ))
-
-    message(sprintf(
-      fmt2,
-      "Case:Control Ratio (k):", .fmt_f(k, 3),
-      "Trend Weights (w):", paste0(w, collapse = ",")
-    ))
-
-    if (input_mode == "model_based") {
-      message(sprintf(
-        fmt2,
-        "Disease Prevalence (prev):", .fmt_f(prev, 4),
-        "Risk Allele Freq (p_d):", .fmt_f(pd, 4)
-      ))
-      message(sprintf(
-        fmt2,
-        "MOI:", MOI,
-        "R2:", .fmt_f(R2, 4)
-      ))
-    } else if (input_mode == "model_free") {
-      message("Model-free input: user-supplied genotype frequencies g1 and g0")
-    }
-
-    if (isTRUE(locus_het)) {
-      message(sprintf(
-        "%-32s %12s",
-        "Locus heterogeneity:", paste0("enabled, pi=", .fmt_f(pi, 3))
-      ))
-    } else {
-      message(sprintf(
-        "%-32s %12s",
-        "Locus heterogeneity:", "none"
-      ))
-    }
-
-    if (isTRUE(pheno_misclass)) {
-      message(sprintf(
-        "%-32s %12s",
-        "Phenotype misclassification:",
-        paste0("enabled, theta=", .fmt_f(theta, 4), ", phi=", .fmt_f(phi, 4))
-      ))
-    } else {
-      message(sprintf(
-        "%-32s %12s",
-        "Phenotype misclassification:", "none"
-      ))
-    }
-
-if (geno_misclass == "none") {
-      message(sprintf("%-32s %12s", "Genotype misclassification:", "none"))
-    } else if (geno_misclass == "1p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0("1-parameter, e=", .fmt_f(e, 4))
-      ))
-    } else if (geno_misclass == "2p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0("2-parameter, e1=", .fmt_f(e1, 4), ", e2=", .fmt_f(e2, 4))
-      ))
-    } else if (geno_misclass == "3p") {
-      message(sprintf(
-        "%-32s %12s",
-        "Genotype misclassification:",
-        paste0(
-          "3-parameter, e01=", .fmt_f(e01, 4),
-          ", e02=", .fmt_f(e02, 4),
-          ", e03=", .fmt_f(e03, 4)
+    if (any_modifier) {
+      message("")
+      message("Adjusted design")
+      message("  Active modifiers:")
+      if (locus_active) {
+        message(sprintf("    Locus heterogeneity: %.1f%%", 100 * (1 - pi)))
+      }
+      if (pheno_active) {
+        message(sprintf(
+          "    Phenotype misclassification: theta %.1f%%, phi %.1f%%",
+          100 * theta, 100 * phi
+        ))
+      }
+      if (geno_active) {
+        geno_label <- switch(
+          geno_misclass,
+          `1p` = "1-parameter", `2p` = "2-parameter",
+          `3p` = "3-parameter", diff3p = "differential 3-parameter"
         )
-      ))
-    } else if (geno_misclass == "diff3p") {
-      message("Genotype misclassification:     differential 3-parameter")
-      message(sprintf("  diff_source:                  %s", misclass_info$diff_source))
-      message(sprintf("  diff_multiplier:              %s", .fmt_f(misclass_info$diff_multiplier, 4)))
-      message(sprintf(
-        "  Case parameters:              e01=%s, e02=%s, e03=%s",
-        .fmt_f(misclass_info$case_params["e01"], 4),
-        .fmt_f(misclass_info$case_params["e02"], 4),
-        .fmt_f(misclass_info$case_params["e03"], 4)
-      ))
-      message(sprintf(
-        "  Control parameters:           e01=%s, e02=%s, e03=%s",
-        .fmt_f(misclass_info$ctrl_params["e01"], 4),
-        .fmt_f(misclass_info$ctrl_params["e02"], 4),
-        .fmt_f(misclass_info$ctrl_params["e03"], 4)
-      ))
+        message(paste0("    Genotype misclassification: ", geno_label))
+      }
+      message(sprintf("  Genotype test power: %.1f%%",
+                      100 * adjusted_tests$genotypes$power))
+      message(sprintf("  Trend test power: %.1f%%",
+                      100 * adjusted_tests$trend$power))
     }
-
-    message("--------------------------------------------------------------------------")
-    message("Power")
-
-    message(sprintf(
-      "  %-16s %12.6f",
-      "Genotypes:", power_g
-    ))
-
-    message(sprintf(
-      "  %-16s %12.6f",
-      "Trend:", power_t
-    ))
-
-    message("--------------------------------------------------------------------------")
-    message("Non-Centrality Parameters")
-
-    message(sprintf(
-      "  %-16s %12.5f  | df=%d",
-      "Genotypes:", lambda_g, 2
-    ))
-
-    message(sprintf(
-      "  %-16s %12.5f  | df=%d",
-      "Trend:", lambda_t, 1
-    ))
-
-    message("--------------------------------------------------------------------------")
-    message("Observed genotype frequencies: cases vs controls")
-    message(sprintf("  g0: %6.3f vs %6.3f", g1_obs[1], g0_obs[1]))
-    message(sprintf("  g1: %6.3f vs %6.3f", g1_obs[2], g0_obs[2]))
-    message(sprintf("  g2: %6.3f vs %6.3f", g1_obs[3], g0_obs[3]))
-
-    message("--------------------------------------------------------------------------")
   }
 
   invisible(out)

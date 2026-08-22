@@ -176,8 +176,8 @@ tdt_mssn_table <- function(out) {
     `Required trios` = vapply(out$N, fmt_num, character(1), digits = 1),
     `Percent increase` = c(
       NA_character_,
-      fmt_num(100 * out$percent_increase$misclassification, 2),
-      fmt_num(100 * out$percent_increase$heterogeneity, 2)
+      fmt_num(out$percent_increase$misclassification, 2),
+      fmt_num(out$percent_increase$heterogeneity, 2)
     ),
     `Power at no-error N` = vapply(out$power_at_N_no_error, fmt_num, character(1), digits = 5),
     check.names = FALSE

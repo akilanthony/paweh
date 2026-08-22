@@ -13,8 +13,8 @@ tdt_power(
   R2 = NULL,
   alpha = 0.05,
   delta_prime = 1,
-  misclass_rate = 0.01,
-  heter_rate = 0.01,
+  misclass_rate = 0,
+  heter_rate = 0,
   ET = NULL,
   ENT = NULL,
   verbose = TRUE
@@ -53,20 +53,19 @@ only.}
 
 \item{misclass_rate}{Numeric in \eqn{[0,1)}. Phenotype misclassification
 rate for controls (\eqn{\pi_{01}}). A value of \code{0} corresponds to
-no misclassification.}
+no misclassification and is the default.}
 
 \item{heter_rate}{Numeric in \eqn{[0,1)}. Proportion of trios whose
 affection status is \emph{not} due to the locus of interest
 (\eqn{1 - \pi}). A value of \code{0} corresponds to complete
-homogeneity.}
+homogeneity and is the default.}
 
 \item{ET, ENT}{Numeric \eqn{\ge 0}. Expected transmission and
 non-transmission counts for \code{input_mode = "model_free"}, assumed to
 be accumulated over the same \code{N} trios that power is computed for.}
 
 \item{verbose}{Logical. If \code{TRUE} (default), prints a formatted
-summary of non-centrality parameters, power, and expected transmission
-probabilities.}
+summary of no-error power and any requested modifier-specific power.}
 }
 \value{
 An object of class \code{"tdt_power"}, containing:
@@ -105,13 +104,17 @@ probabilities in Eqs. 5.24--5.27 (Section 5.2.6, pp. 284--285), and the
 locus-heterogeneity construction in Eqs. 5.30--5.34a (Section 5.3.3,
 pp. 293--294) of Gordon, Finch, and Kim (2020). Eq. 5.28 is a numerical
 worked example, not the general symbolic formula.
+Phenotype misclassification and locus heterogeneity are reported as
+separate sensitivity scenarios; supplying both rates does not create a
+combined-error scenario.
 
 \code{N} is the number of affected-child trios, with both parents genotyped.
 \code{ET} and \code{ENT} are expected counts accumulated over trios, whereas
 \eqn{g_T} and \eqn{g_{NT}} are per-parental-allele transmission and
 non-transmission probabilities. \code{heter_rate} is the heterogeneous
 fraction; in lower-level formulas written with the linked/homogeneous
-fraction \eqn{\pi}, \eqn{\text{heter_rate}=1-\pi}.
+fraction \eqn{\pi}; equivalently, the heterogeneous fraction is
+\eqn{1-\pi}.
 
 With \code{input_mode = "model_free"}, the no-error scenario uses
 \eqn{g_T = ET / (2N)} and \eqn{g_{NT} = ENT / (2N)} directly. The

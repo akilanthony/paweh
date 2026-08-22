@@ -152,6 +152,10 @@ case and control genotype frequencies.
 \item Compute genotype chi-square and genotype trend-test non-centrality
 parameters and powers from the observed genotype frequencies.
 }
+The defaults (\code{locus_het = FALSE}, \code{pheno_misclass = FALSE}, and
+\code{geno_misclass = "none"}) give the ordinary no-error design. When
+modifiers are active, they are applied sequentially in the order above and
+therefore form one combined adjusted design.
 
 With \code{input_mode = "model_based"}, conditional case and control genotype
 frequencies are derived from \code{prev}, \code{pd}, \code{R2}, and

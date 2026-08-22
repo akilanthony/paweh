@@ -13,8 +13,8 @@ tdt_mssn(
   R2 = NULL,
   alpha = 0.05,
   delta_prime = 1,
-  misclass_rate = 0.01,
-  heter_rate = 0.01,
+  misclass_rate = 0,
+  heter_rate = 0,
   ET = NULL,
   ENT = NULL,
   n_trios = NULL,
@@ -53,11 +53,13 @@ Required for \code{input_mode = "model_based"}; unused for
 only.}
 
 \item{misclass_rate}{Numeric in \eqn{[0,1)}. Phenotype misclassification
-rate for controls (\eqn{\pi_{01}}) in the misclassification scenario.}
+rate for controls (\eqn{\pi_{01}}) in the misclassification scenario.
+Zero means no misclassification and is the default.}
 
 \item{heter_rate}{Numeric in \eqn{[0,1)}. Proportion of trios whose
 affection status is not due to the locus of interest (\eqn{1 - \pi})
-in the heterogeneity scenario.}
+in the heterogeneity scenario. Zero means complete homogeneity and is the
+default.}
 
 \item{ET, ENT}{Numeric \eqn{\ge 0}. Expected transmission and
 non-transmission counts for \code{input_mode = "model_free"}.}
@@ -69,8 +71,8 @@ supplied \code{ET} and \code{ENT} correspond to. Required for
 required number of trios).}
 
 \item{verbose}{Logical. If \code{TRUE} (default), prints a formatted
-summary of the required numbers of trios, percent inflation, and the
-resulting power when the no-error design is used.}
+summary of the no-error required number of trios and any requested
+modifier-specific required counts and percentage increases.}
 }
 \value{
 An object of class \code{"tdt_mssn"}, containing:
@@ -79,8 +81,10 @@ An object of class \code{"tdt_mssn"}, containing:
 one-df NCP, and input mode.}
 \item{N}{Named \code{no_error}, \code{misclassification}, and
 \code{heterogeneity} required affected-trio counts.}
-\item{percent_increase}{Modifier-specific percentage inflation relative to
-the no-error required count.}
+\item{percent_increase}{Modifier-specific conventional percentage inflation,
+\eqn{100(N_{adjusted}/N_{no-error}-1)}, relative to the no-error required
+count. Values are \code{NA} when the no-error required count is not finite
+and positive.}
 \item{power_at_N_no_error, power_loss_at_N_no_error}{Power and power loss
 obtained if the no-error design size is used under each modifier.}
 \item{gT_star, gNT_star}{Scenario-specific transmission and
@@ -109,6 +113,9 @@ heterogeneity follows Eqs. 5.30--5.34b (pp. 293--294). Eq. 5.28 is a
 numerical example. Here \code{heter_rate} is the heterogeneous fraction,
 equal to \eqn{1-\pi} when lower-level formulas use homogeneous fraction
 \eqn{\pi}.
+Phenotype misclassification and locus heterogeneity are reported as
+separate sensitivity scenarios; supplying both rates does not create a
+combined-error scenario.
 
 With \code{input_mode = "model_free"}, the no-error scenario uses
 \eqn{g_T = ET / (2\,n_{trios})} and \eqn{g_{NT} = ENT / (2\,n_{trios})}.

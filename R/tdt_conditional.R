@@ -57,17 +57,16 @@
 #'   only.
 #' @param misclass_rate Numeric in \eqn{[0,1)}. Phenotype misclassification
 #'   rate for controls (\eqn{\pi_{01}}). A value of \code{0} corresponds to
-#'   no misclassification.
+#'   no misclassification and is the default.
 #' @param heter_rate Numeric in \eqn{[0,1)}. Proportion of trios whose
 #'   affection status is \emph{not} due to the locus of interest
 #'   (\eqn{1 - \pi}). A value of \code{0} corresponds to complete
-#'   homogeneity.
+#'   homogeneity and is the default.
 #' @param ET,ENT Numeric \eqn{\ge 0}. Expected transmission and
 #'   non-transmission counts for \code{input_mode = "model_free"}, assumed to
 #'   be accumulated over the same \code{N} trios that power is computed for.
 #' @param verbose Logical. If \code{TRUE} (default), prints a formatted
-#'   summary of non-centrality parameters, power, and expected transmission
-#'   probabilities.
+#'   summary of no-error power and any requested modifier-specific power.
 #'
 #' @details
 #' With \code{input_mode = "model_based"}, penetrances
@@ -80,13 +79,17 @@
 #' locus-heterogeneity construction in Eqs. 5.30--5.34a (Section 5.3.3,
 #' pp. 293--294) of Gordon, Finch, and Kim (2020). Eq. 5.28 is a numerical
 #' worked example, not the general symbolic formula.
+#' Phenotype misclassification and locus heterogeneity are reported as
+#' separate sensitivity scenarios; supplying both rates does not create a
+#' combined-error scenario.
 #'
 #' \code{N} is the number of affected-child trios, with both parents genotyped.
 #' \code{ET} and \code{ENT} are expected counts accumulated over trios, whereas
 #' \eqn{g_T} and \eqn{g_{NT}} are per-parental-allele transmission and
 #' non-transmission probabilities. \code{heter_rate} is the heterogeneous
 #' fraction; in lower-level formulas written with the linked/homogeneous
-#' fraction \eqn{\pi}, \eqn{\text{heter_rate}=1-\pi}.
+#' fraction \eqn{\pi}; equivalently, the heterogeneous fraction is
+#' \eqn{1-\pi}.
 #'
 #' With \code{input_mode = "model_free"}, the no-error scenario uses
 #' \eqn{g_T = ET / (2N)} and \eqn{g_{NT} = ENT / (2N)} directly. The
@@ -182,8 +185,8 @@ tdt_power <- function(
     R2   = NULL,
     alpha = 0.05,
     delta_prime = 1,
-    misclass_rate = 0.01,
-    heter_rate   = 0.01,
+    misclass_rate = 0,
+    heter_rate   = 0,
     ET  = NULL,
     ENT = NULL,
     verbose = TRUE
@@ -423,62 +426,29 @@ tdt_power <- function(
 
   # ----- Printed summary -----
   if (isTRUE(verbose)) {
-    message("\nPOWER FOR A FIXED SAMPLE SIZE\n")
+    message("TDT power")
+    message(sprintf("Affected-child trios: %s", formatC(N, format = "d")))
+    message("")
+    message("No-error design")
+    message(sprintf("  Power: %.1f%%", 100 * power_nomisc))
 
-    # nice two-column header with aligned right-hand values
-    fmt_two_col <- "%-32s %10s  |  %-28s %10s"
-    message(sprintf(
-      fmt_two_col,
-      "Number of Trios (N):",
-      formatC(N, format = "d"),
-      "Significance Level (alpha):",
-      formatC(alpha, format = "f", digits = 3)
-    ))
-    message(sprintf("%-32s %10s", "Input Mode:", input_mode))
-    if (!is.null(pd) && !is.null(prev)) {
-      message(sprintf(
-        fmt_two_col,
-        "Allele Frequency (p_d):",
-        formatC(pd, format = "f", digits = 3),
-        "Prevalence (phi1):",
-        formatC(prev, format = "f", digits = 3)
-      ))
-    } else if (!is.null(pd)) {
-      message(sprintf("%-32s %10s", "Allele Frequency (p_d):",
-                      formatC(pd, format = "f", digits = 3)))
+    if (misclass_rate > 0) {
+      message("")
+      message("Phenotype misclassification")
+      message(sprintf("  Misclassification rate: %.1f%%", 100 * misclass_rate))
+      message(sprintf("  Power: %.1f%%", 100 * power_misc))
+      message(sprintf("  Absolute power loss: %.1f percentage points",
+                      100 * power_loss_misc))
     }
-    if (!is.null(R1) && !is.null(R2)) {
-      message(sprintf("%-32s %10s", "Relative Risks (R1,R2):",
-                      paste0(R1, ", ", R2)))
+
+    if (heter_rate > 0) {
+      message("")
+      message("Locus heterogeneity")
+      message(sprintf("  Heterogeneity rate: %.1f%%", 100 * heter_rate))
+      message(sprintf("  Power: %.1f%%", 100 * power_het))
+      message(sprintf("  Absolute power loss: %.1f percentage points",
+                      100 * power_loss_het))
     }
-    message(sprintf("%-32s %10.3f", "LD scale (delta_prime):", delta_prime))
-    message(sprintf("%-32s %10.3f", "Misclassification Rate (pi01):", misclass_rate))
-    message(sprintf("%-32s %10.3f\n", "Heterogeneity Rate (1 - pi):", heter_rate))
-
-    message("Non-Centrality Parameters (lambda)")
-    message("---------------------------------------------------------------")
-    message(sprintf("  %-18s %10.4f", "No error:",        lambda_nomisc))
-    message(sprintf("  %-18s %10.4f", "Misclassification:", lambda_misc))
-    message(sprintf("  %-18s %10.4f\n", "Heterogeneity:",    lambda_het))
-
-    message("Power")
-    message(sprintf("  %-18s %10.3f", "No error:",        power_nomisc))
-    message(sprintf("  %-18s %10.3f  (loss = %6.3f)",
-                    "Misclassification:", power_misc, power_loss_misc))
-    message(sprintf("  %-18s %10.3f  (loss = %6.3f)\n",
-                    "Heterogeneity:",    power_het,  power_loss_het))
-
-    message("Expected transmission/non-transmission probabilities (gT*, gNT*)")
-    fmt_g <- "  %-18s %10.5f  |  %-18s %10.5f"
-    message(sprintf(fmt_g,
-                    "gT* (no error):", gT_nomisc,
-                    "gNT* (no error):", gNT_nomisc))
-    message(sprintf(fmt_g,
-                    "gT* (misclass):", gT_misc,
-                    "gNT* (misclass):", gNT_misc))
-    message(sprintf(fmt_g,
-                    "gT* (heter):", gT_het,
-                    "gNT* (heter):", gNT_het))
   }
 
   # ----- Clean return object -----
@@ -571,9 +541,11 @@ tdt_power <- function(
 #'   only.
 #' @param misclass_rate Numeric in \eqn{[0,1)}. Phenotype misclassification
 #'   rate for controls (\eqn{\pi_{01}}) in the misclassification scenario.
+#'   Zero means no misclassification and is the default.
 #' @param heter_rate Numeric in \eqn{[0,1)}. Proportion of trios whose
 #'   affection status is not due to the locus of interest (\eqn{1 - \pi})
-#'   in the heterogeneity scenario.
+#'   in the heterogeneity scenario. Zero means complete homogeneity and is the
+#'   default.
 #' @param ET,ENT Numeric \eqn{\ge 0}. Expected transmission and
 #'   non-transmission counts for \code{input_mode = "model_free"}.
 #' @param n_trios Numeric \eqn{> 0}. Number of affected trios that the
@@ -582,8 +554,8 @@ tdt_power <- function(
 #'   \code{N} argument here to reuse, since this function solves for the
 #'   required number of trios).
 #' @param verbose Logical. If \code{TRUE} (default), prints a formatted
-#'   summary of the required numbers of trios, percent inflation, and the
-#'   resulting power when the no-error design is used.
+#'   summary of the no-error required number of trios and any requested
+#'   modifier-specific required counts and percentage increases.
 #'
 #' @details
 #' With \code{input_mode = "model_based"}, penetrances are derived from
@@ -596,6 +568,9 @@ tdt_power <- function(
 #' numerical example. Here \code{heter_rate} is the heterogeneous fraction,
 #' equal to \eqn{1-\pi} when lower-level formulas use homogeneous fraction
 #' \eqn{\pi}.
+#' Phenotype misclassification and locus heterogeneity are reported as
+#' separate sensitivity scenarios; supplying both rates does not create a
+#' combined-error scenario.
 #'
 #' With \code{input_mode = "model_free"}, the no-error scenario uses
 #' \eqn{g_T = ET / (2\,n_{trios})} and \eqn{g_{NT} = ENT / (2\,n_{trios})}.
@@ -610,8 +585,10 @@ tdt_power <- function(
 #' one-df NCP, and input mode.}
 #' \item{N}{Named \code{no_error}, \code{misclassification}, and
 #' \code{heterogeneity} required affected-trio counts.}
-#' \item{percent_increase}{Modifier-specific percentage inflation relative to
-#' the no-error required count.}
+#' \item{percent_increase}{Modifier-specific conventional percentage inflation,
+#' \eqn{100(N_{adjusted}/N_{no-error}-1)}, relative to the no-error required
+#' count. Values are \code{NA} when the no-error required count is not finite
+#' and positive.}
 #' \item{power_at_N_no_error, power_loss_at_N_no_error}{Power and power loss
 #' obtained if the no-error design size is used under each modifier.}
 #' \item{gT_star, gNT_star}{Scenario-specific transmission and
@@ -671,8 +648,8 @@ tdt_mssn <- function(
     R2   = NULL,
     alpha = 0.05,
     delta_prime = 1,
-    misclass_rate = 0.01,
-    heter_rate   = 0.01,
+    misclass_rate = 0,
+    heter_rate   = 0,
     ET  = NULL,
     ENT = NULL,
     n_trios = NULL,
@@ -803,6 +780,12 @@ tdt_mssn <- function(
       (2 * (gT_star - gNT_star)^2)
   }
 
+  percent_increase_from_baseline <- function(adjusted, baseline) {
+    if (!is.finite(baseline) || baseline <= 0)
+      return(NA_real_)
+    100 * (adjusted / baseline - 1)
+  }
+
   ## ---------- solve for lambda_star from target power ----------
   crit <- qchisq(1 - alpha, df = 1)
   f_lambda <- function(lambda) {
@@ -894,10 +877,8 @@ tdt_mssn <- function(
   }
 
   ## ===== Percent increase relative to no-error N =====
-  infl_misc <- N_misc / N_nomisc
-  infl_het  <- N_het  / N_nomisc
-  perc_increase_misc <- infl_misc - 1
-  perc_increase_het  <- infl_het  - 1
+  perc_increase_misc <- percent_increase_from_baseline(N_misc, N_nomisc)
+  perc_increase_het <- percent_increase_from_baseline(N_het, N_nomisc)
 
   ## ===== Power loss if you DON'T inflate N (design at N_nomisc) =====
   lambda_nomisc_fixed <- 2 * N_nomisc * (gT_nomisc - gNT_nomisc)^2 /
@@ -916,60 +897,40 @@ tdt_mssn <- function(
   power_loss_het  <- power_nomisc_fixed - power_het_fixed
 
   if (isTRUE(verbose)) {
-    message("\nMINIMUM SAMPLE SIZE NECESSARY FOR A FIXED POWER\n")
-
-    message(sprintf("%-38s %10.3f  |  %s %6.3f",
-                    "Desired Power:", target_power,
-                    "Significance Level (alpha):", alpha))
-    message(sprintf("%-38s %10s", "Input Mode:", input_mode))
-    if (!is.null(pd) && !is.null(prev)) {
-      message(sprintf("%-38s %10.3f  |  %s %6.3f",
-                      "Allele Frequency (p_d):", pd,
-                      "Prevalence (phi1):", prev))
-    } else if (!is.null(pd)) {
-      message(sprintf("%-38s %10.3f", "Allele Frequency (p_d):", pd))
+    format_trios <- function(x) {
+      if (is.finite(x)) {
+        formatC(ceiling(x), format = "d", big.mark = ",")
+      } else {
+        as.character(x)
+      }
     }
-    if (!is.null(R1) && !is.null(R2)) {
-      message(sprintf("%-38s %10s",
-                      "Relative Risks (R1,R2):", paste0(R1, ", ", R2)))
+    format_percent_increase <- function(x) {
+      if (is.na(x)) "not defined" else sprintf("%.1f%%", x)
     }
-    message(sprintf("%-38s %10.3f",
-                    "LD scale (delta_prime):", delta_prime))
-    message(sprintf("%-38s %10.3f",
-                    "Misclassification Rate (pi01):", misclass_rate))
-    message(sprintf("%-38s %10.3f\n",
-                    "Heterogeneity Rate (1 - pi):", heter_rate))
 
-    message(sprintf("%-38s %10.4f",
-                    "Non-Centrality Parameter (lambda_star):", lambda_star))
-    message("-----------------------------------------------------------")
-    message(sprintf("%-38s %10.0f",
-                    "Required Trios (no error):", ceiling(N_nomisc)))
-    message(sprintf("%-38s %10.0f  |  Percent Increase: %8.3f",
-                    "Required Trios (misclassification):",
-                    ceiling(N_misc), perc_increase_misc))
-    message(sprintf("%-38s %10.0f  |  Percent Increase: %8.3f\n",
-                    "Required Trios (heterogeneity):",
-                    ceiling(N_het), perc_increase_het))
-
-    message("Power at N(no-error design):")
-    fmt_pow  <- "  %-18s %7.3f"
-    fmt_loss <- "  %-18s %7.3f  (loss = %6.3f)"
-    message(sprintf(fmt_pow,  "No error:",        power_nomisc_fixed))
-    message(sprintf(fmt_loss, "Misclassification:", power_misc_fixed, power_loss_misc))
-    message(sprintf(fmt_loss, "Heterogeneity:",     power_het_fixed,  power_loss_het))
+    message("TDT minimum sample size")
+    message(sprintf("Target power: %.1f%%", 100 * target_power))
     message("")
+    message("No-error design")
+    message(sprintf("  Required trios: %s", format_trios(N_nomisc)))
 
-    message("Expected transmission/non-transmission probabilities (gT*, gNT*)")
-    message(sprintf("%-18s %10.5f  |  %s %10.5f",
-                    "gT* (no error):", gT_nomisc,
-                    "gNT* (no error):", gNT_nomisc))
-    message(sprintf("%-18s %10.5f  |  %s %10.5f",
-                    "gT* (misclass):", gT_misc,
-                    "gNT* (misclass):", gNT_misc))
-    message(sprintf("%-18s %10.5f  |  %s %10.5f",
-                    "gT* (heter):",    gT_het,
-                    "gNT* (heter):",   gNT_het))
+    if (misclass_rate > 0) {
+      message("")
+      message("Phenotype misclassification")
+      message(sprintf("  Misclassification rate: %.1f%%", 100 * misclass_rate))
+      message(sprintf("  Required trios: %s", format_trios(N_misc)))
+      message(sprintf("  Percent increase: %s",
+                      format_percent_increase(perc_increase_misc)))
+    }
+
+    if (heter_rate > 0) {
+      message("")
+      message("Locus heterogeneity")
+      message(sprintf("  Heterogeneity rate: %.1f%%", 100 * heter_rate))
+      message(sprintf("  Required trios: %s", format_trios(N_het)))
+      message(sprintf("  Percent increase: %s",
+                      format_percent_increase(perc_increase_het)))
+    }
   }
 
   out <- list(

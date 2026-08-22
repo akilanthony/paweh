@@ -148,10 +148,10 @@ data.frame(
 
 This is an excellent **Published-example reproduction**: approximately 546
 versus 21,401 affected-child trios, a 39.23-fold final sample-size ratio.
-A 39.23-fold ratio is a 3,822.7% increase, not a 39.23% increase. The current
-result component named `percent_increase` stores the proportional increase
-`(new / baseline) - 1`; its historical name should not be read as a
-conventional percentage.
+A 39.23-fold ratio is a 3,822.7% increase, not a 39.23% increase. The
+`percent_increase` component stores this conventional percentage as
+`100 * ((new / baseline) - 1)`; the validated final-to-baseline ratio remains
+39.23-fold.
 
 ## Extending Buyske: a misclassification curve
 
