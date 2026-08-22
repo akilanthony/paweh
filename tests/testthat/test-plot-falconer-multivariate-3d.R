@@ -30,6 +30,67 @@ test_that("3D density surface returns a Plotly widget with validated data", {
   expect_true(any(vapply(built$x$data, `[[`, character(1), "type") == "surface"))
 })
 
+test_that("3D genotype densities are three correctly oriented surfaces", {
+  skip_if_not_installed("plotly")
+  grid_n <- 31L
+  p <- do.call(plot_qtl_multivariate_surface3d, c(
+    mv_plot3d_args[1:4],
+    list(surface = "genotype_density", grid_n = grid_n,
+         show_means = FALSE, show_thresholds = FALSE)
+  ))
+  dat <- attr(p, "plot_data")
+  model <- attr(p, "falconer_model")
+  built <- plotly::plotly_build(p)
+  is_surface <- vapply(built$x$data, `[[`, character(1), "type") == "surface"
+  traces <- built$x$data[is_surface]
+
+  expect_length(traces, 3)
+  expect_identical(vapply(traces, `[[`, character(1), "name"),
+                   paste("Genotype", 0:2))
+  expect_equal(nrow(dat), 3 * grid_n^2)
+
+  for (j in 1:3) {
+    trace <- traces[[j]]
+    expect_equal(dim(trace$z), c(grid_n, grid_n))
+    expect_equal(length(trace$x), grid_n)
+    expect_equal(length(trace$y), grid_n)
+    expect_true(trace$showlegend)
+    expect_equal(trace$opacity, 0.62)
+
+    x_index <- which.min(abs(trace$x - model$mean_matrix[1, j]))
+    y_index <- which.min(abs(trace$y - model$mean_matrix[2, j]))
+    direct <- mvtnorm::dmvnorm(
+      c(trace$x[x_index], trace$y[y_index]),
+      mean = model$mean_matrix[, j],
+      sigma = model$residual_covariance_matrix
+    )
+    expect_equal(trace$z[y_index, x_index], direct)
+    expect_gte(trace$z[y_index, x_index], 0.93 * max(trace$z))
+  }
+})
+
+test_that("3D genotype normalization preserves conditional raw values", {
+  skip_if_not_installed("plotly")
+  p <- do.call(plot_qtl_multivariate_surface3d, c(
+    mv_plot3d_args,
+    list(surface = "genotype_density", grid_n = 18,
+         z_scale = "normalized")
+  ))
+  dat <- attr(p, "plot_data")
+  model <- attr(p, "falconer_model")
+
+  expect_equal(range(dat$z_value), c(0, 1), tolerance = 1e-12)
+  expect_equal(dat$value, dat$conditional_density)
+  expect_true(all(is.finite(dat$value)))
+  expect_true(all(dat$value >= 0))
+  expect_equal(
+    attr(p, "mean_markers")$value,
+    rep(mvtnorm::dmvnorm(
+      c(0, 0), mean = c(0, 0), sigma = model$residual_covariance_matrix
+    ), 3)
+  )
+})
+
 test_that("3D CDF surface is bounded and monotone", {
   skip_if_not_installed("plotly")
   grid_n <- 22L

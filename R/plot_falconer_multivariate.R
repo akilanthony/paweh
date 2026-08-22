@@ -1,4 +1,4 @@
-# Bivariate Falconer mixture-surface visualization.
+# Bivariate Falconer mixture and genotype-conditional visualization.
 
 #' Evaluate one bivariate-normal density over plotting points.
 #'
@@ -33,12 +33,13 @@
   pmin(1, pmax(0, exp(log_probability)))
 }
 
-#' Plot a Two-Phenotype Falconer Mixture Surface
+#' Plot Two-Phenotype Falconer Density or CDF Contours
 #'
-#' Visualizes the population mixture of three genotype-specific bivariate
-#' normal distributions for exactly two quantitative phenotypes. It can show
-#' either the mixture density or the mixture lower-tail CDF, together with the
-#' joint threshold regions used by the Chapter 6.2 selected-sampling design.
+#' Visualizes three genotype-specific bivariate normal distributions for exactly
+#' two quantitative phenotypes. It can show the marginal mixture density, the
+#' mixture lower-tail CDF, or the three genotype-conditional density contour
+#' families, together with the joint threshold regions used by the Chapter 6.2
+#' selected-sampling design.
 #'
 #' @param qtl_var Numeric vector of two phenotype-specific QTL variances.
 #' @param tau Numeric vector of two phenotype-specific dominance/additivity
@@ -47,22 +48,31 @@
 #' @param cor_matrix A positive-definite `2 x 2` phenotype correlation matrix.
 #' @param x_upper,x_lower Optional length-two vectors of upper- and lower-tail
 #'   selection percentages. Supply both or neither.
-#' @param surface Either `"density"` or `"cdf"`.
+#' @param surface One of `"density"`, `"genotype_density"`, or `"cdf"`.
 #' @param show_thresholds Logical; display joint threshold regions when
 #'   thresholds are supplied.
 #' @param show_means Logical; mark the three genotype-specific mean vectors.
 #' @param show_labels Logical; label the affected and unaffected joint regions.
 #' @param grid_n Integer number of grid points along each phenotype axis.
 #' @param title Optional plot title.
-#' @param return_data Logical; return the surface grid instead of the ggplot.
-#'   The validated model and threshold details are retained as attributes.
+#' @param return_data Logical; return plotting data instead of the ggplot. The
+#'   validated model and threshold details are retained as attributes. Mixture
+#'   density and CDF modes retain their existing one-row-per-grid-point form.
+#'   Genotype-density mode returns long-form data with one row per grid point
+#'   and genotype.
 #'
 #' @details
-#' In density mode, each grid value is the genotype-weighted mixture
+#' In density mode, each grid value is the marginal, genotype-weighted mixture
 #' `sum(pi[j] * f[j](y1, y2))`, where each `f[j]` is a bivariate-normal
 #' density. In CDF mode, it is the lower-tail mixture probability
 #' `sum(pi[j] * P(Y1 <= y1, Y2 <= y2 | G = j))`. Density and CDF surfaces
 #' therefore represent different mathematical quantities.
+#'
+#' Genotype-density mode displays each conditional density `f[j](y1, y2)`
+#' separately and does not multiply by genotype frequency. Each conditional
+#' density integrates to one, including for rare genotypes. Three genotype
+#' components do not imply that their weighted mixture has three distinct
+#' modes.
 #'
 #' When thresholds are supplied, affected subjects occupy only the joint
 #' upper-right region `Y1 >= TU1 AND Y2 >= TU2`. Unaffected subjects occupy
@@ -71,9 +81,11 @@
 #' traits where documented; this conventional contour visualization is
 #' intentionally restricted to two.
 #'
-#' @return A \code{ggplot} object, or the plotting grid when
-#'   `return_data = TRUE`. Returned data retain the validated model and
-#'   threshold details as attributes.
+#' @return A \code{ggplot} object, or plotting data when `return_data = TRUE`.
+#'   Genotype-density data contain `phenotype_1`, `phenotype_2`, `genotype`,
+#'   `conditional_density`, and `value` (equal to `conditional_density`).
+#'   Returned data retain the validated model and threshold details as
+#'   attributes.
 #'
 #' @examples
 #' cor_matrix <- matrix(c(1, 0.15, 0.15, 1), 2, byrow = TRUE)
@@ -96,7 +108,7 @@ plot_qtl_multivariate_contour <- function(
     cor_matrix,
     x_upper = NULL,
     x_lower = NULL,
-    surface = c("density", "cdf"),
+    surface = c("density", "genotype_density", "cdf"),
     show_thresholds = TRUE,
     show_means = TRUE,
     show_labels = TRUE,
@@ -140,7 +152,7 @@ plot_qtl_multivariate_contour <- function(
   )
 
   component <- vapply(1:3, function(j) {
-    if (identical(surface, "density")) {
+    if (surface %in% c("density", "genotype_density")) {
       .falconer_mv_plot_density(
         grid, model$mean_matrix[, j], model$residual_covariance_matrix
       )
@@ -166,22 +178,62 @@ plot_qtl_multivariate_contour <- function(
   attr(grid, "falconer_model") <- model
   attr(grid, "thresholds") <- threshold
   attr(grid, "component_values") <- component
-  if (isTRUE(return_data)) return(grid)
 
-  p <- ggplot2::ggplot(
-    grid,
-    ggplot2::aes(x = .data$phenotype_1, y = .data$phenotype_2, z = .data$value)
-  ) +
-    ggplot2::geom_contour_filled(bins = 14L) +
-    ggplot2::scale_fill_viridis_d(option = "C", direction = -1) +
-    ggplot2::coord_equal(expand = FALSE) +
-    ggplot2::labs(
-      x = "Phenotype 1 value", y = "Phenotype 2 value",
-      fill = if (identical(surface, "density")) "Mixture density" else "Mixture CDF",
-      title = if (is.null(title)) {
-        paste("Bivariate Falconer mixture", surface)
-      } else title
+  plot_grid <- grid
+  if (identical(surface, "genotype_density")) {
+    genotype_labels <- paste("Genotype", 0:2)
+    plot_grid <- do.call(rbind, lapply(seq_along(genotype_labels), function(j) {
+      out <- grid
+      out$genotype <- factor(genotype_labels[j], levels = genotype_labels)
+      out$conditional_density <- component[, j]
+      out$value <- out$conditional_density
+      out
+    }))
+    rownames(plot_grid) <- NULL
+    attr(plot_grid, "falconer_model") <- model
+    attr(plot_grid, "thresholds") <- threshold
+    attr(plot_grid, "component_values") <- component
+  }
+  if (isTRUE(return_data)) return(plot_grid)
+
+  if (identical(surface, "genotype_density")) {
+    palette <- c("#0072B2", "#D55E00", "#009E73")
+    p <- ggplot2::ggplot(
+      plot_grid,
+      ggplot2::aes(
+        x = .data$phenotype_1, y = .data$phenotype_2,
+        z = .data$conditional_density,
+        colour = .data$genotype, linetype = .data$genotype
+      )
     ) +
+      ggplot2::geom_contour(bins = 9L, linewidth = 0.72) +
+      ggplot2::scale_colour_manual(values = palette, drop = FALSE) +
+      ggplot2::scale_linetype_manual(
+        values = c("solid", "dashed", "dotdash"), drop = FALSE
+      ) +
+      ggplot2::labs(
+        colour = "Genotype", linetype = "Genotype",
+        title = if (is.null(title)) {
+          "Bivariate Falconer genotype-conditional densities"
+        } else title
+      )
+  } else {
+    p <- ggplot2::ggplot(
+      plot_grid,
+      ggplot2::aes(x = .data$phenotype_1, y = .data$phenotype_2, z = .data$value)
+    ) +
+      ggplot2::geom_contour_filled(bins = 14L) +
+      ggplot2::scale_fill_viridis_d(option = "C", direction = -1) +
+      ggplot2::labs(
+        fill = if (identical(surface, "density")) "Mixture density" else "Mixture CDF",
+        title = if (is.null(title)) {
+          paste("Bivariate Falconer mixture", surface)
+        } else title
+      )
+  }
+  p <- p +
+    ggplot2::coord_equal(expand = FALSE) +
+    ggplot2::labs(x = "Phenotype 1 value", y = "Phenotype 2 value") +
     ggplot2::theme_bw() +
     ggplot2::theme(panel.grid = ggplot2::element_blank())
 
@@ -241,19 +293,33 @@ plot_qtl_multivariate_contour <- function(
       phenotype_2 = model$mean_matrix[2L, ],
       genotype = factor(paste("Genotype", 0:2), levels = paste("Genotype", 0:2))
     )
-    p <- p +
-      ggplot2::geom_point(
-        data = mean_data,
-        ggplot2::aes(x = .data$phenotype_1, y = .data$phenotype_2,
-                     shape = .data$genotype),
-        inherit.aes = FALSE, size = 2.7, stroke = 0.8,
-        colour = "black", fill = "white"
-      ) +
-      ggplot2::scale_shape_manual(values = c(21, 22, 24), drop = FALSE) +
-      ggplot2::labs(shape = "Genotype mean")
+    if (identical(surface, "genotype_density")) {
+      p <- p +
+        ggplot2::geom_point(
+          data = mean_data,
+          ggplot2::aes(
+            x = .data$phenotype_1, y = .data$phenotype_2,
+            shape = .data$genotype, colour = .data$genotype
+          ),
+          inherit.aes = FALSE, size = 3, stroke = 1, fill = "white"
+        ) +
+        ggplot2::scale_shape_manual(values = c(21, 22, 24), drop = FALSE) +
+        ggplot2::labs(shape = "Genotype")
+    } else {
+      p <- p +
+        ggplot2::geom_point(
+          data = mean_data,
+          ggplot2::aes(x = .data$phenotype_1, y = .data$phenotype_2,
+                       shape = .data$genotype),
+          inherit.aes = FALSE, size = 2.7, stroke = 0.8,
+          colour = "black", fill = "white"
+        ) +
+        ggplot2::scale_shape_manual(values = c(21, 22, 24), drop = FALSE) +
+        ggplot2::labs(shape = "Genotype mean")
+    }
   }
   attr(p, "falconer_model") <- model
   attr(p, "thresholds") <- threshold
-  attr(p, "plot_data") <- grid
+  attr(p, "plot_data") <- plot_grid
   p
 }
