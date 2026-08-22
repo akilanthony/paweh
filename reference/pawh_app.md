@@ -1,10 +1,9 @@
 # Construct the pawh Shiny Dashboard
 
 Creates the modular `bslib` dashboard for `pawh` study design. The
-current application provides the landing page, study navigation, and
-transparent placeholders for future Case-Control, TDT / Family, and
-Quantitative Trait workflows. It does not yet perform dashboard
-calculations.
+Case-Control workspace provides canonical power, minimum-sample-size,
+sensitivity, and genotype-distribution results. Other study workspaces
+are clearly marked as forthcoming.
 
 ## Usage
 
