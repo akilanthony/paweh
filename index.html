@@ -106,10 +106,19 @@
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"akilanthony/pawh"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="dashboard-skeleton">Dashboard skeleton<a class="anchor" aria-label="anchor" href="#dashboard-skeleton"></a>
+</h2>
+<p><code>pawh</code> includes an early modular dashboard shell for the planned interactive study-design workflows. It currently provides navigation and transparent placeholders rather than performing calculations. Construct and launch it explicitly with:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">app</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/pawh_app.html">pawh_app</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/runApp.html" class="external-link">runApp</a></span><span class="op">(</span><span class="va">app</span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="reference/pawh_app.html">pawh_app()</a></code> returns a Shiny application object and does not launch a browser or server on its own.</p>
+</div>
+<div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <p>The canonical case-control interface can calculate genotype-test power for a fixed design. This example assumes 500 cases, an equal number of controls, 5% disease prevalence, a disease-allele frequency of 0.30, and a genotype relative risk of 1.8 under the package’s multiplicative model:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/akilanthony/pawh" class="external-link">pawh</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">power_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cc_power.html">cc_power</a></span><span class="op">(</span></span>
@@ -127,7 +136,7 @@
 <span><span class="va">power_result</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">genotypes</span><span class="op">$</span><span class="va">power</span></span>
 <span><span class="co">#&gt; [1] 0.8366557</span></span></code></pre></div>
 <p>The inverse calculation asks how many subjects are required for 80% power under the same assumptions:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mssn_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cc_mssn.html">cc_mssn</a></span><span class="op">(</span></span>
 <span>    power <span class="op">=</span> <span class="fl">0.80</span>,</span>
 <span>    alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>

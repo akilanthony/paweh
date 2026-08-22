@@ -139,3 +139,8 @@
   : Plot Threshold-Selected Genotype Chi-Square Minimum Sample Size
 - [`plot_qtl_threshold_chisq_power()`](https://akilanthony.github.io/pawh/reference/plot_qtl_threshold_chisq_power.md)
   : Plot Threshold-Selected Genotype Chi-Square Power
+
+## Interactive application
+
+- [`pawh_app()`](https://akilanthony.github.io/pawh/reference/pawh_app.md)
+  : Construct the pawh Shiny Dashboard
