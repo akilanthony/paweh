@@ -1,24 +1,24 @@
 ---
-title: "Getting started with pawh"
-author: "pawh package authors"
+title: "Getting started with paweh"
+author: "paweh package authors"
 output:
   BiocStyle::html_document:
     toc: true
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{Getting started with pawh}
+  %\VignetteIndexEntry{Getting started with paweh}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
-library(pawh)
+library(paweh)
 ```
 
-# What problem does `pawh` solve?
+# What problem does `paweh` solve?
 
-`pawh` supports prospective power and minimum-sample-size-necessary (MSSN)
+`paweh` supports prospective power and minimum-sample-size-necessary (MSSN)
 calculations for genetic association study designs. It is intended for the
 stage at which a researcher is deciding what data to collect, how many
 subjects or trios are needed, and how sensitive that design may be to model
@@ -29,7 +29,7 @@ size, allele frequency, genotype relative risk, genotype or phenotype
 misclassification, locus heterogeneity, family-based transmission,
 extreme-phenotype sampling, and correlation among quantitative traits.
 These quantities are assumptions or design targets, not estimates produced
-from raw genomic data by `pawh`.
+from raw genomic data by `paweh`.
 
 # Power and MSSN answer inverse questions
 
@@ -78,7 +78,7 @@ phenotype-misclassification, and locus-heterogeneity scenarios.
 
 ## Quantitative traits
 
-For continuous traits, `pawh` supports one-way genotype-group ANOVA,
+For continuous traits, `paweh` supports one-way genotype-group ANOVA,
 threshold-selected genotype chi-square designs, and multivariate designs
 using Pillai MANOVA or joint threshold selection.
 
@@ -113,7 +113,7 @@ quantities.
 
 # Why Bioconductor?
 
-`pawh` is being prepared for Bioconductor because it addresses prospective
+`paweh` is being prepared for Bioconductor because it addresses prospective
 design questions in genetic association research. These calculations can
 complement downstream genomic analysis by examining operating characteristics
 before data generation or collection. The package does not currently claim
@@ -124,7 +124,7 @@ sequencing-file, genomic-range, or `SummarizedExperiment` integration.
 The remaining vignettes distinguish three uses of literature:
 
 - **Published-example reproduction:** a reported analytic result is evaluated
-  with a matching `pawh` design.
+  with a matching `paweh` design.
 - **Published methodological context:** a paper explains an important risk or
   method, but its exact analysis is not claimed to be reproduced.
 - **Motivating published application:** an application motivates a design
@@ -136,14 +136,14 @@ designs with sensitivity calculations.
 
 # Installation
 
-Once `pawh` is available through Bioconductor, the standard installation path
+Once `paweh` is available through Bioconductor, the standard installation path
 will be:
 
 ```{r installation, eval=FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
 }
-BiocManager::install("pawh")
+BiocManager::install("paweh")
 ```
 
 No installation is performed while this vignette is built.

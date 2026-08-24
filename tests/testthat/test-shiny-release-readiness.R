@@ -11,15 +11,15 @@ test_that("Case-Control release matrix renders and reproduces canonical results"
     direct_genotypes = list(input_mode = "model_free")
   )
   for (name in names(designs)) {
-    values <- modifyList(pawh:::.pawh_cc_defaults(), designs[[name]])
-    calculation <- pawh:::.pawh_cc_calculate(pawh:::.pawh_cc_snapshot(values))
+    values <- modifyList(paweh:::.paweh_cc_defaults(), designs[[name]])
+    calculation <- paweh:::.paweh_cc_calculate(paweh:::.paweh_cc_snapshot(values))
     fun <- if (values$objective == "mssn") cc_mssn else cc_power
-    reproduced <- do.call(fun, pawh:::.pawh_cc_repro_args(calculation))
+    reproduced <- do.call(fun, paweh:::.paweh_cc_repro_args(calculation))
     expect_equal(reproduced$tests, calculation$adjusted$tests, info = name)
-    expect_error(pawh:::.pawh_cc_results_ui(calculation), NA, info = name)
-    expect_error(pawh:::.pawh_cc_advanced_ui(calculation), NA, info = name)
-    expect_error(pawh:::.pawh_cc_methods_ui(calculation), NA, info = name)
-    expect_match(pawh:::.pawh_call_text(pawh:::.pawh_cc_repro_call(calculation)),
+    expect_error(paweh:::.paweh_cc_results_ui(calculation), NA, info = name)
+    expect_error(paweh:::.paweh_cc_advanced_ui(calculation), NA, info = name)
+    expect_error(paweh:::.paweh_cc_methods_ui(calculation), NA, info = name)
+    expect_match(paweh:::.paweh_call_text(paweh:::.paweh_cc_repro_call(calculation)),
       if (values$objective == "mssn") "cc_mssn" else "cc_power", fixed = TRUE)
   }
 })
@@ -37,19 +37,19 @@ test_that("TDT release matrix renders and reproduces canonical results", {
     )
   )
   for (name in names(designs)) {
-    values <- modifyList(pawh:::.pawh_tdt_defaults(), designs[[name]])
-    calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+    values <- modifyList(paweh:::.paweh_tdt_defaults(), designs[[name]])
+    calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
     fun <- if (values$objective == "mssn") tdt_mssn else tdt_power
-    reproduced <- do.call(fun, pawh:::.pawh_tdt_repro_args(calculation))
+    reproduced <- do.call(fun, paweh:::.paweh_tdt_repro_args(calculation))
     if (values$objective == "mssn") {
       expect_equal(reproduced$N, calculation$result$N, info = name)
     } else {
       expect_equal(reproduced$power, calculation$result$power, info = name)
     }
-    expect_error(pawh:::.pawh_tdt_results_ui(calculation), NA, info = name)
-    expect_error(pawh:::.pawh_tdt_advanced_ui(calculation), NA, info = name)
-    expect_error(pawh:::.pawh_tdt_methods_ui(calculation), NA, info = name)
-    expect_match(pawh:::.pawh_call_text(pawh:::.pawh_tdt_repro_call(calculation)),
+    expect_error(paweh:::.paweh_tdt_results_ui(calculation), NA, info = name)
+    expect_error(paweh:::.paweh_tdt_advanced_ui(calculation), NA, info = name)
+    expect_error(paweh:::.paweh_tdt_methods_ui(calculation), NA, info = name)
+    expect_match(paweh:::.paweh_call_text(paweh:::.paweh_tdt_repro_call(calculation)),
       if (values$objective == "mssn") "tdt_mssn" else "tdt_power", fixed = TRUE)
   }
 })
@@ -70,10 +70,10 @@ test_that("QTL release matrix renders and reproduces canonical results", {
     )
   )
   for (name in names(designs)) {
-    values <- modifyList(pawh:::.pawh_qtl_defaults(), designs[[name]])
-    calculation <- pawh:::.pawh_qtl_calculate(pawh:::.pawh_qtl_snapshot(values))
-    fun <- get(pawh:::.pawh_qtl_function(calculation$snapshot), envir = asNamespace("pawh"))
-    reproduced <- do.call(fun, pawh:::.pawh_qtl_repro_args(calculation))
+    values <- modifyList(paweh:::.paweh_qtl_defaults(), designs[[name]])
+    calculation <- paweh:::.paweh_qtl_calculate(paweh:::.paweh_qtl_snapshot(values))
+    fun <- get(paweh:::.paweh_qtl_function(calculation$snapshot), envir = asNamespace("paweh"))
+    reproduced <- do.call(fun, paweh:::.paweh_qtl_repro_args(calculation))
     if (values$objective == "power") {
       expect_equal(reproduced$power, calculation$result$power, info = name)
     } else if (values$subtype == "continuous" ||
@@ -82,12 +82,12 @@ test_that("QTL release matrix renders and reproduces canonical results", {
     } else {
       expect_equal(reproduced$N_total, calculation$result$N_total, info = name)
     }
-    expect_error(pawh:::.pawh_qtl_results_ui(calculation), NA, info = name)
-    expect_error(pawh:::.pawh_qtl_advanced_ui(calculation), NA, info = name)
-    expect_error(pawh:::.pawh_qtl_methods_ui(calculation), NA, info = name)
+    expect_error(paweh:::.paweh_qtl_results_ui(calculation), NA, info = name)
+    expect_error(paweh:::.paweh_qtl_advanced_ui(calculation), NA, info = name)
+    expect_error(paweh:::.paweh_qtl_methods_ui(calculation), NA, info = name)
     expect_match(
-      pawh:::.pawh_call_text(pawh:::.pawh_qtl_repro_call(calculation)),
-      pawh:::.pawh_qtl_function(calculation$snapshot), fixed = TRUE
+      paweh:::.paweh_call_text(paweh:::.paweh_qtl_repro_call(calculation)),
+      paweh:::.paweh_qtl_function(calculation$snapshot), fixed = TRUE
     )
   }
 })

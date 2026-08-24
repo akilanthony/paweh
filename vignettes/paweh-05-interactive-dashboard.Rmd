@@ -1,24 +1,24 @@
 ---
-title: "Interactive Study Design with the pawh Dashboard"
-author: "pawh package authors"
+title: "Interactive Study Design with the paweh Dashboard"
+author: "paweh package authors"
 output:
   BiocStyle::html_document:
     toc: true
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{Interactive Study Design with the pawh Dashboard}
+  %\VignetteIndexEntry{Interactive Study Design with the paweh Dashboard}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 5)
-library(pawh)
+library(paweh)
 ```
 
 # Introduction
 
-`pawh` includes an interactive Shiny interface for Case-Control, TDT / Family,
+`paweh` includes an interactive Shiny interface for Case-Control, TDT / Family,
 and Quantitative Trait study-design calculations. The dashboard uses the same
 canonical statistical functions as the programmatic R interface; it is an
 interface to those functions, not a separate statistical engine.
@@ -32,15 +32,15 @@ the study-specific vignettes linked throughout this guide.
 Construct the application and then launch the returned object explicitly:
 
 ```{r launch-dashboard, eval=FALSE}
-app <- pawh_app()
+app <- paweh_app()
 shiny::runApp(app)
 ```
 
-`pawh_app()` returns a `shiny.appobj`; it does not launch the application
+`paweh_app()` returns a `shiny.appobj`; it does not launch the application
 automatically. Keeping construction and launch separate is useful in scripts,
 tests, and deployment tooling. The vignette does not execute `runApp()`.
 
-```{r shiny-home, echo=FALSE, out.width="100%", fig.cap="The pawh dashboard organizes study design by study family, with a dedicated workspace for each supported design.", fig.alt="Home page of the pawh dashboard showing Case-Control, TDT or Family, and Quantitative Trait study families."}
+```{r shiny-home, echo=FALSE, out.width="100%", fig.cap="The paweh dashboard organizes study design by study family, with a dedicated workspace for each supported design.", fig.alt="Home page of the paweh dashboard showing Case-Control, TDT or Family, and Quantitative Trait study families."}
 knitr::include_graphics("images/shiny-home.png")
 ```
 
@@ -81,7 +81,7 @@ modeled-allele frequency, the homozygote relative risk and mode of inheritance,
 the case-to-control allocation, and the significance level. Advanced options
 cover phenotype misclassification, genotype misclassification, and locus
 heterogeneity. Their statistical definitions are described in the
-[Case-Control Study Design](pawh-02-case-control-study-design.html) vignette.
+[Case-Control Study Design](paweh-02-case-control-study-design.html) vignette.
 
 A representative programmatic calculation corresponding to the dashboard is:
 
@@ -128,7 +128,7 @@ sampling unit. Choose power or minimum sample size, then specify either a
 genetic model or direct expected transmission quantities. Model-based inputs
 include the heterozygote relative risk (R1), homozygote relative risk (R2), and
 linkage disequilibrium measure D-prime, along with prevalence and allele
-frequency. See [TDT Study Design](pawh-03-tdt-study-design.html) for the
+frequency. See [TDT Study Design](paweh-03-tdt-study-design.html) for the
 underlying statistical model.
 
 > **Separate TDT modifier scenarios.** Phenotype misclassification and locus
@@ -162,7 +162,7 @@ full continuous trait, sampling from extreme phenotype tails, and joint
 analysis of multiple correlated quantitative traits. Across these modes, core
 inputs include modeled-allele frequency, variance explained by the QTL,
 dominance, significance level, and either sample size or target power. The
-[Quantitative-Trait Study Design](pawh-04-quantitative-trait-study-design.html)
+[Quantitative-Trait Study Design](paweh-04-quantitative-trait-study-design.html)
 vignette explains the statistical theory.
 
 ## Full continuous trait
@@ -309,7 +309,7 @@ statistical backend.
 This vignette teaches the dashboard interface. The other articles explain the
 statistical methods and parameters in greater detail:
 
-- [Getting Started](pawh-01-getting-started.html)
-- [Case-Control Study Design](pawh-02-case-control-study-design.html)
-- [TDT Study Design](pawh-03-tdt-study-design.html)
-- [Quantitative-Trait Study Design](pawh-04-quantitative-trait-study-design.html)
+- [Getting Started](paweh-01-getting-started.html)
+- [Case-Control Study Design](paweh-02-case-control-study-design.html)
+- [TDT Study Design](paweh-03-tdt-study-design.html)
+- [Quantitative-Trait Study Design](paweh-04-quantitative-trait-study-design.html)

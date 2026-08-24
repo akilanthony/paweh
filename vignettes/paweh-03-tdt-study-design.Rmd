@@ -1,6 +1,6 @@
 ---
 title: "Transmission disequilibrium test study design"
-author: "pawh package authors"
+author: "paweh package authors"
 output:
   BiocStyle::html_document:
     toc: true
@@ -13,7 +13,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.6)
-library(pawh)
+library(paweh)
 ```
 
 # Why use an affected-child trio design?
@@ -142,7 +142,7 @@ buyske_ratio <- buyske$N$misclassification / buyske$N$no_error
 data.frame(
   quantity = c("No-error MSSN", "Misclassification MSSN", "Final sample-size ratio"),
   published = c("approximately 546", "approximately 21,400", "approximately 39-fold"),
-  pawh = c(buyske$N$no_error, buyske$N$misclassification, buyske_ratio)
+  paweh = c(buyske$N$no_error, buyske$N$misclassification, buyske_ratio)
 )
 ```
 
@@ -220,7 +220,7 @@ chen_half_heterogeneous <- tdt_mssn(
 data.frame(
   heterogeneous_fraction = c(0, 0.50),
   published_required_trios = c("approximately 3430", "approximately 13721"),
-  pawh_required_trios = c(
+  paweh_required_trios = c(
     chen_no_heterogeneity$N$heterogeneity,
     chen_half_heterogeneous$N$heterogeneity
   )

@@ -1,5 +1,5 @@
 # Case-control dashboard; all statistical work delegates to cc_power()/cc_mssn().
-.pawh_cc_defaults <- function() {
+.paweh_cc_defaults <- function() {
   list(
     objective = "power", input_mode = "model_based", N_case = 500, target_power = 80,
     alpha = 0.05, k = 1, prev = 10, pd = 30, MOI = "M", R2 = 2, g1_0 = 0.35, g1_1 = 0.45, g1_2 = 0.2,
@@ -8,9 +8,9 @@
     case_e01 = 0, case_e02 = 0, case_e03 = 0, ctrl_e01 = 0, ctrl_e02 = 0, ctrl_e03 = 0
   )
 }
-.pawh_cc_values <- function(input) {
+.paweh_cc_values <- function(input) {
   shiny::reactiveValuesToList(input)
-  d <- .pawh_cc_defaults()
+  d <- .paweh_cc_defaults()
   x <- lapply(names(d), function(n) {
     if (is.null(input[[n]])) {
       d[[n]]
@@ -21,7 +21,7 @@
   names(x) <- names(d)
   x
 }
-.pawh_cc_num <- function(x, label, lo, hi, open = FALSE) {
+.paweh_cc_num <- function(x, label, lo, hi, open = FALSE) {
   if (!is.numeric(x) || length(x) != 1 || !is.finite(x) ||
     x < lo || x > hi || (open && (x == lo || x == hi))) {
     stop(label, " is outside its allowed range.",
@@ -29,7 +29,7 @@
     )
   }
 }
-.pawh_cc_direct_ui <- function(ns) {
+.paweh_cc_direct_ui <- function(ns) {
   shiny::tagList(
     shiny::h5("Cases"), shiny::numericInput(
       ns("g1_0"),
@@ -47,7 +47,7 @@
     ), shiny::tags$small(class = "text-muted", "Each group must sum to 1.")
   )
 }
-.pawh_cc_error_ui <- function(ns, m) {
+.paweh_cc_error_ui <- function(ns, m) {
   p <- function(id, label, max = 100) shiny::numericInput(ns(id), label, 0, 0, max, 0.1)
   switch(m,
     `1p` = p("e", "Symmetric error (%)", 50),
@@ -65,14 +65,14 @@
       shiny::h6("Controls"), p("ctrl_e01", "Homozygote to heterozygote (%)"), p(
         "ctrl_e02", "Heterozygote to either homozygote (%)",
         50
-      ), p("ctrl_e03", "Opposite homozygote (%)"), shiny::div(class = "pawh-caution", "Differential error can affect type I error; results are nominal.")
+      ), p("ctrl_e03", "Opposite homozygote (%)"), shiny::div(class = "paweh-caution", "Differential error can affect type I error; results are nominal.")
     )
   )
 }
-.pawh_case_control_ui <- function(id) {
+.paweh_case_control_ui <- function(id) {
   ns <- shiny::NS(id)
-  shiny::div(class = "pawh-workspace", shiny::tagList(
-    .pawh_page_heading(
+  shiny::div(class = "paweh-workspace", shiny::tagList(
+    .paweh_page_heading(
       "Case-Control study design",
       "Estimate power or minimum sample size from a genetic model or direct genotype probabilities."
     ),
@@ -90,7 +90,7 @@
         ns("k"),
         "Controls per case", 1, 0.01, NA, 0.1
       ), shiny::tags$details(
-        class = "pawh-sidebar-section",
+        class = "paweh-sidebar-section",
         shiny::tags$summary(shiny::strong("Advanced assumptions")), shiny::checkboxInput(
           ns("locus_het"),
           "Locus heterogeneity"
@@ -112,9 +112,9 @@
           )), shiny::uiOutput(ns("error_inputs"))
         )
       ),
-      shiny::actionButton(ns("calculate"), "Calculate study design", class = "btn-primary pawh-calculate"), shiny::uiOutput(ns("changed_notice")),
+      shiny::actionButton(ns("calculate"), "Calculate study design", class = "btn-primary paweh-calculate"), shiny::uiOutput(ns("changed_notice")),
       bslib::card(
-        class = "pawh-design-summary", bslib::card_header("Your calculated design"),
+        class = "paweh-design-summary", bslib::card_header("Your calculated design"),
         bslib::card_body(shiny::uiOutput(ns("design_summary")))
       )
     ), bslib::navset_card_tab(
@@ -131,19 +131,19 @@
     ))
   ))
 }
-.pawh_cc_snapshot <- function(v) {
-  .pawh_cc_num(v$alpha, "Significance level", 0, 1, TRUE)
-  .pawh_cc_num(v$k, "Controls per case", 0, Inf, TRUE)
+.paweh_cc_snapshot <- function(v) {
+  .paweh_cc_num(v$alpha, "Significance level", 0, 1, TRUE)
+  .paweh_cc_num(v$k, "Controls per case", 0, Inf, TRUE)
   if (v$objective == "power") {
-    .pawh_cc_num(v$N_case, "Cases", 0, Inf, TRUE)
+    .paweh_cc_num(v$N_case, "Cases", 0, Inf, TRUE)
   } else {
-    .pawh_cc_num(v$target_power, "Target power", 0, 100, TRUE)
+    .paweh_cc_num(v$target_power, "Target power", 0, 100, TRUE)
   }
   a <- list(alpha = v$alpha, input_mode = v$input_mode, k = v$k, w = c(0, 1, 2))
   if (v$input_mode == "model_based") {
-    .pawh_cc_num(v$prev, "Prevalence", 0, 100, TRUE)
-    .pawh_cc_num(v$pd, "Allele frequency", 0, 100, TRUE)
-    .pawh_cc_num(v$R2, "Relative risk", 0, Inf, TRUE)
+    .paweh_cc_num(v$prev, "Prevalence", 0, 100, TRUE)
+    .paweh_cc_num(v$pd, "Allele frequency", 0, 100, TRUE)
+    .paweh_cc_num(v$R2, "Relative risk", 0, Inf, TRUE)
     a <- c(a, list(prev = v$prev / 100, pd = v$pd / 100, R2 = v$R2, MOI = v$MOI))
   } else if (v$input_mode == "model_free") {
     g1 <- unlist(v[c("g1_0", "g1_1", "g1_2")])
@@ -157,11 +157,11 @@
     stop("Choose a valid genotype input method.", call. = FALSE)
   }
   pct <- function(n, max = 100) {
-    .pawh_cc_num(v[[n]], n, 0, max)
+    .paweh_cc_num(v[[n]], n, 0, max)
     v[[n]] / 100
   }
   if (v$pheno_misclass && v$input_mode == "model_free") {
-    .pawh_cc_num(v$prev, "Prevalence", 0, 100, TRUE)
+    .paweh_cc_num(v$prev, "Prevalence", 0, 100, TRUE)
     a$prev <- v$prev / 100
   }
   m <- if (v$genotype_error) {
@@ -214,7 +214,7 @@
     backend_args = a, display = v
   )
 }
-.pawh_cc_call <- function(s, a = s$backend_args) {
+.paweh_cc_call <- function(s, a = s$backend_args) {
   a$verbose <- FALSE
   if (s$objective == "power") {
     a$N_case <- s$objective_value
@@ -224,23 +224,23 @@
     do.call(cc_mssn, a)
   }
 }
-.pawh_cc_calculate <- function(s) {
-  x <- .pawh_cc_call(s)
+.paweh_cc_calculate <- function(s) {
+  x <- .paweh_cc_call(s)
   a <- s$backend_args
   a$locus_het <- FALSE
   a$pi <- 1
   a$pheno_misclass <- FALSE
   a$theta <- a$phi <- 0
   a$geno_misclass <- "none"
-  b <- .pawh_cc_call(s, a)
+  b <- .paweh_cc_call(s, a)
   list(snapshot = s, adjusted = x, baseline = b, active = list(locus = isTRUE(x$locus_het$enabled) &&
     x$locus_het$pi < 1, phenotype = isTRUE(x$errors$phenotype_misclass$enabled) && (x$errors$phenotype_misclass$theta >
     0 || x$errors$phenotype_misclass$phi > 0), genotype = isTRUE(x$errors$genotype_misclass$enabled)))
 }
-.pawh_cc_sig <- function(v) serialize(v, NULL)
-.pawh_cc_pct <- function(x, d = 1) .pawh_format_percent(x, d)
-.pawh_cc_count <- function(x) .pawh_format_count(x)
-.pawh_cc_result_data <- function(r, o) {
+.paweh_cc_sig <- function(v) serialize(v, NULL)
+.paweh_cc_pct <- function(x, d = 1) .paweh_format_percent(x, d)
+.paweh_cc_count <- function(x) .paweh_format_count(x)
+.paweh_cc_result_data <- function(r, o) {
   if (o == "power") {
     data.frame(
       Test = c("Genotype chi-square", "Trend"),
@@ -256,15 +256,15 @@
     ), Total = c(r$tests$genotypes$MSSN_total, r$tests$trend$MSSN_total))
   }
 }
-.pawh_cc_probability_rows <- function(values) {
+.paweh_cc_probability_rows <- function(values) {
   lapply(seq_along(values), function(i) {
-    .pawh_summary_row(
+    .paweh_summary_row(
       paste(i - 1L, "modeled alleles"),
       formatC(values[[i]], format = "f", digits = 4)
     )
   })
 }
-.pawh_cc_model_summary <- function(calculation) {
+.paweh_cc_model_summary <- function(calculation) {
   s <- calculation$snapshot
   v <- s$display
   if (s$input_mode == "model_based") {
@@ -276,7 +276,7 @@
     paste0("Direct genotype probabilities | ", format(v$k), ":1 controls")
   }
 }
-.pawh_cc_repro_args <- function(calculation) {
+.paweh_cc_repro_args <- function(calculation) {
   s <- calculation$snapshot
   a <- s$backend_args
   args <- if (s$objective == "power") {
@@ -307,108 +307,108 @@
   args$verbose <- FALSE
   args
 }
-.pawh_cc_repro_call <- function(calculation) {
-  .pawh_repro_call(
+.paweh_cc_repro_call <- function(calculation) {
+  .paweh_repro_call(
     if (calculation$snapshot$objective == "power") "cc_power" else "cc_mssn",
-    .pawh_cc_repro_args(calculation)
+    .paweh_cc_repro_args(calculation)
   )
 }
-.pawh_cc_advanced_ui <- function(calculation) {
+.paweh_cc_advanced_ui <- function(calculation) {
   s <- calculation$snapshot
   r <- calculation$adjusted
   model_rows <- if (s$input_mode == "model_based") list(
-    .pawh_summary_row("Disease prevalence", formatC(r$model_info$prev, format = "f", digits = 4)),
-    .pawh_summary_row("Modeled-allele frequency", formatC(r$model_info$pd, format = "f", digits = 4)),
-    .pawh_summary_row("Inheritance model", r$model_info$MOI),
-    .pawh_summary_row("R1", formatC(r$model_info$R1, format = "f", digits = 4)),
-    .pawh_summary_row("R2", formatC(r$model_info$R2, format = "f", digits = 4)),
-    .pawh_summary_row("Case:control ratio", paste0("1:", format(r$k))),
-    .pawh_summary_row("Alpha", format(r$alpha))
+    .paweh_summary_row("Disease prevalence", formatC(r$model_info$prev, format = "f", digits = 4)),
+    .paweh_summary_row("Modeled-allele frequency", formatC(r$model_info$pd, format = "f", digits = 4)),
+    .paweh_summary_row("Inheritance model", r$model_info$MOI),
+    .paweh_summary_row("R1", formatC(r$model_info$R1, format = "f", digits = 4)),
+    .paweh_summary_row("R2", formatC(r$model_info$R2, format = "f", digits = 4)),
+    .paweh_summary_row("Case:control ratio", paste0("1:", format(r$k))),
+    .paweh_summary_row("Alpha", format(r$alpha))
   ) else list(
-    .pawh_summary_row("Input specification", "Direct genotype probabilities"),
-    .pawh_summary_row("Case:control ratio", paste0("1:", format(r$k))),
-    .pawh_summary_row("Alpha", format(r$alpha))
+    .paweh_summary_row("Input specification", "Direct genotype probabilities"),
+    .paweh_summary_row("Case:control ratio", paste0("1:", format(r$k))),
+    .paweh_summary_row("Alpha", format(r$alpha))
   )
   modifier_rows <- list()
   if (calculation$active$locus) modifier_rows <- c(modifier_rows, list(
-    .pawh_summary_row("Disease attributable to locus", .pawh_cc_pct(r$locus_het$pi))
+    .paweh_summary_row("Disease attributable to locus", .paweh_cc_pct(r$locus_het$pi))
   ))
   if (calculation$active$phenotype) modifier_rows <- c(modifier_rows, list(
-    .pawh_summary_row("Affected classified as control", .pawh_cc_pct(r$errors$phenotype_misclass$theta)),
-    .pawh_summary_row("Unaffected classified as case", .pawh_cc_pct(r$errors$phenotype_misclass$phi))
+    .paweh_summary_row("Affected classified as control", .paweh_cc_pct(r$errors$phenotype_misclass$theta)),
+    .paweh_summary_row("Unaffected classified as case", .paweh_cc_pct(r$errors$phenotype_misclass$phi))
   ))
   if (calculation$active$genotype) {
     error <- r$errors$genotype_misclass
     modifier_rows <- c(modifier_rows, list(
-      .pawh_summary_row("Genotype-error model", error$model)
+      .paweh_summary_row("Genotype-error model", error$model)
     ), lapply(setdiff(names(error), c("enabled", "model", "M")), function(name) {
-      .pawh_summary_row(name, formatC(error[[name]], format = "f", digits = 4))
+      .paweh_summary_row(name, formatC(error[[name]], format = "f", digits = 4))
     }))
   }
   test_value <- function(test) {
     if (s$objective == "power") {
       paste0("df ", test$df, " | lambda ", formatC(test$lambda, format = "f", digits = 4),
-        " | power ", .pawh_cc_pct(test$power, 2))
+        " | power ", .paweh_cc_pct(test$power, 2))
     } else {
       paste0("df ", test$df, " | lambda* ", formatC(test$lambda_star, format = "f", digits = 4),
-        " | total N ", .pawh_cc_count(test$MSSN_total))
+        " | total N ", .paweh_cc_count(test$MSSN_total))
     }
   }
-  .pawh_advanced_details_ui(
-    .pawh_detail_section("Model specification", model_rows),
-    .pawh_detail_section("Case genotype probabilities", .pawh_cc_probability_rows(r$freqs$g_base_case)),
-    .pawh_detail_section("Control genotype probabilities", .pawh_cc_probability_rows(r$freqs$g_base_ctrl)),
-    if (calculation$active$genotype) .pawh_detail_section(
+  .paweh_advanced_details_ui(
+    .paweh_detail_section("Model specification", model_rows),
+    .paweh_detail_section("Case genotype probabilities", .paweh_cc_probability_rows(r$freqs$g_base_case)),
+    .paweh_detail_section("Control genotype probabilities", .paweh_cc_probability_rows(r$freqs$g_base_ctrl)),
+    if (calculation$active$genotype) .paweh_detail_section(
       "Observed genotype probabilities after misclassification",
       c(
-        lapply(seq_along(r$freqs$g_obs_case), function(i) .pawh_summary_row(
+        lapply(seq_along(r$freqs$g_obs_case), function(i) .paweh_summary_row(
           paste0("Cases | ", i - 1L, " alleles"), formatC(r$freqs$g_obs_case[[i]], format = "f", digits = 4)
         )),
-        lapply(seq_along(r$freqs$g_obs_ctrl), function(i) .pawh_summary_row(
+        lapply(seq_along(r$freqs$g_obs_ctrl), function(i) .paweh_summary_row(
           paste0("Controls | ", i - 1L, " alleles"), formatC(r$freqs$g_obs_ctrl[[i]], format = "f", digits = 4)
         ))
       )
     ),
-    if (length(modifier_rows)) .pawh_detail_section("Modifier details", modifier_rows),
-    .pawh_detail_section("Statistical result details", list(
-      .pawh_summary_row("Genotype chi-square", test_value(r$tests$genotypes)),
-      .pawh_summary_row("Trend test", test_value(r$tests$trend))
+    if (length(modifier_rows)) .paweh_detail_section("Modifier details", modifier_rows),
+    .paweh_detail_section("Statistical result details", list(
+      .paweh_summary_row("Genotype chi-square", test_value(r$tests$genotypes)),
+      .paweh_summary_row("Trend test", test_value(r$tests$trend))
     )),
-    .pawh_reproduce_ui(.pawh_cc_repro_call(calculation))
+    .paweh_reproduce_ui(.paweh_cc_repro_call(calculation))
   )
 }
-.pawh_cc_results_ui <- function(c) {
+.paweh_cc_results_ui <- function(c) {
   o <- c$snapshot$objective
   card <- function(r, t) {
-    z <- .pawh_cc_result_data(r, o)
+    z <- .paweh_cc_result_data(r, o)
     rows <- lapply(seq_len(nrow(z)), function(i) {
       shiny::tags$tr(lapply(seq_along(z), function(j) {
         shiny::tags$td(if (j ==
           1) {
           z[i, j]
         } else if (o == "power") {
-          .pawh_cc_pct(z[i, j], 2)
+          .paweh_cc_pct(z[i, j], 2)
         } else {
-          .pawh_cc_count(z[i, j])
+          .paweh_cc_count(z[i, j])
         })
       }))
     })
-    bslib::card(class = "pawh-result-card", bslib::card_header(t), bslib::card_body(shiny::tags$table(
+    bslib::card(class = "paweh-result-card", bslib::card_header(t), bslib::card_body(shiny::tags$table(
       class = "table table-striped",
       shiny::tags$thead(shiny::tags$tr(lapply(names(z), shiny::tags$th))), shiny::tags$tbody(rows)
     )))
   }
   on <- any(unlist(c$active))
-  z <- .pawh_cc_result_data(c$adjusted, o)
+  z <- .paweh_cc_result_data(c$adjusted, o)
   txt <- if (o == "power") {
     paste(
-      "Power is", .pawh_cc_pct(z$Power[1]), "for the genotype test and", .pawh_cc_pct(z$Power[2]),
+      "Power is", .paweh_cc_pct(z$Power[1]), "for the genotype test and", .paweh_cc_pct(z$Power[2]),
       "for the trend test."
     )
   } else {
-    paste("The tests require", paste(.pawh_cc_count(z$Total), collapse = " and "), "total participants; plan for the prespecified analysis.")
+    paste("The tests require", paste(.paweh_cc_count(z$Total), collapse = " and "), "total participants; plan for the prespecified analysis.")
   }
-  shiny::tagList(shiny::div(class = "pawh-model-specification", .pawh_cc_model_summary(c)), if (on) {
+  shiny::tagList(shiny::div(class = "paweh-model-specification", .paweh_cc_model_summary(c)), if (on) {
     bslib::layout_column_wrap(width = "360px", card(c$baseline, "No-error design"), card(
       c$adjusted,
       "Adjusted design"
@@ -416,11 +416,11 @@
   } else {
     card(c$adjusted, "No-error design")
   }, shiny::div(
-    class = "pawh-interpretation", shiny::h4("Interpretation"),
+    class = "paweh-interpretation", shiny::h4("Interpretation"),
     shiny::p(txt)
-  ), .pawh_cc_advanced_ui(c))
+  ), .paweh_cc_advanced_ui(c))
 }
-.pawh_cc_specs <- function(c) {
+.paweh_cc_specs <- function(c) {
   s <- c$snapshot
   v <- s$display
   x <- list(
@@ -465,8 +465,8 @@
   }
   x
 }
-.pawh_cc_sensitivity <- function(c, p, range, n = 40L) {
-  sp <- .pawh_cc_specs(c)[[p]]
+.paweh_cc_sensitivity <- function(c, p, range, n = 40L) {
+  sp <- .paweh_cc_specs(c)[[p]]
   if (is.null(sp)) {
     stop("Unavailable parameter.")
   }
@@ -478,7 +478,7 @@
     } else {
       a[[sp$key]] <- x
     }
-    r <- tryCatch(.pawh_cc_call(s, a), error = function(e) NULL)
+    r <- tryCatch(.paweh_cc_call(s, a), error = function(e) NULL)
     y <- if (is.null(r)) {
       c(NA, NA)
     } else if (s$objective == "power") {
@@ -490,8 +490,8 @@
   }))
   list(data = d, label = sp$label, baseline_x = sp$value, objective = c$snapshot$objective)
 }
-.pawh_cc_sensitivity_plot <- function(x) {
-  colors <- .pawh_plot_colors()
+.paweh_cc_sensitivity_plot <- function(x) {
+  colors <- .paweh_plot_colors()
   ggplot2::ggplot(x$data, ggplot2::aes(.data$x, .data$y, color = .data$Test, linetype = .data$Test)) +
     ggplot2::geom_line(linewidth = 0.9, na.rm = TRUE) +
     ggplot2::geom_vline(
@@ -511,10 +511,10 @@
     } else {
       "Minimum total sample size"
     }, color = NULL, linetype = NULL) +
-    .pawh_plot_theme() +
+    .paweh_plot_theme() +
     ggplot2::theme(legend.position = "top")
 }
-.pawh_cc_freqs <- function(c) {
+.paweh_cc_freqs <- function(c) {
   on <- any(unlist(c$active))
   rs <- if (on) {
     list(c$baseline, c$adjusted)
@@ -536,22 +536,22 @@
     ))
   }))
 }
-.pawh_cc_genotype_plot <- function(c) {
-  colors <- .pawh_plot_colors()
-  ggplot2::ggplot(.pawh_cc_freqs(c), ggplot2::aes(.data$Genotype, .data$Probability, fill = .data$Group)) +
+.paweh_cc_genotype_plot <- function(c) {
+  colors <- .paweh_plot_colors()
+  ggplot2::ggplot(.paweh_cc_freqs(c), ggplot2::aes(.data$Genotype, .data$Probability, fill = .data$Group)) +
     ggplot2::geom_col(position = "dodge", alpha = 0.9, width = 0.72) +
     ggplot2::facet_wrap(~Scenario) +
     ggplot2::scale_fill_manual(values = c(Cases = unname(colors["cases"]), Controls = unname(colors["controls"]))) +
     ggplot2::labs(x = "Number of modeled alleles", y = "Genotype probability", fill = NULL) +
-    .pawh_plot_theme() +
+    .paweh_plot_theme() +
     ggplot2::theme(legend.position = "top", panel.grid.major.x = ggplot2::element_blank(), strip.text = ggplot2::element_text(
       size = 10,
       face = "plain", color = "#3F4850"
     ))
 }
 
-.pawh_cc_methods_ui <- function(calculation = NULL) {
-  if (is.null(calculation)) return(.pawh_empty_ui("Methods"))
+.paweh_cc_methods_ui <- function(calculation = NULL) {
+  if (is.null(calculation)) return(.paweh_empty_ui("Methods"))
   snapshot <- calculation$snapshot
   active_labels <- c(
     locus = "Locus heterogeneity",
@@ -561,28 +561,28 @@
   shiny::tagList(
     shiny::h3("Methods"),
     shiny::div(
-      class = "pawh-summary-grid",
-      .pawh_summary_row("Study design", "Case-control association"),
-      .pawh_summary_row("Objective", if (snapshot$objective == "power") "Power" else "Minimum sample size"),
-      .pawh_summary_row("Input specification", if (snapshot$input_mode == "model_based") "Genetic model" else "Direct genotype probabilities"),
-      .pawh_summary_row("Statistical tests", "Genotype 2 x 3 chi-square; Cochran-Armitage trend"),
-      .pawh_summary_row("Active modifiers", if (length(active_labels)) paste(active_labels, collapse = "; ") else "None"),
-      .pawh_summary_row("Canonical function", if (snapshot$objective == "power") "cc_power()" else "cc_mssn()")
+      class = "paweh-summary-grid",
+      .paweh_summary_row("Study design", "Case-control association"),
+      .paweh_summary_row("Objective", if (snapshot$objective == "power") "Power" else "Minimum sample size"),
+      .paweh_summary_row("Input specification", if (snapshot$input_mode == "model_based") "Genetic model" else "Direct genotype probabilities"),
+      .paweh_summary_row("Statistical tests", "Genotype 2 x 3 chi-square; Cochran-Armitage trend"),
+      .paweh_summary_row("Active modifiers", if (length(active_labels)) paste(active_labels, collapse = "; ") else "None"),
+      .paweh_summary_row("Canonical function", if (snapshot$objective == "power") "cc_power()" else "cc_mssn()")
     ),
     shiny::p("Results, advanced details, plots, and sensitivity analyses use the frozen calculated design."),
     shiny::a(
-      href = "https://akilanthony.github.io/pawh/articles/pawh-02-case-control-study-design.html",
+      href = "https://akilanthony.github.io/pawh/articles/paweh-02-case-control-study-design.html",
       target = "_blank", rel = "noopener", "Read the Case-Control vignette"
     )
   )
 }
 
-.pawh_case_control_server <- function(id) {
+.paweh_case_control_server <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     st <- shiny::reactiveValues(calculation = NULL, error = NULL, signature = NULL, sensitivity = NULL)
-    values <- shiny::reactive(.pawh_cc_values(input))
-    changed <- shiny::reactive(!is.null(st$signature) && !identical(st$signature, .pawh_cc_sig(values())))
+    values <- shiny::reactive(.paweh_cc_values(input))
+    changed <- shiny::reactive(!is.null(st$signature) && !identical(st$signature, .paweh_cc_sig(values())))
     output$objective_inputs <- shiny::renderUI(if (is.null(input$objective) || input$objective ==
       "power") {
       shiny::numericInput(ns("N_case"), "Number of cases", 500, 1, NA, 10)
@@ -611,7 +611,7 @@
         "Risk for two modeled alleles relative to zero; the inheritance model determines the heterozygote risk."
       ))
     } else {
-      .pawh_cc_direct_ui(ns)
+      .paweh_cc_direct_ui(ns)
     })
     output$phenotype_inputs <- shiny::renderUI(shiny::tagList(if (identical(input$input_mode, "model_free")) {
       shiny::numericInput(ns("prev"), "Disease prevalence (%)", 10, 0.01, 99.99, 0.1)
@@ -622,7 +622,7 @@
       ns("phi"), "Unaffected classified as case (%)",
       0, 0, 99.9, 0.1
     )))
-    output$error_inputs <- shiny::renderUI(.pawh_cc_error_ui(ns, if (is.null(input$geno_misclass)) {
+    output$error_inputs <- shiny::renderUI(.paweh_cc_error_ui(ns, if (is.null(input$geno_misclass)) {
       "1p"
     } else {
       input$geno_misclass
@@ -634,8 +634,8 @@
         v <- values()
         tryCatch(
           {
-            st$calculation <- .pawh_cc_calculate(.pawh_cc_snapshot(v))
-            st$signature <- .pawh_cc_sig(v)
+            st$calculation <- .paweh_cc_calculate(.paweh_cc_snapshot(v))
+            st$signature <- .paweh_cc_sig(v)
           },
           error = function(e) st$error <- paste("This design could not be calculated.", conditionMessage(e))
         )
@@ -643,10 +643,10 @@
       ignoreInit = TRUE
     )
     output$changed_notice <- shiny::renderUI(if (changed()) {
-      shiny::div(class = "pawh-changed-notice", role = "status", "Inputs have changed. Recalculate to update results.")
+      shiny::div(class = "paweh-changed-notice", role = "status", "Inputs have changed. Recalculate to update results.")
     })
     output$design_summary <- shiny::renderUI(if (!is.null(st$error)) {
-      shiny::div(class = "pawh-error", role = "alert", st$error)
+      shiny::div(class = "paweh-error", role = "alert", st$error)
     } else if (is.null(st$calculation)) {
       shiny::p(class = "text-muted", "Choose assumptions and select Calculate.")
     } else {
@@ -654,20 +654,20 @@
       s <- c$snapshot
       m <- names(which(unlist(c$active)))
       shiny::div(
-        class = "pawh-summary-grid",
-        .pawh_summary_row("Objective", if (s$objective == "power") {
-          paste("Estimate power with", .pawh_cc_count(s$objective_value), "cases")
+        class = "paweh-summary-grid",
+        .paweh_summary_row("Objective", if (s$objective == "power") {
+          paste("Estimate power with", .paweh_cc_count(s$objective_value), "cases")
         } else {
-          paste("Minimum sample size at", .pawh_cc_pct(s$objective_value))
+          paste("Minimum sample size at", .paweh_cc_pct(s$objective_value))
         }),
-        .pawh_summary_row("Inputs", if (s$input_mode == "model_based") {
+        .paweh_summary_row("Inputs", if (s$input_mode == "model_based") {
           "Genetic model"
         } else {
           "Direct genotype probabilities"
         }),
-        .pawh_summary_row("Alpha", format(s$display$alpha)),
-        .pawh_summary_row("Controls per case", format(s$display$k)),
-        .pawh_summary_row("Modifiers", if (length(m)) {
+        .paweh_summary_row("Alpha", format(s$display$alpha)),
+        .paweh_summary_row("Controls per case", format(s$display$k)),
+        .paweh_summary_row("Modifiers", if (length(m)) {
           paste(m, collapse = ", ")
         } else {
           "None"
@@ -675,20 +675,20 @@
       )
     })
     output$results <- shiny::renderUI(if (!is.null(st$error)) {
-      shiny::div(class = "pawh-error", role = "alert", st$error)
+      shiny::div(class = "paweh-error", role = "alert", st$error)
     } else if (is.null(st$calculation)) {
-      .pawh_empty_ui("Results")
+      .paweh_empty_ui("Results")
     } else {
-      .pawh_cc_results_ui(st$calculation)
+      .paweh_cc_results_ui(st$calculation)
     })
     output$sensitivity_controls <- shiny::renderUI({
       if (is.null(st$calculation)) {
-        return(.pawh_empty_ui("Sensitivity"))
+        return(.paweh_empty_ui("Sensitivity"))
       }
-      sp <- .pawh_cc_specs(st$calculation)
+      sp <- .paweh_cc_specs(st$calculation)
       ch <- stats::setNames(names(sp), vapply(sp, `[[`, "", "label"))
       z <- sp[[1]]
-      shiny::div(class = "pawh-sensitivity-controls", shiny::selectInput(
+      shiny::div(class = "paweh-sensitivity-controls", shiny::selectInput(
         ns("sensitivity_parameter"),
         "Parameter", ch
       ), shiny::sliderInput(
@@ -702,7 +702,7 @@
     shiny::observeEvent(input$sensitivity_parameter,
       {
         shiny::req(st$calculation)
-        z <- .pawh_cc_specs(st$calculation)[[input$sensitivity_parameter]]
+        z <- .paweh_cc_specs(st$calculation)[[input$sensitivity_parameter]]
         shiny::req(z)
         value <- pmax(z$min, pmin(z$max, c(z$value * 0.75, z$value * 1.25)))
         shiny::updateSliderInput(session, "sensitivity_range",
@@ -715,35 +715,35 @@
     shiny::observeEvent(input$run_sensitivity,
       {
         shiny::req(st$calculation, input$sensitivity_parameter, input$sensitivity_range)
-        st$sensitivity <- .pawh_cc_sensitivity(st$calculation, input$sensitivity_parameter, input$sensitivity_range)
+        st$sensitivity <- .paweh_cc_sensitivity(st$calculation, input$sensitivity_parameter, input$sensitivity_range)
       },
       ignoreInit = TRUE
     )
     output$sensitivity_message <- shiny::renderUI(if (!is.null(st$calculation) && is.null(st$sensitivity)) {
       shiny::p(class = "text-muted", "Each point is a canonical calculation of the frozen design.")
-    } else if (.pawh_power_axis_zoomed(st$sensitivity)) {
-      shiny::p(class = "pawh-zoom-note", "Y-axis is zoomed to show variation in power.")
+    } else if (.paweh_power_axis_zoomed(st$sensitivity)) {
+      shiny::p(class = "paweh-zoom-note", "Y-axis is zoomed to show variation in power.")
     })
     output$sensitivity_plot_container <- shiny::renderUI(if (!is.null(st$sensitivity)) {
       shiny::plotOutput(ns("sensitivity_plot"), height = "430px")
     })
     output$sensitivity_plot <- shiny::renderPlot({
       shiny::req(st$sensitivity)
-      .pawh_cc_sensitivity_plot(st$sensitivity)
+      .paweh_cc_sensitivity_plot(st$sensitivity)
     })
     output$visualize_intro <- shiny::renderUI(if (is.null(st$calculation)) {
-      .pawh_empty_ui("Visualize")
+      .paweh_empty_ui("Visualize")
     } else {
-      shiny::div(class = "pawh-visual-intro", shiny::h3("Genotype distributions"), shiny::p("Probabilities returned by the canonical calculation."))
+      shiny::div(class = "paweh-visual-intro", shiny::h3("Genotype distributions"), shiny::p("Probabilities returned by the canonical calculation."))
     })
     output$genotype_plot_container <- shiny::renderUI(if (!is.null(st$calculation)) {
       shiny::plotOutput(ns("genotype_plot"), height = "430px")
     })
     output$genotype_plot <- shiny::renderPlot({
       shiny::req(st$calculation)
-      .pawh_cc_genotype_plot(st$calculation)
+      .paweh_cc_genotype_plot(st$calculation)
     })
-    output$methods <- shiny::renderUI(.pawh_cc_methods_ui(st$calculation))
+    output$methods <- shiny::renderUI(.paweh_cc_methods_ui(st$calculation))
     list(
       calculation = shiny::reactive(st$calculation), changed = changed, error = shiny::reactive(st$error),
       sensitivity = shiny::reactive(st$sensitivity)

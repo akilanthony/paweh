@@ -83,20 +83,20 @@ reference:
   - plot_qtl_threshold_chisq_power
 - title: 'Interactive application'
   contents:
-  - pawh_app
+  - paweh_app
 articles:
 - title: Getting Started
   navbar: Getting Started
-  contents: pawh-01-getting-started
+  contents: paweh-01-getting-started
 - title: Case-Control Study Design
   navbar: Case-Control Study Design
-  contents: pawh-02-case-control-study-design
+  contents: paweh-02-case-control-study-design
 - title: TDT Study Design
   navbar: TDT Study Design
-  contents: pawh-03-tdt-study-design
+  contents: paweh-03-tdt-study-design
 - title: Quantitative-Trait Study Design
   navbar: Quantitative-Trait Study Design
-  contents: pawh-04-quantitative-trait-study-design
+  contents: paweh-04-quantitative-trait-study-design
 - title: Interactive Dashboard
   navbar: Interactive Dashboard
-  contents: pawh-05-interactive-dashboard
+  contents: paweh-05-interactive-dashboard

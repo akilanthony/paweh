@@ -50,7 +50,7 @@ test_that("Chapter 6.2 Falconer parameters and matrix orientation are reproduced
 })
 
 test_that("variance decomposition and residual covariance are correct", {
-  model <- do.call(pawh:::.falconer_mv_parameters, mv_example)
+  model <- do.call(paweh:::.falconer_mv_parameters, mv_example)
   expect_equal(model$parameters$additive_variance, c(0.01, 0.004716981), tolerance = 1e-8)
   expect_equal(model$parameters$dominance_variance, c(0, 0.000283018867924528), tolerance = 1e-12)
   expect_equal(
@@ -93,7 +93,7 @@ test_that("joint thresholds and deterministic MVN penetrances reproduce the exam
 })
 
 test_that("independent direct mvtnorm calculation confirms bivariate penetrances", {
-  model <- do.call(pawh:::.falconer_mv_parameters, mv_example)
+  model <- do.call(paweh:::.falconer_mv_parameters, mv_example)
   direct_affected <- vapply(1:3, function(j) {
     as.numeric(mvtnorm::pmvnorm(
       lower = rep(stats::qnorm(0.9), 2), upper = rep(Inf, 2),
@@ -133,8 +133,8 @@ test_that("threshold chi-square MSSN, NCP, counts, and sparse diagnostics are au
 
 test_that("Pillai derivation reproduces Chapter 6.2 NCP and integer MSSN", {
   historical <- do.call(
-    pawh:::.falconer_mv_pillai_components,
-    list(N = 4513.6, model = do.call(pawh:::.falconer_mv_parameters, mv_example))
+    paweh:::.falconer_mv_pillai_components,
+    list(N = 4513.6, model = do.call(paweh:::.falconer_mv_parameters, mv_example))
   )
   expect_equal(historical$lambda, 59.88577, tolerance = 1e-5)
   expect_identical(dim(historical$phi_star), c(2L, 2L))

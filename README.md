@@ -1,9 +1,9 @@
-# pawh
+# paweh
 
-`pawh` is an R package for prospective power and minimum sample size necessary
+`paweh` is an R package for prospective power and minimum sample size necessary
 (MSSN) calculations in genetic association studies. It helps researchers
 evaluate study operating characteristics before data collection or genotyping:
-given a proposed sample size, `pawh` calculates power; given a target power, it
+given a proposed sample size, `paweh` calculates power; given a target power, it
 calculates the required sample size.
 
 The package supports case-control association studies, affected-child trio
@@ -14,7 +14,7 @@ phenotype misclassification, and locus heterogeneity. Canonical case-control
 and TDT interfaces support model-based and model-free workflows where those
 input modes are applicable.
 
-## What `pawh` supports
+## What `paweh` supports
 
 - **Case-control association:** two-degree-of-freedom genotype chi-square and
   one-degree-of-freedom genotype trend designs, with supported models for
@@ -45,18 +45,18 @@ The complete documentation is available at
 
 Five articles provide the main entry points:
 
-- [Getting Started](https://akilanthony.github.io/pawh/articles/pawh-01-getting-started.html)
-- [Case-Control Study Design](https://akilanthony.github.io/pawh/articles/pawh-02-case-control-study-design.html)
-- [TDT Study Design](https://akilanthony.github.io/pawh/articles/pawh-03-tdt-study-design.html)
-- [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html)
-- [Interactive Dashboard](https://akilanthony.github.io/pawh/articles/pawh-05-interactive-dashboard.html)
+- [Getting Started](https://akilanthony.github.io/pawh/articles/paweh-01-getting-started.html)
+- [Case-Control Study Design](https://akilanthony.github.io/pawh/articles/paweh-02-case-control-study-design.html)
+- [TDT Study Design](https://akilanthony.github.io/pawh/articles/paweh-03-tdt-study-design.html)
+- [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.html)
+- [Interactive Dashboard](https://akilanthony.github.io/pawh/articles/paweh-05-interactive-dashboard.html)
 
 Function-level reference documentation is also available from the
 [pkgdown reference index](https://akilanthony.github.io/pawh/reference/).
 
 ## Installation
 
-`pawh` is currently under development and is not yet available through
+`paweh` is currently under development and is not yet available through
 Bioconductor. Install the development version from GitHub:
 
 ```r
@@ -69,7 +69,7 @@ remotes::install_github("akilanthony/pawh")
 
 ## Interactive dashboard
 
-`pawh` includes an interactive Shiny interface for:
+`paweh` includes an interactive Shiny interface for:
 
 - Case-Control studies
 - TDT / Family studies
@@ -81,14 +81,14 @@ advanced calculation details, and reproducible R calls. Construct and launch
 the dashboard explicitly with:
 
 ```r
-app <- pawh_app()
+app <- paweh_app()
 shiny::runApp(app)
 ```
 
-`pawh_app()` returns a Shiny application object and does not launch a browser
+`paweh_app()` returns a Shiny application object and does not launch a browser
 or server on its own.
 
-See the [Interactive Dashboard](https://akilanthony.github.io/pawh/articles/pawh-05-interactive-dashboard.html)
+See the [Interactive Dashboard](https://akilanthony.github.io/pawh/articles/paweh-05-interactive-dashboard.html)
 vignette for a guided walkthrough of all three study-design workspaces.
 
 ## Quick start
@@ -99,7 +99,7 @@ disease prevalence, a disease-allele frequency of 0.30, and a genotype
 relative risk of 1.8 under the package's multiplicative model:
 
 ```r
-library(pawh)
+library(paweh)
 
 power_result <- cc_power(
     N_case = 500,
@@ -157,15 +157,15 @@ are outside the current implementation.
 
 | Design | Primary functions | Documentation |
 |---|---|---|
-| Case-control association | `cc_power()`, `cc_mssn()` | [Case-Control Study Design](https://akilanthony.github.io/pawh/articles/pawh-02-case-control-study-design.html) |
-| Affected-child trios / TDT | `tdt_power()`, `tdt_mssn()` | [TDT Study Design](https://akilanthony.github.io/pawh/articles/pawh-03-tdt-study-design.html) |
-| Continuous quantitative trait | `qtl_anova_power()`, `qtl_anova_mssn()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html) |
-| Extreme quantitative trait | `qtl_threshold_chisq_power()`, `qtl_threshold_chisq_mssn()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html) |
-| Multivariate quantitative traits | `qtl_multivariate_power_full()`, `qtl_multivariate_mssn_full()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html) |
+| Case-control association | `cc_power()`, `cc_mssn()` | [Case-Control Study Design](https://akilanthony.github.io/pawh/articles/paweh-02-case-control-study-design.html) |
+| Affected-child trios / TDT | `tdt_power()`, `tdt_mssn()` | [TDT Study Design](https://akilanthony.github.io/pawh/articles/paweh-03-tdt-study-design.html) |
+| Continuous quantitative trait | `qtl_anova_power()`, `qtl_anova_mssn()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.html) |
+| Extreme quantitative trait | `qtl_threshold_chisq_power()`, `qtl_threshold_chisq_mssn()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.html) |
+| Multivariate quantitative traits | `qtl_multivariate_power_full()`, `qtl_multivariate_mssn_full()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.html) |
 
 ## Published-example validation
 
-`pawh` includes literature-backed regression tests and worked examples for
+`paweh` includes literature-backed regression tests and worked examples for
 case-control genotype and phenotype misclassification, TDT phenotype
 misclassification and locus heterogeneity, and multivariate
 quantitative-trait power and sample size. The articles distinguish exact or
@@ -174,7 +174,7 @@ methodological context or motivating applications.
 
 ## Scope
 
-`pawh` is a prospective statistical study-design package. It does not perform
+`paweh` is a prospective statistical study-design package. It does not perform
 GWAS association testing, sequence processing, variant annotation, or general
 genomic data management. Instead, it is intended to complement downstream
 genetic-analysis workflows by helping researchers examine power, sample size,
@@ -183,10 +183,10 @@ performing genotyping.
 
 ## Citation
 
-A formal package citation will be added as `pawh` approaches its initial
+A formal package citation will be added as `paweh` approaches its initial
 Bioconductor release. In the meantime, please consult the methodological
 references in the package documentation and study-design articles.
 
 ## License
 
-`pawh` is available under the MIT License.
+`paweh` is available under the MIT License.
