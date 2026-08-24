@@ -1,23 +1,28 @@
 Package: paweh
-Title: Computational Toolkit for Heterogeneity in Statistical Genetics
-Version: 0.0.0.9000
+Title: Power and Sample Size Analysis for Genetic Studies with Heterogeneity and Misclassification
+Version: 0.99.0
 Authors@R: 
-    person(given = "Akil", family = "Anthony", email = "akilanthony19@gmail.com", role = c("aut", "cre"))
-Description: Provides analytic power and minimum sample size necessary (MSSN)
-    calculations for genetic association study designs described in Gordon et
-    al. (2020), "Heterogeneity in Statistical Genetics". Public interfaces
-    cover case-control genotype chi-square and trend tests, family-based
-    transmission disequilibrium tests (TDT), and single- and multivariate
-    quantitative-trait designs using ANOVA, threshold-selected genotype
-    chi-square tests, and Pillai MANOVA. Methods can account for locus
-    heterogeneity and supported phenotype or genotype misclassification
-    mechanisms. Functions return structured results and include static and
-    interactive visualizations for study design, teaching, and methodological
-    validation.
+    person(given = "Akil", family = "Anthony", email = "akilanthony19@gmail.com",
+        role = c("aut", "cre"),
+        comment = c(ORCID = "0009-0008-8813-8560"))
+Description: Provides prospective power and minimum sample size necessary
+    (MSSN) calculations for genetic and genomic association study design.
+    Supported designs include case-control studies, transmission disequilibrium
+    tests with affected-child trios, and single- and multivariate
+    quantitative-trait studies. The package emphasizes selected departures from
+    idealized assumptions, including locus heterogeneity and supported forms of
+    genotype and phenotype misclassification. These factors can materially
+    affect power and sample-size requirements but can be difficult to
+    incorporate analytically. Published statistical-genetics methods are
+    implemented in a reproducible, primarily parameter- and model-based
+    framework with static visualizations and an optional Shiny dashboard for
+    interactive exploration. The software supports prospective study planning;
+    it does not perform downstream association testing.
 License: MIT + file LICENSE
 Encoding: UTF-8
 URL: https://github.com/akilanthony/paweh, https://akilanthony.github.io/paweh/
 BugReports: https://github.com/akilanthony/paweh/issues
+biocViews: ExperimentalDesign, Genetics, GenomeWideAssociation, ShinyApps
 Roxygen: list(markdown = TRUE)
 Suggests: 
     BiocStyle,
