@@ -16,8 +16,8 @@ Description: Provides analytic power and minimum sample size necessary (MSSN)
     validation.
 License: MIT + file LICENSE
 Encoding: UTF-8
-URL: https://github.com/akilanthony/pawh, https://akilanthony.github.io/pawh/
-BugReports: https://github.com/akilanthony/pawh/issues
+URL: https://github.com/akilanthony/paweh, https://akilanthony.github.io/paweh/
+BugReports: https://github.com/akilanthony/paweh/issues
 Roxygen: list(markdown = TRUE)
 Suggests: 
     BiocStyle,

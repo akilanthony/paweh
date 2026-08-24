@@ -589,7 +589,7 @@
       "The analysis compares transmission and non-transmission among affected-child trios. Sensitivity points are separate canonical calls using the frozen design."
     ),
     shiny::a(
-      href = "https://akilanthony.github.io/pawh/articles/paweh-03-tdt-study-design.html",
+      href = "https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.html",
       target = "_blank", rel = "noopener", "Read the TDT study-design vignette"
     )
   )
