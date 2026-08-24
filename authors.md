@@ -7,7 +7,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/akilanthony/paweh/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/akilanthony/paweh/blob/develop/DESCRIPTION)
 
 Anthony A (2026). *paweh: Computational Toolkit for Heterogeneity in
 Statistical Genetics*. R package version 0.0.0.9000,
