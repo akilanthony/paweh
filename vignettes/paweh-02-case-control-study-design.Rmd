@@ -6,7 +6,7 @@ output:
     toc: true
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{Case-control genetic association study design}
+  %\VignetteIndexEntry{2. Case-Control Study Design}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -310,22 +310,22 @@ Interpretation depends on assumptions close to each calculation:
 Ahn K, Haynes C, Kim W, St Fleur R, Gordon D, Finch SJ. The effects of SNP
 genotyping errors on the power of the Cochran-Armitage linear trend test for
 case/control association studies. *Annals of Human Genetics*. 2007;71(Pt
-2):249--261. doi:10.1111/j.1469-1809.2006.00318.x.
+2):249--261. <https://doi.org/10.1111/j.1469-1809.2006.00318.x>.
 
 Edwards BJ, Haynes C, Levenstien MA, Finch SJ, Gordon D. Power and sample size
 calculations in the presence of phenotype errors for case/control genetic
 association studies. *BMC Genetics*. 2005;6:18.
-doi:10.1186/1471-2156-6-18.
+<https://doi.org/10.1186/1471-2156-6-18>.
 
 Gordon D, Finch SJ, Nothnagel M, Ott J. Power and sample size calculations for
 case-control genetic association tests when errors are present: application to
 single nucleotide polymorphisms. *Human Heredity*. 2002;54(1):22--33.
-doi:10.1159/000066696.
+<https://doi.org/10.1159/000066696>.
 
 Moskvina V, Craddock N, Holmans P, Owen MJ, O'Donovan MC. Effects of
 differential genotyping error rate on the type I error probability of
 case-control studies. *Human Heredity*. 2006;61(1):55--64.
-doi:10.1159/000092553.
+<https://doi.org/10.1159/000092553>.
 
 # Session information
 
