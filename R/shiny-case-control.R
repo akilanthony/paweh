@@ -571,7 +571,7 @@
     ),
     shiny::p("Results, advanced details, plots, and sensitivity analyses use the frozen calculated design."),
     shiny::a(
-      href = "https://akilanthony.github.io/pawh/articles/paweh-02-case-control-study-design.html",
+      href = "https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html",
       target = "_blank", rel = "noopener", "Read the Case-Control vignette"
     )
   )

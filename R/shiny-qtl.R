@@ -661,7 +661,7 @@
       "The canonical Falconer model supplies genotype-specific phenotype quantities. Sensitivity points are separate canonical calls using the frozen design."
     ),
     shiny::a(
-      href = "https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.html",
+      href = "https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html",
       target = "_blank", rel = "noopener", "Read the Quantitative Trait vignette"
     )
   )
