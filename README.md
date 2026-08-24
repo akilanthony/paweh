@@ -1,10 +1,11 @@
 # paweh
 
-`paweh` is an R package for prospective power and minimum sample size necessary
-(MSSN) calculations in genetic association studies. It helps researchers
-evaluate study operating characteristics before data collection or genotyping:
-given a proposed sample size, `paweh` calculates power; given a target power, it
-calculates the required sample size.
+`paweh` is statistical-genetics study-design software for prospective power and
+minimum sample size necessary (MSSN) calculations. Given a proposed sample
+size, it calculates power; given a target power, it calculates the sample size
+needed under the specified design assumptions. Its calculations are primarily
+parameter and model based and are intended for planning before data collection
+or genotyping, not for downstream association testing.
 
 The package supports case-control association studies, affected-child trio
 designs using the Transmission Disequilibrium Test (TDT), and continuous,
@@ -13,6 +14,13 @@ the design, calculations can account for genotype misclassification,
 phenotype misclassification, and locus heterogeneity. Canonical case-control
 and TDT interfaces support model-based and model-free workflows where those
 input modes are applicable.
+
+Genetic study-design calculations are commonly formulated under homogeneous,
+error-free assumptions. Selected departures from those assumptions can
+materially affect power and MSSN while being difficult to incorporate
+analytically. `paweh` provides accessible, reproducible implementations of
+published methods for examining supported heterogeneity and misclassification
+mechanisms alongside conventional power and sample-size calculations.
 
 ## What `paweh` supports
 
