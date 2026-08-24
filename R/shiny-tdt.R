@@ -97,11 +97,11 @@
         bslib::nav_panel(
           "Sensitivity", shiny::uiOutput(ns("sensitivity_controls")),
           shiny::uiOutput(ns("sensitivity_message")),
-          shiny::plotOutput(ns("sensitivity_plot"), height = "430px")
+          shiny::uiOutput(ns("sensitivity_plot_container"))
         ),
         bslib::nav_panel(
           "Visualize", shiny::uiOutput(ns("visualize_intro")),
-          shiny::plotOutput(ns("transmission_plot"), height = "430px"),
+          shiny::uiOutput(ns("transmission_plot_container")),
           shiny::tags$details(
             class = "pawh-advanced-visualization",
             shiny::tags$summary("Advanced visualization"),
@@ -751,6 +751,9 @@
     } else if (.pawh_power_axis_zoomed(state$sensitivity)) {
       shiny::p(class = "pawh-zoom-note", "Y-axis is zoomed to show variation in power.")
     })
+    output$sensitivity_plot_container <- shiny::renderUI(if (!is.null(state$sensitivity)) {
+      shiny::plotOutput(ns("sensitivity_plot"), height = "430px")
+    })
     output$sensitivity_plot <- shiny::renderPlot({
       shiny::req(state$sensitivity)
       .pawh_tdt_sensitivity_plot(state$sensitivity)
@@ -761,6 +764,9 @@
       class = "pawh-visual-intro", shiny::h3("Transmission imbalance"),
       shiny::p("Expected transmission and non-transmission probabilities returned by the canonical calculation.")
     ))
+    output$transmission_plot_container <- shiny::renderUI(if (!is.null(state$calculation)) {
+      shiny::plotOutput(ns("transmission_plot"), height = "430px")
+    })
     output$transmission_plot <- shiny::renderPlot({
       shiny::req(state$calculation)
       .pawh_tdt_transmission_plot(state$calculation)

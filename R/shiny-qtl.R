@@ -72,12 +72,12 @@
         bslib::nav_panel(
           "Sensitivity", shiny::uiOutput(ns("sensitivity_controls")),
           shiny::uiOutput(ns("sensitivity_message")),
-          shiny::plotOutput(ns("sensitivity_plot"), height = "430px")
+          shiny::uiOutput(ns("sensitivity_plot_container"))
         ),
         bslib::nav_panel(
           "Visualize", shiny::uiOutput(ns("visualize_intro")),
           shiny::uiOutput(ns("visualization_controls")),
-          shiny::plotOutput(ns("visualization_plot"), height = "460px"),
+          shiny::uiOutput(ns("visualization_plot_container")),
           shiny::tags$details(
             class = "pawh-advanced-visualization",
             shiny::tags$summary("Advanced visualization"),
@@ -845,6 +845,9 @@
     } else if (.pawh_power_axis_zoomed(state$sensitivity)) {
       shiny::p(class = "pawh-zoom-note", "Y-axis is zoomed to show variation in power.")
     })
+    output$sensitivity_plot_container <- shiny::renderUI(if (!is.null(state$sensitivity)) {
+      shiny::plotOutput(ns("sensitivity_plot"), height = "430px")
+    })
     output$sensitivity_plot <- shiny::renderPlot({
       shiny::req(state$sensitivity); .pawh_qtl_sensitivity_plot(state$sensitivity)
     })
@@ -878,6 +881,9 @@
         ),
         shiny::radioButtons(ns("visual_mode"), "Visualization", choices, inline = TRUE)
       )
+    })
+    output$visualization_plot_container <- shiny::renderUI(if (!is.null(state$calculation)) {
+      shiny::plotOutput(ns("visualization_plot"), height = "460px")
     })
     output$visualization_plot <- shiny::renderPlot({
       shiny::req(state$calculation)

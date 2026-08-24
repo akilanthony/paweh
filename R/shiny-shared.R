@@ -130,7 +130,6 @@
       background: #FFFFFF;
     }
     .pawh-workspace .card-body { padding: 16px; }
-    .pawh-workspace .shiny-plot-output:empty { display: none; }
     .pawh-workspace .html-widget-output { max-width: 100%; overflow: hidden; }
     .pawh-placeholder { max-width: 560px; padding: 16px 8px; }
     .pawh-placeholder h3 { margin-bottom: 6px; font-size: 1.08rem; font-weight: 500; }
