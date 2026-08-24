@@ -446,11 +446,11 @@ sessionInfo()
 #> [22] desc_1.4.3          bslib_0.12.0        pillar_1.11.1      
 #> [25] RColorBrewer_1.1-3  rlang_1.3.0         cachem_1.1.0       
 #> [28] xfun_0.60           fs_2.1.0            sass_0.4.10        
-#> [31] S7_0.2.2            otel_0.2.0          viridisLite_0.4.3  
-#> [34] cli_3.6.6           withr_3.0.3         pkgdown_2.2.1      
-#> [37] magrittr_2.0.5      digest_0.6.39       grid_4.6.1         
-#> [40] mvtnorm_1.4-2       lifecycle_1.0.5     vctrs_0.7.3        
-#> [43] evaluate_1.0.5      glue_1.8.1          farver_2.1.2       
-#> [46] ragg_1.5.2          rmarkdown_2.31      pkgconfig_2.0.3    
-#> [49] tools_4.6.1         htmltools_0.5.9
+#> [31] S7_0.2.2            otel_0.2.0          cli_3.6.6          
+#> [34] withr_3.0.3         pkgdown_2.2.1       magrittr_2.0.5     
+#> [37] digest_0.6.39       grid_4.6.1          mvtnorm_1.4-2      
+#> [40] lifecycle_1.0.5     vctrs_0.7.3         evaluate_1.0.5     
+#> [43] glue_1.8.1          farver_2.1.2        ragg_1.5.2         
+#> [46] rmarkdown_2.31      pkgconfig_2.0.3     tools_4.6.1        
+#> [49] htmltools_0.5.9
 ```
