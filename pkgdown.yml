@@ -2,12 +2,12 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
-  pawh-01-getting-started: pawh-01-getting-started.html
-  pawh-02-case-control-study-design: pawh-02-case-control-study-design.html
-  pawh-03-tdt-study-design: pawh-03-tdt-study-design.html
-  pawh-04-quantitative-trait-study-design: pawh-04-quantitative-trait-study-design.html
-  pawh-05-interactive-dashboard: pawh-05-interactive-dashboard.html
-last_built: 2026-08-24T15:51Z
+  paweh-01-getting-started: paweh-01-getting-started.html
+  paweh-02-case-control-study-design: paweh-02-case-control-study-design.html
+  paweh-03-tdt-study-design: paweh-03-tdt-study-design.html
+  paweh-04-quantitative-trait-study-design: paweh-04-quantitative-trait-study-design.html
+  paweh-05-interactive-dashboard: paweh-05-interactive-dashboard.html
+last_built: 2026-08-24T16:35Z
 urls:
   reference: https://akilanthony.github.io/pawh/reference
   article: https://akilanthony.github.io/pawh/articles

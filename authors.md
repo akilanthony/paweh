@@ -9,12 +9,12 @@
 Source:
 [`DESCRIPTION`](https://github.com/akilanthony/pawh/blob/main/DESCRIPTION)
 
-Anthony A (2026). *pawh: Computational Toolkit for Heterogeneity in
+Anthony A (2026). *paweh: Computational Toolkit for Heterogeneity in
 Statistical Genetics*. R package version 0.0.0.9000,
 <https://github.com/akilanthony/pawh>.
 
     @Manual{,
-      title = {pawh: Computational Toolkit for Heterogeneity in Statistical Genetics},
+      title = {paweh: Computational Toolkit for Heterogeneity in Statistical Genetics},
       author = {Akil Anthony},
       year = {2026},
       note = {R package version 0.0.0.9000},

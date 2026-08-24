@@ -1,4 +1,4 @@
 # License
 
     YEAR: 2025
-    COPYRIGHT HOLDER: pawh authors
+    COPYRIGHT HOLDER: paweh authors

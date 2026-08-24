@@ -1,0 +1,37 @@
+# Construct the paweh Shiny Dashboard
+
+Creates the modular `bslib` dashboard for `paweh` study design. The
+Case-Control, TDT / Family, and Quantitative Trait workspaces provide
+canonical power, minimum-sample-size, sensitivity, and study-specific
+visual results. The concise results are complemented by collapsed
+calculation details and reproducible canonical R calls. Dashboard
+calculations delegate to the same canonical package functions as the
+programmatic R interface.
+
+## Usage
+
+``` r
+paweh_app()
+```
+
+## Value
+
+A Shiny application object inheriting from `shiny.appobj`.
+
+## Details
+
+`paweh_app()` returns the application object without launching it. This
+makes the app safe to construct in package code, tests, and deployment
+tooling. Launch it explicitly with
+[`shiny::runApp()`](https://rdrr.io/pkg/shiny/man/runApp.html).
+
+## Examples
+
+``` r
+app <- paweh_app()
+inherits(app, "shiny.appobj")
+#> [1] TRUE
+if (interactive()) {
+  shiny::runApp(app)
+}
+```

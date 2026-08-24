@@ -142,5 +142,5 @@
 
 ## Interactive application
 
-- [`pawh_app()`](https://akilanthony.github.io/pawh/reference/pawh_app.md)
-  : Construct the pawh Shiny Dashboard
+- [`paweh_app()`](https://akilanthony.github.io/pawh/reference/paweh_app.md)
+  : Construct the paweh Shiny Dashboard

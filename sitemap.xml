@@ -4,11 +4,11 @@
 <url><loc>https://akilanthony.github.io/pawh/LICENSE-text.html</loc></url>
 <url><loc>https://akilanthony.github.io/pawh/LICENSE.html</loc></url>
 <url><loc>https://akilanthony.github.io/pawh/articles/index.html</loc></url>
-<url><loc>https://akilanthony.github.io/pawh/articles/pawh-01-getting-started.html</loc></url>
-<url><loc>https://akilanthony.github.io/pawh/articles/pawh-02-case-control-study-design.html</loc></url>
-<url><loc>https://akilanthony.github.io/pawh/articles/pawh-03-tdt-study-design.html</loc></url>
-<url><loc>https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html</loc></url>
-<url><loc>https://akilanthony.github.io/pawh/articles/pawh-05-interactive-dashboard.html</loc></url>
+<url><loc>https://akilanthony.github.io/pawh/articles/paweh-01-getting-started.html</loc></url>
+<url><loc>https://akilanthony.github.io/pawh/articles/paweh-02-case-control-study-design.html</loc></url>
+<url><loc>https://akilanthony.github.io/pawh/articles/paweh-03-tdt-study-design.html</loc></url>
+<url><loc>https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.html</loc></url>
+<url><loc>https://akilanthony.github.io/pawh/articles/paweh-05-interactive-dashboard.html</loc></url>
 <url><loc>https://akilanthony.github.io/pawh/authors.html</loc></url>
 <url><loc>https://akilanthony.github.io/pawh/index.html</loc></url>
 <url><loc>https://akilanthony.github.io/pawh/reference/case_control_genotype_misclassification.html</loc></url>
@@ -17,7 +17,7 @@
 <url><loc>https://akilanthony.github.io/pawh/reference/cc_mssn.html</loc></url>
 <url><loc>https://akilanthony.github.io/pawh/reference/cc_power.html</loc></url>
 <url><loc>https://akilanthony.github.io/pawh/reference/index.html</loc></url>
-<url><loc>https://akilanthony.github.io/pawh/reference/pawh_app.html</loc></url>
+<url><loc>https://akilanthony.github.io/pawh/reference/paweh_app.html</loc></url>
 <url><loc>https://akilanthony.github.io/pawh/reference/plot_cc_mssn.html</loc></url>
 <url><loc>https://akilanthony.github.io/pawh/reference/plot_cc_power.html</loc></url>
 <url><loc>https://akilanthony.github.io/pawh/reference/plot_qtl_anova_mssn.html</loc></url>
