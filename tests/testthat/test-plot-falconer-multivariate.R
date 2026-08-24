@@ -12,7 +12,7 @@ test_that("multivariate density plot reuses validated model quantities", {
     mv_plot_args, list(surface = "density", grid_n = 20, return_data = TRUE)
   ))
   model <- attr(dat, "falconer_model")
-  direct <- do.call(pawh:::.falconer_mv_parameters, mv_plot_args[1:4])
+  direct <- do.call(paweh:::.falconer_mv_parameters, mv_plot_args[1:4])
 
   expect_s3_class(dat, "data.frame")
   expect_equal(model$mean_matrix, direct$mean_matrix)

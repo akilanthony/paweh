@@ -1,6 +1,6 @@
 ---
 title: "Case-control genetic association study design"
-author: "pawh package authors"
+author: "paweh package authors"
 output:
   BiocStyle::html_document:
     toc: true
@@ -13,13 +13,13 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.6)
-library(pawh)
+library(paweh)
 ```
 
 # From a scientific contrast to a design
 
 A case-control association study asks whether genotype distributions differ
-between affected and unaffected groups. `pawh` supports the two-degree-of-
+between affected and unaffected groups. `paweh` supports the two-degree-of-
 freedom genotype chi-square test and a one-degree-of-freedom genotype trend
 test. The control-to-case ratio `k` connects the two sample sizes:
 
@@ -82,7 +82,7 @@ g_gordon_case <- c(0.36, 0.48, 0.16)
 g_gordon_control <- c(0.25, 0.50, 0.25)
 ```
 
-In `pawh`'s two-parameter error model, Gordon's DSB parameters map as
+In `paweh`'s two-parameter error model, Gordon's DSB parameters map as
 `e1 = delta` and `e2 = epsilon / 2`. The division by two reflects equal
 allocation of total heterozygote error to the two homozygotes.
 
@@ -106,7 +106,7 @@ gordon_dsb_10 <- cc_mssn(
 data.frame(
   DSB_error = c("No error", "delta = epsilon = 0.10"),
   published_required_cases = c("approximately 386", "477"),
-  pawh_required_cases = c(
+  paweh_required_cases = c(
     gordon_no_error$tests$genotypes$MSSN_case,
     gordon_dsb_10$tests$genotypes$MSSN_case
   )
@@ -114,9 +114,9 @@ data.frame(
 ```
 
 This is a **Published-example reproduction**. The error result is exact at
-477 cases. The baseline is near-exact: `pawh` returns 387 rather than the
+477 cases. The baseline is near-exact: `paweh` returns 387 rather than the
 paper's approximately 386 because the underlying continuous MSSN is about
-386.08 and `pawh` ceilings the number of subjects.
+386.08 and `paweh` ceilings the number of subjects.
 
 ## Extending the same design: how MSSN grows with DSB error
 
@@ -157,7 +157,7 @@ edwards_scenarios <- data.frame(
   published_power = c(0.91, 0.33, 0.76, 0.11)
 )
 
-edwards_scenarios$pawh_power <- vapply(seq_len(nrow(edwards_scenarios)), function(i) {
+edwards_scenarios$paweh_power <- vapply(seq_len(nrow(edwards_scenarios)), function(i) {
   cc_power(
     N_case = 250, alpha = 0.01, k = 1,
     input_mode = "model_free",
@@ -253,7 +253,7 @@ diff_error_design <- cc_power(
 diff_error_design$tests$genotypes$power
 ```
 
-**Important:** `pawh` returns nominal asymptotic power or MSSN under
+**Important:** `paweh` returns nominal asymptotic power or MSSN under
 differential genotype error using the usual chi-square critical value. It does
 not independently recalibrate an arbitrary differential-error null
 distribution. These nominal operating characteristics must not be interpreted

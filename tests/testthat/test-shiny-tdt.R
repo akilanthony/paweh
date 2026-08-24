@@ -1,5 +1,5 @@
 test_that("TDT UI exposes the complete production workflow", {
-  html <- paste(as.character(pawh:::.pawh_tdt_ui("tdt")), collapse = "\n")
+  html <- paste(as.character(paweh:::.paweh_tdt_ui("tdt")), collapse = "\n")
   expect_match(html, "Estimate power", fixed = TRUE)
   expect_match(html, "Minimum sample size", fixed = TRUE)
   expect_match(html, "Direct transmission quantities", fixed = TRUE)
@@ -9,12 +9,12 @@ test_that("TDT UI exposes the complete production workflow", {
   expect_match(html, "Sensitivity", fixed = TRUE)
   expect_match(html, "Visualize", fixed = TRUE)
   expect_match(html, "Methods", fixed = TRUE)
-  expect_match(html, "<details class=\"pawh-sidebar-section\">", fixed = TRUE)
+  expect_match(html, "<details class=\"paweh-sidebar-section\">", fixed = TRUE)
   expect_false(grepl("<details[^>]* open", html))
 })
 
 test_that("objective and input controls are mode-specific", {
-  shiny::testServer(pawh:::.pawh_tdt_server, {
+  shiny::testServer(paweh:::.paweh_tdt_server, {
     session$setInputs(objective = "power", input_mode = "model_based")
     session$flushReact()
     power_ui <- paste(as.character(output$objective_inputs), collapse = "\n")
@@ -41,8 +41,8 @@ test_that("objective and input controls are mode-specific", {
 })
 
 test_that("Shiny snapshots reproduce canonical power and MSSN", {
-  values <- pawh:::.pawh_tdt_defaults()
-  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+  values <- paweh:::.paweh_tdt_defaults()
+  calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
   direct <- tdt_power(
     N = 600, input_mode = "model_based", pd = .3, prev = .05,
     R1 = 1.5, R2 = 2.25, alpha = .05, delta_prime = 1,
@@ -50,11 +50,11 @@ test_that("Shiny snapshots reproduce canonical power and MSSN", {
   )
   expect_equal(calculation$result$power, direct$power)
   expect_equal(calculation$result$gT_star, direct$gT_star)
-  expect_identical(pawh:::.pawh_tdt_scenarios(calculation), "no_error")
+  expect_identical(paweh:::.paweh_tdt_scenarios(calculation), "no_error")
 
   values$objective <- "mssn"
   values$input_mode <- "model_free"
-  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+  calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
   direct <- tdt_mssn(
     target_power = .8, input_mode = "model_free", ET = 140, ENT = 100,
     n_trios = 120, alpha = .05, misclass_rate = 0, heter_rate = 0,
@@ -71,9 +71,9 @@ test_that("modifier scenarios remain separate canonical results", {
     both = c(misclassification = TRUE, misclass_rate = 5, heterogeneity = TRUE, heter_rate = 20)
   )
   for (name in names(scenarios)) {
-    values <- pawh:::.pawh_tdt_defaults()
+    values <- paweh:::.paweh_tdt_defaults()
     for (field in names(scenarios[[name]])) values[[field]] <- scenarios[[name]][[field]]
-    calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+    calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
     direct <- tdt_power(
       N = 600, input_mode = "model_based", pd = .3, prev = .05,
       R1 = 1.5, R2 = 2.25, alpha = .05, delta_prime = 1,
@@ -84,16 +84,16 @@ test_that("modifier scenarios remain separate canonical results", {
     expect_equal(calculation$result$power, direct$power, info = name)
   }
 
-  values <- pawh:::.pawh_tdt_defaults()
+  values <- paweh:::.paweh_tdt_defaults()
   values$misclassification <- values$heterogeneity <- TRUE
   values$misclass_rate <- 5
   values$heter_rate <- 20
-  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+  calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
   expect_identical(
-    pawh:::.pawh_tdt_scenarios(calculation),
+    paweh:::.paweh_tdt_scenarios(calculation),
     c("no_error", "misclassification", "heterogeneity")
   )
-  html <- paste(as.character(pawh:::.pawh_tdt_results_ui(calculation)), collapse = "\n")
+  html <- paste(as.character(paweh:::.paweh_tdt_results_ui(calculation)), collapse = "\n")
   expect_match(html, "No-error design", fixed = TRUE)
   expect_match(html, "Phenotype misclassification", fixed = TRUE)
   expect_match(html, "Locus heterogeneity", fixed = TRUE)
@@ -102,23 +102,23 @@ test_that("modifier scenarios remain separate canonical results", {
 })
 
 test_that("zero-valued modifier toggles do not create active scenarios", {
-  values <- pawh:::.pawh_tdt_defaults()
+  values <- paweh:::.paweh_tdt_defaults()
   values$misclassification <- values$heterogeneity <- TRUE
-  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+  calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
   expect_false(any(unlist(calculation$active)))
-  expect_identical(pawh:::.pawh_tdt_scenarios(calculation), "no_error")
+  expect_identical(paweh:::.paweh_tdt_scenarios(calculation), "no_error")
 })
 
 test_that("validation is friendly and calculated state remains frozen", {
-  values <- pawh:::.pawh_tdt_defaults()
+  values <- paweh:::.paweh_tdt_defaults()
   values$alpha <- 1
-  expect_error(pawh:::.pawh_tdt_snapshot(values), "Significance level")
-  values <- pawh:::.pawh_tdt_defaults()
+  expect_error(paweh:::.paweh_tdt_snapshot(values), "Significance level")
+  values <- paweh:::.paweh_tdt_defaults()
   values$input_mode <- "model_free"
   values$ET <- values$ENT <- 0
-  expect_error(pawh:::.pawh_tdt_snapshot(values), "cannot both be zero")
+  expect_error(paweh:::.paweh_tdt_snapshot(values), "cannot both be zero")
 
-  shiny::testServer(pawh:::.pawh_tdt_server, {
+  shiny::testServer(paweh:::.paweh_tdt_server, {
     session$setInputs(
       objective = "power", input_mode = "model_based", N = 600,
       alpha = .05, prev = 5, pd = 30, R1 = 1.5, R2 = 2.25,
@@ -137,16 +137,16 @@ test_that("validation is friendly and calculated state remains frozen", {
 })
 
 test_that("null-effect MSSN is displayed without invalid percentages", {
-  values <- pawh:::.pawh_tdt_defaults()
+  values <- paweh:::.paweh_tdt_defaults()
   values$objective <- "mssn"
   values$input_mode <- "model_free"
   values$ET <- values$ENT <- 100
   values$misclassification <- values$heterogeneity <- TRUE
   values$misclass_rate <- 5
   values$heter_rate <- 20
-  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
+  calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
   expect_true(all(is.infinite(unlist(calculation$result$N))))
-  html <- paste(as.character(pawh:::.pawh_tdt_results_ui(calculation)), collapse = "\n")
+  html <- paste(as.character(paweh:::.paweh_tdt_results_ui(calculation)), collapse = "\n")
   expect_match(html, "Required affected-child trios", fixed = TRUE)
   expect_match(html, ">Inf<", fixed = TRUE)
   expect_match(html, "not defined", fixed = TRUE)
@@ -154,9 +154,9 @@ test_that("null-effect MSSN is displayed without invalid percentages", {
 })
 
 test_that("sensitivity points are canonical calls of the frozen design", {
-  values <- pawh:::.pawh_tdt_defaults()
-  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
-  sensitivity <- pawh:::.pawh_tdt_sensitivity(calculation, "pd", c(.2, .4), n = 5)
+  values <- paweh:::.paweh_tdt_defaults()
+  calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
+  sensitivity <- paweh:::.paweh_tdt_sensitivity(calculation, "pd", c(.2, .4), n = 5)
   expect_equal(nrow(sensitivity$data), 5)
   expected <- tdt_power(
     N = 600, input_mode = "model_based", pd = .3, prev = .05,
@@ -169,9 +169,9 @@ test_that("sensitivity points are canonical calls of the frozen design", {
   values$objective <- "mssn"
   values$misclassification <- TRUE
   values$misclass_rate <- 5
-  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
-  expect_identical(names(pawh:::.pawh_tdt_specs(calculation))[1], "misclass_rate")
-  sensitivity <- pawh:::.pawh_tdt_sensitivity(calculation, "misclass_rate", c(0, .1), n = 3)
+  calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
+  expect_identical(names(paweh:::.paweh_tdt_specs(calculation))[1], "misclass_rate")
+  sensitivity <- paweh:::.paweh_tdt_sensitivity(calculation, "misclass_rate", c(0, .1), n = 3)
   expected <- tdt_mssn(
     target_power = .8, input_mode = "model_based", pd = .3, prev = .05,
     R1 = 1.5, R2 = 2.25, alpha = .05, delta_prime = 1,
@@ -183,14 +183,14 @@ test_that("sensitivity points are canonical calls of the frozen design", {
 })
 
 test_that("TDT plots use shared restrained colors and redundant line styles", {
-  values <- pawh:::.pawh_tdt_defaults()
+  values <- paweh:::.paweh_tdt_defaults()
   values$misclassification <- values$heterogeneity <- TRUE
   values$misclass_rate <- 5
   values$heter_rate <- 20
-  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
-  sensitivity <- pawh:::.pawh_tdt_sensitivity(calculation, "misclass_rate", c(0, .1), n = 5)
-  sensitivity_plot <- pawh:::.pawh_tdt_sensitivity_plot(sensitivity)
-  transmission_plot <- pawh:::.pawh_tdt_transmission_plot(calculation)
+  calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
+  sensitivity <- paweh:::.paweh_tdt_sensitivity(calculation, "misclass_rate", c(0, .1), n = 5)
+  sensitivity_plot <- paweh:::.paweh_tdt_sensitivity_plot(sensitivity)
+  transmission_plot <- paweh:::.paweh_tdt_transmission_plot(calculation)
   expect_s3_class(sensitivity_plot, "ggplot")
   expect_s3_class(transmission_plot, "ggplot")
   expect_true(any(vapply(sensitivity_plot$scales$scales,
@@ -223,12 +223,12 @@ test_that("TDT literature anchors remain unchanged", {
 })
 
 test_that("TDT advanced details use separate canonical quantities", {
-  values <- pawh:::.pawh_tdt_defaults()
+  values <- paweh:::.paweh_tdt_defaults()
   values$misclassification <- values$heterogeneity <- TRUE
   values$misclass_rate <- 5
   values$heter_rate <- 20
-  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
-  html <- paste(as.character(pawh:::.pawh_tdt_advanced_ui(calculation)), collapse = "\n")
+  calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
+  html <- paste(as.character(paweh:::.paweh_tdt_advanced_ui(calculation)), collapse = "\n")
   expect_match(html, "Advanced calculation details", fixed = TRUE)
   expect_false(grepl("<details[^>]* open", html))
   expect_match(html, "No-error design transmission quantities", fixed = TRUE)
@@ -242,8 +242,8 @@ test_that("TDT advanced details use separate canonical quantities", {
   values$objective <- "mssn"
   values$input_mode <- "model_free"
   values$ET <- values$ENT <- 100
-  null <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
-  null_html <- paste(as.character(pawh:::.pawh_tdt_advanced_ui(null)), collapse = "\n")
+  null <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
+  null_html <- paste(as.character(paweh:::.paweh_tdt_advanced_ui(null)), collapse = "\n")
   expect_match(null_html, "Direct transmission quantities", fixed = TRUE)
   expect_match(null_html, ">Inf<", fixed = TRUE)
   expect_match(null_html, "not defined", fixed = TRUE)
@@ -251,60 +251,60 @@ test_that("TDT advanced details use separate canonical quantities", {
 })
 
 test_that("TDT reproducible calls exactly reproduce frozen calculations", {
-  values <- pawh:::.pawh_tdt_defaults()
+  values <- paweh:::.paweh_tdt_defaults()
   values$misclassification <- values$heterogeneity <- TRUE
   values$misclass_rate <- 5
   values$heter_rate <- 20
-  power <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
-  args <- pawh:::.pawh_tdt_repro_args(power)
+  power <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
+  args <- paweh:::.paweh_tdt_repro_args(power)
   reproduced <- do.call(tdt_power, args)
   expect_equal(reproduced$power, power$result$power)
   expect_identical(args$misclass_rate, .05)
   expect_identical(args$heter_rate, .2)
   expect_false(any(c("objective", "display") %in% names(args)))
-  expect_match(pawh:::.pawh_call_text(pawh:::.pawh_tdt_repro_call(power)), "tdt_power", fixed = TRUE)
+  expect_match(paweh:::.paweh_call_text(paweh:::.paweh_tdt_repro_call(power)), "tdt_power", fixed = TRUE)
 
   values$objective <- "mssn"
-  mssn <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
-  reproduced <- do.call(tdt_mssn, pawh:::.pawh_tdt_repro_args(mssn))
+  mssn <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
+  reproduced <- do.call(tdt_mssn, paweh:::.paweh_tdt_repro_args(mssn))
   expect_equal(reproduced$N, mssn$result$N)
-  expect_match(pawh:::.pawh_call_text(pawh:::.pawh_tdt_repro_call(mssn)), "tdt_mssn", fixed = TRUE)
+  expect_match(paweh:::.paweh_call_text(paweh:::.paweh_tdt_repro_call(mssn)), "tdt_mssn", fixed = TRUE)
 })
 
 test_that("shared colors and transmission labels use canonical values", {
-  colors <- pawh:::.pawh_plot_colors()
+  colors <- paweh:::.paweh_plot_colors()
   expect_identical(unname(colors[c("tdt_baseline", "tdt_misclassification", "tdt_heterogeneity")]),
     c("#3F4850", "#355C7D", "#6F879A"))
   expect_identical(unname(colors[c("transmitted", "nontransmitted")]), c("#3F4850", "#8FA1AF"))
-  values <- pawh:::.pawh_tdt_defaults()
-  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
-  data <- pawh:::.pawh_tdt_transmissions(calculation)
+  values <- paweh:::.paweh_tdt_defaults()
+  calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
+  data <- paweh:::.paweh_tdt_transmissions(calculation)
   expect_equal(data$Probability, c(calculation$result$gT_star$no_error, calculation$result$gNT_star$no_error))
   expect_identical(data$Label, formatC(data$Probability, format = "f", digits = 3))
-  plot <- pawh:::.pawh_tdt_transmission_plot(calculation)
+  plot <- paweh:::.paweh_tdt_transmission_plot(calculation)
   expect_true(any(vapply(plot$layers, function(layer) inherits(layer$geom, "GeomText"), logical(1))))
 })
 
 test_that("TDT 3D surface is canonical, modest, and frozen", {
   skip_if_not_installed("plotly")
-  values <- pawh:::.pawh_tdt_defaults()
+  values <- paweh:::.paweh_tdt_defaults()
   values$misclassification <- TRUE
   values$misclass_rate <- 5
-  calculation <- pawh:::.pawh_tdt_calculate(pawh:::.pawh_tdt_snapshot(values))
-  args <- pawh:::.pawh_tdt_surface_args(
+  calculation <- paweh:::.paweh_tdt_calculate(paweh:::.paweh_tdt_snapshot(values))
+  args <- paweh:::.paweh_tdt_surface_args(
     calculation, "misclassification", "pd", "misclass_rate", n = 4
   )
   expect_length(args$x_values, 4)
   expect_length(args$y_values, 4)
   expect_identical(args$alpha, .05)
-  surface <- pawh:::.pawh_tdt_surface(
+  surface <- paweh:::.paweh_tdt_surface(
     calculation, "misclassification", "pd", "misclass_rate", n = 4
   )
   expect_s3_class(surface, "plotly")
   expect_equal(nrow(attr(surface, "surface_data")), 16)
   expect_identical(attr(surface, "surface_spec")$fixed_parameters$alpha, .05)
 
-  shiny::testServer(pawh:::.pawh_tdt_server, {
+  shiny::testServer(paweh:::.paweh_tdt_server, {
     session$setInputs(
       objective = "power", input_mode = "model_based", N = 600,
       alpha = .05, prev = 5, pd = 30, R1 = 1.5, R2 = 2.25,

@@ -1,6 +1,6 @@
-# Shared presentation helpers for the pawh dashboard.
+# Shared presentation helpers for the paweh dashboard.
 
-.pawh_dashboard_theme <- function() {
+.paweh_dashboard_theme <- function() {
   theme <- bslib::bs_theme(
     version = 5,
     bg = "#F7F8FA",
@@ -16,201 +16,201 @@
     theme,
     "
     :root {
-      --pawh-bg: #F7F8FA;
-      --pawh-panel: #FFFFFF;
-      --pawh-text: #20252B;
-      --pawh-secondary: #5F6B76;
-    --pawh-muted: #66727D;
-      --pawh-border: #D9DEE3;
-      --pawh-divider: #E9ECEF;
-      --pawh-primary: #355C7D;
-      --pawh-caution: #A8844F;
-      --pawh-error: #9A4D4D;
+      --paweh-bg: #F7F8FA;
+      --paweh-panel: #FFFFFF;
+      --paweh-text: #20252B;
+      --paweh-secondary: #5F6B76;
+    --paweh-muted: #66727D;
+      --paweh-border: #D9DEE3;
+      --paweh-divider: #E9ECEF;
+      --paweh-primary: #355C7D;
+      --paweh-caution: #A8844F;
+      --paweh-error: #9A4D4D;
     }
-    body { font-size: .925rem; color: var(--pawh-text); }
+    body { font-size: .925rem; color: var(--paweh-text); }
     .bslib-page-navbar > .navbar {
       min-height: 49px; padding-top: 0; padding-bottom: 0;
-      background: #FFFFFF; border-bottom: 1px solid var(--pawh-border);
+      background: #FFFFFF; border-bottom: 1px solid var(--paweh-border);
       box-shadow: none;
     }
     .navbar-brand { font-size: 1.2rem; font-weight: 500; }
     .navbar .nav-link, .navbar .navbar-nav > li > a {
-      color: var(--pawh-secondary); padding: .82rem .75rem .68rem;
+      color: var(--paweh-secondary); padding: .82rem .75rem .68rem;
       border-bottom: 2px solid transparent; font-size: .925rem;
     }
     .navbar .nav-link.active, .navbar .navbar-nav > li.active > a {
-      color: var(--pawh-text); background: transparent;
-      border-bottom-color: var(--pawh-primary);
+      color: var(--paweh-text); background: transparent;
+      border-bottom-color: var(--paweh-primary);
     }
     body.bslib-page-navbar > .container-fluid { padding: 0 20px 20px; }
-    .pawh-page-heading { margin: 20px 0 22px; }
-    .pawh-page-heading h2 {
+    .paweh-page-heading { margin: 20px 0 22px; }
+    .paweh-page-heading h2 {
       margin: 0; font-size: 1.75rem; line-height: 1.2; font-weight: 500;
     }
-    .pawh-page-heading p {
-      margin: 7px 0 0; color: var(--pawh-secondary); max-width: 700px;
+    .paweh-page-heading p {
+      margin: 7px 0 0; color: var(--paweh-secondary); max-width: 700px;
       font-size: .975rem;
     }
-    .pawh-home-hero { margin: 24px 0; padding: 0; }
-    .pawh-home-hero h1 { margin: 0 0 5px; font-size: 1.8rem; font-weight: 500; }
-    .pawh-home-hero .lead { margin-bottom: 6px; font-size: 1rem; color: var(--pawh-text); }
-    .pawh-home-hero p:last-child { margin-bottom: 0; }
-    .pawh-home-grid { margin-bottom: 24px; }
+    .paweh-home-hero { margin: 24px 0; padding: 0; }
+    .paweh-home-hero h1 { margin: 0 0 5px; font-size: 1.8rem; font-weight: 500; }
+    .paweh-home-hero .lead { margin-bottom: 6px; font-size: 1rem; color: var(--paweh-text); }
+    .paweh-home-hero p:last-child { margin-bottom: 0; }
+    .paweh-home-grid { margin-bottom: 24px; }
     .card {
-      background: var(--pawh-panel); border-color: var(--pawh-border);
+      background: var(--paweh-panel); border-color: var(--paweh-border);
       border-radius: 7px; box-shadow: none;
     }
-    .pawh-study-card { min-height: 0; height: auto; }
-    .pawh-study-card .card-header {
+    .paweh-study-card { min-height: 0; height: auto; }
+    .paweh-study-card .card-header {
       padding: 16px 18px 7px; border-bottom: 0; background: #FFFFFF;
     }
-    .pawh-study-card .card-header h3 { font-size: 1.05rem; font-weight: 500; }
-    .pawh-study-card .card-body {
+    .paweh-study-card .card-header h3 { font-size: 1.05rem; font-weight: 500; }
+    .paweh-study-card .card-body {
       display: flex; flex-direction: column; gap: 12px; padding: 7px 18px 18px;
     }
-    .pawh-study-card p { margin: 0; color: var(--pawh-secondary); }
-    .pawh-study-card .btn { margin: 2px 0 0; align-self: flex-start; }
+    .paweh-study-card p { margin: 0; color: var(--paweh-secondary); }
+    .paweh-study-card .btn { margin: 2px 0 0; align-self: flex-start; }
     .btn { border-radius: 5px; font-size: .9rem; }
-    .btn-primary { background: var(--pawh-primary); border-color: var(--pawh-primary); }
+    .btn-primary { background: var(--paweh-primary); border-color: var(--paweh-primary); }
     .btn:focus-visible, .form-control:focus-visible, .form-select:focus-visible,
     .nav-link:focus-visible, summary:focus-visible, input:focus-visible {
       outline: 3px solid rgba(53, 92, 125, .35); outline-offset: 2px;
     }
-    .pawh-workspace .bslib-sidebar-layout > .sidebar {
-      width: 280px; background: #FFFFFF; border: 1px solid var(--pawh-border);
+    .paweh-workspace .bslib-sidebar-layout > .sidebar {
+      width: 280px; background: #FFFFFF; border: 1px solid var(--paweh-border);
       border-radius: 7px 0 0 7px;
     }
-    .pawh-workspace .bslib-sidebar-layout > .sidebar > .sidebar-content { padding: 16px; }
-    .pawh-workspace .bslib-sidebar-layout > .sidebar .sidebar-title {
+    .paweh-workspace .bslib-sidebar-layout > .sidebar > .sidebar-content { padding: 16px; }
+    .paweh-workspace .bslib-sidebar-layout > .sidebar .sidebar-title {
       margin-bottom: 12px; font-size: 1.05rem; font-weight: 500;
     }
-    .pawh-workspace .form-group, .pawh-workspace .shiny-input-container {
+    .paweh-workspace .form-group, .paweh-workspace .shiny-input-container {
       margin-bottom: 10px;
     }
-    .pawh-workspace label, .pawh-workspace .control-label {
+    .paweh-workspace label, .paweh-workspace .control-label {
       margin-bottom: 4px; color: #3F4850; font-size: .91rem; font-weight: 500;
     }
-    .pawh-workspace .form-control, .pawh-workspace .form-select {
+    .paweh-workspace .form-control, .paweh-workspace .form-select {
       min-height: 36px; padding-top: 5px; padding-bottom: 5px; font-size: .9rem;
     }
-    .pawh-workspace .radio, .pawh-workspace .checkbox { margin-bottom: 4px; }
-    .pawh-sidebar-section {
-      margin: 4px 0 12px; padding: 10px 0; border-top: 1px solid var(--pawh-divider);
+    .paweh-workspace .radio, .paweh-workspace .checkbox { margin-bottom: 4px; }
+    .paweh-sidebar-section {
+      margin: 4px 0 12px; padding: 10px 0; border-top: 1px solid var(--paweh-divider);
     }
-    .pawh-sidebar-section summary { cursor: pointer; font-size: .93rem; }
-    .pawh-sidebar-section summary::after {
+    .paweh-sidebar-section summary { cursor: pointer; font-size: .93rem; }
+    .paweh-sidebar-section summary::after {
       content: 'Misclassification, heterogeneity, and related assumptions';
-      display: block; margin-top: 3px; color: var(--pawh-muted);
+      display: block; margin-top: 3px; color: var(--paweh-muted);
       font-size: .8rem; font-weight: 400;
     }
-    .pawh-qtl-workspace .pawh-sidebar-section summary::after {
+    .paweh-qtl-workspace .paweh-sidebar-section summary::after {
       content: 'Test and sampling options';
     }
-    .pawh-sidebar-section[open] summary { margin-bottom: 10px; }
-    .pawh-sidebar-section p, .pawh-placeholder p { color: var(--pawh-secondary); }
-    .pawh-calculate { width: 100%; min-height: 40px; margin-top: 2px; }
-    .pawh-workspace .bslib-sidebar-layout > .main {
+    .paweh-sidebar-section[open] summary { margin-bottom: 10px; }
+    .paweh-sidebar-section p, .paweh-placeholder p { color: var(--paweh-secondary); }
+    .paweh-calculate { width: 100%; min-height: 40px; margin-top: 2px; }
+    .paweh-workspace .bslib-sidebar-layout > .main {
       padding: 0 0 0 12px; background: transparent; border: 0;
     }
-    .pawh-workspace, .pawh-workspace .bslib-sidebar-layout,
-    .pawh-workspace .bslib-sidebar-layout > .main,
-    .pawh-workspace .bslib-card {
+    .paweh-workspace, .paweh-workspace .bslib-sidebar-layout,
+    .paweh-workspace .bslib-sidebar-layout > .main,
+    .paweh-workspace .bslib-card {
       min-height: 0 !important; height: auto !important; flex: 0 0 auto;
     }
-    .pawh-workspace .card-header-tabs { padding: 0 16px; background: #FFFFFF; }
-    .pawh-workspace .nav-tabs { border-bottom-color: var(--pawh-border); }
-    .pawh-workspace .nav-tabs .nav-link,
-    .pawh-workspace .nav-tabs > li > a {
-      padding: 11px 12px 9px; color: var(--pawh-secondary); font-size: .92rem;
+    .paweh-workspace .card-header-tabs { padding: 0 16px; background: #FFFFFF; }
+    .paweh-workspace .nav-tabs { border-bottom-color: var(--paweh-border); }
+    .paweh-workspace .nav-tabs .nav-link,
+    .paweh-workspace .nav-tabs > li > a {
+      padding: 11px 12px 9px; color: var(--paweh-secondary); font-size: .92rem;
       border: 0; border-bottom: 2px solid transparent; border-radius: 0;
     }
-    .pawh-workspace .nav-tabs .nav-link.active,
-    .pawh-workspace .nav-tabs > li.active > a {
-      color: var(--pawh-text); border-bottom-color: var(--pawh-primary);
+    .paweh-workspace .nav-tabs .nav-link.active,
+    .paweh-workspace .nav-tabs > li.active > a {
+      color: var(--paweh-text); border-bottom-color: var(--paweh-primary);
       background: #FFFFFF;
     }
-    .pawh-workspace .card-body { padding: 16px; }
-    .pawh-workspace .html-widget-output { max-width: 100%; overflow: hidden; }
-    .pawh-placeholder { max-width: 560px; padding: 16px 8px; }
-    .pawh-placeholder h3 { margin-bottom: 6px; font-size: 1.08rem; font-weight: 500; }
-    .pawh-placeholder p { margin-bottom: 0; }
-    .pawh-design-summary { margin-top: 12px; }
-    .pawh-design-summary .card-header { padding: 10px 12px; font-weight: 500; }
-    .pawh-design-summary .card-body { padding: 8px 12px 10px; }
-    .pawh-design-summary ul { margin: 0; padding: 0; list-style: none; }
-    .pawh-design-summary li { padding: 5px 0; border-bottom: 1px solid var(--pawh-divider); font-size: .84rem; }
-    .pawh-design-summary li:last-child { border-bottom: 0; }
-    .pawh-summary-grid { display: grid; gap: 0; }
-    .pawh-summary-row {
+    .paweh-workspace .card-body { padding: 16px; }
+    .paweh-workspace .html-widget-output { max-width: 100%; overflow: hidden; }
+    .paweh-placeholder { max-width: 560px; padding: 16px 8px; }
+    .paweh-placeholder h3 { margin-bottom: 6px; font-size: 1.08rem; font-weight: 500; }
+    .paweh-placeholder p { margin-bottom: 0; }
+    .paweh-design-summary { margin-top: 12px; }
+    .paweh-design-summary .card-header { padding: 10px 12px; font-weight: 500; }
+    .paweh-design-summary .card-body { padding: 8px 12px 10px; }
+    .paweh-design-summary ul { margin: 0; padding: 0; list-style: none; }
+    .paweh-design-summary li { padding: 5px 0; border-bottom: 1px solid var(--paweh-divider); font-size: .84rem; }
+    .paweh-design-summary li:last-child { border-bottom: 0; }
+    .paweh-summary-grid { display: grid; gap: 0; }
+    .paweh-summary-row {
       display: grid; grid-template-columns: minmax(72px, .8fr) minmax(0, 1.2fr);
-      gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--pawh-divider);
+      gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--paweh-divider);
       font-size: .82rem; line-height: 1.3;
     }
-    .pawh-summary-row:last-child { border-bottom: 0; }
-    .pawh-summary-label { color: var(--pawh-secondary); }
-    .pawh-summary-value { color: var(--pawh-text); text-align: right; }
-    .pawh-changed-notice, .pawh-caution {
-      margin-top: 10px; padding: 9px 10px; border-left: 3px solid var(--pawh-caution);
+    .paweh-summary-row:last-child { border-bottom: 0; }
+    .paweh-summary-label { color: var(--paweh-secondary); }
+    .paweh-summary-value { color: var(--paweh-text); text-align: right; }
+    .paweh-changed-notice, .paweh-caution {
+      margin-top: 10px; padding: 9px 10px; border-left: 3px solid var(--paweh-caution);
       background: #F7F3EB; color: #665334; font-size: .84rem;
     }
-    .pawh-error { padding: 10px; background: #F7EEEE; color: var(--pawh-error); }
-    .pawh-interpretation { margin-top: 12px; padding: 14px; background: #F7F8FA; border: 1px solid var(--pawh-divider); }
-    .pawh-interpretation h4 { font-size: 1.05rem; font-weight: 500; }
-    .pawh-result-card .card-header { padding: 10px 14px; font-weight: 500; }
-    .pawh-result-card .card-body { padding: 8px 14px 12px; }
-    .pawh-result-card .table { margin-bottom: 0; font-size: .88rem; }
-    .pawh-result-card .table > :not(caption) > * > * { padding: 7px 8px; }
-    .pawh-model-specification {
-      margin: 0 0 12px; padding: 9px 11px; color: var(--pawh-secondary);
-      background: #F7F8FA; border: 1px solid var(--pawh-divider); font-size: .86rem;
+    .paweh-error { padding: 10px; background: #F7EEEE; color: var(--paweh-error); }
+    .paweh-interpretation { margin-top: 12px; padding: 14px; background: #F7F8FA; border: 1px solid var(--paweh-divider); }
+    .paweh-interpretation h4 { font-size: 1.05rem; font-weight: 500; }
+    .paweh-result-card .card-header { padding: 10px 14px; font-weight: 500; }
+    .paweh-result-card .card-body { padding: 8px 14px 12px; }
+    .paweh-result-card .table { margin-bottom: 0; font-size: .88rem; }
+    .paweh-result-card .table > :not(caption) > * > * { padding: 7px 8px; }
+    .paweh-model-specification {
+      margin: 0 0 12px; padding: 9px 11px; color: var(--paweh-secondary);
+      background: #F7F8FA; border: 1px solid var(--paweh-divider); font-size: .86rem;
     }
-    .pawh-advanced-details, .pawh-advanced-visualization {
-      margin-top: 12px; border: 1px solid var(--pawh-border); border-radius: 6px;
+    .paweh-advanced-details, .paweh-advanced-visualization {
+      margin-top: 12px; border: 1px solid var(--paweh-border); border-radius: 6px;
       background: #FFFFFF;
     }
-    .pawh-advanced-details > summary, .pawh-advanced-visualization > summary {
-      cursor: pointer; padding: 11px 13px; color: var(--pawh-text); font-weight: 500;
+    .paweh-advanced-details > summary, .paweh-advanced-visualization > summary {
+      cursor: pointer; padding: 11px 13px; color: var(--paweh-text); font-weight: 500;
     }
-    .pawh-advanced-details[open] > summary, .pawh-advanced-visualization[open] > summary {
-      border-bottom: 1px solid var(--pawh-divider);
+    .paweh-advanced-details[open] > summary, .paweh-advanced-visualization[open] > summary {
+      border-bottom: 1px solid var(--paweh-divider);
     }
-    .pawh-advanced-body { padding: 10px 13px 13px; }
-    .pawh-advanced-subtitle { margin: 0 0 10px; color: var(--pawh-secondary); font-size: .84rem; }
-    .pawh-detail-section { margin-top: 12px; }
-    .pawh-detail-section:first-of-type { margin-top: 0; }
-    .pawh-detail-section h5 { margin: 0 0 4px; font-size: .92rem; font-weight: 500; }
-    .pawh-reproduce { margin-top: 14px; }
-    .pawh-reproduce h5 { margin-bottom: 5px; font-size: .92rem; font-weight: 500; }
-    .pawh-reproduce pre {
+    .paweh-advanced-body { padding: 10px 13px 13px; }
+    .paweh-advanced-subtitle { margin: 0 0 10px; color: var(--paweh-secondary); font-size: .84rem; }
+    .paweh-detail-section { margin-top: 12px; }
+    .paweh-detail-section:first-of-type { margin-top: 0; }
+    .paweh-detail-section h5 { margin: 0 0 4px; font-size: .92rem; font-weight: 500; }
+    .paweh-reproduce { margin-top: 14px; }
+    .paweh-reproduce h5 { margin-bottom: 5px; font-size: .92rem; font-weight: 500; }
+    .paweh-reproduce pre {
       margin: 0; padding: 10px 12px; max-height: 280px; overflow: auto;
-      color: #303840; background: #F7F8FA; border: 1px solid var(--pawh-divider);
+      color: #303840; background: #F7F8FA; border: 1px solid var(--paweh-divider);
       border-radius: 4px; font-size: .78rem; line-height: 1.45; user-select: text;
     }
-    .pawh-sensitivity-controls {
+    .paweh-sensitivity-controls {
       display: grid; grid-template-columns: minmax(240px, 320px) minmax(280px, 380px);
       gap: 0 18px; align-items: end; max-width: 720px; margin-bottom: 12px;
     }
-    .pawh-sensitivity-controls .btn { width: auto; padding-left: 16px; padding-right: 16px; }
-    .pawh-zoom-note { margin: 2px 0 8px; color: var(--pawh-muted); font-size: .82rem; }
-    .pawh-visual-intro h3 { margin: 0 0 5px; font-size: 1.1rem; font-weight: 500; }
-    .pawh-visual-intro p { margin-bottom: 8px; color: var(--pawh-secondary); }
-    .text-muted { color: var(--pawh-muted) !important; }
+    .paweh-sensitivity-controls .btn { width: auto; padding-left: 16px; padding-right: 16px; }
+    .paweh-zoom-note { margin: 2px 0 8px; color: var(--paweh-muted); font-size: .82rem; }
+    .paweh-visual-intro h3 { margin: 0 0 5px; font-size: 1.1rem; font-weight: 500; }
+    .paweh-visual-intro p { margin-bottom: 8px; color: var(--paweh-secondary); }
+    .text-muted { color: var(--paweh-muted) !important; }
     @media (max-width: 767.98px) {
       body.bslib-page-navbar > .container-fluid { padding-left: 12px; padding-right: 12px; }
-      .pawh-page-heading { margin-top: 16px; }
-      .pawh-workspace .bslib-sidebar-layout > .main { padding: 12px 0 0; }
-      .pawh-workspace .bslib-sidebar-layout > .sidebar { width: auto; border-radius: 7px; }
-      .pawh-sensitivity-controls { display: block; max-width: 100%; }
-      .pawh-workspace .card-header-tabs { padding: 0 8px; overflow-x: auto; flex-wrap: nowrap; }
-      .pawh-summary-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
-      .pawh-summary-value { text-align: left; overflow-wrap: anywhere; }
-      .pawh-reproduce pre { max-width: 100%; white-space: pre; overflow-x: auto; }
+      .paweh-page-heading { margin-top: 16px; }
+      .paweh-workspace .bslib-sidebar-layout > .main { padding: 12px 0 0; }
+      .paweh-workspace .bslib-sidebar-layout > .sidebar { width: auto; border-radius: 7px; }
+      .paweh-sensitivity-controls { display: block; max-width: 100%; }
+      .paweh-workspace .card-header-tabs { padding: 0 8px; overflow-x: auto; flex-wrap: nowrap; }
+      .paweh-summary-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+      .paweh-summary-value { text-align: left; overflow-wrap: anywhere; }
+      .paweh-reproduce pre { max-width: 100%; white-space: pre; overflow-x: auto; }
     }
     "
   )
 }
 
-.pawh_plot_colors <- function() {
+.paweh_plot_colors <- function() {
   c(
     cases = "#3F4850", controls = "#6F879A",
     genotype = "#3F4850", trend = "#355C7D",
@@ -222,11 +222,11 @@
   )
 }
 
-.pawh_qtl_genotype_colors <- function() {
+.paweh_qtl_genotype_colors <- function() {
   c(`Genotype 0` = "#3F4850", `Genotype 1` = "#6F879A", `Genotype 2` = "#355C7D")
 }
 
-.pawh_plot_theme <- function() {
+.paweh_plot_theme <- function() {
   ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(size = 12.5, face = "plain"),
@@ -243,48 +243,48 @@
     )
 }
 
-.pawh_page_heading <- function(title, description) {
+.paweh_page_heading <- function(title, description) {
   shiny::div(
-    class = "pawh-page-heading",
+    class = "paweh-page-heading",
     shiny::h2(title),
     shiny::p(description)
   )
 }
 
-.pawh_summary_row <- function(label, value) {
+.paweh_summary_row <- function(label, value) {
   shiny::div(
-    class = "pawh-summary-row",
-    shiny::span(class = "pawh-summary-label", label),
-    shiny::span(class = "pawh-summary-value", value)
+    class = "paweh-summary-row",
+    shiny::span(class = "paweh-summary-label", label),
+    shiny::span(class = "paweh-summary-value", value)
   )
 }
 
-.pawh_detail_section <- function(title, rows) {
+.paweh_detail_section <- function(title, rows) {
   shiny::div(
-    class = "pawh-detail-section", shiny::h5(title),
-    shiny::div(class = "pawh-summary-grid", rows)
+    class = "paweh-detail-section", shiny::h5(title),
+    shiny::div(class = "paweh-summary-grid", rows)
   )
 }
 
-.pawh_repro_call <- function(function_name, args) {
+.paweh_repro_call <- function(function_name, args) {
   stopifnot(is.character(function_name), length(function_name) == 1L)
   call <- as.call(c(list(as.name(function_name)), unname(args)))
   names(call) <- c("", names(args))
   call
 }
 
-.pawh_call_text <- function(call) {
+.paweh_call_text <- function(call) {
   paste(deparse(call, width.cutoff = 72L), collapse = "\n")
 }
 
-.pawh_format_percent <- function(x, digits = 1L) {
+.paweh_format_percent <- function(x, digits = 1L) {
   vapply(x, function(value) {
     if (!is.finite(value)) return("not defined")
     paste0(formatC(100 * value, format = "f", digits = digits), "%")
   }, character(1), USE.NAMES = FALSE)
 }
 
-.pawh_format_count <- function(x, round_up = FALSE) {
+.paweh_format_count <- function(x, round_up = FALSE) {
   vapply(x, function(value) {
     if (is.na(value) || is.nan(value)) return("not defined")
     if (is.infinite(value)) return(if (value > 0) "Inf" else "-Inf")
@@ -293,21 +293,21 @@
   }, character(1), USE.NAMES = FALSE)
 }
 
-.pawh_reproduce_ui <- function(call) {
+.paweh_reproduce_ui <- function(call) {
   shiny::div(
-    class = "pawh-reproduce", shiny::h5("Reproduce in R"),
-    shiny::tags$pre(shiny::tags$code(.pawh_call_text(call)))
+    class = "paweh-reproduce", shiny::h5("Reproduce in R"),
+    shiny::tags$pre(shiny::tags$code(.paweh_call_text(call)))
   )
 }
 
-.pawh_advanced_details_ui <- function(...) {
+.paweh_advanced_details_ui <- function(...) {
   shiny::tags$details(
-    class = "pawh-advanced-details",
+    class = "paweh-advanced-details",
     shiny::tags$summary("Advanced calculation details"),
     shiny::div(
-      class = "pawh-advanced-body",
+      class = "paweh-advanced-body",
       shiny::p(
-        class = "pawh-advanced-subtitle",
+        class = "paweh-advanced-subtitle",
         "Inspect model probabilities and intermediate quantities returned by the canonical calculation."
       ),
       ...
@@ -315,21 +315,21 @@
   )
 }
 
-.pawh_power_axis_zoomed <- function(sensitivity) {
+.paweh_power_axis_zoomed <- function(sensitivity) {
   if (is.null(sensitivity) || !identical(sensitivity$objective, "power")) return(FALSE)
   values <- sensitivity$data$y[is.finite(sensitivity$data$y)]
   length(values) > 1L && diff(range(values)) < 0.5
 }
 
-.pawh_placeholder_ui <- function(title, message) {
+.paweh_placeholder_ui <- function(title, message) {
   shiny::div(
-    class = "pawh-placeholder",
+    class = "paweh-placeholder",
     shiny::h3(title),
     shiny::p(message)
   )
 }
 
-.pawh_empty_ui <- function(section) {
+.paweh_empty_ui <- function(section) {
   messages <- c(
     Results = "Configure a design and select Calculate study design.",
     Sensitivity = "Calculate a design before exploring sensitivity.",
@@ -337,5 +337,5 @@
     Methods = "Calculate a design to record its analysis specification."
   )
   stopifnot(section %in% names(messages))
-  .pawh_placeholder_ui(section, unname(messages[[section]]))
+  .paweh_placeholder_ui(section, unname(messages[[section]]))
 }

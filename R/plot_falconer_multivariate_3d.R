@@ -140,7 +140,7 @@ plot_qtl_multivariate_surface3d <- function(
 
   p <- plotly::plot_ly()
   if (identical(surface, "genotype_density")) {
-    palette <- unname(.pawh_qtl_genotype_colors())
+    palette <- unname(.paweh_qtl_genotype_colors())
     genotype_levels <- levels(grid$genotype)
     for (j in seq_along(genotype_levels)) {
       component_grid <- grid[grid$genotype == genotype_levels[j], , drop = FALSE]
@@ -288,7 +288,7 @@ plot_qtl_multivariate_surface3d <- function(
       type = "scatter3d", mode = "markers",
       marker = list(
         size = 5,
-        color = unname(.pawh_qtl_genotype_colors()),
+        color = unname(.paweh_qtl_genotype_colors()),
         symbol = c("circle", "square", "diamond"),
         line = list(color = "white", width = 1.5)
       ),

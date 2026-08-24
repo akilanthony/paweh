@@ -251,7 +251,7 @@
   dat
 }
 
-.plot_pawh_theme <- function(base_size = 12) {
+.plot_paweh_theme <- function(base_size = 12) {
   ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(face = "bold", size = base_size + 2, margin = ggplot2::margin(b = 6)),
@@ -402,7 +402,7 @@
       x = x_label,
       y = y_label
     ) +
-    .plot_pawh_theme()
+    .plot_paweh_theme()
 }
 
 .plot_make_line_grouped <- function(dat, x_label, y_label, title, group_label, subtitle = NULL) {
@@ -418,7 +418,7 @@
       y = y_label,
       color = group_label
     ) +
-    .plot_pawh_theme()
+    .plot_paweh_theme()
 }
 
 #' Plot Case-Control Power

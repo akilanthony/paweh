@@ -197,7 +197,7 @@ plot_qtl_multivariate_contour <- function(
   if (isTRUE(return_data)) return(plot_grid)
 
   if (identical(surface, "genotype_density")) {
-    palette <- unname(.pawh_qtl_genotype_colors())
+    palette <- unname(.paweh_qtl_genotype_colors())
     p <- ggplot2::ggplot(
       plot_grid,
       ggplot2::aes(
@@ -236,7 +236,7 @@ plot_qtl_multivariate_contour <- function(
   p <- p +
     ggplot2::coord_equal(expand = FALSE) +
     ggplot2::labs(x = "Phenotype 1 value", y = "Phenotype 2 value") +
-    .pawh_plot_theme() +
+    .paweh_plot_theme() +
     ggplot2::theme(panel.grid = ggplot2::element_blank(), legend.position = "top")
 
   if (isTRUE(show_thresholds) && !is.null(threshold)) {

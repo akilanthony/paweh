@@ -1,6 +1,6 @@
 ---
 title: "Quantitative-trait genetic association study design"
-author: "pawh package authors"
+author: "paweh package authors"
 output:
   BiocStyle::html_document:
     toc: true
@@ -13,13 +13,13 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 5)
-library(pawh)
+library(paweh)
 ```
 
 # From binary outcomes to quantitative traits
 
 For a quantitative trait, genotype can shift the phenotype distribution
-rather than only changing disease probability. `pawh` uses a classical,
+rather than only changing disease probability. `paweh` uses a classical,
 Falconer-style parameterization as formulated for this study-design framework:
 QTL variance controls the genetic contribution, `tau` controls dominance
 relative to additivity, `pd` controls genotype frequencies, and residual
@@ -85,11 +85,11 @@ plot_qtl_anova_power(
 Li et al. (2019) provide a **Motivating published application** for sampling
 extreme quantitative phenotypes. Their applications included methadone dose
 and yearling weight; the latter used 486 Hanwoo steers and 35,968 SNPs.
-Their exact statistical procedure is not `pawh`'s threshold-selected genotype
+Their exact statistical procedure is not `paweh`'s threshold-selected genotype
 chi-square framework. The study is cited to motivate the design problem, not
 as a reproduction.
 
-In the `pawh` single-trait threshold design, upper-tail subjects form selected
+In the `paweh` single-trait threshold design, upper-tail subjects form selected
 cases, lower-tail subjects form selected controls, and the middle is not
 selected. Upper and lower events are distinct tails, not complements.
 
@@ -160,10 +160,10 @@ Yang et al. (2010) jointly analyzed serum uric acid and gout in the Framingham
 Heart Study by combining univariate association tests. This is a
 **Motivating published application**: correlated or biologically related
 phenotypes can carry complementary genetic information. Their method is not
-the Pillai framework implemented by `pawh`, so no numerical reproduction is
+the Pillai framework implemented by `paweh`, so no numerical reproduction is
 claimed.
 
-For a `pawh` multivariate design, `qtl_var` and `tau` become phenotype-specific
+For a `paweh` multivariate design, `qtl_var` and `tau` become phenotype-specific
 vectors, `pd` is shared, and `cor_matrix` describes phenotype correlation.
 `test = "pillai"` uses a multivariate continuous-trait design;
 `test = "threshold_chisq"` uses jointly selected phenotype tails.
@@ -186,13 +186,13 @@ gordon_mv <- qtl_multivariate_mssn_full(
 )
 
 data.frame(
-  quantity = c("Published integer MSSN", "pawh integer MSSN", "Historical fractional MSSN"),
+  quantity = c("Published integer MSSN", "paweh integer MSSN", "Historical fractional MSSN"),
   value = c(326, gordon_mv$N, gordon_mv$historical_fractional_mssn)
 )
 ```
 
 This is an exact integer **Published-example reproduction**: the paper and
-`pawh` both require 326 total individuals. The continuous historical root is
+`paweh` both require 326 total individuals. The continuous historical root is
 325.5057, which is ceiled for recruitment.
 
 The inverse calculation verifies power at that integer design using the same
@@ -308,7 +308,7 @@ plot_qtl_multivariate_contour(
 
 # Numerical integration and scope
 
-For joint threshold probabilities, `pawh` uses deterministic
+For joint threshold probabilities, `paweh` uses deterministic
 `mvtnorm::Miwa()` integration through 20 dimensions. Higher-dimensional
 calculations use locally seeded Genz--Bretz integration, restore the caller's
 random-number state, and retain integration error and status information.

@@ -74,19 +74,19 @@ test_that("surface scalar extraction maps canonical result components", {
   )
 
   expect_identical(
-    pawh:::.tdt_surface_extract_value(result, "power", "no_error"),
+    paweh:::.tdt_surface_extract_value(result, "power", "no_error"),
     0.91
   )
   expect_identical(
-    pawh:::.tdt_surface_extract_value(result, "power", "misclassification"),
+    paweh:::.tdt_surface_extract_value(result, "power", "misclassification"),
     0.73
   )
   expect_identical(
-    pawh:::.tdt_surface_extract_value(result, "mssn", "no_error"),
+    paweh:::.tdt_surface_extract_value(result, "mssn", "no_error"),
     212.4
   )
   expect_identical(
-    pawh:::.tdt_surface_extract_value(result, "mssn", "heterogeneity"),
+    paweh:::.tdt_surface_extract_value(result, "mssn", "heterogeneity"),
     348.8
   )
 })
@@ -372,7 +372,7 @@ test_that("backend errors identify the failing grid point", {
 test_that("surface reports a clear optional dependency error", {
   testthat::local_mocked_bindings(
     .tdt_surface_plotly_available = function() FALSE,
-    .package = "pawh"
+    .package = "paweh"
   )
   expect_error(
     plot_tdt_surface3d(),

@@ -1,10 +1,10 @@
 qtl_dashboard_calculation <- function(...) {
-  values <- modifyList(pawh:::.pawh_qtl_defaults(), list(...))
-  pawh:::.pawh_qtl_calculate(pawh:::.pawh_qtl_snapshot(values))
+  values <- modifyList(paweh:::.paweh_qtl_defaults(), list(...))
+  paweh:::.paweh_qtl_calculate(paweh:::.paweh_qtl_snapshot(values))
 }
 
 test_that("QTL UI exposes all production workflows", {
-  html <- paste(as.character(pawh:::.pawh_qtl_ui("qtl")), collapse = "\n")
+  html <- paste(as.character(paweh:::.paweh_qtl_ui("qtl")), collapse = "\n")
   expect_match(html, "How will the phenotype be analyzed?", fixed = TRUE)
   expect_match(html, "Full continuous trait", fixed = TRUE)
   expect_match(html, "Extreme phenotype sampling", fixed = TRUE)
@@ -20,7 +20,7 @@ test_that("QTL UI exposes all production workflows", {
 })
 
 test_that("QTL subtype controls use human-readable canonical semantics", {
-  shiny::testServer(pawh:::.pawh_qtl_server, {
+  shiny::testServer(paweh:::.paweh_qtl_server, {
     session$setInputs(subtype = "continuous", objective = "power")
     session$flushReact()
     core <- paste(as.character(output$core_inputs), collapse = "\n")
@@ -60,13 +60,13 @@ test_that("all six QTL interfaces exactly reproduce canonical calls", {
     calculation <- qtl_dashboard_calculation(
       subtype = scenario$subtype, objective = scenario$objective
     )
-    args <- pawh:::.pawh_qtl_repro_args(calculation)
+    args <- paweh:::.paweh_qtl_repro_args(calculation)
     direct <- do.call(scenario$fun, args)
     expect_equal(calculation$result[[scenario$key]], direct[[scenario$key]])
     expect_false(any(c("subtype", "objective", "display") %in% names(args)))
     expect_match(
-      pawh:::.pawh_call_text(pawh:::.pawh_qtl_repro_call(calculation)),
-      pawh:::.pawh_qtl_function(calculation$snapshot), fixed = TRUE
+      paweh:::.paweh_call_text(paweh:::.paweh_qtl_repro_call(calculation)),
+      paweh:::.paweh_qtl_function(calculation$snapshot), fixed = TRUE
     )
   }
 })
@@ -78,7 +78,7 @@ test_that("joint threshold QTL calls also remain canonical", {
       mv_test = "threshold_chisq"
     )
     fun <- if (objective == "power") qtl_multivariate_power_full else qtl_multivariate_mssn_full
-    direct <- do.call(fun, pawh:::.pawh_qtl_repro_args(calculation))
+    direct <- do.call(fun, paweh:::.paweh_qtl_repro_args(calculation))
     key <- if (objective == "power") "power" else "N_total"
     expect_equal(calculation$result[[key]], direct[[key]])
     expect_identical(calculation$result$test, "threshold_chisq")
@@ -86,26 +86,26 @@ test_that("joint threshold QTL calls also remain canonical", {
 })
 
 test_that("QTL validation is friendly and correlation matrices are structured", {
-  values <- pawh:::.pawh_qtl_defaults()
+  values <- paweh:::.paweh_qtl_defaults()
   values$alpha <- 1
-  expect_error(pawh:::.pawh_qtl_snapshot(values), "Significance level")
-  values <- pawh:::.pawh_qtl_defaults()
+  expect_error(paweh:::.paweh_qtl_snapshot(values), "Significance level")
+  values <- paweh:::.paweh_qtl_defaults()
   values$pd <- 0
-  expect_error(pawh:::.pawh_qtl_snapshot(values), "Modeled-allele frequency")
-  values <- pawh:::.pawh_qtl_defaults()
+  expect_error(paweh:::.paweh_qtl_snapshot(values), "Modeled-allele frequency")
+  values <- paweh:::.paweh_qtl_defaults()
   values$subtype <- "extreme"
   values$x_upper <- 60
   values$x_lower <- 50
-  expect_error(pawh:::.pawh_qtl_snapshot(values), "middle is excluded")
-  values <- pawh:::.pawh_qtl_defaults()
+  expect_error(paweh:::.paweh_qtl_snapshot(values), "middle is excluded")
+  values <- paweh:::.paweh_qtl_defaults()
   values$subtype <- "multivariate"
   values$n_traits <- 3
   values$corr_1_2 <- values$corr_1_3 <- .9
   values$corr_2_3 <- -.9
-  expect_error(pawh:::.pawh_qtl_snapshot(values), "positive definite")
+  expect_error(paweh:::.paweh_qtl_snapshot(values), "positive definite")
 
-  valid <- pawh:::.pawh_qtl_snapshot(modifyList(
-    pawh:::.pawh_qtl_defaults(),
+  valid <- paweh:::.paweh_qtl_snapshot(modifyList(
+    paweh:::.paweh_qtl_defaults(),
     list(subtype = "multivariate", n_traits = 3, corr_1_2 = .2, corr_1_3 = .1, corr_2_3 = -.1)
   ))
   expect_equal(unname(diag(valid$backend_args$cor_matrix)), rep(1, 3))
@@ -113,7 +113,7 @@ test_that("QTL validation is friendly and correlation matrices are structured", 
 })
 
 test_that("QTL calculated state is frozen until recalculation", {
-  shiny::testServer(pawh:::.pawh_qtl_server, {
+  shiny::testServer(paweh:::.paweh_qtl_server, {
     session$setInputs(
       subtype = "continuous", objective = "power", N = 500,
       alpha = .05, pd = 30, qtl_var = 10, tau = 0,
@@ -141,20 +141,20 @@ test_that("QTL results and advanced details use canonical returned quantities", 
     qtl_dashboard_calculation(subtype = "multivariate", mv_test = "threshold_chisq")
   )
   for (calculation in calculations) {
-    html <- paste(as.character(pawh:::.pawh_qtl_results_ui(calculation)), collapse = "\n")
+    html <- paste(as.character(paweh:::.paweh_qtl_results_ui(calculation)), collapse = "\n")
     expect_match(html, "Interpretation", fixed = TRUE)
     expect_match(html, "Advanced calculation details", fixed = TRUE)
     expect_match(html, "Model specification", fixed = TRUE)
     expect_match(html, "Genotype and model quantities", fixed = TRUE)
     expect_match(html, "Test-specific quantities", fixed = TRUE)
     expect_match(html, "Reproduce in R", fixed = TRUE)
-    expect_match(html, pawh:::.pawh_qtl_function(calculation$snapshot), fixed = TRUE)
+    expect_match(html, paweh:::.paweh_qtl_function(calculation$snapshot), fixed = TRUE)
     expect_false(grepl("<details[^>]* open", html))
   }
-  extreme <- paste(as.character(pawh:::.pawh_qtl_advanced_ui(calculations[[2]])), collapse = "\n")
+  extreme <- paste(as.character(paweh:::.paweh_qtl_advanced_ui(calculations[[2]])), collapse = "\n")
   expect_match(extreme, "Selection quantities", fixed = TRUE)
   expect_match(extreme, "Expected upper-tail proportion", fixed = TRUE)
-  multivariate <- paste(as.character(pawh:::.pawh_qtl_advanced_ui(calculations[[3]])), collapse = "\n")
+  multivariate <- paste(as.character(paweh:::.paweh_qtl_advanced_ui(calculations[[3]])), collapse = "\n")
   expect_match(multivariate, "Multivariate model quantities", fixed = TRUE)
   expect_match(multivariate, "Residual covariance", fixed = TRUE)
 })
@@ -167,15 +167,15 @@ test_that("QTL sensitivity points are separate canonical calls", {
     qtl_dashboard_calculation(subtype = "multivariate", mv_test = "threshold_chisq")
   )
   for (calculation in calculations) {
-    key <- names(pawh:::.pawh_qtl_specs(calculation))[1]
-    spec <- pawh:::.pawh_qtl_specs(calculation)[[key]]
-    sensitivity <- pawh:::.pawh_qtl_sensitivity(
+    key <- names(paweh:::.paweh_qtl_specs(calculation))[1]
+    spec <- paweh:::.paweh_qtl_specs(calculation)[[key]]
+    sensitivity <- paweh:::.paweh_qtl_sensitivity(
       calculation, key, c(spec$value * .8, spec$value * 1.2), n = 5
     )
     expect_equal(nrow(sensitivity$data), 5)
     expect_equal(sensitivity$baseline_x, spec$value)
     expect_equal(sensitivity$data$y[3], calculation$result$power)
-    expect_s3_class(pawh:::.pawh_qtl_sensitivity_plot(sensitivity), "ggplot")
+    expect_s3_class(paweh:::.paweh_qtl_sensitivity_plot(sensitivity), "ggplot")
   }
 })
 
@@ -184,13 +184,13 @@ test_that("QTL two-dimensional visualizations use canonical plot helpers", {
   extreme <- qtl_dashboard_calculation(subtype = "extreme")
   multivariate <- qtl_dashboard_calculation(subtype = "multivariate")
   threshold <- qtl_dashboard_calculation(subtype = "multivariate", mv_test = "threshold_chisq")
-  expect_s3_class(pawh:::.pawh_qtl_single_plot(continuous), "ggplot")
-  extreme_plot <- pawh:::.pawh_qtl_single_plot(extreme)
+  expect_s3_class(paweh:::.paweh_qtl_single_plot(continuous), "ggplot")
+  extreme_plot <- paweh:::.paweh_qtl_single_plot(extreme)
   expect_s3_class(extreme_plot, "ggplot")
   expect_true(any(vapply(extreme_plot$layers, function(layer) inherits(layer$geom, "GeomVline"), logical(1))))
-  expect_s3_class(pawh:::.pawh_qtl_multivariate_plot(multivariate, "genotype"), "ggplot")
-  expect_s3_class(pawh:::.pawh_qtl_multivariate_plot(multivariate, "mixture"), "ggplot")
-  expect_s3_class(pawh:::.pawh_qtl_multivariate_plot(threshold, "selection"), "ggplot")
+  expect_s3_class(paweh:::.paweh_qtl_multivariate_plot(multivariate, "genotype"), "ggplot")
+  expect_s3_class(paweh:::.paweh_qtl_multivariate_plot(multivariate, "mixture"), "ggplot")
+  expect_s3_class(paweh:::.paweh_qtl_multivariate_plot(threshold, "selection"), "ggplot")
 })
 
 test_that("three- and four-trait designs visualize a frozen selected pair", {
@@ -199,15 +199,15 @@ test_that("three- and four-trait designs visualize a frozen selected pair", {
     corr_1_2 = .1, corr_1_3 = .05, corr_1_4 = 0,
     corr_2_3 = .1, corr_2_4 = .05, corr_3_4 = .1
   )
-  args <- pawh:::.pawh_qtl_multivariate_plot_args(
+  args <- paweh:::.paweh_qtl_multivariate_plot_args(
     calculation, "genotype_density", grid_n = 20, trait_pair = c(2, 4)
   )
   expect_equal(args$qtl_var, calculation$snapshot$backend_args$qtl_var[c(2, 4)])
   expect_equal(args$tau, calculation$snapshot$backend_args$tau[c(2, 4)])
   expect_equal(args$cor_matrix, calculation$snapshot$backend_args$cor_matrix[c(2, 4), c(2, 4)])
-  expect_s3_class(pawh:::.pawh_qtl_multivariate_plot(calculation, "genotype", c(2, 4)), "ggplot")
+  expect_s3_class(paweh:::.paweh_qtl_multivariate_plot(calculation, "genotype", c(2, 4)), "ggplot")
 
-  shiny::testServer(pawh:::.pawh_qtl_server, {
+  shiny::testServer(paweh:::.paweh_qtl_server, {
     session$setInputs(
       subtype = "multivariate", objective = "power", mv_test = "pillai",
       n_traits = "4", N = 500, alpha = .05, pd = 30,
@@ -227,8 +227,8 @@ test_that("three- and four-trait designs visualize a frozen selected pair", {
 test_that("QTL 3D surfaces are restrained, on-demand, and scientifically distinct", {
   skip_if_not_installed("plotly")
   calculation <- qtl_dashboard_calculation(subtype = "multivariate")
-  genotype <- plotly::plotly_build(pawh:::.pawh_qtl_multivariate_surface(calculation, "genotype"))
-  mixture <- plotly::plotly_build(pawh:::.pawh_qtl_multivariate_surface(calculation, "mixture"))
+  genotype <- plotly::plotly_build(paweh:::.paweh_qtl_multivariate_surface(calculation, "genotype"))
+  mixture <- plotly::plotly_build(paweh:::.paweh_qtl_multivariate_surface(calculation, "mixture"))
   genotype_names <- vapply(genotype$x$data, function(trace) trace$name %||% "", character(1))
   mixture_names <- vapply(mixture$x$data, function(trace) trace$name %||% "", character(1))
   expect_identical(genotype_names[1:3], paste("Genotype", 0:2))
@@ -236,7 +236,7 @@ test_that("QTL 3D surfaces are restrained, on-demand, and scientifically distinc
   expect_false(any(grepl("Genotype [0-2]", mixture_names)))
   expect_lte(as.numeric(object.size(genotype)), 2e6)
 
-  shiny::testServer(pawh:::.pawh_qtl_server, {
+  shiny::testServer(paweh:::.paweh_qtl_server, {
     session$setInputs(
       subtype = "multivariate", objective = "power", mv_test = "pillai",
       n_traits = "2", N = 500, alpha = .05, pd = 30,
@@ -259,14 +259,14 @@ test_that("Gordon multivariate anchor is preserved through the dashboard", {
   )
   expect_identical(calculation$result$N, 326L)
   expect_equal(calculation$result$historical_fractional_mssn, 325.5056664947, tolerance = 1e-9)
-  direct <- do.call(qtl_multivariate_mssn_full, pawh:::.pawh_qtl_repro_args(calculation))
+  direct <- do.call(qtl_multivariate_mssn_full, paweh:::.paweh_qtl_repro_args(calculation))
   expect_identical(direct$N, calculation$result$N)
   expect_equal(direct$historical_fractional_mssn, calculation$result$historical_fractional_mssn)
 })
 
 test_that("QTL plots use the shared restrained genotype palette", {
   expect_identical(
-    unname(pawh:::.pawh_qtl_genotype_colors()),
+    unname(paweh:::.paweh_qtl_genotype_colors()),
     c("#3F4850", "#6F879A", "#355C7D")
   )
   code <- paste(vapply(
@@ -276,6 +276,6 @@ test_that("QTL plots use the shared restrained genotype palette", {
       plot_qtl_multivariate_surface3d
     ), function(fun) paste(deparse(body(fun)), collapse = "\n"), character(1)
   ), collapse = "\n")
-  expect_match(code, ".pawh_qtl_genotype_colors()", fixed = TRUE)
+  expect_match(code, ".paweh_qtl_genotype_colors()", fixed = TRUE)
   expect_false(grepl("viridis|rainbow|#00FFFF|cyan|coral|#FF0000", code, ignore.case = TRUE))
 })

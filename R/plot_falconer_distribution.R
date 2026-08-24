@@ -148,7 +148,7 @@ plot_qtl_genotype_distribution <- function(
   attr(dat, "plot_scale") <- scale
   if (isTRUE(return_data)) return(dat)
 
-  palette <- unname(.pawh_qtl_genotype_colors())
+  palette <- unname(.paweh_qtl_genotype_colors())
   if (identical(type, "density")) {
     y_label <- if (identical(scale, "density")) {
       "Genotype-specific density"
@@ -193,7 +193,7 @@ plot_qtl_genotype_distribution <- function(
       x = "Quantitative-trait value", y = y_label,
       title = if (is.null(title)) "Falconer genotype-specific trait distributions" else title
     ) +
-    .pawh_plot_theme() +
+    .paweh_plot_theme() +
     ggplot2::theme(panel.grid.minor = ggplot2::element_blank(), legend.position = "top")
   attr(p, "falconer_model") <- model
   attr(p, "plot_data") <- dat
