@@ -85,8 +85,8 @@ heterogeneity. Their statistical definitions are described in the
 
 A representative programmatic calculation corresponding to the dashboard is:
 
-```{r cc-example, eval=FALSE}
-cc_power(
+```{r cc-example}
+cc_design <- cc_power(
   N_case = 500,
   alpha = 0.05,
   input_mode = "model_based",
@@ -96,6 +96,11 @@ cc_power(
   MOI = "M",
   k = 1,
   verbose = FALSE
+)
+
+data.frame(
+  test = c("Genotype chi-square", "Trend"),
+  power = c(cc_design$tests$genotypes$power, cc_design$tests$trend$power)
 )
 ```
 
