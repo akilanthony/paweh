@@ -64,14 +64,16 @@ test_that("home study cards request the correct navigation targets", {
   expect_identical(selected, c("case_control", "tdt", "qtl"))
 })
 
-test_that("unimplemented study shells remain transparent placeholders", {
+test_that("all study workspaces are implemented", {
   html <- .pawh_test_ui_html()
 
-  expect_match(html, "No calculations are performed by this skeleton", fixed = TRUE)
   expect_match(html, "Case-Control study design", fixed = TRUE)
+  expect_match(html, "TDT / Family study design", fixed = TRUE)
+  expect_match(html, "Quantitative Trait study design", fixed = TRUE)
   expect_match(html, "Your calculated design", fixed = TRUE)
   expect_match(html, "Advanced assumptions", fixed = TRUE)
-  expect_match(html, "disabled", fixed = TRUE)
+  expect_false(grepl("No calculations are performed by this skeleton", html, fixed = TRUE))
+  expect_false(grepl("forthcoming", html, ignore.case = TRUE))
 })
 
 test_that("obsolete app entry point and statistical logic are absent", {

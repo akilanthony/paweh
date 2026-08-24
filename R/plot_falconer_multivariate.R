@@ -197,7 +197,7 @@ plot_qtl_multivariate_contour <- function(
   if (isTRUE(return_data)) return(plot_grid)
 
   if (identical(surface, "genotype_density")) {
-    palette <- c("#0072B2", "#D55E00", "#009E73")
+    palette <- unname(.pawh_qtl_genotype_colors())
     p <- ggplot2::ggplot(
       plot_grid,
       ggplot2::aes(
@@ -223,7 +223,9 @@ plot_qtl_multivariate_contour <- function(
       ggplot2::aes(x = .data$phenotype_1, y = .data$phenotype_2, z = .data$value)
     ) +
       ggplot2::geom_contour_filled(bins = 14L) +
-      ggplot2::scale_fill_viridis_d(option = "C", direction = -1) +
+      ggplot2::scale_fill_manual(
+        values = grDevices::colorRampPalette(c("#E8ECEF", "#8FA1AF", "#355C7D", "#3F4850"))(14)
+      ) +
       ggplot2::labs(
         fill = if (identical(surface, "density")) "Mixture density" else "Mixture CDF",
         title = if (is.null(title)) {
@@ -234,8 +236,8 @@ plot_qtl_multivariate_contour <- function(
   p <- p +
     ggplot2::coord_equal(expand = FALSE) +
     ggplot2::labs(x = "Phenotype 1 value", y = "Phenotype 2 value") +
-    ggplot2::theme_bw() +
-    ggplot2::theme(panel.grid = ggplot2::element_blank())
+    .pawh_plot_theme() +
+    ggplot2::theme(panel.grid = ggplot2::element_blank(), legend.position = "top")
 
   if (isTRUE(show_thresholds) && !is.null(threshold)) {
     tu <- threshold$upper_threshold
@@ -250,7 +252,7 @@ plot_qtl_multivariate_contour <- function(
         data = regions,
         ggplot2::aes(xmin = .data$xmin, xmax = .data$xmax,
                      ymin = .data$ymin, ymax = .data$ymax),
-        inherit.aes = FALSE, fill = c("#D55E00", "#0072B2"),
+        inherit.aes = FALSE, fill = c("#A8844F", "#355C7D"),
         alpha = 0.10, colour = NA
       ) +
       ggplot2::annotate(

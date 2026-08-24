@@ -99,6 +99,9 @@
       display: block; margin-top: 3px; color: var(--pawh-muted);
       font-size: .8rem; font-weight: 400;
     }
+    .pawh-qtl-workspace .pawh-sidebar-section summary::after {
+      content: 'Test and sampling options';
+    }
     .pawh-sidebar-section[open] summary { margin-bottom: 10px; }
     .pawh-sidebar-section p, .pawh-placeholder p { color: var(--pawh-secondary); }
     .pawh-calculate { width: 100%; min-height: 40px; margin-top: 2px; }
@@ -208,6 +211,10 @@
     baseline = "#C7CDD2", adjusted = "#3F4850",
     reference = "#7A848C"
   )
+}
+
+.pawh_qtl_genotype_colors <- function() {
+  c(`Genotype 0` = "#3F4850", `Genotype 1` = "#6F879A", `Genotype 2` = "#355C7D")
 }
 
 .pawh_plot_theme <- function() {
