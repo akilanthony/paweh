@@ -225,8 +225,8 @@
 }
 
 .pawh_qtl_sig <- function(values) serialize(values, NULL)
-.pawh_qtl_pct <- function(x, digits = 1) paste0(formatC(100 * x, format = "f", digits = digits), "%")
-.pawh_qtl_count <- function(x) formatC(ceiling(x), format = "d", big.mark = ",")
+.pawh_qtl_pct <- function(x, digits = 1) .pawh_format_percent(x, digits)
+.pawh_qtl_count <- function(x) .pawh_format_count(x, round_up = TRUE)
 .pawh_qtl_number <- function(x, digits = 4) formatC(x, format = "f", digits = digits)
 .pawh_qtl_subtype_labels <- c(
   continuous = "Full continuous trait", extreme = "Extreme phenotype sampling",
@@ -560,30 +560,59 @@
   plot
 }
 
-.pawh_qtl_multivariate_plot_args <- function(calculation, surface, grid_n = 70L) {
+.pawh_qtl_trait_pair <- function(calculation, x = NULL, y = NULL) {
+  p <- length(calculation$snapshot$backend_args$qtl_var)
+  if (p < 2L) stop("Multivariate visualization requires at least two traits.", call. = FALSE)
+  pair <- suppressWarnings(as.integer(c(x, y)))
+  if (length(pair) != 2L || anyNA(pair) || any(!pair %in% seq_len(p)) || pair[1] == pair[2]) {
+    pair <- 1:2
+  }
+  pair
+}
+
+.pawh_qtl_multivariate_plot_args <- function(calculation, surface, grid_n = 70L, trait_pair = NULL) {
   a <- calculation$snapshot$backend_args
+  if (is.null(trait_pair)) trait_pair <- .pawh_qtl_trait_pair(calculation)
+  trait_pair <- .pawh_qtl_trait_pair(calculation, trait_pair[1], trait_pair[2])
   args <- list(
-    qtl_var = a$qtl_var, tau = a$tau, pd = a$pd,
-    cor_matrix = a$cor_matrix, surface = surface, grid_n = grid_n
+    qtl_var = a$qtl_var[trait_pair], tau = a$tau[trait_pair], pd = a$pd,
+    cor_matrix = a$cor_matrix[trait_pair, trait_pair, drop = FALSE],
+    surface = surface, grid_n = grid_n
   )
   if (a$test == "threshold_chisq" || surface == "cdf") {
-    if (!is.null(a$x_upper)) args <- c(args, list(x_upper = a$x_upper, x_lower = a$x_lower))
+    if (!is.null(a$x_upper)) args <- c(args, list(
+      x_upper = a$x_upper[trait_pair], x_lower = a$x_lower[trait_pair]
+    ))
   }
+  attr(args, "trait_pair") <- trait_pair
   args
 }
 
-.pawh_qtl_multivariate_plot <- function(calculation, mode) {
+.pawh_qtl_multivariate_plot <- function(calculation, mode, trait_pair = NULL) {
   surface <- switch(mode,
     genotype = "genotype_density", mixture = "density", selection = "cdf"
   )
-  do.call(plot_qtl_multivariate_contour, .pawh_qtl_multivariate_plot_args(calculation, surface))
+  args <- .pawh_qtl_multivariate_plot_args(calculation, surface, trait_pair = trait_pair)
+  pair <- attr(args, "trait_pair")
+  attr(args, "trait_pair") <- NULL
+  do.call(plot_qtl_multivariate_contour, args) + ggplot2::labs(
+    x = paste("Trait", pair[1], "value"), y = paste("Trait", pair[2], "value")
+  )
 }
 
-.pawh_qtl_multivariate_surface <- function(calculation, mode, grid_n = 30L) {
+.pawh_qtl_multivariate_surface <- function(calculation, mode, grid_n = 30L, trait_pair = NULL) {
   surface <- if (identical(mode, "genotype")) "genotype_density" else "density"
-  args <- .pawh_qtl_multivariate_plot_args(calculation, surface, grid_n)
+  args <- .pawh_qtl_multivariate_plot_args(calculation, surface, grid_n, trait_pair)
+  pair <- attr(args, "trait_pair")
+  attr(args, "trait_pair") <- NULL
   args$z_scale <- "raw"
-  do.call(plot_qtl_multivariate_surface3d, args)
+  plotly::layout(
+    do.call(plot_qtl_multivariate_surface3d, args),
+    scene = list(
+      xaxis = list(title = paste("Trait", pair[1], "value")),
+      yaxis = list(title = paste("Trait", pair[2], "value"))
+    )
+  )
 }
 
 .pawh_qtl_summary_ui <- function(calculation) {
@@ -606,20 +635,30 @@
 }
 
 .pawh_qtl_methods_ui <- function(calculation = NULL) {
-  if (is.null(calculation)) return(.pawh_placeholder_ui("Methods", "Calculate a design to record its analysis specification."))
+  if (is.null(calculation)) return(.pawh_empty_ui("Methods"))
   s <- calculation$snapshot
+  input_specification <- if (s$subtype == "continuous") {
+    "Continuous phenotype"
+  } else if (s$subtype == "extreme") {
+    "Upper and lower population tails"
+  } else if (s$backend_args$test == "pillai") {
+    "Correlated continuous phenotypes"
+  } else {
+    "Joint upper and lower population tails"
+  }
   shiny::tagList(
     shiny::h3("Methods"),
     shiny::div(
       class = "pawh-summary-grid",
       .pawh_summary_row("Study design", unname(.pawh_qtl_subtype_labels[s$subtype])),
       .pawh_summary_row("Objective", if (s$objective == "power") "Power" else "Minimum sample size"),
+      .pawh_summary_row("Input specification", input_specification),
       .pawh_summary_row("Statistical method", .pawh_qtl_test_label(calculation)),
-      if (s$subtype == "multivariate") .pawh_summary_row("Traits", length(s$backend_args$qtl_var))
+      if (s$subtype == "multivariate") .pawh_summary_row("Traits", length(s$backend_args$qtl_var)),
+      .pawh_summary_row("Canonical function", paste0(.pawh_qtl_function(s), "()"))
     ),
     shiny::p(
-      "Calculations use ", shiny::code(paste0(.pawh_qtl_function(s), "()")),
-      ". Sensitivity points are separate canonical calls using the frozen design."
+      "The canonical Falconer model supplies genotype-specific phenotype quantities. Sensitivity points are separate canonical calls using the frozen design."
     ),
     shiny::a(
       href = "https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html",
@@ -699,7 +738,10 @@
     })
     output$core_inputs <- shiny::renderUI({
       subtype <- if (is.null(input$subtype)) "continuous" else input$subtype
-      common <- shiny::numericInput(ns("pd"), "Modeled-allele frequency (%)", 30, 0.01, 99.99, 0.1)
+      common <- shiny::tagList(
+        shiny::numericInput(ns("pd"), "Modeled-allele frequency (%)", 30, 0.01, 99.99, 0.1),
+        shiny::tags$small(class = "text-muted", "Population frequency of the allele defining the three genotype groups.")
+      )
       if (subtype == "continuous") shiny::tagList(
         common,
         shiny::numericInput(ns("qtl_var"), "Variance explained by the QTL (%)", 10, 0.01, 99.99, 0.1),
@@ -726,7 +768,11 @@
           .pawh_qtl_trait_inputs(ns, p, threshold = test == "threshold_chisq"),
           shiny::h6("Phenotype correlations"),
           .pawh_qtl_correlation_inputs(ns, p),
-          if (p > 2L) shiny::tags$small(class = "text-muted", "Statistical calculations support this trait count; contour and 3D visualization are limited to two traits.")
+          shiny::tags$small(class = "text-muted", "Pairwise phenotype correlations; the assembled matrix must be positive definite."),
+          if (p > 2L) shiny::tags$small(
+            class = "text-muted",
+            "Statistical calculations support up to four traits; contour and 3D views display a selected trait pair."
+          )
         )
       }
     })
@@ -762,11 +808,11 @@
     output$results <- shiny::renderUI(if (!is.null(state$error)) {
       shiny::div(class = "pawh-error", role = "alert", state$error)
     } else if (is.null(state$calculation)) {
-      .pawh_placeholder_ui("Results", "Set up a design and select Calculate.")
+      .pawh_empty_ui("Results")
     } else .pawh_qtl_results_ui(state$calculation))
 
     output$sensitivity_controls <- shiny::renderUI({
-      if (is.null(state$calculation)) return(.pawh_placeholder_ui("Sensitivity", "Calculate a design first."))
+      if (is.null(state$calculation)) return(.pawh_empty_ui("Sensitivity"))
       specs <- .pawh_qtl_specs(state$calculation)
       choices <- stats::setNames(names(specs), vapply(specs, `[[`, "", "label"))
       spec <- specs[[1L]]
@@ -804,7 +850,7 @@
     })
 
     output$visualize_intro <- shiny::renderUI(if (is.null(state$calculation)) {
-      .pawh_placeholder_ui("Visualize", "Calculate a design first.")
+      .pawh_empty_ui("Visualize")
     } else if (state$calculation$snapshot$subtype == "continuous") shiny::div(
       class = "pawh-visual-intro", shiny::h3("Genotype distributions"),
       shiny::p("Population-weighted phenotype distributions returned by the canonical Falconer plotting pathway.")
@@ -813,32 +859,41 @@
       shiny::p("Canonical genotype distributions with the returned lower and upper selection thresholds.")
     ) else shiny::div(
       class = "pawh-visual-intro", shiny::h3("Multiple-trait distributions"),
-      shiny::p("Two-dimensional visualization is available for calculated two-trait models.")
+      shiny::p("Statistical calculations support up to four traits. Two-dimensional and 3D visualizations display a selected pair from the frozen design.")
     ))
     output$visualization_controls <- shiny::renderUI({
       if (is.null(state$calculation) || state$calculation$snapshot$subtype != "multivariate") return(NULL)
-      if (length(state$calculation$snapshot$backend_args$qtl_var) != 2L) {
-        return(shiny::p(class = "text-muted", "Visualization is currently limited to two traits; the statistical result above uses all specified traits."))
-      }
+      p <- length(state$calculation$snapshot$backend_args$qtl_var)
+      trait_choices <- stats::setNames(as.character(seq_len(p)), paste("Trait", seq_len(p)))
+      x <- if (!is.null(input$visual_trait_x) && input$visual_trait_x %in% unname(trait_choices)) input$visual_trait_x else "1"
+      y_choices <- trait_choices[unname(trait_choices) != x]
+      y <- if (!is.null(input$visual_trait_y) && input$visual_trait_y %in% unname(y_choices)) input$visual_trait_y else unname(y_choices)[1]
       choices <- c(`Genotype distributions` = "genotype", `Overall population` = "mixture")
       if (state$calculation$snapshot$backend_args$test == "threshold_chisq") choices <- c(choices, `Selection regions` = "selection")
-      shiny::radioButtons(ns("visual_mode"), "Visualization", choices, inline = TRUE)
+      shiny::tagList(
+        if (p > 2L) shiny::div(
+          class = "pawh-sensitivity-controls",
+          shiny::selectInput(ns("visual_trait_x"), "Horizontal trait", trait_choices, selected = x),
+          shiny::selectInput(ns("visual_trait_y"), "Vertical trait", y_choices, selected = y)
+        ),
+        shiny::radioButtons(ns("visual_mode"), "Visualization", choices, inline = TRUE)
+      )
     })
     output$visualization_plot <- shiny::renderPlot({
       shiny::req(state$calculation)
       if (state$calculation$snapshot$subtype == "multivariate") {
-        shiny::req(length(state$calculation$snapshot$backend_args$qtl_var) == 2L)
         .pawh_qtl_multivariate_plot(
-          state$calculation, if (is.null(input$visual_mode)) "genotype" else input$visual_mode
+          state$calculation,
+          if (is.null(input$visual_mode)) "genotype" else input$visual_mode,
+          .pawh_qtl_trait_pair(state$calculation, input$visual_trait_x, input$visual_trait_y)
         )
       } else .pawh_qtl_single_plot(state$calculation)
     })
 
     output$surface_controls <- shiny::renderUI({
       if (is.null(state$calculation)) return(shiny::p(class = "text-muted", "Calculate a design first."))
-      if (state$calculation$snapshot$subtype != "multivariate" ||
-          length(state$calculation$snapshot$backend_args$qtl_var) != 2L) {
-        return(shiny::p(class = "text-muted", "On-demand 3D visualization is available for calculated two-trait models."))
+      if (state$calculation$snapshot$subtype != "multivariate") {
+        return(shiny::p(class = "text-muted", "On-demand 3D visualization is available for multivariate designs."))
       }
       if (!requireNamespace("plotly", quietly = TRUE)) return(shiny::p(class = "text-muted", "Install the suggested plotly package to generate this optional visualization."))
       shiny::tagList(
@@ -859,10 +914,15 @@
           message = "Generating QTL visualization", value = 0.5,
           expr = .pawh_qtl_multivariate_surface(
             state$calculation,
-            if (is.null(input$surface_mode)) "genotype" else input$surface_mode
+            if (is.null(input$surface_mode)) "genotype" else input$surface_mode,
+            trait_pair = .pawh_qtl_trait_pair(state$calculation, input$visual_trait_x, input$visual_trait_y)
           )
         )
       }, error = function(error) state$surface_error <- paste("The 3D visualization could not be generated.", conditionMessage(error)))
+    }, ignoreInit = TRUE)
+    shiny::observeEvent(list(input$visual_trait_x, input$visual_trait_y), {
+      state$surface <- NULL
+      state$surface_error <- NULL
     }, ignoreInit = TRUE)
     output$surface_message <- shiny::renderUI(if (!is.null(state$surface_error)) {
       shiny::div(class = "pawh-error", role = "alert", state$surface_error)

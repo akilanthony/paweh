@@ -238,8 +238,8 @@
     0 || x$errors$phenotype_misclass$phi > 0), genotype = isTRUE(x$errors$genotype_misclass$enabled)))
 }
 .pawh_cc_sig <- function(v) serialize(v, NULL)
-.pawh_cc_pct <- function(x, d = 1) paste0(formatC(100 * x, format = "f", digits = d), "%")
-.pawh_cc_count <- function(x) formatC(x, format = "d", big.mark = ",")
+.pawh_cc_pct <- function(x, d = 1) .pawh_format_percent(x, d)
+.pawh_cc_count <- function(x) .pawh_format_count(x)
 .pawh_cc_result_data <- function(r, o) {
   if (o == "power") {
     data.frame(
@@ -549,6 +549,34 @@
       face = "plain", color = "#3F4850"
     ))
 }
+
+.pawh_cc_methods_ui <- function(calculation = NULL) {
+  if (is.null(calculation)) return(.pawh_empty_ui("Methods"))
+  snapshot <- calculation$snapshot
+  active_labels <- c(
+    locus = "Locus heterogeneity",
+    phenotype = "Phenotype misclassification",
+    genotype = "Genotype misclassification"
+  )[unlist(calculation$active)]
+  shiny::tagList(
+    shiny::h3("Methods"),
+    shiny::div(
+      class = "pawh-summary-grid",
+      .pawh_summary_row("Study design", "Case-control association"),
+      .pawh_summary_row("Objective", if (snapshot$objective == "power") "Power" else "Minimum sample size"),
+      .pawh_summary_row("Input specification", if (snapshot$input_mode == "model_based") "Genetic model" else "Direct genotype probabilities"),
+      .pawh_summary_row("Statistical tests", "Genotype 2 x 3 chi-square; Cochran-Armitage trend"),
+      .pawh_summary_row("Active modifiers", if (length(active_labels)) paste(active_labels, collapse = "; ") else "None"),
+      .pawh_summary_row("Canonical function", if (snapshot$objective == "power") "cc_power()" else "cc_mssn()")
+    ),
+    shiny::p("Results, advanced details, plots, and sensitivity analyses use the frozen calculated design."),
+    shiny::a(
+      href = "https://akilanthony.github.io/pawh/articles/pawh-02-case-control-study-design.html",
+      target = "_blank", rel = "noopener", "Read the Case-Control vignette"
+    )
+  )
+}
+
 .pawh_case_control_server <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -569,12 +597,18 @@
       ), shiny::numericInput(
         ns("pd"), "Modeled-allele frequency (%)", 30, 0.01, 99.99,
         0.1
+      ), shiny::tags$small(
+        class = "text-muted",
+        "Population prevalence and modeled-allele frequency used by the canonical genetic model."
       ), shiny::selectInput(ns("MOI"), "Inheritance model", c(
         Multiplicative = "M", Dominant = "D",
         Recessive = "Rec"
       )), shiny::numericInput(
-        ns("R2"), "Homozygote relative risk", 2, 0.01,
-        NA, 0.1
+      ns("R2"), "Homozygote relative risk", 2, 0.01,
+      NA, 0.1
+      ), shiny::tags$small(
+        class = "text-muted",
+        "Risk for two modeled alleles relative to zero; the inheritance model determines the heterozygote risk."
       ))
     } else {
       .pawh_cc_direct_ui(ns)
@@ -643,13 +677,13 @@
     output$results <- shiny::renderUI(if (!is.null(st$error)) {
       shiny::div(class = "pawh-error", role = "alert", st$error)
     } else if (is.null(st$calculation)) {
-      .pawh_placeholder_ui("Results", "Set up a design and select Calculate.")
+      .pawh_empty_ui("Results")
     } else {
       .pawh_cc_results_ui(st$calculation)
     })
     output$sensitivity_controls <- shiny::renderUI({
       if (is.null(st$calculation)) {
-        return(.pawh_placeholder_ui("Sensitivity", "Calculate a design first."))
+        return(.pawh_empty_ui("Sensitivity"))
       }
       sp <- .pawh_cc_specs(st$calculation)
       ch <- stats::setNames(names(sp), vapply(sp, `[[`, "", "label"))
@@ -695,7 +729,7 @@
       .pawh_cc_sensitivity_plot(st$sensitivity)
     })
     output$visualize_intro <- shiny::renderUI(if (is.null(st$calculation)) {
-      .pawh_placeholder_ui("Visualize", "Calculate a design first.")
+      .pawh_empty_ui("Visualize")
     } else {
       shiny::div(class = "pawh-visual-intro", shiny::h3("Genotype distributions"), shiny::p("Probabilities returned by the canonical calculation."))
     })
@@ -703,13 +737,7 @@
       shiny::req(st$calculation)
       .pawh_cc_genotype_plot(st$calculation)
     })
-    output$methods <- shiny::renderUI(shiny::tagList(
-      shiny::h3("Methods"), shiny::p("The dashboard calls cc_power() or cc_mssn(). Baselines and sensitivity points are separate canonical calls."),
-      shiny::a(
-        href = "https://akilanthony.github.io/pawh/articles/pawh-02-case-control-study-design.html",
-        target = "_blank", rel = "noopener", "Read the Case-Control vignette"
-      )
-    ))
+    output$methods <- shiny::renderUI(.pawh_cc_methods_ui(st$calculation))
     list(
       calculation = shiny::reactive(st$calculation), changed = changed, error = shiny::reactive(st$error),
       sensitivity = shiny::reactive(st$sensitivity)

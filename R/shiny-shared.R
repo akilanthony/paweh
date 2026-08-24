@@ -20,7 +20,7 @@
       --pawh-panel: #FFFFFF;
       --pawh-text: #20252B;
       --pawh-secondary: #5F6B76;
-      --pawh-muted: #7B8792;
+    --pawh-muted: #66727D;
       --pawh-border: #D9DEE3;
       --pawh-divider: #E9ECEF;
       --pawh-primary: #355C7D;
@@ -72,6 +72,10 @@
     .pawh-study-card .btn { margin: 2px 0 0; align-self: flex-start; }
     .btn { border-radius: 5px; font-size: .9rem; }
     .btn-primary { background: var(--pawh-primary); border-color: var(--pawh-primary); }
+    .btn:focus-visible, .form-control:focus-visible, .form-select:focus-visible,
+    .nav-link:focus-visible, summary:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(53, 92, 125, .35); outline-offset: 2px;
+    }
     .pawh-workspace .bslib-sidebar-layout > .sidebar {
       width: 280px; background: #FFFFFF; border: 1px solid var(--pawh-border);
       border-radius: 7px 0 0 7px;
@@ -126,6 +130,8 @@
       background: #FFFFFF;
     }
     .pawh-workspace .card-body { padding: 16px; }
+    .pawh-workspace .shiny-plot-output:empty { display: none; }
+    .pawh-workspace .html-widget-output { max-width: 100%; overflow: hidden; }
     .pawh-placeholder { max-width: 560px; padding: 16px 8px; }
     .pawh-placeholder h3 { margin-bottom: 6px; font-size: 1.08rem; font-weight: 500; }
     .pawh-placeholder p { margin-bottom: 0; }
@@ -196,6 +202,10 @@
       .pawh-workspace .bslib-sidebar-layout > .main { padding: 12px 0 0; }
       .pawh-workspace .bslib-sidebar-layout > .sidebar { width: auto; border-radius: 7px; }
       .pawh-sensitivity-controls { display: block; max-width: 100%; }
+      .pawh-workspace .card-header-tabs { padding: 0 8px; overflow-x: auto; flex-wrap: nowrap; }
+      .pawh-summary-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+      .pawh-summary-value { text-align: left; overflow-wrap: anywhere; }
+      .pawh-reproduce pre { max-width: 100%; white-space: pre; overflow-x: auto; }
     }
     "
   )
@@ -268,6 +278,22 @@
   paste(deparse(call, width.cutoff = 72L), collapse = "\n")
 }
 
+.pawh_format_percent <- function(x, digits = 1L) {
+  vapply(x, function(value) {
+    if (!is.finite(value)) return("not defined")
+    paste0(formatC(100 * value, format = "f", digits = digits), "%")
+  }, character(1), USE.NAMES = FALSE)
+}
+
+.pawh_format_count <- function(x, round_up = FALSE) {
+  vapply(x, function(value) {
+    if (is.na(value) || is.nan(value)) return("not defined")
+    if (is.infinite(value)) return(if (value > 0) "Inf" else "-Inf")
+    if (round_up) value <- ceiling(value)
+    formatC(value, format = "d", big.mark = ",")
+  }, character(1), USE.NAMES = FALSE)
+}
+
 .pawh_reproduce_ui <- function(call) {
   shiny::div(
     class = "pawh-reproduce", shiny::h5("Reproduce in R"),
@@ -304,76 +330,13 @@
   )
 }
 
-.pawh_design_sidebar_ui <- function(objective, phase) {
-  bslib::sidebar(
-    title = "Design setup",
-    open = "desktop",
-    shiny::div(
-      class = "pawh-sidebar-section",
-      shiny::h4("Objective"),
-      shiny::p(objective)
-    ),
-    shiny::div(
-      class = "pawh-sidebar-section",
-      shiny::h4("Core assumptions"),
-      shiny::p("Study inputs will be added in a focused implementation phase.")
-    ),
-    shiny::tags$details(
-      class = "pawh-sidebar-section",
-      shiny::tags$summary(shiny::strong("Advanced assumptions")),
-      shiny::p("Advanced error, heterogeneity, and modeling options will appear here.")
-    ),
-    shiny::tags$button(
-      type = "button",
-      class = "btn btn-primary w-100 mt-3",
-      disabled = NA,
-      "Calculate"
-    ),
-    shiny::tags$small(class = "text-muted", phase),
-    bslib::card(
-      class = "pawh-design-summary",
-      bslib::card_header("Your design"),
-      bslib::card_body(
-        shiny::p("Your selected assumptions will be summarized here.")
-      )
-    )
+.pawh_empty_ui <- function(section) {
+  messages <- c(
+    Results = "Configure a design and select Calculate study design.",
+    Sensitivity = "Calculate a design before exploring sensitivity.",
+    Visualize = "Calculate a design to generate study-specific visualizations.",
+    Methods = "Calculate a design to record its analysis specification."
   )
-}
-
-.pawh_study_workspace_ui <- function(id, objective, phase) {
-  ns <- shiny::NS(id)
-  bslib::layout_sidebar(
-    sidebar = .pawh_design_sidebar_ui(objective, phase),
-    bslib::navset_card_tab(
-      id = ns("section"),
-      bslib::nav_panel(
-        "Results",
-        .pawh_placeholder_ui(
-          "Results",
-          paste(phase, "No calculations are performed by this skeleton.")
-        )
-      ),
-      bslib::nav_panel(
-        "Sensitivity",
-        .pawh_placeholder_ui(
-          "Sensitivity",
-          "Sensitivity controls and parameter sweeps will be implemented later."
-        )
-      ),
-      bslib::nav_panel(
-        "Visualize",
-        .pawh_placeholder_ui(
-          "Visualize",
-          "Study-design visualizations will be connected to canonical plotting functions later."
-        )
-      ),
-      bslib::nav_panel(
-        "Methods",
-        .pawh_placeholder_ui(
-          "Methods",
-          "Model assumptions, supported methods, and interpretation guidance will appear here."
-        )
-      )
-    )
-  )
+  stopifnot(section %in% names(messages))
+  .pawh_placeholder_ui(section, unname(messages[[section]]))
 }

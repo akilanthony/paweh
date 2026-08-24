@@ -288,7 +288,7 @@ plot_qtl_multivariate_surface3d <- function(
       type = "scatter3d", mode = "markers",
       marker = list(
         size = 5,
-        color = c("#0072B2", "#D55E00", "#009E73"),
+        color = unname(.pawh_qtl_genotype_colors()),
         symbol = c("circle", "square", "diamond"),
         line = list(color = "white", width = 1.5)
       ),

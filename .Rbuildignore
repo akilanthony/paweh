@@ -7,5 +7,6 @@
 ^docs$
 ^pkgdown$
 ^AGENTS\.md$
+^tests/testthat/Rplots\.pdf$
 ^\.claude$
 ^\.github$

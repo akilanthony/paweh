@@ -138,7 +138,7 @@
     .pawh_tdt_num(values$pd, "Modeled-allele frequency", 0, 100, TRUE)
     .pawh_tdt_num(values$R1, "Heterozygote relative risk", 0, Inf, TRUE)
     .pawh_tdt_num(values$R2, "Homozygote relative risk", 0, Inf, TRUE)
-    .pawh_tdt_num(values$delta_prime, "D-prime", 0, 1)
+    .pawh_tdt_num(values$delta_prime, "D\u2032", 0, 1)
     args <- c(args, list(
       prev = values$prev / 100, pd = values$pd / 100,
       R1 = values$R1, R2 = values$R2,
@@ -228,7 +228,7 @@
   if (s$input_mode == "model_based") {
     paste0(
       "Genetic model | allele frequency ", v$pd, "% | prevalence ", v$prev,
-      "% | R1 ", v$R1, " | R2 ", v$R2, " | D-prime ", v$delta_prime
+      "% | R1 ", v$R1, " | R2 ", v$R2, " | D\u2032 ", v$delta_prime
     )
   } else {
     "Direct transmission quantities"
@@ -283,7 +283,7 @@
     .pawh_summary_row("Modeled-allele frequency", formatC(result$model_parameters$pd, format = "f", digits = 4)),
     .pawh_summary_row("R1", formatC(result$model_parameters$R1, format = "f", digits = 4)),
     .pawh_summary_row("R2", formatC(result$model_parameters$R2, format = "f", digits = 4)),
-    .pawh_summary_row("D-prime", formatC(result$model_parameters$delta_prime, format = "f", digits = 4)),
+    .pawh_summary_row("D\u2032", formatC(result$model_parameters$delta_prime, format = "f", digits = 4)),
     .pawh_summary_row("Alpha", format(result$alpha))
   ) else list(
     .pawh_summary_row("Input specification", "Direct transmission quantities"),
@@ -428,7 +428,7 @@
     specs$prev <- list(label = "Disease prevalence", min = 0.001, max = 0.5, value = values$prev / 100, key = "prev")
     specs$R1 <- list(label = "Heterozygote relative risk", min = 0.1, max = max(4, values$R1 * 2), value = values$R1, key = "R1")
     specs$R2 <- list(label = "Homozygote relative risk", min = 0.1, max = max(5, values$R2 * 2), value = values$R2, key = "R2")
-    specs$delta_prime <- list(label = "D-prime", min = 0, max = 1, value = values$delta_prime, key = "delta_prime")
+    specs$delta_prime <- list(label = "D\u2032", min = 0, max = 1, value = values$delta_prime, key = "delta_prime")
   } else {
     specs$ET <- list(label = "Expected transmitted count", min = 0, max = max(10, values$ET * 2), value = values$ET, key = "ET")
     specs$ENT <- list(label = "Expected non-transmitted count", min = 0, max = max(10, values$ENT * 2), value = values$ENT, key = "ENT")
@@ -556,7 +556,7 @@
     .pawh_summary_row("Disease prevalence", paste0(values$prev, "%")),
     .pawh_summary_row("Allele frequency", paste0(values$pd, "%")),
     .pawh_summary_row("Relative risks", paste0("R1 ", values$R1, "; R2 ", values$R2)),
-    .pawh_summary_row("D-prime", format(values$delta_prime))
+    .pawh_summary_row("D\u2032", format(values$delta_prime))
   ) else list(
     .pawh_summary_row("Transmission counts", paste0("ET ", values$ET, "; ENT ", values$ENT)),
     if (snapshot$objective == "mssn") .pawh_summary_row("Represented trios", .pawh_tdt_count(values$n_trios, TRUE))
@@ -568,7 +568,7 @@
 }
 
 .pawh_tdt_methods_ui <- function(calculation = NULL) {
-  if (is.null(calculation)) return(.pawh_placeholder_ui("Methods", "Calculate a design to record its analysis specification."))
+  if (is.null(calculation)) return(.pawh_empty_ui("Methods"))
   scenarios <- unname(.pawh_tdt_scenario_labels[.pawh_tdt_scenarios(calculation)])
   shiny::tagList(
     shiny::h3("Methods"),
@@ -578,15 +578,15 @@
       .pawh_summary_row("Objective", if (calculation$snapshot$objective == "power") "Power" else "Minimum sample size"),
       .pawh_summary_row("Input specification", if (calculation$snapshot$input_mode == "model_based") "Genetic model" else "Direct transmission quantities"),
       .pawh_summary_row("Statistical method", "Transmission Disequilibrium Test"),
-      .pawh_summary_row("Scenarios", paste(scenarios, collapse = "; "))
+      .pawh_summary_row("Scenarios", paste(scenarios, collapse = "; ")),
+      .pawh_summary_row("Canonical function", if (calculation$snapshot$objective == "power") "tdt_power()" else "tdt_mssn()")
     ),
     if (all(unlist(calculation$active))) shiny::p(
       class = "pawh-caution",
       "The current implementation evaluates phenotype misclassification and locus heterogeneity separately rather than as a joint combined model."
     ),
     shiny::p(
-      "Calculations use ", shiny::code(if (calculation$snapshot$objective == "power") "tdt_power()" else "tdt_mssn()"),
-      ". Sensitivity points are separate canonical calls using the frozen design."
+      "The analysis compares transmission and non-transmission among affected-child trios. Sensitivity points are separate canonical calls using the frozen design."
     ),
     shiny::a(
       href = "https://akilanthony.github.io/pawh/articles/pawh-03-tdt-study-design.html",
@@ -598,7 +598,7 @@
 .pawh_tdt_surface_axis_labels <- c(
   pd = "Modeled-allele frequency", prev = "Disease prevalence",
   R1 = "Heterozygote relative risk (R1)", R2 = "Homozygote relative risk (R2)",
-  alpha = "Significance level", delta_prime = "D-prime",
+  alpha = "Significance level", delta_prime = "D\u2032",
   misclass_rate = "Phenotype misclassification rate",
   heter_rate = "Locus heterogeneity rate"
 )
@@ -675,10 +675,12 @@
         shiny::numericInput(ns("prev"), "Disease prevalence (%)", 5, 0.01, 99.99, 0.1),
         shiny::tags$small(class = "text-muted", "Population prevalence used by the canonical penetrance model."),
         shiny::numericInput(ns("pd"), "Modeled-allele frequency (%)", 30, 0.01, 99.99, 0.1),
+        shiny::tags$small(class = "text-muted", "Population frequency of the allele modeled as increasing disease risk."),
         shiny::numericInput(ns("R1"), "Heterozygote relative risk (R1)", 1.5, 0.01, NA, 0.05),
         shiny::numericInput(ns("R2"), "Homozygote relative risk (R2)", 2.25, 0.01, NA, 0.05),
         shiny::tags$small(class = "text-muted", "R1 and R2 are entered explicitly; the canonical TDT API does not define inheritance shortcuts."),
-        shiny::numericInput(ns("delta_prime"), "Linkage disequilibrium (D-prime)", 1, 0, 1, 0.05)
+        shiny::numericInput(ns("delta_prime"), "Linkage disequilibrium (D\u2032)", 1, 0, 1, 0.05),
+        shiny::tags$small(class = "text-muted", "Canonical linkage-disequilibrium scale from 0 to 1.")
       ) else shiny::tagList(
         shiny::numericInput(ns("ET"), "Expected transmitted count (ET)", 140, 0, NA, 1),
         shiny::numericInput(ns("ENT"), "Expected non-transmitted count (ENT)", 100, 0, NA, 1),
@@ -715,10 +717,10 @@
     output$results <- shiny::renderUI(if (!is.null(state$error)) {
       shiny::div(class = "pawh-error", role = "alert", state$error)
     } else if (is.null(state$calculation)) {
-      .pawh_placeholder_ui("Results", "Set up a design and select Calculate.")
+      .pawh_empty_ui("Results")
     } else .pawh_tdt_results_ui(state$calculation))
     output$sensitivity_controls <- shiny::renderUI({
-      if (is.null(state$calculation)) return(.pawh_placeholder_ui("Sensitivity", "Calculate a design first."))
+      if (is.null(state$calculation)) return(.pawh_empty_ui("Sensitivity"))
       specs <- .pawh_tdt_specs(state$calculation)
       choices <- stats::setNames(names(specs), vapply(specs, `[[`, "", "label"))
       spec <- specs[[1L]]
@@ -754,7 +756,7 @@
       .pawh_tdt_sensitivity_plot(state$sensitivity)
     })
     output$visualize_intro <- shiny::renderUI(if (is.null(state$calculation)) {
-      .pawh_placeholder_ui("Visualize", "Calculate a design first.")
+      .pawh_empty_ui("Visualize")
     } else shiny::div(
       class = "pawh-visual-intro", shiny::h3("Transmission imbalance"),
       shiny::p("Expected transmission and non-transmission probabilities returned by the canonical calculation.")
