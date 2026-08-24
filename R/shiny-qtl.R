@@ -1,44 +1,886 @@
-# Quantitative-trait dashboard shell.
+# Quantitative-trait dashboard; statistical work delegates to canonical QTL functions.
 
-.pawh_qtl_subtype_ui <- function(id, objective, phase) {
-  .pawh_study_workspace_ui(id, objective = objective, phase = phase)
+.pawh_qtl_defaults <- function() {
+  list(
+    subtype = "continuous", objective = "power", N = 500, N_case = 150,
+    target_power = 80, alpha = 0.05, pd = 30, qtl_var = 10, tau = 0,
+    count_method = "rounded", multiple_of_three = TRUE,
+    x_upper = 10, x_lower = 10, k = 1,
+    n_traits = 2, mv_test = "pillai",
+    mv_qtl_var_1 = 10, mv_qtl_var_2 = 5, mv_qtl_var_3 = 3, mv_qtl_var_4 = 2,
+    mv_tau_1 = 0, mv_tau_2 = 0.5, mv_tau_3 = 0, mv_tau_4 = 0,
+    mv_x_upper_1 = 10, mv_x_upper_2 = 10, mv_x_upper_3 = 10, mv_x_upper_4 = 10,
+    mv_x_lower_1 = 10, mv_x_lower_2 = 10, mv_x_lower_3 = 10, mv_x_lower_4 = 10,
+    corr_1_2 = 0, corr_1_3 = 0, corr_1_4 = 0,
+    corr_2_3 = 0, corr_2_4 = 0, corr_3_4 = 0
+  )
+}
+
+.pawh_qtl_values <- function(input) {
+  shiny::reactiveValuesToList(input)
+  defaults <- .pawh_qtl_defaults()
+  values <- lapply(names(defaults), function(name) {
+    if (is.null(input[[name]])) defaults[[name]] else input[[name]]
+  })
+  stats::setNames(values, names(defaults))
+}
+
+.pawh_qtl_num <- function(x, label, lower, upper, open = FALSE) {
+  invalid <- !is.numeric(x) || length(x) != 1L || !is.finite(x) ||
+    x < lower || x > upper || (open && (x == lower || x == upper))
+  if (invalid) stop(label, " is outside its allowed range.", call. = FALSE)
 }
 
 .pawh_qtl_ui <- function(id) {
   ns <- shiny::NS(id)
-  shiny::tagList(
+  shiny::div(
+    class = "pawh-workspace pawh-qtl-workspace",
     .pawh_page_heading(
-      "Quantitative Trait",
-      "Design studies involving continuous phenotypes."
+      "Quantitative Trait study design",
+      "Design continuous, extreme-phenotype, or joint multiple-trait studies."
     ),
-    bslib::navset_pill_list(
-      id = ns("subtype"),
-      widths = c(3, 9),
-      well = TRUE,
-      bslib::nav_panel(
-        "Full continuous trait",
-        .pawh_qtl_subtype_ui(
-          ns("continuous"),
-          objective = "Design a study that measures a continuous phenotype in all participants.",
-          phase = "Full continuous-trait inputs will be implemented in a later development phase."
+    bslib::layout_sidebar(
+      sidebar = bslib::sidebar(
+        title = "Design setup", open = "desktop", width = 280, resizable = FALSE,
+        shiny::radioButtons(ns("subtype"), "How will the phenotype be analyzed?", c(
+          `Full continuous trait` = "continuous",
+          `Extreme phenotype sampling` = "extreme",
+          `Multiple quantitative traits` = "multivariate"
+        )),
+        shiny::uiOutput(ns("subtype_help")),
+        shiny::radioButtons(ns("objective"), "Objective", c(
+          `Estimate power` = "power", `Minimum sample size` = "mssn"
+        )),
+        shiny::uiOutput(ns("objective_inputs")),
+        shiny::uiOutput(ns("core_inputs")),
+        shiny::numericInput(ns("alpha"), "Significance level (alpha)", 0.05, 1e-8, 0.999999),
+        shiny::tags$details(
+          class = "pawh-sidebar-section",
+          shiny::tags$summary(shiny::strong("Advanced assumptions")),
+          shiny::uiOutput(ns("advanced_inputs"))
+        ),
+        shiny::actionButton(ns("calculate"), "Calculate study design", class = "btn-primary pawh-calculate"),
+        shiny::uiOutput(ns("changed_notice")),
+        bslib::card(
+          class = "pawh-design-summary", bslib::card_header("Your calculated design"),
+          bslib::card_body(shiny::uiOutput(ns("design_summary")))
         )
       ),
-      bslib::nav_panel(
-        "Extreme phenotype sampling",
-        .pawh_qtl_subtype_ui(
-          ns("extreme"),
-          objective = "Design a study that recruits participants from selected phenotype tails.",
-          phase = "Extreme-phenotype inputs will be implemented in a later development phase."
-        )
-      ),
-      bslib::nav_panel(
-        "Multiple quantitative traits",
-        .pawh_qtl_subtype_ui(
-          ns("multivariate"),
-          objective = "Design a study that analyzes multiple quantitative phenotypes jointly.",
-          phase = "Multiple-trait inputs will be implemented in a later development phase."
-        )
+      bslib::navset_card_tab(
+        id = ns("section"),
+        bslib::nav_panel("Results", shiny::uiOutput(ns("results"))),
+        bslib::nav_panel(
+          "Sensitivity", shiny::uiOutput(ns("sensitivity_controls")),
+          shiny::uiOutput(ns("sensitivity_message")),
+          shiny::plotOutput(ns("sensitivity_plot"), height = "430px")
+        ),
+        bslib::nav_panel(
+          "Visualize", shiny::uiOutput(ns("visualize_intro")),
+          shiny::uiOutput(ns("visualization_controls")),
+          shiny::plotOutput(ns("visualization_plot"), height = "460px"),
+          shiny::tags$details(
+            class = "pawh-advanced-visualization",
+            shiny::tags$summary("Advanced visualization"),
+            shiny::div(
+              class = "pawh-advanced-body",
+              shiny::uiOutput(ns("surface_controls")),
+              shiny::uiOutput(ns("surface_message")),
+              shiny::uiOutput(ns("surface_container"))
+            )
+          )
+        ),
+        bslib::nav_panel("Methods", shiny::uiOutput(ns("methods")))
       )
     )
   )
+}
+
+.pawh_qtl_correlation_matrix <- function(values, p) {
+  matrix_value <- diag(p)
+  if (p > 1L) for (i in seq_len(p - 1L)) for (j in seq.int(i + 1L, p)) {
+    value <- values[[paste0("corr_", i, "_", j)]]
+    .pawh_qtl_num(value, paste("Correlation for traits", i, "and", j), -1, 1)
+    matrix_value[i, j] <- matrix_value[j, i] <- value
+  }
+  dimnames(matrix_value) <- list(paste("Trait", seq_len(p)), paste("Trait", seq_len(p)))
+  matrix_value
+}
+
+.pawh_qtl_snapshot <- function(values) {
+  if (!values$subtype %in% c("continuous", "extreme", "multivariate")) {
+    stop("Choose a valid quantitative-trait workflow.", call. = FALSE)
+  }
+  if (!values$objective %in% c("power", "mssn")) stop("Choose a valid objective.", call. = FALSE)
+  .pawh_qtl_num(values$alpha, "Significance level", 0, 1, TRUE)
+  .pawh_qtl_num(values$pd, "Modeled-allele frequency", 0, 100, TRUE)
+  if (values$objective == "mssn") {
+    .pawh_qtl_num(values$target_power, "Target power", 0, 100, TRUE)
+    objective_value <- values$target_power / 100
+  }
+
+  if (values$subtype == "continuous") {
+    .pawh_qtl_num(values$qtl_var, "QTL variance explained", 0, 100, TRUE)
+    .pawh_qtl_num(values$tau, "Dominance parameter", -Inf, Inf)
+    if (values$objective == "power") {
+      .pawh_qtl_num(values$N, "Sample size", 3, Inf, TRUE)
+      if (values$N != floor(values$N)) stop("Sample size must be an integer.", call. = FALSE)
+      objective_value <- values$N
+    }
+    args <- list(
+      alpha = values$alpha, qtl_var = values$qtl_var / 100,
+      tau = values$tau, pd = values$pd / 100,
+      count_method = values$count_method
+    )
+    if (values$objective == "mssn") args$multiple_of_three <- isTRUE(values$multiple_of_three)
+  } else if (values$subtype == "extreme") {
+    .pawh_qtl_num(values$qtl_var, "QTL variance explained", 0, 100, TRUE)
+    .pawh_qtl_num(values$tau, "Dominance parameter", -Inf, Inf)
+    .pawh_qtl_num(values$x_upper, "Upper population tail", 0, 100, TRUE)
+    .pawh_qtl_num(values$x_lower, "Lower population tail", 0, 100, TRUE)
+    .pawh_qtl_num(values$k, "Lower-to-upper selected ratio", 0, Inf, TRUE)
+    qtl_falconer_threshold_parameters(
+      qtl_var = values$qtl_var / 100, tau = values$tau,
+      pd = values$pd / 100, x_upper = values$x_upper,
+      x_lower = values$x_lower, verbose = FALSE
+    )
+    if (values$objective == "power") {
+      .pawh_qtl_num(values$N_case, "Upper-tail selected sample", 0, Inf, TRUE)
+      objective_value <- values$N_case
+    }
+    args <- list(
+      alpha = values$alpha, qtl_var = values$qtl_var / 100,
+      tau = values$tau, pd = values$pd / 100,
+      x_upper = values$x_upper, x_lower = values$x_lower, k = values$k
+    )
+  } else {
+    p <- as.integer(values$n_traits)
+    if (!p %in% 2:4) stop("Number of traits must be between 2 and 4.", call. = FALSE)
+    qtl_var <- tau <- x_upper <- x_lower <- numeric(p)
+    for (i in seq_len(p)) {
+      qtl_var[i] <- values[[paste0("mv_qtl_var_", i)]] / 100
+      tau[i] <- values[[paste0("mv_tau_", i)]]
+      x_upper[i] <- values[[paste0("mv_x_upper_", i)]]
+      x_lower[i] <- values[[paste0("mv_x_lower_", i)]]
+      .pawh_qtl_num(qtl_var[i], paste("Trait", i, "QTL variance"), 0, 1, TRUE)
+      .pawh_qtl_num(tau[i], paste("Trait", i, "dominance parameter"), -Inf, Inf)
+    }
+    cor_matrix <- .pawh_qtl_correlation_matrix(values, p)
+    .falconer_mv_validate_model(qtl_var, tau, values$pd / 100, cor_matrix)
+    if (!values$mv_test %in% c("pillai", "threshold_chisq")) stop("Choose a valid joint test.", call. = FALSE)
+    if (values$mv_test == "threshold_chisq") {
+      for (i in seq_len(p)) {
+        .pawh_qtl_num(x_upper[i], paste("Trait", i, "upper tail"), 0, 100, TRUE)
+        .pawh_qtl_num(x_lower[i], paste("Trait", i, "lower tail"), 0, 100, TRUE)
+      }
+      .pawh_qtl_num(values$k, "Lower-to-upper selected ratio", 0, Inf, TRUE)
+    }
+    if (values$objective == "power") {
+      objective_name <- if (values$mv_test == "pillai") "Total sample size" else "Upper-tail selected sample"
+      objective_raw <- if (values$mv_test == "pillai") values$N else values$N_case
+      .pawh_qtl_num(objective_raw, objective_name, 0, Inf, TRUE)
+      if (values$mv_test == "pillai" && objective_raw != floor(objective_raw)) {
+        stop("Total sample size must be an integer.", call. = FALSE)
+      }
+      objective_value <- objective_raw
+    }
+    args <- list(
+      alpha = values$alpha, qtl_var = qtl_var, tau = tau,
+      pd = values$pd / 100, cor_matrix = cor_matrix, test = values$mv_test
+    )
+    if (values$mv_test == "threshold_chisq") {
+      args <- c(args, list(x_upper = x_upper, x_lower = x_lower, k = values$k))
+    }
+  }
+  list(
+    subtype = values$subtype, objective = values$objective,
+    objective_value = objective_value, backend_args = args, display = values
+  )
+}
+
+.pawh_qtl_function <- function(snapshot) {
+  switch(snapshot$subtype,
+    continuous = if (snapshot$objective == "power") "qtl_anova_power" else "qtl_anova_mssn",
+    extreme = if (snapshot$objective == "power") "qtl_threshold_chisq_power" else "qtl_threshold_chisq_mssn",
+    multivariate = if (snapshot$objective == "power") "qtl_multivariate_power_full" else "qtl_multivariate_mssn_full"
+  )
+}
+
+.pawh_qtl_call_args <- function(snapshot, args = snapshot$backend_args) {
+  if (snapshot$objective == "power") {
+    if (snapshot$subtype == "continuous" ||
+        snapshot$subtype == "multivariate" && args$test == "pillai") args$N <- snapshot$objective_value else args$N_case <- snapshot$objective_value
+  } else {
+    args$power <- snapshot$objective_value
+  }
+  args$verbose <- FALSE
+  args
+}
+
+.pawh_qtl_call <- function(snapshot, args = snapshot$backend_args) {
+  do.call(get(.pawh_qtl_function(snapshot), mode = "function"), .pawh_qtl_call_args(snapshot, args))
+}
+
+.pawh_qtl_calculate <- function(snapshot) {
+  list(snapshot = snapshot, result = .pawh_qtl_call(snapshot))
+}
+
+.pawh_qtl_sig <- function(values) serialize(values, NULL)
+.pawh_qtl_pct <- function(x, digits = 1) paste0(formatC(100 * x, format = "f", digits = digits), "%")
+.pawh_qtl_count <- function(x) formatC(ceiling(x), format = "d", big.mark = ",")
+.pawh_qtl_number <- function(x, digits = 4) formatC(x, format = "f", digits = digits)
+.pawh_qtl_subtype_labels <- c(
+  continuous = "Full continuous trait", extreme = "Extreme phenotype sampling",
+  multivariate = "Multiple quantitative traits"
+)
+
+.pawh_qtl_model_summary <- function(calculation) {
+  s <- calculation$snapshot
+  v <- s$display
+  if (s$subtype == "continuous") paste0(
+    "Full continuous trait | allele frequency ", v$pd,
+    "% | variance explained ", v$qtl_var, "% | dominance ", v$tau
+  ) else if (s$subtype == "extreme") paste0(
+    "Extreme phenotype sampling | allele frequency ", v$pd,
+    "% | upper/lower tails ", v$x_upper, "%/", v$x_lower, "%"
+  ) else paste0(
+    "Multiple quantitative traits | ", v$n_traits, " traits | allele frequency ",
+    v$pd, "% | ", if (v$mv_test == "pillai") "joint continuous-trait test" else "joint extreme-selection test"
+  )
+}
+
+.pawh_qtl_result_rows <- function(calculation) {
+  s <- calculation$snapshot
+  r <- calculation$result
+  if (s$objective == "power") {
+    rows <- list(.pawh_summary_row("Expected power", .pawh_qtl_pct(r$power, 1)))
+    if (s$subtype == "continuous" || s$subtype == "multivariate" && r$test == "pillai") {
+      rows <- c(rows, list(.pawh_summary_row("Sample size", .pawh_qtl_count(r$N))))
+    } else rows <- c(rows, list(
+      .pawh_summary_row("Upper-tail selected", .pawh_qtl_count(r$N_case)),
+      .pawh_summary_row("Lower-tail selected", .pawh_qtl_count(r$N_control)),
+      .pawh_summary_row("Total selected sample", .pawh_qtl_count(r$N_total))
+    ))
+  } else {
+    if (s$subtype == "continuous" || s$subtype == "multivariate" && r$test == "pillai") {
+      rows <- list(.pawh_summary_row("Required sample size", .pawh_qtl_count(r$N)))
+    } else rows <- list(
+      .pawh_summary_row("Required upper-tail selected", .pawh_qtl_count(r$N_case)),
+      .pawh_summary_row("Required lower-tail selected", .pawh_qtl_count(r$N_control)),
+      .pawh_summary_row("Required total selected", .pawh_qtl_count(r$N_total))
+    )
+    rows <- c(rows, list(
+      .pawh_summary_row("Target power", .pawh_qtl_pct(r$target_power, 1)),
+      if (!is.null(r$achieved_power)) .pawh_summary_row("Achieved power", .pawh_qtl_pct(r$achieved_power, 1))
+    ))
+  }
+  rows
+}
+
+.pawh_qtl_test_label <- function(calculation) {
+  s <- calculation$snapshot
+  if (s$subtype == "continuous") "Quantitative-trait ANOVA" else if (s$subtype == "extreme") {
+    "Threshold-selected genotype chi-square"
+  } else if (calculation$result$test == "pillai") "Pillai's trace MANOVA" else {
+    "Joint threshold-selected genotype chi-square"
+  }
+}
+
+.pawh_qtl_interpretation <- function(calculation) {
+  s <- calculation$snapshot
+  r <- calculation$result
+  design <- unname(.pawh_qtl_subtype_labels[s$subtype])
+  if (s$objective == "power") {
+    n_text <- if (s$subtype == "continuous" || s$subtype == "multivariate" && r$test == "pillai") {
+      paste(.pawh_qtl_count(r$N), "individuals")
+    } else paste(.pawh_qtl_count(r$N_total), "selected individuals")
+    paste0("Under the specified ", tolower(design), " assumptions, a sample of ",
+      n_text, " has an estimated power of ", .pawh_qtl_pct(r$power, 1),
+      " using ", .pawh_qtl_test_label(calculation), ".")
+  } else {
+    n_text <- if (s$subtype == "continuous" || s$subtype == "multivariate" && r$test == "pillai") {
+      paste(.pawh_qtl_count(r$N), "individuals")
+    } else paste(.pawh_qtl_count(r$N_total), "selected individuals")
+    paste0("Under the specified ", tolower(design), " assumptions, approximately ",
+      n_text, " are required to achieve ", .pawh_qtl_pct(r$target_power, 0),
+      " power using ", .pawh_qtl_test_label(calculation), ".")
+  }
+}
+
+.pawh_qtl_repro_args <- function(calculation) {
+  .pawh_qtl_call_args(calculation$snapshot)
+}
+.pawh_qtl_repro_call <- function(calculation) {
+  .pawh_repro_call(.pawh_qtl_function(calculation$snapshot), .pawh_qtl_repro_args(calculation))
+}
+
+.pawh_qtl_named_rows <- function(values, prefix, digits = 4) {
+  lapply(seq_along(values), function(i) {
+    .pawh_summary_row(paste(prefix, i), .pawh_qtl_number(values[[i]], digits))
+  })
+}
+.pawh_qtl_genotype_rows <- function(values, label, digits = 4) {
+  lapply(seq_along(values), function(i) {
+    .pawh_summary_row(paste(label, i - 1L), .pawh_qtl_number(values[[i]], digits))
+  })
+}
+.pawh_qtl_matrix_rows <- function(matrix_value, label, digits = 4) {
+  rows <- list()
+  for (i in seq_len(nrow(matrix_value))) for (j in seq_len(ncol(matrix_value))) {
+    rows[[length(rows) + 1L]] <- .pawh_summary_row(
+      paste(label, i, j, sep = " "), .pawh_qtl_number(matrix_value[i, j], digits)
+    )
+  }
+  rows
+}
+
+.pawh_qtl_advanced_ui <- function(calculation) {
+  s <- calculation$snapshot
+  r <- calculation$result
+  falconer <- r$falconer
+  if (s$subtype != "multivariate") {
+    model_rows <- list(
+      .pawh_summary_row("Modeled-allele frequency", .pawh_qtl_number(falconer$pd)),
+      .pawh_summary_row("QTL variance", .pawh_qtl_number(falconer$qtl_var)),
+      .pawh_summary_row("Dominance parameter", .pawh_qtl_number(falconer$tau)),
+      .pawh_summary_row("Additive effect", .pawh_qtl_number(falconer$a)),
+      .pawh_summary_row("Dominance effect", .pawh_qtl_number(falconer$delta)),
+      .pawh_summary_row("Residual variance", .pawh_qtl_number(falconer$residual_variance))
+    )
+    genotype_rows <- c(
+      .pawh_qtl_genotype_rows(falconer$pi, "Genotype frequency"),
+      .pawh_qtl_genotype_rows(falconer$mu, "Genotype mean")
+    )
+  } else {
+    model_rows <- c(list(
+      .pawh_summary_row("Number of traits", r$falconer$number_of_phenotypes),
+      .pawh_summary_row("Modeled-allele frequency", .pawh_qtl_number(r$falconer$pd))
+    ),
+      .pawh_qtl_named_rows(r$falconer$parameters$qtl_var, "Trait QTL variance"),
+      .pawh_qtl_named_rows(r$falconer$parameters$tau, "Trait dominance")
+    )
+    genotype_rows <- c(
+      .pawh_qtl_genotype_rows(r$falconer$genotype_frequencies, "Genotype frequency"),
+      .pawh_qtl_matrix_rows(r$falconer$mean_matrix, "Mean: trait/genotype")
+    )
+  }
+
+  if (s$subtype == "continuous") {
+    test_rows <- list(
+      .pawh_summary_row("Numerator df", r$df1), .pawh_summary_row("Denominator df", r$df2),
+      .pawh_summary_row("Non-centrality parameter", .pawh_qtl_number(r$lambda)),
+      .pawh_summary_row("Genotype count method", r$count_method)
+    )
+    selection <- NULL
+  } else if (s$subtype == "extreme") {
+    test_rows <- list(
+      .pawh_summary_row("Degrees of freedom", r$df),
+      .pawh_summary_row("Non-centrality parameter", .pawh_qtl_number(if (s$objective == "power") r$lambda else r$lambda_star)),
+      .pawh_summary_row("Internal effect component S", .pawh_qtl_number(r$S))
+    )
+    selection <- .pawh_detail_section("Selection quantities", c(list(
+      .pawh_summary_row("Lower standardized threshold", .pawh_qtl_number(r$thresholds[["lower"]])),
+      .pawh_summary_row("Upper standardized threshold", .pawh_qtl_number(r$thresholds[["upper"]])),
+      .pawh_summary_row("Expected lower-tail proportion", .pawh_qtl_pct(r$prevalences[["unaffected"]], 2)),
+      .pawh_summary_row("Expected upper-tail proportion", .pawh_qtl_pct(r$prevalences[["affected"]], 2))
+    ),
+      .pawh_qtl_genotype_rows(r$frequencies$affected, "Upper-tail genotype frequency"),
+      .pawh_qtl_genotype_rows(r$frequencies$unaffected, "Lower-tail genotype frequency"),
+      if (s$objective == "mssn") list(
+        .pawh_summary_row("Expected population screened for upper tail", .pawh_qtl_count(r$expected_population_screened_cases)),
+        .pawh_summary_row("Expected population screened for lower tail", .pawh_qtl_count(r$expected_population_screened_controls))
+      )
+    ))
+  } else {
+    if (r$test == "pillai") test_rows <- list(
+      .pawh_summary_row("Numerator df", r$numerator_df),
+      .pawh_summary_row("Denominator df", .pawh_qtl_number(r$denominator_df, 2)),
+      .pawh_summary_row("Non-centrality parameter", .pawh_qtl_number(r$noncentrality_parameter)),
+      .pawh_summary_row("Pillai V-star", .pawh_qtl_number(r$pillai$V_star)),
+      if (s$objective == "mssn") .pawh_summary_row("Historical fractional MSSN", .pawh_qtl_number(r$historical_fractional_mssn, 6))
+    ) else test_rows <- list(
+      .pawh_summary_row("Degrees of freedom", r$df),
+      .pawh_summary_row("Non-centrality parameter", .pawh_qtl_number(r$noncentrality_parameter)),
+      .pawh_summary_row("Cells with expected count below 1", r$cells_below_one),
+      .pawh_summary_row("Integration method", paste(unique(vapply(
+        c(r$thresholds$integration$affected, r$thresholds$integration$unaffected),
+        `[[`, "", "algorithm"
+      )), collapse = ", "))
+    )
+    selection <- .pawh_detail_section("Multivariate model quantities", c(
+      .pawh_qtl_matrix_rows(r$falconer$phenotype_correlation_matrix, "Correlation"),
+      .pawh_qtl_matrix_rows(r$falconer$residual_covariance_matrix, "Residual covariance"),
+      if (r$test == "threshold_chisq") list(
+        .pawh_summary_row("Selection definition", r$thresholds$selection_definition),
+        .pawh_summary_row("Expected upper-tail proportion", .pawh_qtl_pct(r$thresholds$prevalences[["affected"]], 2)),
+        .pawh_summary_row("Expected lower-tail proportion", .pawh_qtl_pct(r$thresholds$prevalences[["unaffected"]], 2))
+      )
+    ))
+  }
+  .pawh_advanced_details_ui(
+    .pawh_detail_section("Model specification", model_rows),
+    .pawh_detail_section("Genotype and model quantities", genotype_rows),
+    .pawh_detail_section("Test-specific quantities", test_rows),
+    selection,
+    .pawh_reproduce_ui(.pawh_qtl_repro_call(calculation))
+  )
+}
+
+.pawh_qtl_results_ui <- function(calculation) {
+  shiny::tagList(
+    shiny::div(class = "pawh-model-specification", .pawh_qtl_model_summary(calculation)),
+    bslib::card(
+      class = "pawh-result-card",
+      bslib::card_header(.pawh_qtl_test_label(calculation)),
+      bslib::card_body(shiny::div(class = "pawh-summary-grid", .pawh_qtl_result_rows(calculation)))
+    ),
+    shiny::div(
+      class = "pawh-interpretation", shiny::h4("Interpretation"),
+      shiny::p(.pawh_qtl_interpretation(calculation))
+    ),
+    .pawh_qtl_advanced_ui(calculation)
+  )
+}
+
+.pawh_qtl_specs <- function(calculation) {
+  s <- calculation$snapshot
+  a <- s$backend_args
+  specs <- list()
+  if (s$subtype == "multivariate") {
+    for (i in seq_along(a$qtl_var)) specs[[paste0("qtl_var_", i)]] <- list(
+      label = paste("Trait", i, "variance explained"), min = 0.005, max = 0.5,
+      value = a$qtl_var[i], type = "vector", key = "qtl_var", index = i
+    )
+    for (i in seq_along(a$tau)) specs[[paste0("tau_", i)]] <- list(
+      label = paste("Trait", i, "dominance parameter"), min = -1, max = 1,
+      value = a$tau[i], type = "vector", key = "tau", index = i
+    )
+    if (length(a$qtl_var) == 2L) specs$correlation <- list(
+      label = "Phenotype correlation", min = -0.9, max = 0.9,
+      value = a$cor_matrix[1, 2], type = "correlation"
+    )
+  } else {
+    specs$qtl_var <- list(label = "Variance explained by the QTL", min = 0.005, max = 0.5, value = a$qtl_var, key = "qtl_var")
+    specs$tau <- list(label = "Dominance parameter", min = -1, max = 1, value = a$tau, key = "tau")
+  }
+  specs$pd <- list(label = "Modeled-allele frequency", min = 0.01, max = 0.99, value = a$pd, key = "pd")
+  specs$alpha <- list(label = "Significance level", min = 1e-5, max = 0.2, value = a$alpha, key = "alpha")
+  if (s$subtype == "extreme") {
+    specs$x_upper <- list(
+      label = "Upper population-tail percentage", min = 0.5,
+      max = min(49, 99 - a$x_lower), value = a$x_upper, key = "x_upper"
+    )
+    specs$x_lower <- list(
+      label = "Lower population-tail percentage", min = 0.5,
+      max = min(49, 99 - a$x_upper), value = a$x_lower, key = "x_lower"
+    )
+  }
+  if (s$subtype == "multivariate" && a$test == "threshold_chisq") {
+    for (i in seq_along(a$x_upper)) specs[[paste0("x_upper_", i)]] <- list(
+      label = paste("Trait", i, "upper-tail percentage"), min = 0.5,
+      max = min(49, 99 - a$x_lower[i]), value = a$x_upper[i],
+      type = "vector", key = "x_upper", index = i
+    )
+  }
+  objective_key <- if (s$objective == "power") {
+    if (s$subtype == "continuous" || s$subtype == "multivariate" && a$test == "pillai") "N" else "N_case"
+  } else "power"
+  specs[[objective_key]] <- list(
+    label = if (s$objective == "mssn") "Target power" else if (objective_key == "N") "Sample size" else "Upper-tail selected sample",
+    min = if (s$objective == "mssn") 0.5 else max(4, s$objective_value / 4),
+    max = if (s$objective == "mssn") 0.99 else s$objective_value * 2,
+    value = s$objective_value, objective = TRUE
+  )
+  specs
+}
+
+.pawh_qtl_sensitivity <- function(calculation, parameter, range, n = 40L) {
+  spec <- .pawh_qtl_specs(calculation)[[parameter]]
+  if (is.null(spec)) stop("Unavailable sensitivity parameter.", call. = FALSE)
+  grid <- seq(range[1], range[2], length.out = n)
+  data <- do.call(rbind, lapply(grid, function(value) {
+    snapshot <- calculation$snapshot
+    args <- snapshot$backend_args
+    if (isTRUE(spec$objective)) snapshot$objective_value <- value else if (identical(spec$type, "vector")) {
+      args[[spec$key]][spec$index] <- value
+    } else if (identical(spec$type, "correlation")) {
+      args$cor_matrix[1, 2] <- args$cor_matrix[2, 1] <- value
+    } else args[[spec$key]] <- value
+    result <- tryCatch(.pawh_qtl_call(snapshot, args), error = function(error) NULL)
+    y <- if (is.null(result)) NA_real_ else if (snapshot$objective == "power") result$power else if (
+      snapshot$subtype == "continuous" || snapshot$subtype == "multivariate" && result$test == "pillai"
+    ) result$N else result$N_total
+    data.frame(x = value, y = y)
+  }))
+  plot_data <- data
+  plot_data$y[!is.finite(plot_data$y)] <- NA_real_
+  list(
+    data = data, plot_data = plot_data, label = spec$label,
+    baseline_x = spec$value, objective = calculation$snapshot$objective,
+    has_nonfinite = any(!is.finite(data$y))
+  )
+}
+
+.pawh_qtl_sensitivity_plot <- function(sensitivity) {
+  colors <- .pawh_plot_colors()
+  ggplot2::ggplot(sensitivity$plot_data, ggplot2::aes(.data$x, .data$y)) +
+    ggplot2::geom_line(color = unname(colors["trend"]), linewidth = 0.9, na.rm = TRUE) +
+    ggplot2::geom_vline(
+      xintercept = sensitivity$baseline_x, color = unname(colors["reference"]),
+      linetype = "dotted", linewidth = 0.6
+    ) +
+    ggplot2::labs(
+      x = sensitivity$label,
+      y = if (sensitivity$objective == "power") "Power" else "Required sample size"
+    ) + .pawh_plot_theme()
+}
+
+.pawh_qtl_single_plot <- function(calculation) {
+  a <- calculation$snapshot$backend_args
+  plot <- plot_qtl_genotype_distribution(
+    qtl_var = a$qtl_var, tau = a$tau, pd = a$pd,
+    type = "density", scale = "frequency", show_means = TRUE,
+    verbose = FALSE
+  )
+  if (calculation$snapshot$subtype == "extreme") {
+    thresholds <- calculation$result$thresholds
+    plot <- plot +
+      ggplot2::annotate(
+        "rect", xmin = -Inf, xmax = thresholds[["lower"]], ymin = -Inf, ymax = Inf,
+        fill = "#355C7D", alpha = 0.08
+      ) +
+      ggplot2::annotate(
+        "rect", xmin = thresholds[["upper"]], xmax = Inf, ymin = -Inf, ymax = Inf,
+        fill = "#A8844F", alpha = 0.08
+      ) +
+      ggplot2::geom_vline(
+        xintercept = unname(thresholds), color = "#7A848C", linetype = "dotted"
+      ) +
+      ggplot2::labs(subtitle = "Lower selected tail | unselected middle | upper selected tail")
+  }
+  plot
+}
+
+.pawh_qtl_multivariate_plot_args <- function(calculation, surface, grid_n = 70L) {
+  a <- calculation$snapshot$backend_args
+  args <- list(
+    qtl_var = a$qtl_var, tau = a$tau, pd = a$pd,
+    cor_matrix = a$cor_matrix, surface = surface, grid_n = grid_n
+  )
+  if (a$test == "threshold_chisq" || surface == "cdf") {
+    if (!is.null(a$x_upper)) args <- c(args, list(x_upper = a$x_upper, x_lower = a$x_lower))
+  }
+  args
+}
+
+.pawh_qtl_multivariate_plot <- function(calculation, mode) {
+  surface <- switch(mode,
+    genotype = "genotype_density", mixture = "density", selection = "cdf"
+  )
+  do.call(plot_qtl_multivariate_contour, .pawh_qtl_multivariate_plot_args(calculation, surface))
+}
+
+.pawh_qtl_multivariate_surface <- function(calculation, mode, grid_n = 30L) {
+  surface <- if (identical(mode, "genotype")) "genotype_density" else "density"
+  args <- .pawh_qtl_multivariate_plot_args(calculation, surface, grid_n)
+  args$z_scale <- "raw"
+  do.call(plot_qtl_multivariate_surface3d, args)
+}
+
+.pawh_qtl_summary_ui <- function(calculation) {
+  s <- calculation$snapshot
+  v <- s$display
+  rows <- list(
+    .pawh_summary_row("Workflow", unname(.pawh_qtl_subtype_labels[s$subtype])),
+    .pawh_summary_row("Objective", if (s$objective == "power") "Estimate power" else paste("Minimum sample size at", .pawh_qtl_pct(s$objective_value))),
+    .pawh_summary_row("Alpha", format(v$alpha)),
+    .pawh_summary_row("Allele frequency", paste0(v$pd, "%"))
+  )
+  if (s$subtype != "multivariate") rows <- c(rows, list(
+    .pawh_summary_row("Variance explained", paste0(v$qtl_var, "%")),
+    .pawh_summary_row("Dominance", format(v$tau))
+  )) else rows <- c(rows, list(
+    .pawh_summary_row("Traits", v$n_traits),
+    .pawh_summary_row("Joint test", if (v$mv_test == "pillai") "Continuous-trait MANOVA" else "Extreme-selection chi-square")
+  ))
+  shiny::div(class = "pawh-summary-grid", rows)
+}
+
+.pawh_qtl_methods_ui <- function(calculation = NULL) {
+  if (is.null(calculation)) return(.pawh_placeholder_ui("Methods", "Calculate a design to record its analysis specification."))
+  s <- calculation$snapshot
+  shiny::tagList(
+    shiny::h3("Methods"),
+    shiny::div(
+      class = "pawh-summary-grid",
+      .pawh_summary_row("Study design", unname(.pawh_qtl_subtype_labels[s$subtype])),
+      .pawh_summary_row("Objective", if (s$objective == "power") "Power" else "Minimum sample size"),
+      .pawh_summary_row("Statistical method", .pawh_qtl_test_label(calculation)),
+      if (s$subtype == "multivariate") .pawh_summary_row("Traits", length(s$backend_args$qtl_var))
+    ),
+    shiny::p(
+      "Calculations use ", shiny::code(paste0(.pawh_qtl_function(s), "()")),
+      ". Sensitivity points are separate canonical calls using the frozen design."
+    ),
+    shiny::a(
+      href = "https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html",
+      target = "_blank", rel = "noopener", "Read the Quantitative Trait vignette"
+    )
+  )
+}
+
+.pawh_qtl_trait_inputs <- function(ns, p, threshold = FALSE) {
+  controls <- list()
+  defaults <- .pawh_qtl_defaults()
+  for (i in seq_len(p)) controls <- c(controls, list(
+    shiny::h6(paste("Trait", i)),
+    shiny::numericInput(
+      ns(paste0("mv_qtl_var_", i)), "Variance explained (%)",
+      defaults[[paste0("mv_qtl_var_", i)]], 0.01, 99.99, 0.1
+    ),
+    shiny::numericInput(
+      ns(paste0("mv_tau_", i)), "Dominance parameter",
+      defaults[[paste0("mv_tau_", i)]], NA, NA, 0.1
+    ),
+    if (threshold) shiny::numericInput(
+      ns(paste0("mv_x_upper_", i)), "Upper population tail selected (%)",
+      defaults[[paste0("mv_x_upper_", i)]], 0.01, 99.99, 0.5
+    ),
+    if (threshold) shiny::numericInput(
+      ns(paste0("mv_x_lower_", i)), "Lower population tail selected (%)",
+      defaults[[paste0("mv_x_lower_", i)]], 0.01, 99.99, 0.5
+    )
+  ))
+  shiny::tagList(controls)
+}
+
+.pawh_qtl_correlation_inputs <- function(ns, p) {
+  controls <- list()
+  defaults <- .pawh_qtl_defaults()
+  for (i in seq_len(p - 1L)) for (j in seq.int(i + 1L, p)) {
+    id <- paste0("corr_", i, "_", j)
+    controls[[length(controls) + 1L]] <- shiny::numericInput(
+      ns(id), paste("Correlation: Trait", i, "and Trait", j), defaults[[id]], -0.99, 0.99, 0.05
+    )
+  }
+  shiny::tagList(controls)
+}
+
+.pawh_qtl_server <- function(id) {
+  shiny::moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+    state <- shiny::reactiveValues(
+      calculation = NULL, error = NULL, signature = NULL,
+      sensitivity = NULL, surface = NULL, surface_error = NULL
+    )
+    values <- shiny::reactive(.pawh_qtl_values(input))
+    changed <- shiny::reactive(
+      !is.null(state$signature) && !identical(state$signature, .pawh_qtl_sig(values()))
+    )
+
+    output$subtype_help <- shiny::renderUI({
+      text <- switch(if (is.null(input$subtype)) "continuous" else input$subtype,
+        continuous = "Analyze the measured quantitative phenotype directly.",
+        extreme = "Select individuals from the upper and lower phenotype tails.",
+        multivariate = "Analyze correlated quantitative phenotypes jointly."
+      )
+      shiny::p(class = "text-muted", text)
+    })
+    output$objective_inputs <- shiny::renderUI({
+      objective <- if (is.null(input$objective)) "power" else input$objective
+      subtype <- if (is.null(input$subtype)) "continuous" else input$subtype
+      test <- if (is.null(input$mv_test)) "pillai" else input$mv_test
+      if (objective == "mssn") {
+        shiny::sliderInput(ns("target_power"), "Target power (%)", 50, 99, 80)
+      } else if (subtype == "continuous" || subtype == "multivariate" && test == "pillai") {
+        shiny::numericInput(ns("N"), "Total sample size", 500, 4, NA, 10)
+      } else {
+        shiny::numericInput(ns("N_case"), "Upper-tail selected sample", 150, 1, NA, 5)
+      }
+    })
+    output$core_inputs <- shiny::renderUI({
+      subtype <- if (is.null(input$subtype)) "continuous" else input$subtype
+      common <- shiny::numericInput(ns("pd"), "Modeled-allele frequency (%)", 30, 0.01, 99.99, 0.1)
+      if (subtype == "continuous") shiny::tagList(
+        common,
+        shiny::numericInput(ns("qtl_var"), "Variance explained by the QTL (%)", 10, 0.01, 99.99, 0.1),
+        shiny::tags$small(class = "text-muted", "Proportion of total trait variance attributable to the modeled QTL."),
+        shiny::numericInput(ns("tau"), "Dominance parameter", 0, NA, NA, 0.1),
+        shiny::tags$small(class = "text-muted", "Dominance-to-additivity ratio in the canonical Falconer model.")
+      ) else if (subtype == "extreme") shiny::tagList(
+        common,
+        shiny::numericInput(ns("qtl_var"), "Variance explained by the QTL (%)", 10, 0.01, 99.99, 0.1),
+        shiny::numericInput(ns("tau"), "Dominance parameter", 0, NA, NA, 0.1),
+        shiny::numericInput(ns("x_upper"), "Upper population tail selected (%)", 10, 0.01, 99.99, 0.5),
+        shiny::numericInput(ns("x_lower"), "Lower population tail selected (%)", 10, 0.01, 99.99, 0.5),
+        shiny::tags$small(class = "text-muted", "Tail percentages define standardized-normal population percentiles; the middle is excluded.")
+      ) else {
+        p <- if (is.null(input$n_traits)) 2L else as.integer(input$n_traits)
+        test <- if (is.null(input$mv_test)) "pillai" else input$mv_test
+        shiny::tagList(
+          common,
+          shiny::selectInput(ns("n_traits"), "Number of quantitative traits", stats::setNames(2:4, 2:4)),
+          shiny::radioButtons(ns("mv_test"), "Joint analysis", c(
+            `Joint continuous-trait test (Pillai MANOVA)` = "pillai",
+            `Joint extreme-selection test` = "threshold_chisq"
+          )),
+          .pawh_qtl_trait_inputs(ns, p, threshold = test == "threshold_chisq"),
+          shiny::h6("Phenotype correlations"),
+          .pawh_qtl_correlation_inputs(ns, p),
+          if (p > 2L) shiny::tags$small(class = "text-muted", "Statistical calculations support this trait count; contour and 3D visualization are limited to two traits.")
+        )
+      }
+    })
+    output$advanced_inputs <- shiny::renderUI({
+      subtype <- if (is.null(input$subtype)) "continuous" else input$subtype
+      if (subtype == "continuous") shiny::tagList(
+        shiny::selectInput(ns("count_method"), "Genotype-count method", c(Rounded = "rounded", Expected = "expected")),
+        if (identical(input$objective, "mssn")) shiny::checkboxInput(ns("multiple_of_three"), "Restrict sample size to multiples of three", TRUE)
+      ) else shiny::numericInput(ns("k"), "Lower-tail selected per upper-tail selected", 1, 0.01, NA, 0.1)
+    })
+
+    shiny::observeEvent(input$calculate, {
+      state$error <- NULL; state$sensitivity <- NULL
+      state$surface <- NULL; state$surface_error <- NULL
+      submitted <- values()
+      tryCatch({
+        state$calculation <- .pawh_qtl_calculate(.pawh_qtl_snapshot(submitted))
+        state$signature <- .pawh_qtl_sig(submitted)
+      }, error = function(error) {
+        state$error <- paste("This design could not be calculated.", conditionMessage(error))
+      })
+    }, ignoreInit = TRUE)
+
+    output$changed_notice <- shiny::renderUI(if (changed()) shiny::div(
+      class = "pawh-changed-notice", role = "status",
+      "Inputs have changed. Recalculate to update results."
+    ))
+    output$design_summary <- shiny::renderUI(if (!is.null(state$error)) {
+      shiny::div(class = "pawh-error", role = "alert", state$error)
+    } else if (is.null(state$calculation)) {
+      shiny::p(class = "text-muted", "Choose assumptions and select Calculate.")
+    } else .pawh_qtl_summary_ui(state$calculation))
+    output$results <- shiny::renderUI(if (!is.null(state$error)) {
+      shiny::div(class = "pawh-error", role = "alert", state$error)
+    } else if (is.null(state$calculation)) {
+      .pawh_placeholder_ui("Results", "Set up a design and select Calculate.")
+    } else .pawh_qtl_results_ui(state$calculation))
+
+    output$sensitivity_controls <- shiny::renderUI({
+      if (is.null(state$calculation)) return(.pawh_placeholder_ui("Sensitivity", "Calculate a design first."))
+      specs <- .pawh_qtl_specs(state$calculation)
+      choices <- stats::setNames(names(specs), vapply(specs, `[[`, "", "label"))
+      spec <- specs[[1L]]
+      shiny::div(
+        class = "pawh-sensitivity-controls",
+        shiny::selectInput(ns("sensitivity_parameter"), "Parameter", choices),
+        shiny::sliderInput(ns("sensitivity_range"), "Range", spec$min, spec$max,
+          pmax(spec$min, pmin(spec$max, c(spec$value * 0.75, spec$value * 1.25)))),
+        shiny::actionButton(ns("run_sensitivity"), "Run sensitivity analysis")
+      )
+    })
+    shiny::observeEvent(input$sensitivity_parameter, {
+      shiny::req(state$calculation)
+      spec <- .pawh_qtl_specs(state$calculation)[[input$sensitivity_parameter]]
+      shiny::req(spec)
+      value <- pmax(spec$min, pmin(spec$max, c(spec$value * 0.75, spec$value * 1.25)))
+      shiny::updateSliderInput(session, "sensitivity_range", min = spec$min, max = spec$max,
+        value = value, step = (spec$max - spec$min) / 100)
+    }, ignoreInit = TRUE)
+    shiny::observeEvent(input$run_sensitivity, {
+      shiny::req(state$calculation, input$sensitivity_parameter, input$sensitivity_range)
+      state$sensitivity <- .pawh_qtl_sensitivity(
+        state$calculation, input$sensitivity_parameter, input$sensitivity_range
+      )
+    }, ignoreInit = TRUE)
+    output$sensitivity_message <- shiny::renderUI(if (!is.null(state$calculation) && is.null(state$sensitivity)) {
+      shiny::p(class = "text-muted", "Each point is a canonical calculation of the frozen design.")
+    } else if (!is.null(state$sensitivity) && state$sensitivity$has_nonfinite) {
+      shiny::div(class = "pawh-caution", "Some explored designs are invalid or non-finite and are omitted from the line geometry.")
+    } else if (.pawh_power_axis_zoomed(state$sensitivity)) {
+      shiny::p(class = "pawh-zoom-note", "Y-axis is zoomed to show variation in power.")
+    })
+    output$sensitivity_plot <- shiny::renderPlot({
+      shiny::req(state$sensitivity); .pawh_qtl_sensitivity_plot(state$sensitivity)
+    })
+
+    output$visualize_intro <- shiny::renderUI(if (is.null(state$calculation)) {
+      .pawh_placeholder_ui("Visualize", "Calculate a design first.")
+    } else if (state$calculation$snapshot$subtype == "continuous") shiny::div(
+      class = "pawh-visual-intro", shiny::h3("Genotype distributions"),
+      shiny::p("Population-weighted phenotype distributions returned by the canonical Falconer plotting pathway.")
+    ) else if (state$calculation$snapshot$subtype == "extreme") shiny::div(
+      class = "pawh-visual-intro", shiny::h3("Threshold selection"),
+      shiny::p("Canonical genotype distributions with the returned lower and upper selection thresholds.")
+    ) else shiny::div(
+      class = "pawh-visual-intro", shiny::h3("Multiple-trait distributions"),
+      shiny::p("Two-dimensional visualization is available for calculated two-trait models.")
+    ))
+    output$visualization_controls <- shiny::renderUI({
+      if (is.null(state$calculation) || state$calculation$snapshot$subtype != "multivariate") return(NULL)
+      if (length(state$calculation$snapshot$backend_args$qtl_var) != 2L) {
+        return(shiny::p(class = "text-muted", "Visualization is currently limited to two traits; the statistical result above uses all specified traits."))
+      }
+      choices <- c(`Genotype distributions` = "genotype", `Overall population` = "mixture")
+      if (state$calculation$snapshot$backend_args$test == "threshold_chisq") choices <- c(choices, `Selection regions` = "selection")
+      shiny::radioButtons(ns("visual_mode"), "Visualization", choices, inline = TRUE)
+    })
+    output$visualization_plot <- shiny::renderPlot({
+      shiny::req(state$calculation)
+      if (state$calculation$snapshot$subtype == "multivariate") {
+        shiny::req(length(state$calculation$snapshot$backend_args$qtl_var) == 2L)
+        .pawh_qtl_multivariate_plot(
+          state$calculation, if (is.null(input$visual_mode)) "genotype" else input$visual_mode
+        )
+      } else .pawh_qtl_single_plot(state$calculation)
+    })
+
+    output$surface_controls <- shiny::renderUI({
+      if (is.null(state$calculation)) return(shiny::p(class = "text-muted", "Calculate a design first."))
+      if (state$calculation$snapshot$subtype != "multivariate" ||
+          length(state$calculation$snapshot$backend_args$qtl_var) != 2L) {
+        return(shiny::p(class = "text-muted", "On-demand 3D visualization is available for calculated two-trait models."))
+      }
+      if (!requireNamespace("plotly", quietly = TRUE)) return(shiny::p(class = "text-muted", "Install the suggested plotly package to generate this optional visualization."))
+      shiny::tagList(
+        shiny::radioButtons(ns("surface_mode"), "3D view", c(
+          `Genotype distributions` = "genotype", `Overall population` = "mixture"
+        ), inline = TRUE),
+        shiny::p(class = "text-muted", if (identical(input$surface_mode, "mixture")) {
+          "The overall population surface is the genotype-frequency-weighted mixture. Three genotype groups do not necessarily produce three distinct mixture peaks."
+        } else "Each surface represents the phenotype distribution conditional on genotype."),
+        shiny::actionButton(ns("generate_surface"), "Generate 3D visualization")
+      )
+    })
+    shiny::observeEvent(input$generate_surface, {
+      shiny::req(state$calculation)
+      state$surface_error <- NULL
+      tryCatch({
+        state$surface <- shiny::withProgress(
+          message = "Generating QTL visualization", value = 0.5,
+          expr = .pawh_qtl_multivariate_surface(
+            state$calculation,
+            if (is.null(input$surface_mode)) "genotype" else input$surface_mode
+          )
+        )
+      }, error = function(error) state$surface_error <- paste("The 3D visualization could not be generated.", conditionMessage(error)))
+    }, ignoreInit = TRUE)
+    output$surface_message <- shiny::renderUI(if (!is.null(state$surface_error)) {
+      shiny::div(class = "pawh-error", role = "alert", state$surface_error)
+    } else if (!is.null(state$calculation) && is.null(state$surface)) {
+      shiny::p(class = "text-muted", "The Plotly visualization is generated only on request from the frozen design.")
+    })
+    output$surface_container <- shiny::renderUI(if (!is.null(state$surface)) {
+      plotly::plotlyOutput(ns("surface_plot"), height = "500px")
+    })
+    if (requireNamespace("plotly", quietly = TRUE)) output$surface_plot <- plotly::renderPlotly({
+      shiny::req(state$surface); state$surface
+    })
+    output$methods <- shiny::renderUI(.pawh_qtl_methods_ui(state$calculation))
+
+    list(
+      calculation = shiny::reactive(state$calculation), changed = changed,
+      error = shiny::reactive(state$error), sensitivity = shiny::reactive(state$sensitivity),
+      surface = shiny::reactive(state$surface), surface_error = shiny::reactive(state$surface_error)
+    )
+  })
 }

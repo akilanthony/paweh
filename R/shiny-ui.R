@@ -23,7 +23,7 @@
       ),
       shiny::p(
         class = "text-muted",
-        "Choose a study type. Case-Control and TDT / Family study-design workflows are available now."
+        "Choose a study type. Case-Control, TDT / Family, and Quantitative Trait study-design workflows are available now."
       )
     ),
     shiny::div(
@@ -45,7 +45,7 @@
         .pawh_home_card_ui(
           ns("qtl"),
           "Quantitative Trait",
-          "Design studies involving continuous phenotypes.",
+          "Design continuous, extreme-phenotype, or joint multiple-trait studies.",
           "Open Quantitative Trait"
         )
       )

@@ -140,7 +140,7 @@ plot_qtl_multivariate_surface3d <- function(
 
   p <- plotly::plot_ly()
   if (identical(surface, "genotype_density")) {
-    palette <- c("#0072B2", "#D55E00", "#009E73")
+    palette <- unname(.pawh_qtl_genotype_colors())
     genotype_levels <- levels(grid$genotype)
     for (j in seq_along(genotype_levels)) {
       component_grid <- grid[grid$genotype == genotype_levels[j], , drop = FALSE]
@@ -186,8 +186,8 @@ plot_qtl_multivariate_surface3d <- function(
       x = x_values,
       y = y_values,
       z = t(z_matrix),
-      colorscale = "Viridis",
-      reversescale = TRUE,
+      colorscale = list(c(0, "#E8ECEF"), c(0.5, "#8FA1AF"), c(1, "#3F4850")),
+      reversescale = FALSE,
       opacity = 0.90,
       hovertemplate = hover_template,
       colorbar = list(title = list(text = z_title)),
@@ -216,7 +216,7 @@ plot_qtl_multivariate_surface3d <- function(
         z = 0
       )
     )
-    overlay_colours <- c(Affected = "#D55E00", Unaffected = "#0072B2")
+    overlay_colours <- c(Affected = "#A8844F", Unaffected = "#355C7D")
     for (region in names(threshold_overlays)) {
       rectangle <- threshold_overlays[[region]]
       p <- plotly::add_trace(

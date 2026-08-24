@@ -1,11 +1,10 @@
 #' Construct the pawh Shiny Dashboard
 #'
 #' Creates the modular `bslib` dashboard for `pawh` study design. The
-#' Case-Control and TDT / Family workspaces provide canonical power,
-#' minimum-sample-size, sensitivity, and study-specific visual results. The
-#' concise results are complemented by collapsed calculation details and
-#' reproducible canonical R calls. The Quantitative Trait workspace is clearly
-#' marked as forthcoming.
+#' Case-Control, TDT / Family, and Quantitative Trait workspaces provide
+#' canonical power, minimum-sample-size, sensitivity, and study-specific visual
+#' results. The concise results are complemented by collapsed calculation
+#' details and reproducible canonical R calls.
 #'
 #' `pawh_app()` returns the application object without launching it. This makes
 #' the app safe to construct in package code, tests, and deployment tooling.
@@ -30,6 +29,7 @@ pawh_app <- function() {
       })
       .pawh_case_control_server("case_control")
       .pawh_tdt_server("tdt")
+      .pawh_qtl_server("qtl")
     }
   )
 }
