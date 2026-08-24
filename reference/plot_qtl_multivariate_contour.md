@@ -112,10 +112,10 @@ intentionally restricted to two.
 
 ## See also
 
-[`qtl_multivariate_power_full()`](https://akilanthony.github.io/pawh/reference/qtl_multivariate_power_full.md),
-[`qtl_multivariate_mssn_full()`](https://akilanthony.github.io/pawh/reference/qtl_multivariate_mssn_full.md),
+[`qtl_multivariate_power_full()`](https://akilanthony.github.io/paweh/reference/qtl_multivariate_power_full.md),
+[`qtl_multivariate_mssn_full()`](https://akilanthony.github.io/paweh/reference/qtl_multivariate_mssn_full.md),
 and
-[`plot_qtl_multivariate_surface3d()`](https://akilanthony.github.io/pawh/reference/plot_qtl_multivariate_surface3d.md).
+[`plot_qtl_multivariate_surface3d()`](https://akilanthony.github.io/paweh/reference/plot_qtl_multivariate_surface3d.md).
 
 ## Examples
 

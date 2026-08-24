@@ -3,8 +3,9 @@
 Convenience functions for genotype chi-square case-control calculations
 in the presence of phenotype misclassification only. These focused
 functions are narrower than
-[`cc_mssn`](https://akilanthony.github.io/pawh/reference/cc_mssn.md) and
-[`cc_power`](https://akilanthony.github.io/pawh/reference/cc_power.md):
+[`cc_mssn`](https://akilanthony.github.io/paweh/reference/cc_mssn.md)
+and
+[`cc_power`](https://akilanthony.github.io/paweh/reference/cc_power.md):
 they use true affected and true unaffected genotype frequencies supplied
 directly by the user and do not apply locus heterogeneity or genotype
 misclassification.
@@ -118,10 +119,10 @@ in Association Studies*. Springer.
 
 ## See also
 
-[`cc_power`](https://akilanthony.github.io/pawh/reference/cc_power.md),
-[`cc_mssn`](https://akilanthony.github.io/pawh/reference/cc_mssn.md),
+[`cc_power`](https://akilanthony.github.io/paweh/reference/cc_power.md),
+[`cc_mssn`](https://akilanthony.github.io/paweh/reference/cc_mssn.md),
 and
-[`case_control_genotype_misclassification`](https://akilanthony.github.io/pawh/reference/case_control_genotype_misclassification.md).
+[`case_control_genotype_misclassification`](https://akilanthony.github.io/paweh/reference/case_control_genotype_misclassification.md).
 
 ## Examples
 

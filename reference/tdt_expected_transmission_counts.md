@@ -108,9 +108,9 @@ These are Eqs. 5.31–5.32 in Chapter 5, Section 5.3.3 (pp. 293–294). They
 are expected counts over `N_star` affected trios. Dividing by \\2N^\*\\
 gives the corresponding \\g_T^\*\\ and \\g\_{NT}^\*\\ probabilities. The
 canonical `heter_rate` used by
-[`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md)
+[`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md)
 and
-[`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md)
+[`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md)
 equals \\1-\pi\\.
 
 ## References
@@ -130,10 +130,10 @@ in Association Studies*. Springer.
 
 ## See also
 
-[`tdt_power`](https://akilanthony.github.io/pawh/reference/tdt_power.md),
-[`tdt_mssn`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md),
+[`tdt_power`](https://akilanthony.github.io/paweh/reference/tdt_power.md),
+[`tdt_mssn`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md),
 and
-[`tdt_mssn_from_model`](https://akilanthony.github.io/pawh/reference/tdt_mssn_from_model.md).
+[`tdt_mssn_from_model`](https://akilanthony.github.io/paweh/reference/tdt_mssn_from_model.md).
 
 ## Examples
 

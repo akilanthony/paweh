@@ -74,9 +74,9 @@ in Association Studies*. Springer.
 
 ## See also
 
-[`tdt_power`](https://akilanthony.github.io/pawh/reference/tdt_power.md)
+[`tdt_power`](https://akilanthony.github.io/paweh/reference/tdt_power.md)
 and
-[`tdt_power_from_model`](https://akilanthony.github.io/pawh/reference/tdt_power_from_model.md).
+[`tdt_power_from_model`](https://akilanthony.github.io/paweh/reference/tdt_power_from_model.md).
 
 ## Examples
 

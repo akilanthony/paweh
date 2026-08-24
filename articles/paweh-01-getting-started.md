@@ -45,7 +45,7 @@ starter_power$tests$genotypes$power
 ```
 
 The corresponding
-[`cc_mssn()`](https://akilanthony.github.io/pawh/reference/cc_mssn.md)
+[`cc_mssn()`](https://akilanthony.github.io/paweh/reference/cc_mssn.md)
 calculation reverses the design question by replacing `N_case` with a
 target `power`.
 
@@ -55,9 +55,9 @@ target `power`.
 
 Cases and controls are compared using a genotype chi-square or trend
 test. The canonical
-[`cc_power()`](https://akilanthony.github.io/pawh/reference/cc_power.md)
+[`cc_power()`](https://akilanthony.github.io/paweh/reference/cc_power.md)
 and
-[`cc_mssn()`](https://akilanthony.github.io/pawh/reference/cc_mssn.md)
+[`cc_mssn()`](https://akilanthony.github.io/paweh/reference/cc_mssn.md)
 interfaces support model-based and model-free inputs, along with
 compatible heterogeneity and error modifiers.
 
@@ -65,9 +65,9 @@ compatible heterogeneity and error modifiers.
 
 The transmission disequilibrium test (TDT) compares transmitted and
 non-transmitted alleles in affected-child trios.
-[`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md)
+[`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md)
 and
-[`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md)
+[`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md)
 report power or required trio counts under distinct no-error,
 phenotype-misclassification, and locus-heterogeneity scenarios.
 
@@ -101,11 +101,11 @@ conditional quantities.
 
 | Scientific design | Canonical starting functions | Detailed vignette |
 |----|----|----|
-| Case-control association | [`cc_power()`](https://akilanthony.github.io/pawh/reference/cc_power.md), [`cc_mssn()`](https://akilanthony.github.io/pawh/reference/cc_mssn.md) | Case-Control Study Design |
-| Affected-child trios | [`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md), [`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md) | TDT Study Design |
-| Continuous single-trait QTL | [`qtl_anova_power()`](https://akilanthony.github.io/pawh/reference/qtl_anova_power.md), [`qtl_anova_mssn()`](https://akilanthony.github.io/pawh/reference/qtl_anova_mssn.md) | Quantitative-Trait Study Design |
-| Extreme-trait QTL | [`qtl_threshold_chisq_power()`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_power.md), [`qtl_threshold_chisq_mssn()`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_mssn.md) | Quantitative-Trait Study Design |
-| Multivariate quantitative traits | [`qtl_multivariate_power_full()`](https://akilanthony.github.io/pawh/reference/qtl_multivariate_power_full.md), [`qtl_multivariate_mssn_full()`](https://akilanthony.github.io/pawh/reference/qtl_multivariate_mssn_full.md) | Quantitative-Trait Study Design |
+| Case-control association | [`cc_power()`](https://akilanthony.github.io/paweh/reference/cc_power.md), [`cc_mssn()`](https://akilanthony.github.io/paweh/reference/cc_mssn.md) | Case-Control Study Design |
+| Affected-child trios | [`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md), [`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md) | TDT Study Design |
+| Continuous single-trait QTL | [`qtl_anova_power()`](https://akilanthony.github.io/paweh/reference/qtl_anova_power.md), [`qtl_anova_mssn()`](https://akilanthony.github.io/paweh/reference/qtl_anova_mssn.md) | Quantitative-Trait Study Design |
+| Extreme-trait QTL | [`qtl_threshold_chisq_power()`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_power.md), [`qtl_threshold_chisq_mssn()`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_mssn.md) | Quantitative-Trait Study Design |
+| Multivariate quantitative traits | [`qtl_multivariate_power_full()`](https://akilanthony.github.io/paweh/reference/qtl_multivariate_power_full.md), [`qtl_multivariate_mssn_full()`](https://akilanthony.github.io/paweh/reference/qtl_multivariate_mssn_full.md) | Quantitative-Trait Study Design |
 
 ## Why Bioconductor?
 

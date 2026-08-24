@@ -1,7 +1,7 @@
 # Plot Case-Control Power
 
 Sweeps one x-axis parameter and repeatedly calls
-[`cc_power()`](https://akilanthony.github.io/pawh/reference/cc_power.md)
+[`cc_power()`](https://akilanthony.github.io/paweh/reference/cc_power.md)
 to plot case-control power. The wrapper supports both
 `input_mode = "model_based"` and `input_mode = "model_free"`.
 
@@ -64,7 +64,7 @@ plot_cc_power(
 - ...:
 
   Arguments passed to
-  [`cc_power()`](https://akilanthony.github.io/pawh/reference/cc_power.md).
+  [`cc_power()`](https://akilanthony.github.io/paweh/reference/cc_power.md).
 
 ## Value
 
@@ -90,14 +90,14 @@ read from `e_base`; `e1_base` and `e2_base`; `e01_base`, `e02_base`, and
 `geno_misclass = "diff3p"`. All arguments supplied through `...` remain
 fixed while `x_var` is swept. The x-axis contains `x_values`; the y-axis
 is the power returned by
-[`cc_power()`](https://akilanthony.github.io/pawh/reference/cc_power.md)
+[`cc_power()`](https://akilanthony.github.io/paweh/reference/cc_power.md)
 for the selected genotype chi-square or trend test. With
 `compare_tests = TRUE`, both powers are drawn on the same axes.
 
 ## See also
 
-[`cc_power`](https://akilanthony.github.io/pawh/reference/cc_power.md),
-[`plot_cc_mssn`](https://akilanthony.github.io/pawh/reference/plot_cc_mssn.md).
+[`cc_power`](https://akilanthony.github.io/paweh/reference/cc_power.md),
+[`plot_cc_mssn`](https://akilanthony.github.io/paweh/reference/plot_cc_mssn.md).
 
 ## Examples
 

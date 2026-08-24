@@ -28,7 +28,7 @@ tdt_mssn_phenotype_misclassification_from_ncp(
 
   Numeric. Non-centrality parameter (\\\lambda^\*\\) derived from
   desired power (e.g., from
-  [`tdt_mssn_from_model()`](https://akilanthony.github.io/pawh/reference/tdt_mssn_from_model.md)).
+  [`tdt_mssn_from_model()`](https://akilanthony.github.io/paweh/reference/tdt_mssn_from_model.md)).
 
 - pd:
 
@@ -120,10 +120,10 @@ in Association Studies*. Springer.
 
 ## See also
 
-[`tdt_mssn`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md),
-[`tdt_expected_transmission_probability`](https://akilanthony.github.io/pawh/reference/tdt_expected_transmission_probability.md),
+[`tdt_mssn`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md),
+[`tdt_expected_transmission_probability`](https://akilanthony.github.io/paweh/reference/tdt_expected_transmission_probability.md),
 and
-[`tdt_expected_nontransmission_probability`](https://akilanthony.github.io/pawh/reference/tdt_expected_nontransmission_probability.md).
+[`tdt_expected_nontransmission_probability`](https://akilanthony.github.io/paweh/reference/tdt_expected_nontransmission_probability.md).
 
 ## Examples
 

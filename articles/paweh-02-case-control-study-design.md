@@ -328,9 +328,9 @@ data.frame(
 ## Choosing an interface and recognizing limits
 
 Use
-[`cc_power()`](https://akilanthony.github.io/pawh/reference/cc_power.md)
+[`cc_power()`](https://akilanthony.github.io/paweh/reference/cc_power.md)
 and
-[`cc_mssn()`](https://akilanthony.github.io/pawh/reference/cc_mssn.md)
+[`cc_mssn()`](https://akilanthony.github.io/paweh/reference/cc_mssn.md)
 for most designs, particularly when switching between model-based and
 model-free inputs or combining modifiers. Specialized genotype-only
 functions remain available in the reference manual for focused

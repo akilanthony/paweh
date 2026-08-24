@@ -66,16 +66,16 @@ A `ggplot` object, returned invisibly after it is printed.
 
 The x-axis is phenotype misclassification probability \\\pi\_{01}\\ and
 the y-axis is the corresponding power from
-[`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md).
+[`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md).
 `N` is a fixed number of affected trios; `heter_fixed` and all
 genetic-model parameters remain fixed while `misclass_seq` is swept.
 
 ## See also
 
-[`tdt_power`](https://akilanthony.github.io/pawh/reference/tdt_power.md),
-[`plot_tdt_power_locus_heterogeneity`](https://akilanthony.github.io/pawh/reference/plot_tdt_power_locus_heterogeneity.md),
+[`tdt_power`](https://akilanthony.github.io/paweh/reference/tdt_power.md),
+[`plot_tdt_power_locus_heterogeneity`](https://akilanthony.github.io/paweh/reference/plot_tdt_power_locus_heterogeneity.md),
 and
-[`plot_tdt_power`](https://akilanthony.github.io/pawh/reference/plot_tdt_power.md).
+[`plot_tdt_power`](https://akilanthony.github.io/paweh/reference/plot_tdt_power.md).
 
 ## Examples
 

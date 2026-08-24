@@ -60,7 +60,7 @@ parameter object.
 ## Details
 
 The three genotype groups have the means returned by
-[`qtl_falconer_parameters()`](https://akilanthony.github.io/pawh/reference/qtl_falconer_parameters.md)
+[`qtl_falconer_parameters()`](https://akilanthony.github.io/paweh/reference/qtl_falconer_parameters.md)
 and a common residual variance \\1-V\_{QTL}\\. Genotype group counts are
 either rounded Hardy–Weinberg expectations or unrounded expected counts
 according to `count_method`. The between-group effect gives the
@@ -80,9 +80,9 @@ in Association Studies*. Springer, Chapter 6, Section 6.1.1, Eqs.
 
 ## See also
 
-[`qtl_anova_mssn`](https://akilanthony.github.io/pawh/reference/qtl_anova_mssn.md)
+[`qtl_anova_mssn`](https://akilanthony.github.io/paweh/reference/qtl_anova_mssn.md)
 and
-[`qtl_falconer_parameters`](https://akilanthony.github.io/pawh/reference/qtl_falconer_parameters.md).
+[`qtl_falconer_parameters`](https://akilanthony.github.io/paweh/reference/qtl_falconer_parameters.md).
 
 ## Examples
 

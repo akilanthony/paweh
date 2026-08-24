@@ -5,7 +5,7 @@ bivariate-normal distributions. It can display either one
 population-mixture surface or three separate genotype-conditional
 surfaces. The plot displays exactly two quantitative phenotypes and
 complements
-[`plot_qtl_multivariate_contour()`](https://akilanthony.github.io/pawh/reference/plot_qtl_multivariate_contour.md),
+[`plot_qtl_multivariate_contour()`](https://akilanthony.github.io/paweh/reference/plot_qtl_multivariate_contour.md),
 which provides a static 2D view.
 
 ## Usage
@@ -100,7 +100,7 @@ have three distinct modes. The CDF surface is cumulative and monotone.
 Genotype-density mode adds three Plotly surface traces, one for each
 conditional density `f[j](y1, y2)`, without genotype-frequency weighting
 or summation. This is the multivariate analogue of
-[`plot_qtl_genotype_distribution()`](https://akilanthony.github.io/pawh/reference/plot_qtl_genotype_distribution.md).
+[`plot_qtl_genotype_distribution()`](https://akilanthony.github.io/paweh/reference/plot_qtl_genotype_distribution.md).
 Normalizing the z axis changes only its displayed scale; raw calculated
 values remain available in the plot's long-form `plot_data` attribute.
 
@@ -115,10 +115,10 @@ This function requires the optional package plotly.
 
 ## See also
 
-[`plot_qtl_multivariate_contour()`](https://akilanthony.github.io/pawh/reference/plot_qtl_multivariate_contour.md),
-[`qtl_multivariate_power_full()`](https://akilanthony.github.io/pawh/reference/qtl_multivariate_power_full.md),
+[`plot_qtl_multivariate_contour()`](https://akilanthony.github.io/paweh/reference/plot_qtl_multivariate_contour.md),
+[`qtl_multivariate_power_full()`](https://akilanthony.github.io/paweh/reference/qtl_multivariate_power_full.md),
 and
-[`qtl_multivariate_mssn_full()`](https://akilanthony.github.io/pawh/reference/qtl_multivariate_mssn_full.md).
+[`qtl_multivariate_mssn_full()`](https://akilanthony.github.io/paweh/reference/qtl_multivariate_mssn_full.md).
 
 ## Examples
 

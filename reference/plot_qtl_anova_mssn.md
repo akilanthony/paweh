@@ -1,7 +1,7 @@
 # Plot One-Way ANOVA Minimum Sample Size Under the Falconer Model
 
 Sweeps one model or design parameter and repeatedly calls
-[`qtl_anova_mssn()`](https://akilanthony.github.io/pawh/reference/qtl_anova_mssn.md).
+[`qtl_anova_mssn()`](https://akilanthony.github.io/paweh/reference/qtl_anova_mssn.md).
 
 ## Usage
 
@@ -47,7 +47,7 @@ plot_qtl_anova_mssn(
 - ...:
 
   Fixed arguments passed to
-  [`qtl_anova_mssn()`](https://akilanthony.github.io/pawh/reference/qtl_anova_mssn.md).
+  [`qtl_anova_mssn()`](https://akilanthony.github.io/paweh/reference/qtl_anova_mssn.md).
 
 ## Value
 
@@ -58,14 +58,14 @@ A `ggplot` object, or a data frame with the swept parameter and
 
 The x-axis is `x_values` for the selected `x_var`; the y-axis is the
 minimum total sample size returned by
-[`qtl_anova_mssn()`](https://akilanthony.github.io/pawh/reference/qtl_anova_mssn.md).
+[`qtl_anova_mssn()`](https://akilanthony.github.io/paweh/reference/qtl_anova_mssn.md).
 Target power and other arguments in `...` remain fixed unless selected
 as `x_var`.
 
 ## See also
 
-[`qtl_anova_mssn`](https://akilanthony.github.io/pawh/reference/qtl_anova_mssn.md),
-[`plot_qtl_anova_power`](https://akilanthony.github.io/pawh/reference/plot_qtl_anova_power.md).
+[`qtl_anova_mssn`](https://akilanthony.github.io/paweh/reference/qtl_anova_mssn.md),
+[`plot_qtl_anova_power`](https://akilanthony.github.io/paweh/reference/plot_qtl_anova_power.md).
 
 ## Examples
 

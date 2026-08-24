@@ -305,11 +305,11 @@ Genetics*, 6, 18.
 
 ## See also
 
-[`cc_power`](https://akilanthony.github.io/pawh/reference/cc_power.md),
-[`case_control_genotype_misclassification`](https://akilanthony.github.io/pawh/reference/case_control_genotype_misclassification.md),
-[`case_control_locus_heterogeneity`](https://akilanthony.github.io/pawh/reference/case_control_locus_heterogeneity.md),
+[`cc_power`](https://akilanthony.github.io/paweh/reference/cc_power.md),
+[`case_control_genotype_misclassification`](https://akilanthony.github.io/paweh/reference/case_control_genotype_misclassification.md),
+[`case_control_locus_heterogeneity`](https://akilanthony.github.io/paweh/reference/case_control_locus_heterogeneity.md),
 and
-[`case_control_phenotype_misclassification`](https://akilanthony.github.io/pawh/reference/case_control_phenotype_misclassification.md).
+[`case_control_phenotype_misclassification`](https://akilanthony.github.io/paweh/reference/case_control_phenotype_misclassification.md).
 
 ## Examples
 

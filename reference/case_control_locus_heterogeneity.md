@@ -134,10 +134,10 @@ trend. *Human Heredity*, 52(3), 149–153.
 
 ## See also
 
-[`cc_power`](https://akilanthony.github.io/pawh/reference/cc_power.md),
-[`cc_mssn`](https://akilanthony.github.io/pawh/reference/cc_mssn.md),
+[`cc_power`](https://akilanthony.github.io/paweh/reference/cc_power.md),
+[`cc_mssn`](https://akilanthony.github.io/paweh/reference/cc_mssn.md),
 and
-[`case_control_genotype_misclassification`](https://akilanthony.github.io/pawh/reference/case_control_genotype_misclassification.md).
+[`case_control_genotype_misclassification`](https://akilanthony.github.io/paweh/reference/case_control_genotype_misclassification.md).
 
 ## Examples
 

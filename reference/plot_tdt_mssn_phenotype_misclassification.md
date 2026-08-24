@@ -71,16 +71,16 @@ A `ggplot` object, returned invisibly after it is printed.
 
 The x-axis is phenotype misclassification probability \\\pi\_{01}\\. The
 y-axis is MSSN, the required number of affected trios returned by
-[`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md)
+[`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md)
 for fixed `target_power`. `heter_fixed` and all genetic-model parameters
 remain fixed.
 
 ## See also
 
-[`tdt_mssn`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md),
-[`plot_tdt_mssn_locus_heterogeneity`](https://akilanthony.github.io/pawh/reference/plot_tdt_mssn_locus_heterogeneity.md),
+[`tdt_mssn`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md),
+[`plot_tdt_mssn_locus_heterogeneity`](https://akilanthony.github.io/paweh/reference/plot_tdt_mssn_locus_heterogeneity.md),
 and
-[`plot_tdt_mssn`](https://akilanthony.github.io/pawh/reference/plot_tdt_mssn.md).
+[`plot_tdt_mssn`](https://akilanthony.github.io/paweh/reference/plot_tdt_mssn.md).
 
 ## Examples
 

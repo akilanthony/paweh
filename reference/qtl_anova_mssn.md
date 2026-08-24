@@ -86,9 +86,9 @@ in Association Studies*. Springer, Chapter 6, Section 6.1.1, Eqs.
 
 ## See also
 
-[`qtl_anova_power`](https://akilanthony.github.io/pawh/reference/qtl_anova_power.md)
+[`qtl_anova_power`](https://akilanthony.github.io/paweh/reference/qtl_anova_power.md)
 and
-[`qtl_falconer_parameters`](https://akilanthony.github.io/pawh/reference/qtl_falconer_parameters.md).
+[`qtl_falconer_parameters`](https://akilanthony.github.io/paweh/reference/qtl_falconer_parameters.md).
 
 ## Examples
 

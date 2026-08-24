@@ -156,7 +156,7 @@ With `input_mode = "model_free"`, the no-error scenario uses \\g_T = ET
 / (2\\n\_{trios})\\ and \\g\_{NT} = ENT / (2\\n\_{trios})\\. The
 misclassification and heterogeneity scenarios then use the same
 closed-form identities as
-[`tdt_power`](https://akilanthony.github.io/pawh/reference/tdt_power.md)
+[`tdt_power`](https://akilanthony.github.io/paweh/reference/tdt_power.md)
 (see its Details for the formulas and the `pd`-solving fallback),
 applied to this no-error \\g_T\\/\\g\_{NT}\\ pair.
 
@@ -187,7 +187,7 @@ and Molecular Biology*, 8, Article 44.
 
 ## See also
 
-[`tdt_power`](https://akilanthony.github.io/pawh/reference/tdt_power.md)
+[`tdt_power`](https://akilanthony.github.io/paweh/reference/tdt_power.md)
 for the power counterpart.
 
 ## Examples

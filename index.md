@@ -47,24 +47,24 @@ required.
 ## Documentation
 
 The complete documentation is available at
-<https://akilanthony.github.io/pawh/>.
+<https://akilanthony.github.io/paweh/>.
 
 Five articles provide the main entry points:
 
 - [Getting
-  Started](https://akilanthony.github.io/pawh/articles/paweh-01-getting-started.html)
+  Started](https://akilanthony.github.io/paweh/articles/paweh-01-getting-started.html)
 - [Case-Control Study
-  Design](https://akilanthony.github.io/pawh/articles/paweh-02-case-control-study-design.html)
+  Design](https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html)
 - [TDT Study
-  Design](https://akilanthony.github.io/pawh/articles/paweh-03-tdt-study-design.html)
+  Design](https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.html)
 - [Quantitative-Trait Study
-  Design](https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.html)
+  Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html)
 - [Interactive
-  Dashboard](https://akilanthony.github.io/pawh/articles/paweh-05-interactive-dashboard.html)
+  Dashboard](https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html)
 
 Function-level reference documentation is also available from the
 [pkgdown reference
-index](https://akilanthony.github.io/pawh/reference/).
+index](https://akilanthony.github.io/paweh/reference/).
 
 ## Installation
 
@@ -77,7 +77,7 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
     install.packages("remotes")
 }
 
-remotes::install_github("akilanthony/pawh")
+remotes::install_github("akilanthony/paweh")
 ```
 
 ## Interactive dashboard
@@ -100,12 +100,12 @@ app <- paweh_app()
 shiny::runApp(app)
 ```
 
-[`paweh_app()`](https://akilanthony.github.io/pawh/reference/paweh_app.md)
+[`paweh_app()`](https://akilanthony.github.io/paweh/reference/paweh_app.md)
 returns a Shiny application object and does not launch a browser or
 server on its own.
 
 See the [Interactive
-Dashboard](https://akilanthony.github.io/pawh/articles/paweh-05-interactive-dashboard.html)
+Dashboard](https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html)
 vignette for a guided walkthrough of all three study-design workspaces.
 
 ## Quick start
@@ -179,11 +179,11 @@ current implementation.
 
 | Design | Primary functions | Documentation |
 |----|----|----|
-| Case-control association | [`cc_power()`](https://akilanthony.github.io/pawh/reference/cc_power.md), [`cc_mssn()`](https://akilanthony.github.io/pawh/reference/cc_mssn.md) | [Case-Control Study Design](https://akilanthony.github.io/pawh/articles/paweh-02-case-control-study-design.html) |
-| Affected-child trios / TDT | [`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md), [`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md) | [TDT Study Design](https://akilanthony.github.io/pawh/articles/paweh-03-tdt-study-design.html) |
-| Continuous quantitative trait | [`qtl_anova_power()`](https://akilanthony.github.io/pawh/reference/qtl_anova_power.md), [`qtl_anova_mssn()`](https://akilanthony.github.io/pawh/reference/qtl_anova_mssn.md) | [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.html) |
-| Extreme quantitative trait | [`qtl_threshold_chisq_power()`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_power.md), [`qtl_threshold_chisq_mssn()`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_mssn.md) | [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.html) |
-| Multivariate quantitative traits | [`qtl_multivariate_power_full()`](https://akilanthony.github.io/pawh/reference/qtl_multivariate_power_full.md), [`qtl_multivariate_mssn_full()`](https://akilanthony.github.io/pawh/reference/qtl_multivariate_mssn_full.md) | [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.html) |
+| Case-control association | [`cc_power()`](https://akilanthony.github.io/paweh/reference/cc_power.md), [`cc_mssn()`](https://akilanthony.github.io/paweh/reference/cc_mssn.md) | [Case-Control Study Design](https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html) |
+| Affected-child trios / TDT | [`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md), [`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md) | [TDT Study Design](https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.html) |
+| Continuous quantitative trait | [`qtl_anova_power()`](https://akilanthony.github.io/paweh/reference/qtl_anova_power.md), [`qtl_anova_mssn()`](https://akilanthony.github.io/paweh/reference/qtl_anova_mssn.md) | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
+| Extreme quantitative trait | [`qtl_threshold_chisq_power()`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_power.md), [`qtl_threshold_chisq_mssn()`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_mssn.md) | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
+| Multivariate quantitative traits | [`qtl_multivariate_power_full()`](https://akilanthony.github.io/paweh/reference/qtl_multivariate_power_full.md), [`qtl_multivariate_mssn_full()`](https://akilanthony.github.io/paweh/reference/qtl_multivariate_mssn_full.md) | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
 
 ## Published-example validation
 

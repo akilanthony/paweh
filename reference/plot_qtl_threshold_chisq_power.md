@@ -1,7 +1,7 @@
 # Plot Threshold-Selected Genotype Chi-Square Power
 
 Sweeps one model, selection, or design parameter and repeatedly calls
-[`qtl_threshold_chisq_power()`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_power.md).
+[`qtl_threshold_chisq_power()`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_power.md).
 
 ## Usage
 
@@ -47,7 +47,7 @@ plot_qtl_threshold_chisq_power(
 - ...:
 
   Fixed arguments passed to
-  [`qtl_threshold_chisq_power()`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_power.md).
+  [`qtl_threshold_chisq_power()`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_power.md).
 
 ## Value
 
@@ -63,8 +63,8 @@ after upper-tail case and lower-tail control selection. Arguments in
 
 ## See also
 
-[`qtl_threshold_chisq_power`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_power.md),
-[`plot_qtl_threshold_chisq_mssn`](https://akilanthony.github.io/pawh/reference/plot_qtl_threshold_chisq_mssn.md).
+[`qtl_threshold_chisq_power`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_power.md),
+[`plot_qtl_threshold_chisq_mssn`](https://akilanthony.github.io/paweh/reference/plot_qtl_threshold_chisq_mssn.md).
 
 ## Examples
 

@@ -198,7 +198,7 @@ and Molecular Biology*, 8, Article 44.
 
 ## See also
 
-[`tdt_mssn`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md)
+[`tdt_mssn`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md)
 for the MSSN counterpart.
 
 ## Examples

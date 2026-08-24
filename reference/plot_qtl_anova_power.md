@@ -1,7 +1,7 @@
 # Plot One-Way ANOVA Power Under the Falconer Model
 
 Sweeps one model or design parameter and repeatedly calls
-[`qtl_anova_power()`](https://akilanthony.github.io/pawh/reference/qtl_anova_power.md)
+[`qtl_anova_power()`](https://akilanthony.github.io/paweh/reference/qtl_anova_power.md)
 for a single continuous quantitative trait.
 
 ## Usage
@@ -48,7 +48,7 @@ plot_qtl_anova_power(
 - ...:
 
   Fixed arguments passed to
-  [`qtl_anova_power()`](https://akilanthony.github.io/pawh/reference/qtl_anova_power.md).
+  [`qtl_anova_power()`](https://akilanthony.github.io/paweh/reference/qtl_anova_power.md).
 
 ## Value
 
@@ -59,14 +59,14 @@ A `ggplot` object, or a data frame with the swept parameter and power if
 
 The x-axis is `x_values` for the selected `x_var`; the y-axis is one-way
 ANOVA power from
-[`qtl_anova_power()`](https://akilanthony.github.io/pawh/reference/qtl_anova_power.md).
+[`qtl_anova_power()`](https://akilanthony.github.io/paweh/reference/qtl_anova_power.md).
 Every argument in `...` remains fixed while the selected parameter is
 swept.
 
 ## See also
 
-[`qtl_anova_power`](https://akilanthony.github.io/pawh/reference/qtl_anova_power.md),
-[`plot_qtl_anova_mssn`](https://akilanthony.github.io/pawh/reference/plot_qtl_anova_mssn.md).
+[`qtl_anova_power`](https://akilanthony.github.io/paweh/reference/qtl_anova_power.md),
+[`plot_qtl_anova_mssn`](https://akilanthony.github.io/paweh/reference/plot_qtl_anova_mssn.md).
 
 ## Examples
 

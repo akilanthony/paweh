@@ -111,10 +111,10 @@ in Association Studies*. Springer.
 
 ## See also
 
-[`tdt_mssn`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md),
-[`tdt_power_from_model`](https://akilanthony.github.io/pawh/reference/tdt_power_from_model.md),
+[`tdt_mssn`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md),
+[`tdt_power_from_model`](https://akilanthony.github.io/paweh/reference/tdt_power_from_model.md),
 and
-[`tdt_expected_transmission_counts`](https://akilanthony.github.io/pawh/reference/tdt_expected_transmission_counts.md).
+[`tdt_expected_transmission_counts`](https://akilanthony.github.io/paweh/reference/tdt_expected_transmission_counts.md).
 
 ## Examples
 

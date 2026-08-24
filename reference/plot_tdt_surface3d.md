@@ -4,9 +4,9 @@ Builds an interactive sensitivity surface for model-based TDT power or
 minimum sample size. Any two supported model parameters can be swept
 while the remaining parameters are held fixed. Every grid point is
 evaluated by the canonical
-[`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md)
+[`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md)
 or
-[`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md)
+[`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md)
 backend.
 
 ## Usage
@@ -155,17 +155,17 @@ rejected rather than silently producing a flat, misleading surface.
 This function requires the optional `plotly` package. The plotting layer
 introduces no independent statistical approximation: it only constructs
 the grid, delegates calculations to
-[`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md)
+[`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md)
 or
-[`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md),
+[`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md),
 extracts the selected scenario, and renders the result.
 
 ## See also
 
-[`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md),
-[`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md),
-[`plot_tdt_power()`](https://akilanthony.github.io/pawh/reference/plot_tdt_power.md),
-[`plot_tdt_mssn()`](https://akilanthony.github.io/pawh/reference/plot_tdt_mssn.md)
+[`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md),
+[`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md),
+[`plot_tdt_power()`](https://akilanthony.github.io/paweh/reference/plot_tdt_power.md),
+[`plot_tdt_mssn()`](https://akilanthony.github.io/paweh/reference/plot_tdt_mssn.md)
 
 ## Examples
 

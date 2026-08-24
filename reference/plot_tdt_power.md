@@ -1,7 +1,7 @@
 # Plot TDT Power
 
 Sweeps one x-axis parameter and repeatedly calls
-[`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md)
+[`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md)
 to plot Transmission Disequilibrium Test (TDT) power. The wrapper
 supports both `input_mode = "model_based"` and
 `input_mode = "model_free"`.
@@ -60,7 +60,7 @@ plot_tdt_power(
 - ...:
 
   Arguments passed to
-  [`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md).
+  [`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md).
 
 ## Value
 
@@ -77,7 +77,7 @@ otherwise. This wrapper does not include a compare-scenarios mode.
 
 With `input_mode = "model_based"` (the default), this wrapper's `x_var`
 choices and output are numerically identical to sweeping
-[`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md)
+[`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md)
 directly. `"pd"`, `"prev"`, `"R1"`, `"R2"`, and `"delta_prime"` are only
 valid `x_var` choices in this mode.
 
@@ -88,7 +88,7 @@ or `"pheno_error_multiplier"` variables). A resolved
 `scenario = "misclassification"` requires fixed `pd` and `prev`
 arguments, because the conditional backend needs them to apply
 `heter_rate`/`misclass_rate` to the supplied `ET`/`ENT`. Unlike
-[`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md)'s
+[`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md)'s
 own default of `0.01`, `heter_rate` and `misclass_rate` default to `0`
 here in `input_mode = "model_free"` (unless fixed via `...` or swept via
 `x_var`), so `scenario = "no_error"` always works without `pd`/`prev`.
@@ -99,11 +99,11 @@ trio fraction \\1-\pi\\.
 
 ## See also
 
-[`tdt_power`](https://akilanthony.github.io/pawh/reference/tdt_power.md),
-[`plot_tdt_mssn`](https://akilanthony.github.io/pawh/reference/plot_tdt_mssn.md),
-[`plot_tdt_power_phenotype_misclassification`](https://akilanthony.github.io/pawh/reference/plot_tdt_power_phenotype_misclassification.md),
+[`tdt_power`](https://akilanthony.github.io/paweh/reference/tdt_power.md),
+[`plot_tdt_mssn`](https://akilanthony.github.io/paweh/reference/plot_tdt_mssn.md),
+[`plot_tdt_power_phenotype_misclassification`](https://akilanthony.github.io/paweh/reference/plot_tdt_power_phenotype_misclassification.md),
 and
-[`plot_tdt_power_locus_heterogeneity`](https://akilanthony.github.io/pawh/reference/plot_tdt_power_locus_heterogeneity.md).
+[`plot_tdt_power_locus_heterogeneity`](https://akilanthony.github.io/paweh/reference/plot_tdt_power_locus_heterogeneity.md).
 
 ## Examples
 

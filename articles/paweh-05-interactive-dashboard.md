@@ -24,7 +24,7 @@ app <- paweh_app()
 shiny::runApp(app)
 ```
 
-[`paweh_app()`](https://akilanthony.github.io/pawh/reference/paweh_app.md)
+[`paweh_app()`](https://akilanthony.github.io/paweh/reference/paweh_app.md)
 returns a `shiny.appobj`; it does not launch the application
 automatically. Keeping construction and launch separate is useful in
 scripts, tests, and deployment tooling. The vignette does not execute
@@ -76,7 +76,7 @@ inheritance, the case-to-control allocation, and the significance level.
 Advanced options cover phenotype misclassification, genotype
 misclassification, and locus heterogeneity. Their statistical
 definitions are described in the [Case-Control Study
-Design](https://akilanthony.github.io/pawh/articles/paweh-02-case-control-study-design.md)
+Design](https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.md)
 vignette.
 
 A representative programmatic calculation corresponding to the dashboard
@@ -136,7 +136,7 @@ then specify either a genetic model or direct expected transmission
 quantities. Model-based inputs include the heterozygote relative risk
 (R1), homozygote relative risk (R2), and linkage disequilibrium measure
 D-prime, along with prevalence and allele frequency. See [TDT Study
-Design](https://akilanthony.github.io/pawh/articles/paweh-03-tdt-study-design.md)
+Design](https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.md)
 for the underlying statistical model.
 
 > **Separate TDT modifier scenarios.** Phenotype misclassification and
@@ -178,7 +178,7 @@ tails, and joint analysis of multiple correlated quantitative traits.
 Across these modes, core inputs include modeled-allele frequency,
 variance explained by the QTL, dominance, significance level, and either
 sample size or target power. The [Quantitative-Trait Study
-Design](https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.md)
+Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.md)
 vignette explains the statistical theory.
 
 ### Full continuous trait
@@ -347,10 +347,10 @@ This vignette teaches the dashboard interface. The other articles
 explain the statistical methods and parameters in greater detail:
 
 - [Getting
-  Started](https://akilanthony.github.io/pawh/articles/paweh-01-getting-started.md)
+  Started](https://akilanthony.github.io/paweh/articles/paweh-01-getting-started.md)
 - [Case-Control Study
-  Design](https://akilanthony.github.io/pawh/articles/paweh-02-case-control-study-design.md)
+  Design](https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.md)
 - [TDT Study
-  Design](https://akilanthony.github.io/pawh/articles/paweh-03-tdt-study-design.md)
+  Design](https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.md)
 - [Quantitative-Trait Study
-  Design](https://akilanthony.github.io/pawh/articles/paweh-04-quantitative-trait-study-design.md)
+  Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.md)

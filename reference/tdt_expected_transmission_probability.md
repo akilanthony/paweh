@@ -115,10 +115,10 @@ in Association Studies*. Springer.
 
 ## See also
 
-[`tdt_expected_nontransmission_probability`](https://akilanthony.github.io/pawh/reference/tdt_expected_nontransmission_probability.md),
-[`tdt_expected_transmission_counts`](https://akilanthony.github.io/pawh/reference/tdt_expected_transmission_counts.md),
+[`tdt_expected_nontransmission_probability`](https://akilanthony.github.io/paweh/reference/tdt_expected_nontransmission_probability.md),
+[`tdt_expected_transmission_counts`](https://akilanthony.github.io/paweh/reference/tdt_expected_transmission_counts.md),
 and
-[`tdt_power`](https://akilanthony.github.io/pawh/reference/tdt_power.md).
+[`tdt_power`](https://akilanthony.github.io/paweh/reference/tdt_power.md).
 
 ## Examples
 

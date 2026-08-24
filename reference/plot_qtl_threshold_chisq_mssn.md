@@ -1,7 +1,7 @@
 # Plot Threshold-Selected Genotype Chi-Square Minimum Sample Size
 
 Sweeps one model, selection, or design parameter and repeatedly calls
-[`qtl_threshold_chisq_mssn()`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_mssn.md).
+[`qtl_threshold_chisq_mssn()`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_mssn.md).
 
 ## Usage
 
@@ -54,7 +54,7 @@ plot_qtl_threshold_chisq_mssn(
 - ...:
 
   Fixed arguments passed to
-  [`qtl_threshold_chisq_mssn()`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_mssn.md).
+  [`qtl_threshold_chisq_mssn()`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_mssn.md).
 
 ## Value
 
@@ -70,8 +70,8 @@ count. Other arguments remain fixed while `x_var` is swept.
 
 ## See also
 
-[`qtl_threshold_chisq_mssn`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_mssn.md),
-[`plot_qtl_threshold_chisq_power`](https://akilanthony.github.io/pawh/reference/plot_qtl_threshold_chisq_power.md).
+[`qtl_threshold_chisq_mssn`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_mssn.md),
+[`plot_qtl_threshold_chisq_power`](https://akilanthony.github.io/paweh/reference/plot_qtl_threshold_chisq_power.md).
 
 ## Examples
 

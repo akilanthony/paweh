@@ -88,9 +88,9 @@ and 324–326.
 
 ## See also
 
-[`qtl_threshold_chisq_mssn`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_mssn.md)
+[`qtl_threshold_chisq_mssn`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_mssn.md)
 and
-[`qtl_falconer_threshold_parameters`](https://akilanthony.github.io/pawh/reference/qtl_falconer_threshold_parameters.md).
+[`qtl_falconer_threshold_parameters`](https://akilanthony.github.io/paweh/reference/qtl_falconer_threshold_parameters.md).
 
 ## Examples
 

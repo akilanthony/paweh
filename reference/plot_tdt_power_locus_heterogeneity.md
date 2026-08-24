@@ -72,16 +72,16 @@ A `ggplot` object, returned invisibly after it is printed.
 The x-axis is the heterogeneous trio fraction \\1-\pi\\; the
 homogeneous/linked fraction is \\\pi\\. The y-axis is
 heterogeneity-scenario power from
-[`tdt_power()`](https://akilanthony.github.io/pawh/reference/tdt_power.md).
+[`tdt_power()`](https://akilanthony.github.io/paweh/reference/tdt_power.md).
 `N`, `misclass_fixed`, and all genetic-model parameters remain fixed
 while `heter_seq` is swept.
 
 ## See also
 
-[`tdt_power`](https://akilanthony.github.io/pawh/reference/tdt_power.md),
-[`plot_tdt_power_phenotype_misclassification`](https://akilanthony.github.io/pawh/reference/plot_tdt_power_phenotype_misclassification.md),
+[`tdt_power`](https://akilanthony.github.io/paweh/reference/tdt_power.md),
+[`plot_tdt_power_phenotype_misclassification`](https://akilanthony.github.io/paweh/reference/plot_tdt_power_phenotype_misclassification.md),
 and
-[`plot_tdt_power`](https://akilanthony.github.io/pawh/reference/plot_tdt_power.md).
+[`plot_tdt_power`](https://akilanthony.github.io/paweh/reference/plot_tdt_power.md).
 
 ## Examples
 

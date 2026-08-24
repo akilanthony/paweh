@@ -72,16 +72,16 @@ A `ggplot` object, returned invisibly after it is printed.
 The x-axis is the heterogeneous trio fraction \\1-\pi\\; the
 homogeneous/linked fraction is \\\pi\\. The y-axis is MSSN, the required
 number of affected trios returned by
-[`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md)
+[`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md)
 for fixed `target_power`. `misclass_fixed` and genetic-model parameters
 remain fixed.
 
 ## See also
 
-[`tdt_mssn`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md),
-[`plot_tdt_mssn_phenotype_misclassification`](https://akilanthony.github.io/pawh/reference/plot_tdt_mssn_phenotype_misclassification.md),
+[`tdt_mssn`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md),
+[`plot_tdt_mssn_phenotype_misclassification`](https://akilanthony.github.io/paweh/reference/plot_tdt_mssn_phenotype_misclassification.md),
 and
-[`plot_tdt_mssn`](https://akilanthony.github.io/pawh/reference/plot_tdt_mssn.md).
+[`plot_tdt_mssn`](https://akilanthony.github.io/paweh/reference/plot_tdt_mssn.md).
 
 ## Examples
 

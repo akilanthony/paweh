@@ -97,10 +97,10 @@ density or bin count for those respective scales.
 
 ## See also
 
-[`qtl_falconer_parameters()`](https://akilanthony.github.io/pawh/reference/qtl_falconer_parameters.md),
-[`plot_qtl_anova_power()`](https://akilanthony.github.io/pawh/reference/plot_qtl_anova_power.md),
+[`qtl_falconer_parameters()`](https://akilanthony.github.io/paweh/reference/qtl_falconer_parameters.md),
+[`plot_qtl_anova_power()`](https://akilanthony.github.io/paweh/reference/plot_qtl_anova_power.md),
 and
-[`plot_qtl_threshold_chisq_power()`](https://akilanthony.github.io/pawh/reference/plot_qtl_threshold_chisq_power.md).
+[`plot_qtl_threshold_chisq_power()`](https://akilanthony.github.io/paweh/reference/plot_qtl_threshold_chisq_power.md).
 
 ## Examples
 

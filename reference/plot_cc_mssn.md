@@ -1,7 +1,7 @@
 # Plot Case-Control Minimum Sample Size Necessary
 
 Sweeps one x-axis parameter and repeatedly calls
-[`cc_mssn()`](https://akilanthony.github.io/pawh/reference/cc_mssn.md)
+[`cc_mssn()`](https://akilanthony.github.io/paweh/reference/cc_mssn.md)
 to plot the minimum sample size necessary (MSSN) for case-control tests.
 
 ## Usage
@@ -68,7 +68,7 @@ plot_cc_mssn(
 - ...:
 
   Arguments passed to
-  [`cc_mssn()`](https://akilanthony.github.io/pawh/reference/cc_mssn.md).
+  [`cc_mssn()`](https://akilanthony.github.io/paweh/reference/cc_mssn.md).
 
 ## Value
 
@@ -82,25 +82,25 @@ sample size. `compare_tests = TRUE` plots both tests together.
 
 Supported `x_var` values are the same heterogeneity and
 misclassification variables documented for
-[`plot_cc_power()`](https://akilanthony.github.io/pawh/reference/plot_cc_power.md),
+[`plot_cc_power()`](https://akilanthony.github.io/paweh/reference/plot_cc_power.md),
 plus `"power"` for target power. Fixed sample-size variables such as
 `"N_case"` are not valid because sample size is the MSSN output.
 
 Multiplier behavior matches
-[`plot_cc_power()`](https://akilanthony.github.io/pawh/reference/plot_cc_power.md):
+[`plot_cc_power()`](https://akilanthony.github.io/paweh/reference/plot_cc_power.md):
 `pheno_error_multiplier` multiplies baseline `theta_base` and
 `phi_base`; `geno_error_multiplier` multiplies the corresponding
 baseline genotype-error parameters for the selected genotype
 misclassification model. All arguments in `...` remain fixed while
 `x_var` is swept. The y-axis is the required number of selected cases,
 controls, or total individuals returned by
-[`cc_mssn()`](https://akilanthony.github.io/pawh/reference/cc_mssn.md),
+[`cc_mssn()`](https://akilanthony.github.io/paweh/reference/cc_mssn.md),
 according to `sample_size`.
 
 ## See also
 
-[`cc_mssn`](https://akilanthony.github.io/pawh/reference/cc_mssn.md),
-[`plot_cc_power`](https://akilanthony.github.io/pawh/reference/plot_cc_power.md).
+[`cc_mssn`](https://akilanthony.github.io/paweh/reference/cc_mssn.md),
+[`plot_cc_power`](https://akilanthony.github.io/paweh/reference/plot_cc_power.md).
 
 ## Examples
 

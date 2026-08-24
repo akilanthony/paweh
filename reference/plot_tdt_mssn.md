@@ -1,7 +1,7 @@
 # Plot TDT Minimum Sample Size Necessary
 
 Sweeps one x-axis parameter and repeatedly calls
-[`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md)
+[`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md)
 to plot MSSN in affected trios. The wrapper supports both
 `input_mode = "model_based"` and `input_mode = "model_free"`.
 
@@ -59,7 +59,7 @@ plot_tdt_mssn(
 - ...:
 
   Arguments passed to
-  [`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md).
+  [`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md).
 
 ## Value
 
@@ -71,14 +71,14 @@ A ggplot object, or a data frame if `return_data = TRUE`.
 `"no_error"`, `"misclassification"`, or `"heterogeneity"`. With
 `scenario = "auto"`, the wrapper chooses the scenario from `x_var` using
 the same rules as
-[`plot_tdt_power()`](https://akilanthony.github.io/pawh/reference/plot_tdt_power.md).
+[`plot_tdt_power()`](https://akilanthony.github.io/paweh/reference/plot_tdt_power.md).
 This wrapper does not include a compare-scenarios mode. `x_var = "N"` is
 not allowed because required trios are the output; use `"target_power"`
 to sweep target power.
 
 With `input_mode = "model_based"` (the default), this wrapper's `x_var`
 choices and output are numerically identical to sweeping
-[`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md)
+[`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md)
 directly. `"pd"`, `"prev"`, `"R1"`, `"R2"`, and `"delta_prime"` are only
 valid `x_var` choices in this mode.
 
@@ -89,7 +89,7 @@ instead (or any of the shared `"misclass_rate"`, `"heter_rate"`,
 `scenario = "misclassification"` requires fixed `pd` and `prev`
 arguments, because the conditional backend needs them to apply
 `heter_rate`/`misclass_rate` to the supplied `ET`/`ENT`. Unlike
-[`tdt_mssn()`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md)'s
+[`tdt_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md)'s
 own default of `0.01`, `heter_rate` and `misclass_rate` default to `0`
 here in `input_mode = "model_free"` (unless fixed via `...` or swept via
 `x_var`), so `scenario = "no_error"` always works without `pd`/`prev`.
@@ -101,11 +101,11 @@ unless it is itself the swept variable.
 
 ## See also
 
-[`tdt_mssn`](https://akilanthony.github.io/pawh/reference/tdt_mssn.md),
-[`plot_tdt_power`](https://akilanthony.github.io/pawh/reference/plot_tdt_power.md),
-[`plot_tdt_mssn_phenotype_misclassification`](https://akilanthony.github.io/pawh/reference/plot_tdt_mssn_phenotype_misclassification.md),
+[`tdt_mssn`](https://akilanthony.github.io/paweh/reference/tdt_mssn.md),
+[`plot_tdt_power`](https://akilanthony.github.io/paweh/reference/plot_tdt_power.md),
+[`plot_tdt_mssn_phenotype_misclassification`](https://akilanthony.github.io/paweh/reference/plot_tdt_mssn_phenotype_misclassification.md),
 and
-[`plot_tdt_mssn_locus_heterogeneity`](https://akilanthony.github.io/pawh/reference/plot_tdt_mssn_locus_heterogeneity.md).
+[`plot_tdt_mssn_locus_heterogeneity`](https://akilanthony.github.io/paweh/reference/plot_tdt_mssn_locus_heterogeneity.md).
 
 ## Examples
 

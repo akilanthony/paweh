@@ -94,10 +94,10 @@ Quantitative Genetics*, 4th ed. Longman.
 
 ## See also
 
-[`qtl_falconer_parameters`](https://akilanthony.github.io/pawh/reference/qtl_falconer_parameters.md),
-[`qtl_threshold_chisq_power`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_power.md),
+[`qtl_falconer_parameters`](https://akilanthony.github.io/paweh/reference/qtl_falconer_parameters.md),
+[`qtl_threshold_chisq_power`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_power.md),
 and
-[`qtl_threshold_chisq_mssn`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_mssn.md).
+[`qtl_threshold_chisq_mssn`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_mssn.md).
 
 ## Examples
 

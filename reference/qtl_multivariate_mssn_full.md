@@ -119,10 +119,10 @@ Probabilities*. Springer.
 
 ## See also
 
-[`qtl_multivariate_power_full`](https://akilanthony.github.io/pawh/reference/qtl_multivariate_power_full.md),
-[`qtl_falconer_parameters`](https://akilanthony.github.io/pawh/reference/qtl_falconer_parameters.md),
+[`qtl_multivariate_power_full`](https://akilanthony.github.io/paweh/reference/qtl_multivariate_power_full.md),
+[`qtl_falconer_parameters`](https://akilanthony.github.io/paweh/reference/qtl_falconer_parameters.md),
 and
-[`qtl_threshold_chisq_mssn`](https://akilanthony.github.io/pawh/reference/qtl_threshold_chisq_mssn.md).
+[`qtl_threshold_chisq_mssn`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_mssn.md).
 
 ## Examples
 

@@ -3,8 +3,9 @@
 Convenience functions for genotype-only case-control chi-square
 calculations under conditional model-based genotype frequencies and
 genotype misclassification. These functions are narrower than
-[`cc_mssn`](https://akilanthony.github.io/pawh/reference/cc_mssn.md) and
-[`cc_power`](https://akilanthony.github.io/pawh/reference/cc_power.md):
+[`cc_mssn`](https://akilanthony.github.io/paweh/reference/cc_mssn.md)
+and
+[`cc_power`](https://akilanthony.github.io/paweh/reference/cc_power.md):
 they compute only the genotype chi-square test for one specific
 misclassification model.
 
@@ -264,11 +265,11 @@ Article 25.
 
 ## See also
 
-[`cc_power`](https://akilanthony.github.io/pawh/reference/cc_power.md),
-[`cc_mssn`](https://akilanthony.github.io/pawh/reference/cc_mssn.md),
-[`case_control_locus_heterogeneity`](https://akilanthony.github.io/pawh/reference/case_control_locus_heterogeneity.md),
+[`cc_power`](https://akilanthony.github.io/paweh/reference/cc_power.md),
+[`cc_mssn`](https://akilanthony.github.io/paweh/reference/cc_mssn.md),
+[`case_control_locus_heterogeneity`](https://akilanthony.github.io/paweh/reference/case_control_locus_heterogeneity.md),
 and
-[`case_control_phenotype_misclassification`](https://akilanthony.github.io/pawh/reference/case_control_phenotype_misclassification.md).
+[`case_control_phenotype_misclassification`](https://akilanthony.github.io/paweh/reference/case_control_phenotype_misclassification.md).
 
 ## Examples
 
