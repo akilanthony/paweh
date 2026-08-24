@@ -3,6 +3,7 @@
 .RData
 .httr-oauth
 .DS_Store
+Rplots.pdf
 .quarto
 inst/doc
 /doc/

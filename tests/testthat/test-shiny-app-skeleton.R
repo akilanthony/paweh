@@ -43,7 +43,22 @@ test_that("dashboard uses compact scientific presentation helpers", {
   css <- paste(as.character(pawh:::.pawh_dashboard_theme()), collapse = "\n")
   expect_match(css, "#F7F8FA", fixed = TRUE)
   expect_match(css, ".pawh-study-card { min-height: 0", fixed = TRUE)
+  expect_match(css, ":focus-visible", fixed = TRUE)
+  expect_match(css, ".shiny-plot-output:empty", fixed = TRUE)
+  expect_match(css, "grid-template-columns: minmax(0, 1fr)", fixed = TRUE)
   expect_false(grepl("#00FFFF|cyan|coral|#FF0000", css, ignore.case = TRUE))
+})
+
+test_that("pre-calculation states use consistent concise guidance", {
+  expect_match(as.character(pawh:::.pawh_empty_ui("Results")), "Calculate study design", fixed = TRUE)
+  expect_match(as.character(pawh:::.pawh_empty_ui("Sensitivity")), "before exploring sensitivity", fixed = TRUE)
+  expect_match(as.character(pawh:::.pawh_empty_ui("Visualize")), "study-specific visualizations", fixed = TRUE)
+  expect_match(as.character(pawh:::.pawh_empty_ui("Methods")), "analysis specification", fixed = TRUE)
+})
+
+test_that("shared display formatting handles non-finite values clearly", {
+  expect_identical(pawh:::.pawh_format_percent(c(NA, Inf, .8)), c("not defined", "not defined", "80.0%"))
+  expect_identical(pawh:::.pawh_format_count(c(NA, Inf, -Inf, 12)), c("not defined", "Inf", "-Inf", "12"))
 })
 
 test_that("home study cards request the correct navigation targets", {

@@ -145,3 +145,16 @@ test_that("power sensitivity zoom note detects only narrow ranges", {
   expect_false(pawh:::.pawh_power_axis_zoomed(broad))
   expect_false(pawh:::.pawh_power_axis_zoomed(mssn))
 })
+
+test_that("Case-Control Methods records the frozen analysis", {
+  values <- pawh:::.pawh_cc_defaults()
+  values$locus_het <- TRUE
+  values$pi <- 80
+  calculation <- pawh:::.pawh_cc_calculate(pawh:::.pawh_cc_snapshot(values))
+  html <- paste(as.character(pawh:::.pawh_cc_methods_ui(calculation)), collapse = "\n")
+  expect_match(html, "Input specification", fixed = TRUE)
+  expect_match(html, "Genotype 2 x 3 chi-square", fixed = TRUE)
+  expect_match(html, "Cochran-Armitage trend", fixed = TRUE)
+  expect_match(html, "Locus heterogeneity", fixed = TRUE)
+  expect_match(html, "cc_power()", fixed = TRUE)
+})

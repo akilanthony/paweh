@@ -43,7 +43,7 @@ test_that("QTL subtype controls use human-readable canonical semantics", {
     expect_match(core, "Joint extreme-selection test", fixed = TRUE)
     expect_match(core, "Trait 3", fixed = TRUE)
     expect_match(core, "Correlation: Trait 2 and Trait 3", fixed = TRUE)
-    expect_match(core, "visualization are limited to two traits", fixed = TRUE)
+    expect_match(core, "display a selected trait pair", fixed = TRUE)
   })
 })
 
@@ -191,6 +191,37 @@ test_that("QTL two-dimensional visualizations use canonical plot helpers", {
   expect_s3_class(pawh:::.pawh_qtl_multivariate_plot(multivariate, "genotype"), "ggplot")
   expect_s3_class(pawh:::.pawh_qtl_multivariate_plot(multivariate, "mixture"), "ggplot")
   expect_s3_class(pawh:::.pawh_qtl_multivariate_plot(threshold, "selection"), "ggplot")
+})
+
+test_that("three- and four-trait designs visualize a frozen selected pair", {
+  calculation <- qtl_dashboard_calculation(
+    subtype = "multivariate", n_traits = 4,
+    corr_1_2 = .1, corr_1_3 = .05, corr_1_4 = 0,
+    corr_2_3 = .1, corr_2_4 = .05, corr_3_4 = .1
+  )
+  args <- pawh:::.pawh_qtl_multivariate_plot_args(
+    calculation, "genotype_density", grid_n = 20, trait_pair = c(2, 4)
+  )
+  expect_equal(args$qtl_var, calculation$snapshot$backend_args$qtl_var[c(2, 4)])
+  expect_equal(args$tau, calculation$snapshot$backend_args$tau[c(2, 4)])
+  expect_equal(args$cor_matrix, calculation$snapshot$backend_args$cor_matrix[c(2, 4), c(2, 4)])
+  expect_s3_class(pawh:::.pawh_qtl_multivariate_plot(calculation, "genotype", c(2, 4)), "ggplot")
+
+  shiny::testServer(pawh:::.pawh_qtl_server, {
+    session$setInputs(
+      subtype = "multivariate", objective = "power", mv_test = "pillai",
+      n_traits = "4", N = 500, alpha = .05, pd = 30,
+      mv_qtl_var_1 = 10, mv_qtl_var_2 = 5, mv_qtl_var_3 = 3, mv_qtl_var_4 = 2,
+      mv_tau_1 = 0, mv_tau_2 = .5, mv_tau_3 = 0, mv_tau_4 = 0,
+      corr_1_2 = .1, corr_1_3 = .05, corr_1_4 = 0,
+      corr_2_3 = .1, corr_2_4 = .05, corr_3_4 = .1
+    )
+    session$setInputs(calculate = 1)
+    controls <- paste(as.character(output$visualization_controls), collapse = "\n")
+    expect_match(controls, "Horizontal trait", fixed = TRUE)
+    expect_match(controls, "Vertical trait", fixed = TRUE)
+    expect_null(session$returned$surface())
+  })
 })
 
 test_that("QTL 3D surfaces are restrained, on-demand, and scientifically distinct", {
