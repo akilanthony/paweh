@@ -6,7 +6,7 @@ output:
     toc: true
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{Getting started with paweh}
+  %\VignetteIndexEntry{1. Getting Started with paweh}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -6,7 +6,7 @@ output:
     toc: true
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{Interactive Study Design with the paweh Dashboard}
+  %\VignetteIndexEntry{5. Interactive Study Design with the paweh Dashboard}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -313,3 +313,9 @@ statistical methods and parameters in greater detail:
 - [Case-Control Study Design](paweh-02-case-control-study-design.html)
 - [TDT Study Design](paweh-03-tdt-study-design.html)
 - [Quantitative-Trait Study Design](paweh-04-quantitative-trait-study-design.html)
+
+# Session information
+
+```{r session-info}
+sessionInfo()
+```
