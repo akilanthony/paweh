@@ -122,10 +122,10 @@
       bslib::nav_panel("Results", shiny::uiOutput(ns("results"))), bslib::nav_panel(
         "Sensitivity",
         shiny::uiOutput(ns("sensitivity_controls")), shiny::uiOutput(ns("sensitivity_message")),
-        shiny::plotOutput(ns("sensitivity_plot"), height = "430px")
+        shiny::uiOutput(ns("sensitivity_plot_container"))
       ), bslib::nav_panel(
         "Visualize",
-        shiny::uiOutput(ns("visualize_intro")), shiny::plotOutput(ns("genotype_plot"), height = "430px")
+        shiny::uiOutput(ns("visualize_intro")), shiny::uiOutput(ns("genotype_plot_container"))
       ),
       bslib::nav_panel("Methods", shiny::uiOutput(ns("methods")))
     ))
@@ -724,6 +724,9 @@
     } else if (.pawh_power_axis_zoomed(st$sensitivity)) {
       shiny::p(class = "pawh-zoom-note", "Y-axis is zoomed to show variation in power.")
     })
+    output$sensitivity_plot_container <- shiny::renderUI(if (!is.null(st$sensitivity)) {
+      shiny::plotOutput(ns("sensitivity_plot"), height = "430px")
+    })
     output$sensitivity_plot <- shiny::renderPlot({
       shiny::req(st$sensitivity)
       .pawh_cc_sensitivity_plot(st$sensitivity)
@@ -732,6 +735,9 @@
       .pawh_empty_ui("Visualize")
     } else {
       shiny::div(class = "pawh-visual-intro", shiny::h3("Genotype distributions"), shiny::p("Probabilities returned by the canonical calculation."))
+    })
+    output$genotype_plot_container <- shiny::renderUI(if (!is.null(st$calculation)) {
+      shiny::plotOutput(ns("genotype_plot"), height = "430px")
     })
     output$genotype_plot <- shiny::renderPlot({
       shiny::req(st$calculation)

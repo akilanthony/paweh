@@ -44,7 +44,7 @@ test_that("dashboard uses compact scientific presentation helpers", {
   expect_match(css, "#F7F8FA", fixed = TRUE)
   expect_match(css, ".pawh-study-card { min-height: 0", fixed = TRUE)
   expect_match(css, ":focus-visible", fixed = TRUE)
-  expect_match(css, ".shiny-plot-output:empty", fixed = TRUE)
+  expect_false(grepl("\\.shiny-plot-output\\s*:empty", css))
   expect_match(css, "grid-template-columns: minmax(0, 1fr)", fixed = TRUE)
   expect_false(grepl("#00FFFF|cyan|coral|#FF0000", css, ignore.case = TRUE))
 })
@@ -54,6 +54,30 @@ test_that("pre-calculation states use consistent concise guidance", {
   expect_match(as.character(pawh:::.pawh_empty_ui("Sensitivity")), "before exploring sensitivity", fixed = TRUE)
   expect_match(as.character(pawh:::.pawh_empty_ui("Visualize")), "study-specific visualizations", fixed = TRUE)
   expect_match(as.character(pawh:::.pawh_empty_ui("Methods")), "analysis specification", fixed = TRUE)
+})
+
+test_that("plot outputs are created only after their required state exists", {
+  cc_server <- getFromNamespace(".pawh_case_control_server", "pawh")
+  tdt_server <- getFromNamespace(".pawh_tdt_server", "pawh")
+  qtl_server <- getFromNamespace(".pawh_qtl_server", "pawh")
+  shiny::testServer(cc_server, {
+    expect_null(output$sensitivity_plot_container)
+    expect_null(output$genotype_plot_container)
+    expect_match(paste(as.character(output$sensitivity_controls), collapse = "\n"), "before exploring sensitivity", fixed = TRUE)
+    expect_match(paste(as.character(output$visualize_intro), collapse = "\n"), "study-specific visualizations", fixed = TRUE)
+  })
+  shiny::testServer(tdt_server, {
+    expect_null(output$sensitivity_plot_container)
+    expect_null(output$transmission_plot_container)
+    expect_match(paste(as.character(output$sensitivity_controls), collapse = "\n"), "before exploring sensitivity", fixed = TRUE)
+    expect_match(paste(as.character(output$visualize_intro), collapse = "\n"), "study-specific visualizations", fixed = TRUE)
+  })
+  shiny::testServer(qtl_server, {
+    expect_null(output$sensitivity_plot_container)
+    expect_null(output$visualization_plot_container)
+    expect_match(paste(as.character(output$sensitivity_controls), collapse = "\n"), "before exploring sensitivity", fixed = TRUE)
+    expect_match(paste(as.character(output$visualize_intro), collapse = "\n"), "study-specific visualizations", fixed = TRUE)
+  })
 })
 
 test_that("shared display formatting handles non-finite values clearly", {
