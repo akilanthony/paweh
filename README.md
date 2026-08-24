@@ -43,12 +43,13 @@ documentation when diagnostic components are required.
 The complete documentation is available at
 [https://akilanthony.github.io/pawh/](https://akilanthony.github.io/pawh/).
 
-Four articles provide the main entry points:
+Five articles provide the main entry points:
 
 - [Getting Started](https://akilanthony.github.io/pawh/articles/pawh-01-getting-started.html)
 - [Case-Control Study Design](https://akilanthony.github.io/pawh/articles/pawh-02-case-control-study-design.html)
 - [TDT Study Design](https://akilanthony.github.io/pawh/articles/pawh-03-tdt-study-design.html)
 - [Quantitative-Trait Study Design](https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html)
+- [Interactive Dashboard](https://akilanthony.github.io/pawh/articles/pawh-05-interactive-dashboard.html)
 
 Function-level reference documentation is also available from the
 [pkgdown reference index](https://akilanthony.github.io/pawh/reference/).
@@ -86,6 +87,9 @@ shiny::runApp(app)
 
 `pawh_app()` returns a Shiny application object and does not launch a browser
 or server on its own.
+
+See the [Interactive Dashboard](https://akilanthony.github.io/pawh/articles/pawh-05-interactive-dashboard.html)
+vignette for a guided walkthrough of all three study-design workspaces.
 
 ## Quick start
 

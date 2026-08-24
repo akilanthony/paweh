@@ -97,4 +97,6 @@ articles:
 - title: Quantitative-Trait Study Design
   navbar: Quantitative-Trait Study Design
   contents: pawh-04-quantitative-trait-study-design
-
+- title: Interactive Dashboard
+  navbar: Interactive Dashboard
+  contents: pawh-05-interactive-dashboard
