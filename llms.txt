@@ -49,7 +49,7 @@ required.
 The complete documentation is available at
 <https://akilanthony.github.io/pawh/>.
 
-Four articles provide the main entry points:
+Five articles provide the main entry points:
 
 - [Getting
   Started](https://akilanthony.github.io/pawh/articles/pawh-01-getting-started.html)
@@ -59,6 +59,8 @@ Four articles provide the main entry points:
   Design](https://akilanthony.github.io/pawh/articles/pawh-03-tdt-study-design.html)
 - [Quantitative-Trait Study
   Design](https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.html)
+- [Interactive
+  Dashboard](https://akilanthony.github.io/pawh/articles/pawh-05-interactive-dashboard.html)
 
 Function-level reference documentation is also available from the
 [pkgdown reference
@@ -101,6 +103,10 @@ shiny::runApp(app)
 [`pawh_app()`](https://akilanthony.github.io/pawh/reference/pawh_app.md)
 returns a Shiny application object and does not launch a browser or
 server on its own.
+
+See the [Interactive
+Dashboard](https://akilanthony.github.io/pawh/articles/pawh-05-interactive-dashboard.html)
+vignette for a guided walkthrough of all three study-design workspaces.
 
 ## Quick start
 
@@ -375,3 +381,8 @@ references in the package documentation and study-design articles.
 
 - [Quantitative-trait genetic association study
   design](https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.md):
+
+### Interactive Dashboard
+
+- [Interactive Study Design with the pawh
+  Dashboard](https://akilanthony.github.io/pawh/articles/pawh-05-interactive-dashboard.md):

@@ -19,3 +19,8 @@
 
 - [Quantitative-trait genetic association study
   design](https://akilanthony.github.io/pawh/articles/pawh-04-quantitative-trait-study-design.md):
+
+### Interactive Dashboard
+
+- [Interactive Study Design with the pawh
+  Dashboard](https://akilanthony.github.io/pawh/articles/pawh-05-interactive-dashboard.md):
