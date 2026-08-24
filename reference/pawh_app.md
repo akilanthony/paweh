@@ -4,7 +4,9 @@ Creates the modular `bslib` dashboard for `pawh` study design. The
 Case-Control, TDT / Family, and Quantitative Trait workspaces provide
 canonical power, minimum-sample-size, sensitivity, and study-specific
 visual results. The concise results are complemented by collapsed
-calculation details and reproducible canonical R calls.
+calculation details and reproducible canonical R calls. Dashboard
+calculations delegate to the same canonical package functions as the
+programmatic R interface.
 
 ## Usage
 

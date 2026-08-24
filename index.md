@@ -80,13 +80,17 @@ remotes::install_github("akilanthony/pawh")
 
 ## Interactive dashboard
 
-`pawh` includes interactive Case-Control, TDT / Family, and Quantitative
-Trait study-design workspaces with power, minimum-sample-size,
-sensitivity, and study-specific visual results. Compact primary results
-are complemented by collapsed expert calculation details and
-reproducible canonical R calls; model-based TDT designs and two-trait
-quantitative-trait designs also offer optional on-demand visualizations.
-Construct and launch the dashboard explicitly with:
+`pawh` includes an interactive Shiny interface for:
+
+- Case-Control studies
+- TDT / Family studies
+- Quantitative Trait studies
+
+The dashboard uses the same canonical package functions as the
+programmatic R interface and provides power, minimum-sample-size,
+sensitivity, visualization, advanced calculation details, and
+reproducible R calls. Construct and launch the dashboard explicitly
+with:
 
 ``` r
 
