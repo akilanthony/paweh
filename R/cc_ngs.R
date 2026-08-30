@@ -55,6 +55,64 @@
   )
 }
 
+.cc_ngs_chisq_power <- function(lambda, alpha) {
+  critical <- qchisq(1 - alpha, df = 1)
+  as.numeric(pchisq(
+    critical,
+    df = 1,
+    ncp = lambda,
+    lower.tail = FALSE
+  ))
+}
+
+.cc_ngs_target_ncp <- function(power, alpha) {
+  if (power <= alpha) {
+    return(0)
+  }
+  cc_chisq_ncp_target(power = power, alpha = alpha, df = 1)
+}
+
+.cc_ngs_mssn_components <- function(g_case, g_control, k, scores,
+                                    lambda_target) {
+  .cc_ngs_validate_genotype_frequencies(g_case, "g_case")
+  .cc_ngs_validate_genotype_frequencies(g_control, "g_control")
+  if (!is.numeric(k) || length(k) != 1L || !is.finite(k) || k <= 0) {
+    stop("k must be a single finite positive number.")
+  }
+  if (!is.numeric(scores) || length(scores) != 3L ||
+      any(!is.finite(scores)) || length(unique(scores)) == 1L) {
+    stop("scores must be a finite, nonconstant numeric vector of length 3.")
+  }
+  if (!is.numeric(lambda_target) || length(lambda_target) != 1L ||
+      !is.finite(lambda_target) || lambda_target < 0) {
+    stop("lambda_target must be a single finite nonnegative number.")
+  }
+
+  D <- sum(scores * (g_case - g_control))
+  pooled <- g_case + k * g_control
+  Q <- sum(scores^2 * pooled) -
+    sum(scores * pooled)^2 / (1 + k)
+
+  if (!is.finite(Q) || Q <= 0) {
+    stop("Ahn trend-test Q must be finite and positive.")
+  }
+  if (D^2 < 1e-15) {
+    if (lambda_target == 0) {
+      return(list(D = D, Q = Q, N_case_continuous = 0))
+    }
+    stop(
+      "No finite MSSN exists because the trend contrast is zero under ",
+      "this design."
+    )
+  }
+
+  list(
+    D = D,
+    Q = Q,
+    N_case_continuous = lambda_target * Q / (k * D^2)
+  )
+}
+
 #' Analytic Power for a Case-Control Sequencing Study
 #'
 #' Computes prospective asymptotic power for a model-based case-control
@@ -155,13 +213,7 @@ cc_ngs_power <- function(
     scores = scores
   )
 
-  critical <- qchisq(1 - alpha, df = 1)
-  power <- pchisq(
-    critical,
-    df = 1,
-    ncp = ngs$lambda,
-    lower.tail = FALSE
-  )
+  power <- .cc_ngs_chisq_power(ngs$lambda, alpha)
 
   out <- list(
     alpha = alpha,
@@ -214,5 +266,205 @@ print.cc_ngs_power <- function(x, ...) {
               formatC(x$coverage, format = "f", digits = 0), x$seq_error))
   cat(sprintf("MOI: %s; alpha: %.4g\n", x$MOI, x$alpha))
   cat(sprintf("NCP: %.4f; power: %.1f%%\n", x$lambda, 100 * x$power))
+  invisible(x)
+}
+
+#' Analytic MSSN for a Case-Control Sequencing Study
+#'
+#' Computes the minimum sample size necessary (MSSN) for a model-based
+#' case-control sequencing trend design. It uses the same fixed-depth,
+#' symmetric sequencing-error model and deterministic maximum-likelihood
+#' genotype calls as \code{\link{cc_ngs_power}}.
+#'
+#' @param power Numeric in \eqn{(0,1)}. Requested power.
+#' @param alpha Numeric in \eqn{(0,1)}. Significance level.
+#' @param prev Numeric in \eqn{(0,1)}. Disease prevalence.
+#' @param pd Numeric in \eqn{(0,1)}. Disease-allele frequency.
+#' @param R2 Numeric \eqn{> 0}. Homozygote relative risk.
+#' @param coverage Positive integer sequencing depth.
+#' @param seq_error Symmetric per-read sequencing-error probability in
+#'   \eqn{[0,0.5)}.
+#' @param MOI Character mode of inheritance: \code{"M"} for multiplicative,
+#'   \code{"D"} for dominant, or \code{"Rec"} for recessive.
+#' @param k Numeric \eqn{> 0}. Planned control-to-case sample-size ratio.
+#' @param verbose Logical. If \code{TRUE}, print a concise result summary.
+#'
+#' @details
+#' The function numerically inverts the one-degree-of-freedom noncentral
+#' chi-square distribution only to obtain the target NCP. It then solves the
+#' Ahn/Chapman-Nam trend-test sample-size equation analytically. Planned cases
+#' are the ceiling of the continuous requirement and planned controls are
+#' \code{ceiling(k * MSSN_case)}, following the PAWEH convention. Achieved NCP
+#' and power are recomputed using these actual integer sample sizes, with a
+#' local boundary adjustment if required to ensure target attainment and
+#' integer minimality.
+#'
+#' Scores are \code{c(0,1,2)} for \code{"M"}, \code{c(0,1,1)} for
+#' \code{"D"}, and \code{c(0,0,1)} for \code{"Rec"}. Finite depth can cause
+#' genotype-call uncertainty even when \code{seq_error = 0}, because a true
+#' heterozygote can yield reads from only one allele.
+#'
+#' This is an analytic study-design calculation, not LTTae,NGS, a raw-read
+#' latent-genotype likelihood or EM method, downstream association testing, or
+#' simulation.
+#'
+#' @return Invisibly, an object of class \code{"cc_ngs_mssn"} containing the
+#'   target and achieved power and NCP, continuous and integer sample sizes,
+#'   model and sequencing inputs, true and called genotype frequencies, and
+#'   the true-to-called transition matrix.
+#'
+#' @references
+#' Ahn, K., Haynes, C., Kim, W., St. Fleur, R., Gordon, D., & Finch, S. J.
+#' (2007). The effects of SNP genotyping errors on the power of the
+#' Cochran-Armitage linear trend test for case/control association studies.
+#' \emph{Annals of Human Genetics}, 71, 249--261.
+#' \doi{10.1111/j.1469-1809.2006.00318.x}.
+#'
+#' @examples
+#' cc_ngs_mssn(
+#'   power = 0.80, alpha = 0.05,
+#'   prev = 0.05, pd = 0.30, R2 = 1.8,
+#'   coverage = 20, seq_error = 0.01,
+#'   MOI = "M", verbose = FALSE
+#' )
+#'
+#' @importFrom stats pchisq qchisq uniroot
+#' @export
+cc_ngs_mssn <- function(
+    power, alpha,
+    prev, pd, R2,
+    coverage, seq_error,
+    MOI = c("M", "D", "Rec"),
+    k = 1,
+    verbose = TRUE
+) {
+  MOI <- match.arg(MOI)
+
+  if (!is.numeric(power) || length(power) != 1L || !is.finite(power) ||
+      power <= 0 || power >= 1) {
+    stop("power must be a single finite number in (0, 1).")
+  }
+  if (!is.numeric(alpha) || length(alpha) != 1L || !is.finite(alpha) ||
+      alpha <= 0 || alpha >= 1) {
+    stop("alpha must be a single finite number in (0, 1).")
+  }
+  if (!is.numeric(k) || length(k) != 1L || !is.finite(k) || k <= 0) {
+    stop("k must be a single finite positive number: N_ctrl / N_case.")
+  }
+  if (!is.logical(verbose) || length(verbose) != 1L || is.na(verbose)) {
+    stop("verbose must be TRUE or FALSE.")
+  }
+
+  model <- .cc_model_genotype_frequencies(
+    pd = pd,
+    R2 = R2,
+    MOI = MOI,
+    prev = prev
+  )
+  scores <- .cc_ngs_scores_from_moi(MOI)
+  called <- .cc_ngs_called_frequencies(
+    g_case = model$case,
+    g_control = model$control,
+    coverage = coverage,
+    seq_error = seq_error
+  )
+  lambda_target <- .cc_ngs_target_ncp(power, alpha)
+  components <- .cc_ngs_mssn_components(
+    g_case = called$case_called,
+    g_control = called$control_called,
+    k = k,
+    scores = scores,
+    lambda_target = lambda_target
+  )
+
+  initial_case <- max(1, ceiling(components$N_case_continuous))
+  evaluate_design <- function(N_case) {
+    N_control <- ceiling(k * N_case)
+    lambda <- .cc_ahn_trend_ncp(
+      g_case = called$case_called,
+      g_control = called$control_called,
+      N_case = N_case,
+      N_control = N_control,
+      scores = scores
+    )
+    list(
+      N_case = N_case,
+      N_control = N_control,
+      lambda = lambda,
+      power = .cc_ngs_chisq_power(lambda, alpha)
+    )
+  }
+
+  planned <- evaluate_design(initial_case)
+  tolerance <- 1e-12
+  while (planned$N_case > 1) {
+    previous <- evaluate_design(planned$N_case - 1)
+    if (previous$power < power - tolerance) {
+      break
+    }
+    planned <- previous
+  }
+  while (planned$power < power - tolerance) {
+    planned <- evaluate_design(planned$N_case + 1)
+  }
+
+  out <- list(
+    power_target = power,
+    alpha = alpha,
+    MSSN_case = planned$N_case,
+    MSSN_ctrl = planned$N_control,
+    MSSN_total = planned$N_case + planned$N_control,
+    N_case_continuous = components$N_case_continuous,
+    achieved_power = planned$power,
+    achieved_lambda = planned$lambda,
+    lambda_target = lambda_target,
+    initial_MSSN_case = initial_case,
+    rounding_adjustment = planned$N_case - initial_case,
+    k = k,
+    MOI = MOI,
+    scores = scores,
+    coverage = coverage,
+    seq_error = seq_error,
+    model_info = list(
+      input_mode = "model_based",
+      prev = prev,
+      pd = pd,
+      qd = 1 - pd,
+      R1 = model$R1,
+      R2 = model$R2,
+      MOI = model$MOI,
+      penetrances = model$penetrances
+    ),
+    freqs = list(
+      population = model$population,
+      case_true = called$case_true,
+      control_true = called$control_true,
+      case_called = called$case_called,
+      control_called = called$control_called
+    ),
+    transition_matrix = called$E
+  )
+  class(out) <- "cc_ngs_mssn"
+
+  if (isTRUE(verbose)) {
+    print(out)
+  }
+
+  invisible(out)
+}
+
+#' @export
+print.cc_ngs_mssn <- function(x, ...) {
+  cat("Case-control sequencing trend-test MSSN\n")
+  cat(sprintf("Target power: %.1f%%; alpha: %.4g\n",
+              100 * x$power_target, x$alpha))
+  cat(sprintf("Cases: %s; controls: %s; total MSSN: %s\n",
+              formatC(x$MSSN_case, format = "f", digits = 0, big.mark = ","),
+              formatC(x$MSSN_ctrl, format = "f", digits = 0, big.mark = ","),
+              formatC(x$MSSN_total, format = "f", digits = 0, big.mark = ",")))
+  cat(sprintf("Coverage: %s; sequencing error: %.4g; MOI: %s\n",
+              formatC(x$coverage, format = "f", digits = 0),
+              x$seq_error, x$MOI))
+  cat(sprintf("Achieved power: %.1f%%\n", 100 * x$achieved_power))
   invisible(x)
 }
