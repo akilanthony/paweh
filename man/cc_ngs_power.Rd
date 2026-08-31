@@ -14,7 +14,9 @@ cc_ngs_power(
   seq_error,
   MOI = c("M", "D", "Rec"),
   k = 1,
-  verbose = TRUE
+  verbose = TRUE,
+  locus_het = FALSE,
+  pi = 1
 )
 }
 \arguments{
@@ -40,6 +42,13 @@ cc_ngs_power(
 \eqn{N_{ctrl}/N_{case}}.}
 
 \item{verbose}{Logical. If \code{TRUE}, print a concise result summary.}
+
+\item{locus_het}{Logical. If \code{TRUE}, apply the canonical PAWEH
+case-control locus-heterogeneity mixture before sequencing observation.}
+
+\item{pi}{Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
+\code{locus_het = TRUE}. One retains the original associated-case
+distribution; zero makes the case distribution equal to controls.}
 }
 \value{
 Invisibly, an object of class \code{"cc_ngs_power"} containing the
@@ -60,6 +69,18 @@ Trend scores are selected from \code{MOI}: \code{"M"} uses
 \code{c(0,0,1)}. Power is the upper-tail probability beyond the central
 one-degree-of-freedom chi-square critical value under a noncentral
 chi-square distribution with the calculated NCP.
+
+Locus heterogeneity uses the same parameterization as ordinary PAWEH
+case-control design:
+\deqn{g_{case,H} = \pi g_{case} + (1-\pi)g_{control},}
+with the control distribution unchanged. This biological mixture is applied
+to true genotype probabilities before sequencing observation. Because the
+current sequencing-error model is nondifferential, the same transition
+matrix is applied to cases and controls, so mixing and sequencing commute by
+matrix linearity. This identity does not extend automatically to future
+differential case/control sequencing-error models. At \eqn{\pi=0}, the
+case-control contrast and NCP are zero, and asymptotic power equals
+\code{alpha}.
 
 This is an analytic study-design calculation applied to sequencing-derived
 called genotypes. It is not a raw-read likelihood or EM analysis, performs
@@ -82,4 +103,7 @@ Ahn, K., Haynes, C., Kim, W., St. Fleur, R., Gordon, D., & Finch, S. J.
 Cochran-Armitage linear trend test for case/control association studies.
 \emph{Annals of Human Genetics}, 71, 249--261.
 \doi{10.1111/j.1469-1809.2006.00318.x}.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020). \emph{Heterogeneity in
+Statistical Genetics}. Springer. \doi{10.1007/978-3-030-61121-7}.
 }

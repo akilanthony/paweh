@@ -14,7 +14,9 @@ cc_ngs_mssn(
   seq_error,
   MOI = c("M", "D", "Rec"),
   k = 1,
-  verbose = TRUE
+  verbose = TRUE,
+  locus_het = FALSE,
+  pi = 1
 )
 }
 \arguments{
@@ -39,6 +41,13 @@ cc_ngs_mssn(
 \item{k}{Numeric \eqn{> 0}. Planned control-to-case sample-size ratio.}
 
 \item{verbose}{Logical. If \code{TRUE}, print a concise result summary.}
+
+\item{locus_het}{Logical. If \code{TRUE}, apply the canonical PAWEH
+case-control locus-heterogeneity mixture before sequencing observation.}
+
+\item{pi}{Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
+\code{locus_het = TRUE}. One retains the original associated-case
+distribution; zero makes the case distribution equal to controls.}
 }
 \value{
 Invisibly, an object of class \code{"cc_ngs_mssn"} containing the
@@ -53,6 +62,16 @@ symmetric sequencing-error model and deterministic maximum-likelihood
 genotype calls as \code{\link{cc_ngs_power}}.
 }
 \details{
+Locus heterogeneity is applied to true case genotype probabilities as
+\eqn{g_{case,H}=\pi g_{case}+(1-\pi)g_{control}}, using the same
+parameterization as ordinary PAWEH case-control design. Sequencing
+observation follows this mixture. Under the current nondifferential error
+model, applying the common transition matrix before or after forming the
+mixture is algebraically equivalent; this need not hold for future
+differential case/control sequencing error. When \eqn{\pi=0}, no finite
+MSSN exists for target power greater than \code{alpha} because the trend
+contrast is zero.
+
 The function numerically inverts the one-degree-of-freedom noncentral
 chi-square distribution only to obtain the target NCP. It then solves the
 Ahn/Chapman-Nam trend-test sample-size equation analytically. Planned cases
@@ -86,4 +105,7 @@ Ahn, K., Haynes, C., Kim, W., St. Fleur, R., Gordon, D., & Finch, S. J.
 Cochran-Armitage linear trend test for case/control association studies.
 \emph{Annals of Human Genetics}, 71, 249--261.
 \doi{10.1111/j.1469-1809.2006.00318.x}.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020). \emph{Heterogeneity in
+Statistical Genetics}. Springer. \doi{10.1007/978-3-030-61121-7}.
 }

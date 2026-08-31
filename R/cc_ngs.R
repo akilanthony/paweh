@@ -55,6 +55,40 @@
   )
 }
 
+.cc_ngs_apply_locus_heterogeneity <- function(
+    g_case,
+    g_control,
+    locus_het = FALSE,
+    pi = 1
+) {
+  .cc_ngs_validate_genotype_frequencies(g_case, "g_case")
+  .cc_ngs_validate_genotype_frequencies(g_control, "g_control")
+  if (!is.logical(locus_het) || length(locus_het) != 1L || is.na(locus_het)) {
+    stop("locus_het must be TRUE or FALSE.")
+  }
+  if (!is.numeric(pi) || length(pi) != 1L || !is.finite(pi) ||
+      pi < 0 || pi > 1) {
+    stop("pi must be a single finite number in [0, 1].")
+  }
+
+  effective_pi <- if (isTRUE(locus_het)) pi else 1
+  adjusted <- cc_apply_locus_het(
+    g_case_assoc = g_case,
+    g_ctrl = g_control,
+    pi = effective_pi
+  )
+
+  list(
+    enabled = locus_het,
+    pi = pi,
+    effective_pi = effective_pi,
+    g_case_before_locus_het = as.numeric(g_case),
+    g_ctrl_before_locus_het = as.numeric(g_control),
+    g_case_after_locus_het = as.numeric(adjusted$g_case_het),
+    g_ctrl_after_locus_het = as.numeric(adjusted$g_ctrl_het)
+  )
+}
+
 .cc_ngs_chisq_power <- function(lambda, alpha) {
   critical <- qchisq(1 - alpha, df = 1)
   as.numeric(pchisq(
@@ -135,6 +169,11 @@
 #' @param k Numeric \eqn{> 0}. Control-to-case sample-size ratio
 #'   \eqn{N_{ctrl}/N_{case}}.
 #' @param verbose Logical. If \code{TRUE}, print a concise result summary.
+#' @param locus_het Logical. If \code{TRUE}, apply the canonical PAWEH
+#'   case-control locus-heterogeneity mixture before sequencing observation.
+#' @param pi Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
+#'   \code{locus_het = TRUE}. One retains the original associated-case
+#'   distribution; zero makes the case distribution equal to controls.
 #'
 #' @details
 #' Trend scores are selected from \code{MOI}: \code{"M"} uses
@@ -142,6 +181,18 @@
 #' \code{c(0,0,1)}. Power is the upper-tail probability beyond the central
 #' one-degree-of-freedom chi-square critical value under a noncentral
 #' chi-square distribution with the calculated NCP.
+#'
+#' Locus heterogeneity uses the same parameterization as ordinary PAWEH
+#' case-control design:
+#' \deqn{g_{case,H} = \pi g_{case} + (1-\pi)g_{control},}
+#' with the control distribution unchanged. This biological mixture is applied
+#' to true genotype probabilities before sequencing observation. Because the
+#' current sequencing-error model is nondifferential, the same transition
+#' matrix is applied to cases and controls, so mixing and sequencing commute by
+#' matrix linearity. This identity does not extend automatically to future
+#' differential case/control sequencing-error models. At \eqn{\pi=0}, the
+#' case-control contrast and NCP are zero, and asymptotic power equals
+#' \code{alpha}.
 #'
 #' This is an analytic study-design calculation applied to sequencing-derived
 #' called genotypes. It is not a raw-read likelihood or EM analysis, performs
@@ -160,6 +211,9 @@
 #' \emph{Annals of Human Genetics}, 71, 249--261.
 #' \doi{10.1111/j.1469-1809.2006.00318.x}.
 #'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020). \emph{Heterogeneity in
+#' Statistical Genetics}. Springer. \doi{10.1007/978-3-030-61121-7}.
+#'
 #' @examples
 #' cc_ngs_power(
 #'   N_case = 1000, alpha = 0.05,
@@ -176,7 +230,9 @@ cc_ngs_power <- function(
     coverage, seq_error,
     MOI = c("M", "D", "Rec"),
     k = 1,
-    verbose = TRUE
+    verbose = TRUE,
+    locus_het = FALSE,
+    pi = 1
 ) {
   MOI <- match.arg(MOI)
 
@@ -201,11 +257,17 @@ cc_ngs_power <- function(
     MOI = MOI,
     prev = prev
   )
+  heterogeneity <- .cc_ngs_apply_locus_heterogeneity(
+    g_case = model$case,
+    g_control = model$control,
+    locus_het = locus_het,
+    pi = pi
+  )
   scores <- .cc_ngs_scores_from_moi(MOI)
   N_ctrl <- k * N_case
   ngs <- .cc_ngs_ahn_ncp(
-    g_case = model$case,
-    g_control = model$control,
+    g_case = heterogeneity$g_case_after_locus_het,
+    g_control = heterogeneity$g_ctrl_after_locus_het,
     N_case = N_case,
     N_control = N_ctrl,
     coverage = coverage,
@@ -227,6 +289,7 @@ cc_ngs_power <- function(
     scores = scores,
     coverage = coverage,
     seq_error = seq_error,
+    locus_het = heterogeneity,
     model_info = list(
       input_mode = "model_based",
       prev = prev,
@@ -239,6 +302,8 @@ cc_ngs_power <- function(
     ),
     freqs = list(
       population = model$population,
+      case_true_pre_heterogeneity = model$case,
+      control_true_pre_heterogeneity = model$control,
       case_true = ngs$case_true,
       control_true = ngs$control_true,
       case_called = ngs$case_called,
@@ -264,6 +329,10 @@ print.cc_ngs_power <- function(x, ...) {
               formatC(x$N_total, format = "f", digits = 0, big.mark = ",")))
   cat(sprintf("Coverage: %s; sequencing error: %.4g\n",
               formatC(x$coverage, format = "f", digits = 0), x$seq_error))
+  if (isTRUE(x$locus_het$enabled) && x$locus_het$pi < 1) {
+    cat(sprintf("Locus heterogeneity: %.1f%% (pi = %.4g)\n",
+                100 * (1 - x$locus_het$pi), x$locus_het$pi))
+  }
   cat(sprintf("MOI: %s; alpha: %.4g\n", x$MOI, x$alpha))
   cat(sprintf("NCP: %.4f; power: %.1f%%\n", x$lambda, 100 * x$power))
   invisible(x)
@@ -288,8 +357,23 @@ print.cc_ngs_power <- function(x, ...) {
 #'   \code{"D"} for dominant, or \code{"Rec"} for recessive.
 #' @param k Numeric \eqn{> 0}. Planned control-to-case sample-size ratio.
 #' @param verbose Logical. If \code{TRUE}, print a concise result summary.
+#' @param locus_het Logical. If \code{TRUE}, apply the canonical PAWEH
+#'   case-control locus-heterogeneity mixture before sequencing observation.
+#' @param pi Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
+#'   \code{locus_het = TRUE}. One retains the original associated-case
+#'   distribution; zero makes the case distribution equal to controls.
 #'
 #' @details
+#' Locus heterogeneity is applied to true case genotype probabilities as
+#' \eqn{g_{case,H}=\pi g_{case}+(1-\pi)g_{control}}, using the same
+#' parameterization as ordinary PAWEH case-control design. Sequencing
+#' observation follows this mixture. Under the current nondifferential error
+#' model, applying the common transition matrix before or after forming the
+#' mixture is algebraically equivalent; this need not hold for future
+#' differential case/control sequencing error. When \eqn{\pi=0}, no finite
+#' MSSN exists for target power greater than \code{alpha} because the trend
+#' contrast is zero.
+#'
 #' The function numerically inverts the one-degree-of-freedom noncentral
 #' chi-square distribution only to obtain the target NCP. It then solves the
 #' Ahn/Chapman-Nam trend-test sample-size equation analytically. Planned cases
@@ -320,6 +404,9 @@ print.cc_ngs_power <- function(x, ...) {
 #' \emph{Annals of Human Genetics}, 71, 249--261.
 #' \doi{10.1111/j.1469-1809.2006.00318.x}.
 #'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020). \emph{Heterogeneity in
+#' Statistical Genetics}. Springer. \doi{10.1007/978-3-030-61121-7}.
+#'
 #' @examples
 #' cc_ngs_mssn(
 #'   power = 0.80, alpha = 0.05,
@@ -336,7 +423,9 @@ cc_ngs_mssn <- function(
     coverage, seq_error,
     MOI = c("M", "D", "Rec"),
     k = 1,
-    verbose = TRUE
+    verbose = TRUE,
+    locus_het = FALSE,
+    pi = 1
 ) {
   MOI <- match.arg(MOI)
 
@@ -361,10 +450,16 @@ cc_ngs_mssn <- function(
     MOI = MOI,
     prev = prev
   )
-  scores <- .cc_ngs_scores_from_moi(MOI)
-  called <- .cc_ngs_called_frequencies(
+  heterogeneity <- .cc_ngs_apply_locus_heterogeneity(
     g_case = model$case,
     g_control = model$control,
+    locus_het = locus_het,
+    pi = pi
+  )
+  scores <- .cc_ngs_scores_from_moi(MOI)
+  called <- .cc_ngs_called_frequencies(
+    g_case = heterogeneity$g_case_after_locus_het,
+    g_control = heterogeneity$g_ctrl_after_locus_het,
     coverage = coverage,
     seq_error = seq_error
   )
@@ -425,6 +520,7 @@ cc_ngs_mssn <- function(
     scores = scores,
     coverage = coverage,
     seq_error = seq_error,
+    locus_het = heterogeneity,
     model_info = list(
       input_mode = "model_based",
       prev = prev,
@@ -437,6 +533,8 @@ cc_ngs_mssn <- function(
     ),
     freqs = list(
       population = model$population,
+      case_true_pre_heterogeneity = model$case,
+      control_true_pre_heterogeneity = model$control,
       case_true = called$case_true,
       control_true = called$control_true,
       case_called = called$case_called,
@@ -465,6 +563,10 @@ print.cc_ngs_mssn <- function(x, ...) {
   cat(sprintf("Coverage: %s; sequencing error: %.4g; MOI: %s\n",
               formatC(x$coverage, format = "f", digits = 0),
               x$seq_error, x$MOI))
+  if (isTRUE(x$locus_het$enabled) && x$locus_het$pi < 1) {
+    cat(sprintf("Locus heterogeneity: %.1f%% (pi = %.4g)\n",
+                100 * (1 - x$locus_het$pi), x$locus_het$pi))
+  }
   cat(sprintf("Achieved power: %.1f%%\n", 100 * x$achieved_power))
   invisible(x)
 }
