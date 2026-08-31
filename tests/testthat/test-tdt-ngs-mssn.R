@@ -321,12 +321,16 @@ test_that("MSSN result is transparent, valid, and returned invisibly", {
   )
 })
 
-test_that("MSSN verbose and print behavior is concise", {
+test_that("MSSN verbose report is detailed while print remains concise", {
   expect_output(tdt_ngs_mssn_quiet(verbose = FALSE), NA)
-  expect_output(
+  verbose_text <- capture.output(
     tdt_ngs_mssn_quiet(verbose = TRUE),
-    "TDT1-NGS analytic MSSN"
+    type = "message"
   )
+  expect_true(any(grepl("Minimum Sample Size Necessary", verbose_text,
+                        fixed = TRUE)))
+  expect_true(any(grepl("Required Sample Size", verbose_text, fixed = TRUE)))
+  expect_true(any(grepl("Efficient information", verbose_text, fixed = TRUE)))
   result <- tdt_ngs_mssn_quiet()
   printed <- capture.output(print(result))
   expect_lte(length(printed), 7)

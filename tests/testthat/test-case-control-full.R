@@ -354,7 +354,7 @@ test_that("full functions no longer accept the obsolete allele-test argument or 
   )
 
   expect_false(any(grepl("Alleles:", printed_power, fixed = TRUE)))
-  expect_false(any(grepl("allel", printed_power, ignore.case = TRUE)))
+  expect_false(any(grepl("Allelic test", printed_power, fixed = TRUE)))
 
   printed_mssn <- capture.output(
     cc_mssn(
@@ -369,7 +369,7 @@ test_that("full functions no longer accept the obsolete allele-test argument or 
   )
 
   expect_false(any(grepl("Alleles:", printed_mssn, fixed = TRUE)))
-  expect_false(any(grepl("allel", printed_mssn, ignore.case = TRUE)))
+  expect_false(any(grepl("Allelic test", printed_mssn, fixed = TRUE)))
 
   expect_error(
     do.call(

@@ -228,15 +228,18 @@ test_that("result structure is transparent, finite, and returned invisibly", {
   expect_identical(result$model_info$information_evaluation, "null")
 })
 
-test_that("verbose and print methods are concise", {
+test_that("verbose report is detailed while print remains concise", {
   expect_output(
     tdt_ngs_power_quiet(verbose = FALSE),
     NA
   )
-  expect_output(
+  verbose_text <- capture.output(
     tdt_ngs_power_quiet(verbose = TRUE),
-    "TDT1-NGS analytic power"
+    type = "message"
   )
+  expect_true(any(grepl("PAWEH TDT1-NGS", verbose_text, fixed = TRUE)))
+  expect_true(any(grepl("Efficient information", verbose_text, fixed = TRUE)))
+  expect_true(any(grepl("Raw-read", verbose_text, fixed = TRUE)))
   result <- tdt_ngs_power_quiet()
   printed <- capture.output(print(result))
   expect_lte(length(printed), 6)

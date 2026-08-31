@@ -161,7 +161,7 @@ tdt_ngs_power <- function(
   class(out) <- "tdt_ngs_power"
 
   if (isTRUE(verbose)) {
-    print(out)
+    .paweh_print_tdt_ngs_power(out)
   }
   invisible(out)
 }
@@ -394,7 +394,7 @@ tdt_ngs_mssn <- function(
   class(out) <- "tdt_ngs_mssn"
 
   if (isTRUE(verbose)) {
-    print(out)
+    .paweh_print_tdt_ngs_mssn(out)
   }
   invisible(out)
 }

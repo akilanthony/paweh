@@ -258,24 +258,21 @@ test_that("cc_ngs_mssn returns a transparent invisible result", {
   }
 })
 
-test_that("MSSN verbose output is concise and optional", {
+test_that("MSSN verbose output is detailed and optional", {
   expect_output(
     invisible(do.call(cc_ngs_mssn, cc_ngs_mssn_test_args(verbose = FALSE))),
     NA
   )
-  expect_output(
-    invisible(do.call(cc_ngs_mssn, cc_ngs_mssn_test_args(verbose = TRUE))),
-    "Case-control sequencing trend-test MSSN"
-  )
   output <- capture.output(
-    invisible(do.call(cc_ngs_mssn, cc_ngs_mssn_test_args(verbose = TRUE)))
+    invisible(do.call(cc_ngs_mssn, cc_ngs_mssn_test_args(verbose = TRUE))),
+    type = "message"
   )
 
-  expect_true(any(grepl("Target power:", output, fixed = TRUE)))
-  expect_true(any(grepl("total MSSN:", output, fixed = TRUE)))
+  expect_true(any(grepl("Minimum Sample Size Necessary", output, fixed = TRUE)))
+  expect_true(any(grepl("Required Sample Size", output, fixed = TRUE)))
+  expect_true(any(grepl("Total MSSN:", output, fixed = TRUE)))
   expect_true(any(grepl("Achieved power:", output, fixed = TRUE)))
   expect_false(any(grepl("transition_matrix", output, fixed = TRUE)))
-  expect_lte(length(output), 5)
 })
 
 test_that("cc_ngs_mssn validates public inputs", {

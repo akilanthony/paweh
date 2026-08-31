@@ -257,23 +257,21 @@ test_that("cc_ngs_power has a transparent valid return structure", {
   }
 })
 
-test_that("verbose output is concise and optional", {
+test_that("verbose output is detailed and optional", {
   expect_output(
     invisible(do.call(cc_ngs_power, cc_ngs_test_args(verbose = FALSE))),
     NA
   )
-  expect_output(
-    invisible(do.call(cc_ngs_power, cc_ngs_test_args(verbose = TRUE))),
-    "Case-control sequencing trend-test power"
-  )
   output <- capture.output(
-    invisible(do.call(cc_ngs_power, cc_ngs_test_args(verbose = TRUE)))
+    invisible(do.call(cc_ngs_power, cc_ngs_test_args(verbose = TRUE))),
+    type = "message"
   )
 
-  expect_true(any(grepl("Coverage:", output, fixed = TRUE)))
-  expect_true(any(grepl("NCP:", output, fixed = TRUE)))
+  expect_true(any(grepl("PAWEH Case-Control NGS Study", output, fixed = TRUE)))
+  expect_true(any(grepl("Sequencing Model", output, fixed = TRUE)))
+  expect_true(any(grepl("Genotype-Call Matrix", output, fixed = TRUE)))
+  expect_true(any(grepl("Noncentrality parameter", output, fixed = TRUE)))
   expect_false(any(grepl("transition_matrix", output, fixed = TRUE)))
-  expect_lte(length(output), 5)
 })
 
 test_that("cc_ngs_power validates public inputs", {

@@ -519,7 +519,7 @@ test_that("heterogeneity metadata preserves old CC-NGS result fields", {
   expect_s3_class(mssn, "cc_ngs_mssn", exact = TRUE)
 })
 
-test_that("heterogeneity printing is concise and optional", {
+test_that("heterogeneity reporting is detailed and optional", {
   expect_output(
     do.call(
       cc_ngs_power,
@@ -537,25 +537,25 @@ test_that("heterogeneity printing is concise and optional", {
   power_output <- capture.output(do.call(
     cc_ngs_power,
     cc_ngs_het_power_args(locus_het = TRUE, pi = 0.6, verbose = TRUE)
-  ))
+  ), type = "message")
   mssn_output <- capture.output(do.call(
     cc_ngs_mssn,
     cc_ngs_het_mssn_args(locus_het = TRUE, pi = 0.6, verbose = TRUE)
-  ))
+  ), type = "message")
   default_output <- capture.output(do.call(
     cc_ngs_power,
     cc_ngs_het_power_args(verbose = TRUE)
-  ))
+  ), type = "message")
 
-  expect_true(any(grepl("Locus heterogeneity: 40.0%", power_output,
+  expect_true(any(grepl("Locus heterogeneity:", power_output,
                          fixed = TRUE)))
-  expect_true(any(grepl("Locus heterogeneity: 40.0%", mssn_output,
+  expect_true(any(grepl("Locus-homogeneity fraction (pi):", power_output,
+                         fixed = TRUE)))
+  expect_true(any(grepl("Locus heterogeneity:", mssn_output,
                          fixed = TRUE)))
   expect_false(any(grepl("Locus heterogeneity", default_output,
                           fixed = TRUE)))
   expect_false(any(grepl("transition_matrix", power_output, fixed = TRUE)))
-  expect_lte(length(power_output), 6)
-  expect_lte(length(mssn_output), 6)
 })
 
 test_that("public locus-heterogeneity inputs are validated", {

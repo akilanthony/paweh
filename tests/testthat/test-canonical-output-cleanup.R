@@ -44,7 +44,7 @@ test_that("TDT verbose output shows only requested separate scenarios", {
       list(verbose = TRUE)
     )
     text <- capture_canonical_messages(do.call(fun, args))
-    expect_match(text, "No-error design", fixed = TRUE)
+    expect_match(text, "No-Error Design", fixed = TRUE)
     for (label in present) expect_match(text, label, fixed = TRUE)
     for (label in absent) expect_false(grepl(label, text, fixed = TRUE))
     expect_false(grepl("combined", text, ignore.case = TRUE))
@@ -52,16 +52,16 @@ test_that("TDT verbose output shows only requested separate scenarios", {
 
   for (fun in list(tdt_power, tdt_mssn)) {
     check_output(fun, list(), absent = c(
-      "Phenotype misclassification", "Locus heterogeneity"
+      "Phenotype Misclassification", "Locus Heterogeneity"
     ))
     check_output(fun, list(misclass_rate = 0.05),
-                 present = "Phenotype misclassification",
-                 absent = "Locus heterogeneity")
+                 present = "Phenotype Misclassification",
+                 absent = "Locus Heterogeneity")
     check_output(fun, list(heter_rate = 0.1),
-                 present = "Locus heterogeneity",
-                 absent = "Phenotype misclassification")
+                 present = "Locus Heterogeneity",
+                 absent = "Phenotype Misclassification")
     check_output(fun, list(misclass_rate = 0.05, heter_rate = 0.1),
-                 present = c("Phenotype misclassification", "Locus heterogeneity"))
+                 present = c("Phenotype Misclassification", "Locus Heterogeneity"))
   }
 })
 
@@ -90,8 +90,8 @@ test_that("case-control verbose output reports baseline then one adjusted design
   for (fun in list(cc_power, cc_mssn)) {
     first <- if (identical(fun, cc_power)) list(N_case = 400) else list(power = 0.8)
     quiet_text <- capture_canonical_messages(do.call(fun, c(first, base, list(verbose = TRUE))))
-    expect_match(quiet_text, "No-error design", fixed = TRUE)
-    expect_false(grepl("Adjusted design", quiet_text, fixed = TRUE))
+    expect_match(quiet_text, "No-Error Design", fixed = TRUE)
+    expect_false(grepl("Adjusted Design", quiet_text, fixed = TRUE))
 
     adjusted_text <- capture_canonical_messages(do.call(
       fun,
@@ -103,8 +103,8 @@ test_that("case-control verbose output reports baseline then one adjusted design
         verbose = TRUE
       ))
     ))
-    expect_match(adjusted_text, "No-error design", fixed = TRUE)
-    expect_match(adjusted_text, "Adjusted design", fixed = TRUE)
+    expect_match(adjusted_text, "No-Error Design", fixed = TRUE)
+    expect_match(adjusted_text, "Adjusted Design", fixed = TRUE)
     expect_match(adjusted_text, "Locus heterogeneity", fixed = TRUE)
     expect_match(adjusted_text, "Phenotype misclassification", fixed = TRUE)
     expect_match(adjusted_text, "Genotype misclassification", fixed = TRUE)
@@ -138,8 +138,8 @@ test_that("zero-valued genotype error models remain no-error designs", {
       text <- capture_canonical_messages(
         do.call(fun, c(first, base, model, list(verbose = TRUE)))
       )
-      expect_match(text, "No-error design", fixed = TRUE)
-      expect_false(grepl("Adjusted design", text, fixed = TRUE))
+      expect_match(text, "No-Error Design", fixed = TRUE)
+      expect_false(grepl("Adjusted Design", text, fixed = TRUE))
       expect_false(grepl("Genotype misclassification", text, fixed = TRUE))
     }
   }
@@ -153,7 +153,7 @@ test_that("nonzero effective genotype error triggers adjusted narration", {
       fun,
       c(first, base, list(geno_misclass = "1p", e = 0.01, verbose = TRUE))
     ))
-    expect_match(text, "Adjusted design", fixed = TRUE)
+    expect_match(text, "Adjusted Design", fixed = TRUE)
     expect_match(text, "Genotype misclassification", fixed = TRUE)
   }
 })
@@ -173,8 +173,8 @@ test_that("TDT percent increase handles a non-finite no-error baseline", {
     ET = 100, ENT = 100, n_trios = 100,
     pd = 0.3, heter_rate = 0.1, verbose = TRUE
   ))
-  expect_match(text, "Required trios: Inf", fixed = TRUE)
-  expect_match(text, "Percent increase: not defined", fixed = TRUE)
+  expect_match(text, "Required complete trios:.*Inf")
+  expect_match(text, "MSSN increase:.*Not defined")
 })
 
 test_that("canonical verbose FALSE calls emit no narrative", {

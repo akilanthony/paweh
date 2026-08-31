@@ -320,7 +320,7 @@ cc_ngs_power <- function(
   class(out) <- "cc_ngs_power"
 
   if (isTRUE(verbose)) {
-    print(out)
+    .paweh_print_cc_ngs_power(out)
   }
 
   invisible(out)
@@ -552,7 +552,7 @@ cc_ngs_mssn <- function(
   class(out) <- "cc_ngs_mssn"
 
   if (isTRUE(verbose)) {
-    print(out)
+    .paweh_print_cc_ngs_mssn(out)
   }
 
   invisible(out)
