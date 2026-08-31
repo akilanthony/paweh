@@ -72,6 +72,9 @@ All arguments supplied through \code{...} remain fixed while
 the power returned by \code{cc_power()} for the selected genotype chi-square
 or trend test. With \code{compare_tests = TRUE}, both powers are drawn on
 the same axes.
+When sweeping \code{x_var = "pi"}, set \code{locus_het = TRUE}. The exact
+\code{pi = 0} null boundary is retained in returned and plotted data with
+zero NCP and power equal to \code{alpha}.
 }
 \examples{
 g_aff <- c((1 - 0.05)^2, 2 * 0.05 * (1 - 0.05), 0.05^2)

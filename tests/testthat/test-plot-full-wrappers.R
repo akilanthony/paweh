@@ -483,3 +483,94 @@ test_that("plot wrappers support genotype and phenotype error multipliers", {
     )
   )
 })
+
+test_that("ordinary CC pi power sweeps delegate exactly and retain the null", {
+  pis <- c(1, 0.75, 0.5, 0.25, 0)
+  fixed <- list(
+    N_case = 1000, alpha = 0.05, prev = 0.05, pd = 0.30,
+    R2 = 1.8, MOI = "M", k = 1, locus_het = TRUE, verbose = FALSE
+  )
+  dat <- do.call(plot_cc_power, c(list(
+    x_var = "pi", x_values = pis, test = "trend", return_data = TRUE
+  ), fixed))
+  direct <- lapply(pis, function(pi_i) {
+    do.call(cc_power, c(fixed, list(pi = pi_i)))$tests$trend
+  })
+
+  expect_equal(dat$power, vapply(direct, `[[`, numeric(1), "power"))
+  expect_equal(dat$lambda, vapply(direct, `[[`, numeric(1), "lambda"))
+  expect_equal(dat$power[dat$pi == 0], fixed$alpha, tolerance = 1e-14)
+  expect_equal(dat$lambda[dat$pi == 0], 0)
+
+  p <- do.call(plot_cc_power, c(list(
+    x_var = "pi", x_values = pis, test = "trend"
+  ), fixed))
+  expect_s3_class(p, "ggplot")
+  expect_true(any(p$data$x == 0))
+  expect_equal(p$data$lambda[p$data$x == 0], 0)
+})
+
+test_that("ordinary CC pi MSSN sweeps retain structural non-finiteness", {
+  pis <- c(1, 0.75, 0.5, 0.25, 0)
+  fixed <- list(
+    power = 0.80, alpha = 0.05, prev = 0.05, pd = 0.30,
+    R2 = 1.8, MOI = "M", k = 1, locus_het = TRUE, verbose = FALSE
+  )
+  dat <- do.call(plot_cc_mssn, c(list(
+    x_var = "pi", x_values = pis, test = "trend",
+    sample_size = "total", return_data = TRUE
+  ), fixed))
+  direct <- vapply(pis[pis > 0], function(pi_i) {
+    do.call(cc_mssn, c(fixed, list(pi = pi_i)))$tests$trend$MSSN_total
+  }, numeric(1))
+
+  expect_equal(dat$MSSN_total[dat$pi > 0], direct)
+  null <- dat[dat$pi == 0, ]
+  expect_true(is.na(null$MSSN_total))
+  expect_false(null$finite_mssn)
+  expect_identical(null$status, "no finite MSSN")
+
+  p <- do.call(plot_cc_mssn, c(list(
+    x_var = "pi", x_values = pis, test = "trend", sample_size = "case"
+  ), fixed))
+  expect_s3_class(p, "ggplot")
+  expect_true(any(!p$data$finite_mssn))
+  expect_true(is.na(p$data$y[p$data$x == 0]))
+})
+
+test_that("ordinary CC plot master switch and unexpected errors propagate", {
+  common <- list(
+    alpha = 0.05, prev = 0.05, pd = 0.30, R2 = 1.8,
+    MOI = "M", k = 1, locus_het = FALSE
+  )
+  expect_error(
+    do.call(plot_cc_power, c(list(
+      x_var = "pi", x_values = c(1, 0.5), test = "trend", N_case = 1000
+    ), common)),
+    "pi is used only when locus_het = TRUE; set pi = 1 or enable locus heterogeneity\\."
+  )
+  expect_error(
+    do.call(plot_cc_mssn, c(list(
+      x_var = "pi", x_values = c(1, 1.1), test = "trend", power = 0.8
+    ), common)),
+    "pi must be"
+  )
+})
+
+test_that("ordinary CC historical non-locus plot data structure is unchanged", {
+  dat <- plot_cc_power(
+    x_var = "N_case", x_values = c(500, 1000), test = "trend",
+    alpha = 0.05, prev = 0.05, pd = 0.30, R2 = 1.8,
+    MOI = "M", k = 1, locus_het = FALSE, pi = 1,
+    return_data = TRUE
+  )
+  expect_identical(names(dat), c("N_case", "test", "power"))
+  direct <- vapply(c(500, 1000), function(n) {
+    cc_power(
+      N_case = n, alpha = 0.05, prev = 0.05, pd = 0.30,
+      R2 = 1.8, MOI = "M", k = 1, locus_het = FALSE, pi = 1,
+      verbose = FALSE
+    )$tests$trend$power
+  }, numeric(1))
+  expect_equal(dat$power, direct)
+})
