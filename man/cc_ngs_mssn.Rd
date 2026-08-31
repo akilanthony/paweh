@@ -47,7 +47,8 @@ case-control locus-heterogeneity mixture before sequencing observation.}
 
 \item{pi}{Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
 \code{locus_het = TRUE}. One retains the original associated-case
-distribution; zero makes the case distribution equal to controls.}
+distribution; zero makes the case distribution equal to controls. When
+\code{locus_het = FALSE}, \code{pi} must remain at its default value of 1.}
 }
 \value{
 Invisibly, an object of class \code{"cc_ngs_mssn"} containing the

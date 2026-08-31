@@ -70,6 +70,11 @@
       pi < 0 || pi > 1) {
     stop("pi must be a single finite number in [0, 1].")
   }
+  if (!isTRUE(locus_het) && pi != 1) {
+    stop(
+      "pi is used only when locus_het = TRUE; set pi = 1 or enable locus heterogeneity."
+    )
+  }
 
   effective_pi <- if (isTRUE(locus_het)) pi else 1
   adjusted <- cc_apply_locus_het(
@@ -173,7 +178,8 @@
 #'   case-control locus-heterogeneity mixture before sequencing observation.
 #' @param pi Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
 #'   \code{locus_het = TRUE}. One retains the original associated-case
-#'   distribution; zero makes the case distribution equal to controls.
+#'   distribution; zero makes the case distribution equal to controls. When
+#'   \code{locus_het = FALSE}, \code{pi} must remain at its default value of 1.
 #'
 #' @details
 #' Trend scores are selected from \code{MOI}: \code{"M"} uses
@@ -361,7 +367,8 @@ print.cc_ngs_power <- function(x, ...) {
 #'   case-control locus-heterogeneity mixture before sequencing observation.
 #' @param pi Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
 #'   \code{locus_het = TRUE}. One retains the original associated-case
-#'   distribution; zero makes the case distribution equal to controls.
+#'   distribution; zero makes the case distribution equal to controls. When
+#'   \code{locus_het = FALSE}, \code{pi} must remain at its default value of 1.
 #'
 #' @details
 #' Locus heterogeneity is applied to true case genotype probabilities as

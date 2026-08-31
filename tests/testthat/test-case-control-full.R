@@ -119,6 +119,135 @@ test_that("pi boundary values transform true case frequencies", {
   expect_equal(pi_zero$freqs$g_true_case, pi_zero$freqs$g_base_ctrl, tolerance = 1e-12)
 })
 
+test_that("ordinary CC locus switch preserves valid historical fixtures", {
+  power_args <- list(
+    N_case = 1000, alpha = 0.05,
+    input_mode = "model_based",
+    prev = 0.05, pd = 0.30, R2 = 1.8, MOI = "M",
+    k = 1, w = c(0, 1, 2), verbose = FALSE
+  )
+  mssn_args <- power_args
+  mssn_args$N_case <- NULL
+  mssn_args$power <- 0.80
+
+  power_off <- do.call(cc_power, c(power_args, list(locus_het = FALSE, pi = 1)))
+  power_one <- do.call(cc_power, c(power_args, list(locus_het = TRUE, pi = 1)))
+  power_half <- do.call(cc_power, c(power_args, list(locus_het = TRUE, pi = 0.5)))
+  mssn_off <- do.call(cc_mssn, c(mssn_args, list(locus_het = FALSE, pi = 1)))
+  mssn_one <- do.call(cc_mssn, c(mssn_args, list(locus_het = TRUE, pi = 1)))
+  mssn_half <- do.call(cc_mssn, c(mssn_args, list(locus_het = TRUE, pi = 0.5)))
+
+  expect_equal(power_off$tests$trend$lambda, 21.094805103913,
+               tolerance = 1e-12)
+  expect_equal(power_off$tests$trend$power, 0.995767586715572,
+               tolerance = 1e-12)
+  expect_equal(power_one$tests, power_off$tests, tolerance = 1e-15)
+  expect_equal(power_half$tests$genotypes$lambda, 5.44661220996911,
+               tolerance = 1e-12)
+  expect_equal(power_half$tests$genotypes$power, 0.540622389046613,
+               tolerance = 1e-12)
+  expect_equal(power_half$tests$trend$lambda, 5.43092431210202,
+               tolerance = 1e-12)
+  expect_equal(power_half$tests$trend$power, 0.644492895244749,
+               tolerance = 1e-12)
+
+  expect_identical(mssn_off$tests$genotypes$MSSN_case, 457)
+  expect_identical(mssn_off$tests$trend$MSSN_case, 373)
+  expect_equal(mssn_one$tests, mssn_off$tests, tolerance = 1e-15)
+  expect_identical(mssn_half$tests$genotypes$MSSN_case, 1769)
+  expect_identical(mssn_half$tests$trend$MSSN_case, 1446)
+})
+
+test_that("ordinary CC rejects pi when the locus switch is disabled", {
+  message <- paste(
+    "pi is used only when locus_het = TRUE;",
+    "set pi = 1 or enable locus heterogeneity."
+  )
+  power_args <- list(
+    N_case = 500, alpha = 0.05, input_mode = "model_free",
+    g1 = cc_g_case, g0 = cc_g_ctrl,
+    locus_het = FALSE, verbose = FALSE
+  )
+  mssn_args <- power_args
+  mssn_args$N_case <- NULL
+  mssn_args$power <- 0.80
+
+  for (pi in c(0, 0.5)) {
+    expect_error(do.call(cc_power, c(power_args, list(pi = pi))), message,
+                 fixed = TRUE)
+    expect_error(do.call(cc_mssn, c(mssn_args, list(pi = pi))), message,
+                 fixed = TRUE)
+  }
+})
+
+test_that("active pi zero remains the valid ordinary CC null boundary", {
+  power <- cc_power(
+    N_case = 500, alpha = 0.05,
+    input_mode = "model_free", g1 = cc_g_case, g0 = cc_g_ctrl,
+    locus_het = TRUE, pi = 0, verbose = FALSE
+  )
+  expect_equal(power$freqs$g_true_case, power$freqs$g_true_ctrl,
+               tolerance = 1e-15)
+  expect_equal(power$tests$genotypes$lambda, 0, tolerance = 1e-15)
+  expect_equal(power$tests$trend$lambda, 0, tolerance = 1e-15)
+  expect_equal(power$tests$genotypes$power, power$alpha, tolerance = 1e-15)
+  expect_equal(power$tests$trend$power, power$alpha, tolerance = 1e-15)
+
+  expect_error(
+    cc_mssn(
+      power = 0.80, alpha = 0.05,
+      input_mode = "model_free", g1 = cc_g_case, g0 = cc_g_ctrl,
+      locus_het = TRUE, pi = 0, verbose = FALSE
+    ),
+    "No finite MSSN exists because the trend contrast is zero under this design.",
+    fixed = TRUE
+  )
+})
+
+test_that("small positive pi values remain on ordinary CC formula paths", {
+  for (pi in c(1e-8, 0.001)) {
+    power <- cc_power(
+      N_case = 500, alpha = 0.05,
+      input_mode = "model_free", g1 = cc_g_case, g0 = cc_g_ctrl,
+      locus_het = TRUE, pi = pi, verbose = FALSE
+    )
+    mssn <- cc_mssn(
+      power = 0.80, alpha = 0.05,
+      input_mode = "model_free", g1 = cc_g_case, g0 = cc_g_ctrl,
+      locus_het = TRUE, pi = pi, verbose = FALSE
+    )
+
+    expect_gt(power$tests$genotypes$lambda, 0)
+    expect_gt(power$tests$trend$lambda, 0)
+    expect_true(is.finite(power$tests$genotypes$power))
+    expect_true(is.finite(power$tests$trend$power))
+    expect_true(is.finite(mssn$tests$genotypes$MSSN_case))
+    expect_true(is.finite(mssn$tests$trend$MSSN_case))
+  }
+})
+
+test_that("ordinary CC rejects invalid pi before switch contradictions", {
+  invalid_pi <- list(-0.1, 1.1, NA_real_, Inf, "0.5", c(0.5, 1))
+  for (pi in invalid_pi) {
+    expect_error(
+      cc_power(
+        N_case = 500, alpha = 0.05,
+        input_mode = "model_free", g1 = cc_g_case, g0 = cc_g_ctrl,
+        locus_het = FALSE, pi = pi, verbose = FALSE
+      ),
+      "pi must be a single number in [0,1].", fixed = TRUE
+    )
+    expect_error(
+      cc_mssn(
+        power = 0.80, alpha = 0.05,
+        input_mode = "model_free", g1 = cc_g_case, g0 = cc_g_ctrl,
+        locus_het = FALSE, pi = pi, verbose = FALSE
+      ),
+      "pi must be a single number in [0,1].", fixed = TRUE
+    )
+  }
+})
+
 test_that("3p genotype misclassification stores model and prints status", {
   out <- cc_power(
     N_case = 500,

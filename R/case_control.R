@@ -17,8 +17,8 @@
     stop("Genotype S <= 0; check inputs.")
   if (!is.finite(components$denominator_t) || components$denominator_t <= 0)
     stop("Trend denominator <= 0; check inputs/weights.")
-  if (components$numerator_t < 1e-15)
-    stop("Trend numerator is approximately 0; implies no weighted mean difference.")
+  if (!is.finite(components$numerator_t) || components$numerator_t <= 0)
+    stop("Trend numerator is 0; implies no weighted mean difference.")
   invisible(components)
 }
 
@@ -26,6 +26,10 @@
                                   lambda_star_g, lambda_star_t,
                                   validate = TRUE) {
   components <- .cc_test_components(g_case, g_ctrl, k, w)
+  null_design <- isTRUE(all(g_case == g_ctrl))
+  if (isTRUE(validate) && null_design) {
+    stop("No finite MSSN exists because the trend contrast is zero under this design.")
+  }
   if (isTRUE(validate))
     .cc_validate_test_components(components)
 
@@ -57,7 +61,8 @@
 .cc_power_test_results <- function(g_case, g_ctrl, k, w, N_case, alpha,
                                    validate = TRUE) {
   components <- .cc_test_components(g_case, g_ctrl, k, w)
-  if (isTRUE(validate))
+  null_design <- isTRUE(all(g_case == g_ctrl))
+  if (isTRUE(validate) && !null_design)
     .cc_validate_test_components(components)
 
   lambda_g <- k * N_case * components$S_g
@@ -113,7 +118,8 @@
 #' @param locus_het Logical. If \code{TRUE}, applies locus heterogeneity to the
 #'   case genotype frequencies before phenotype and genotype misclassification.
 #' @param pi Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
-#'   \code{locus_het = TRUE}.
+#'   \code{locus_het = TRUE}. When \code{locus_het = FALSE}, \code{pi} must
+#'   remain at its default value of 1.
 #' @param pheno_misclass Logical. If \code{TRUE}, applies phenotype
 #'   misclassification before genotype misclassification.
 #' @param theta Numeric in \eqn{[0,1)}. Probability that a truly affected
@@ -548,8 +554,10 @@ cc_mssn <- function(
     stop("Trend weights w cannot all be equal.")
   if (!is.logical(locus_het) || length(locus_het) != 1)
     stop("locus_het must be TRUE or FALSE.")
-  if (!is.numeric(pi) || length(pi) != 1 || pi < 0 || pi > 1)
+  if (!is.numeric(pi) || length(pi) != 1 || !is.finite(pi) || pi < 0 || pi > 1)
     stop("pi must be a single number in [0,1].")
+  if (!isTRUE(locus_het) && pi != 1)
+    stop("pi is used only when locus_het = TRUE; set pi = 1 or enable locus heterogeneity.")
   if (!is.logical(pheno_misclass) || length(pheno_misclass) != 1)
     stop("pheno_misclass must be TRUE or FALSE.")
   if (!is.numeric(theta) || length(theta) != 1 || theta < 0 || theta >= 1)
@@ -894,7 +902,8 @@ cc_mssn <- function(
 #' @param locus_het Logical. If \code{TRUE}, applies locus heterogeneity to the
 #'   case genotype frequencies before phenotype and genotype misclassification.
 #' @param pi Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
-#'   \code{locus_het = TRUE}.
+#'   \code{locus_het = TRUE}. When \code{locus_het = FALSE}, \code{pi} must
+#'   remain at its default value of 1.
 #' @param pheno_misclass Logical. If \code{TRUE}, applies phenotype
 #'   misclassification before genotype misclassification.
 #' @param theta Numeric in \eqn{[0,1)}. Probability that a truly affected
@@ -1346,8 +1355,10 @@ cc_power <- function(
     stop("Trend weights w cannot all be equal.")
   if (!is.logical(locus_het) || length(locus_het) != 1)
     stop("locus_het must be TRUE or FALSE.")
-  if (!is.numeric(pi) || length(pi) != 1 || pi < 0 || pi > 1)
+  if (!is.numeric(pi) || length(pi) != 1 || !is.finite(pi) || pi < 0 || pi > 1)
     stop("pi must be a single number in [0,1].")
+  if (!isTRUE(locus_het) && pi != 1)
+    stop("pi is used only when locus_het = TRUE; set pi = 1 or enable locus heterogeneity.")
   if (!is.logical(pheno_misclass) || length(pheno_misclass) != 1)
     stop("pheno_misclass must be TRUE or FALSE.")
   if (!is.numeric(theta) || length(theta) != 1 || theta < 0 || theta >= 1)

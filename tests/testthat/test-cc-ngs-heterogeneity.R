@@ -121,6 +121,66 @@ test_that("the homogeneous boundary preserves pre-S12 MSSN results", {
   }
 })
 
+test_that("CC-NGS locus switch preserves fixed valid historical fixtures", {
+  power_off <- do.call(
+    cc_ngs_power,
+    cc_ngs_het_power_args(locus_het = FALSE, pi = 1)
+  )
+  power_one <- do.call(
+    cc_ngs_power,
+    cc_ngs_het_power_args(locus_het = TRUE, pi = 1)
+  )
+  power_half <- do.call(
+    cc_ngs_power,
+    cc_ngs_het_power_args(locus_het = TRUE, pi = 0.5)
+  )
+  mssn_off <- do.call(
+    cc_ngs_mssn,
+    cc_ngs_het_mssn_args(locus_het = FALSE, pi = 1)
+  )
+  mssn_one <- do.call(
+    cc_ngs_mssn,
+    cc_ngs_het_mssn_args(locus_het = TRUE, pi = 1)
+  )
+  mssn_half <- do.call(
+    cc_ngs_mssn,
+    cc_ngs_het_mssn_args(locus_het = TRUE, pi = 0.5)
+  )
+
+  expect_equal(power_off$lambda, 21.0597925597, tolerance = 1e-12)
+  expect_equal(power_off$power, 0.995719830844489, tolerance = 1e-12)
+  expect_equal(power_one$lambda, power_off$lambda, tolerance = 1e-15)
+  expect_equal(power_one$power, power_off$power, tolerance = 1e-15)
+  expect_equal(power_half$lambda, 5.42155552569551, tolerance = 1e-12)
+  expect_equal(power_half$power, 0.643743647669686, tolerance = 1e-12)
+  expect_identical(mssn_off$MSSN_case, 373)
+  expect_identical(mssn_one$MSSN_case, 373)
+  expect_identical(mssn_half$MSSN_case, 1448)
+})
+
+test_that("CC-NGS rejects pi when the locus switch is disabled", {
+  message <- paste(
+    "pi is used only when locus_het = TRUE;",
+    "set pi = 1 or enable locus heterogeneity."
+  )
+  for (pi in c(0, 0.5)) {
+    expect_error(
+      do.call(
+        cc_ngs_power,
+        cc_ngs_het_power_args(locus_het = FALSE, pi = pi)
+      ),
+      message, fixed = TRUE
+    )
+    expect_error(
+      do.call(
+        cc_ngs_mssn,
+        cc_ngs_het_mssn_args(locus_het = FALSE, pi = pi)
+      ),
+      message, fixed = TRUE
+    )
+  }
+})
+
 test_that("complete locus heterogeneity removes the CC contrast", {
   for (MOI in c("M", "D", "Rec")) {
     result <- do.call(
