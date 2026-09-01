@@ -1,7 +1,12 @@
+^paweh\.Rproj$
 ^\.Rproj\.user$
+^LICENSE\.md$
 ^doc$
 ^Meta$
+^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^AGENTS\.md$
 ^tests/testthat/Rplots\.pdf$
 ^\.claude$
+^\.github$
