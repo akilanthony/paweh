@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">paweh</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,9 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Interactive Dashboard</h6></li>
     <li><a class="dropdown-item" href="../articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Sequencing-Based Genetic Study Design</h6></li>
+    <li><a class="dropdown-item" href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a></li>
   </ul>
 </li>
       </ul>
@@ -65,10 +68,8 @@
 
 
 
-<link href="paweh-03-tdt-study-design_files/htmltools-fill-0.5.9/fill.css" rel="stylesheet">
-<script src="paweh-03-tdt-study-design_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="paweh-03-tdt-study-design_files/plotly-binding-4.12.1/plotly.js"></script><script src="paweh-03-tdt-study-design_files/typedarray-0.1/typedarray.min.js"></script><link href="paweh-03-tdt-study-design_files/crosstalk-1.2.2/css/crosstalk.min.css" rel="stylesheet">
-<script src="paweh-03-tdt-study-design_files/crosstalk-1.2.2/js/crosstalk.min.js"></script><link href="paweh-03-tdt-study-design_files/plotly-htmlwidgets-css-2.25.2/plotly-htmlwidgets.css" rel="stylesheet">
-<script src="paweh-03-tdt-study-design_files/plotly-main-2.25.2/plotly-latest.min.js"></script><div class="row">
+
+<div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Transmission disequilibrium test study design</h1>
@@ -266,9 +267,11 @@ error rate.</p>
 <div class="section level3">
 <h3 id="extending-buyske-prevalence-by-misclassification">Extending Buyske: prevalence by misclassification<a class="anchor" aria-label="anchor" href="#extending-buyske-prevalence-by-misclassification"></a>
 </h3>
-<p>The optional interactive surface evaluates the same Buyske parameters
-over a modest prevalence-by-error grid. It is guarded so the vignette
-remains executable when Plotly is unavailable.</p>
+<p>The optional interactive surface can evaluate the same Buyske
+parameters over a modest prevalence-by-error grid. The example is left
+unevaluated in the installed vignette to avoid embedding a
+multi-megabyte Plotly widget; run the copyable code in an interactive R
+session to explore the surface.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_tdt_surface3d.html">plot_tdt_surface3d</a></span><span class="op">(</span></span>
 <span>  metric <span class="op">=</span> <span class="st">"mssn"</span>, scenario <span class="op">=</span> <span class="st">"misclassification"</span>,</span>
@@ -279,15 +282,8 @@ remains executable when Plotly is unavailable.</p>
 <span>  pd <span class="op">=</span> <span class="fl">0.50</span>, R1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">2.5</span><span class="op">)</span>, R2 <span class="op">=</span> <span class="fl">2.5</span>,</span>
 <span>  delta_prime <span class="op">=</span> <span class="fl">1</span>, heter_rate <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<div class="plotly html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:672px;height:441.6px;"></div>
-<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"visdat":{"1d5267c3c0f4":["function () ","plotlyVisDat"]},"cur_data":"1d5267c3c0f4","attrs":{"1d5267c3c0f4":{"x":[0.0050000000000000001,0.01,0.02,0.040000000000000001],"y":[0,0.012500000000000001,0.025000000000000001,0.037500000000000006,0.050000000000000003],"z":[[546,546,546,546],[6805,2801,1455,946],[20489,6931,2842,1470],[42173,13078,4742,2126],[72480,21401,7195,2926]],"hovertemplate":"Disease prevalence: %{x:.4g}<br>Phenotype misclassification rate (pi01): %{y:.4g}<br>MSSN (affected trios): %{z:.4g}<br>Scenario: misclassification<extra><\/extra>","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"surface"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":{"text":"TDT MSSN surface: misclassification"},"scene":{"xaxis":{"title":"Disease prevalence"},"yaxis":{"title":"Phenotype misclassification rate (pi01)"},"zaxis":{"title":"MSSN (affected trios)"}},"hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"colorbar":{"title":"","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333333","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":true,"x":[0.0050000000000000001,0.01,0.02,0.040000000000000001],"y":[0,0.012500000000000001,0.025000000000000001,0.037500000000000006,0.050000000000000003],"z":[[546,546,546,546],[6805,2801,1455,946],[20489,6931,2842,1470],[42173,13078,4742,2126],[72480,21401,7195,2926]],"hovertemplate":"Disease prevalence: %{x:.4g}<br>Phenotype misclassification rate (pi01): %{y:.4g}<br>MSSN (affected trios): %{z:.4g}<br>Scenario: misclassification<extra><\/extra>","type":"surface","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script><p class="caption">
-MSSN sensitivity to prevalence and phenotype misclassification under the
-Buyske model.
-</p>
-</div>
-<p>This surface extends discrete calculations into a sensitivity
-analysis; it is not an uncertainty distribution.</p>
+<p>When run interactively, this surface extends discrete calculations
+into a sensitivity analysis; it is not an uncertainty distribution.</p>
 </div>
 </div>
 <div class="section level2">
@@ -381,14 +377,14 @@ bands.</li>
 <p>Buyske S, Yang G, Matise TC, Gordon D. When a case is not a case:
 effects of phenotype misclassification on power and sample size
 requirements for the transmission disequilibrium test with affected
-child trios. <em>Human Heredity</em>. 2009;67(4):287–292. <a href="doi:10.1159/000194981" class="uri">doi:10.1159/000194981</a>.</p>
+child trios. <em>Human Heredity</em>. 2009;67(4):287–292. <a href="https://doi.org/10.1159/000194981" class="external-link uri">https://doi.org/10.1159/000194981</a>.</p>
 <p>Chen C, Yang G, Buyske S, Matise T, Finch SJ, Gordon D. Transmission
 disequilibrium test power and sample size in the presence of locus
 heterogeneity. <em>Statistical Applications in Genetics and Molecular
-Biology</em>. 2009;8:Article 44. <a href="doi:10.2202/1544-6115.1501" class="uri">doi:10.2202/1544-6115.1501</a>.</p>
+Biology</em>. 2009;8:Article 44. <a href="https://doi.org/10.2202/1544-6115.1501" class="external-link uri">https://doi.org/10.2202/1544-6115.1501</a>.</p>
 <p>Gordon D, Finch SJ, Kim W. <em>Heterogeneity in Statistical Genetics:
 How to Assess, Address, and Account for Mixtures in Association
-Studies</em>. Springer; 2020. <a href="doi:10.1007/978-3-030-61121-7" class="uri">doi:10.1007/978-3-030-61121-7</a>.</p>
+Studies</em>. Springer; 2020. <a href="https://doi.org/10.1007/978-3-030-61121-7" class="external-link uri">https://doi.org/10.1007/978-3-030-61121-7</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
@@ -416,28 +412,25 @@ Studies</em>. Springer; 2020. <a href="doi:10.1007/978-3-030-61121-7" class="uri
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] paweh_0.0.0.9000 BiocStyle_2.40.0</span></span>
+<span><span class="co">#&gt; [1] paweh_0.99.0     BiocStyle_2.40.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;  [1] gtable_0.3.6        jsonlite_2.0.0      dplyr_1.2.1        </span></span>
 <span><span class="co">#&gt;  [4] compiler_4.6.1      BiocManager_1.30.27 tidyselect_1.2.1   </span></span>
-<span><span class="co">#&gt;  [7] tidyr_1.3.2         jquerylib_0.1.4     textshaping_1.0.5  </span></span>
-<span><span class="co">#&gt; [10] systemfonts_1.3.2   scales_1.4.0        yaml_2.3.12        </span></span>
-<span><span class="co">#&gt; [13] fastmap_1.2.0       ggplot2_4.0.3       R6_2.6.1           </span></span>
-<span><span class="co">#&gt; [16] labeling_0.4.3      generics_0.1.4      knitr_1.51         </span></span>
-<span><span class="co">#&gt; [19] htmlwidgets_1.6.4   tibble_3.3.1        bookdown_0.47      </span></span>
-<span><span class="co">#&gt; [22] desc_1.4.3          bslib_0.12.0        pillar_1.11.1      </span></span>
-<span><span class="co">#&gt; [25] RColorBrewer_1.1-3  rlang_1.3.0         cachem_1.1.0       </span></span>
-<span><span class="co">#&gt; [28] xfun_0.60           fs_2.1.0            sass_0.4.10        </span></span>
-<span><span class="co">#&gt; [31] S7_0.2.2            otel_0.2.0          viridisLite_0.4.3  </span></span>
-<span><span class="co">#&gt; [34] plotly_4.12.1       cli_3.6.6           withr_3.0.3        </span></span>
-<span><span class="co">#&gt; [37] pkgdown_2.2.1       magrittr_2.0.5      crosstalk_1.2.2    </span></span>
-<span><span class="co">#&gt; [40] digest_0.6.39       grid_4.6.1          mvtnorm_1.4-2      </span></span>
-<span><span class="co">#&gt; [43] lifecycle_1.0.5     vctrs_0.7.3         evaluate_1.0.5     </span></span>
-<span><span class="co">#&gt; [46] glue_1.8.1          data.table_1.18.4   farver_2.1.2       </span></span>
-<span><span class="co">#&gt; [49] ragg_1.5.2          purrr_1.2.2         httr_1.4.8         </span></span>
-<span><span class="co">#&gt; [52] rmarkdown_2.31      tools_4.6.1         pkgconfig_2.0.3    </span></span>
-<span><span class="co">#&gt; [55] htmltools_0.5.9</span></span></code></pre></div>
+<span><span class="co">#&gt;  [7] jquerylib_0.1.4     systemfonts_1.3.2   scales_1.4.0       </span></span>
+<span><span class="co">#&gt; [10] textshaping_1.0.5   yaml_2.3.12         fastmap_1.2.0      </span></span>
+<span><span class="co">#&gt; [13] ggplot2_4.0.3       R6_2.6.1            labeling_0.4.3     </span></span>
+<span><span class="co">#&gt; [16] generics_0.1.4      knitr_1.51          htmlwidgets_1.6.4  </span></span>
+<span><span class="co">#&gt; [19] tibble_3.3.1        bookdown_0.48       desc_1.4.3         </span></span>
+<span><span class="co">#&gt; [22] bslib_0.12.0        pillar_1.11.1       RColorBrewer_1.1-3 </span></span>
+<span><span class="co">#&gt; [25] rlang_1.3.0         cachem_1.1.0        xfun_0.60          </span></span>
+<span><span class="co">#&gt; [28] fs_2.1.0            sass_0.4.10         S7_0.2.2           </span></span>
+<span><span class="co">#&gt; [31] otel_0.2.0          cli_3.6.6           withr_3.0.3        </span></span>
+<span><span class="co">#&gt; [34] pkgdown_2.2.1       magrittr_2.0.5      digest_0.6.39      </span></span>
+<span><span class="co">#&gt; [37] grid_4.6.1          mvtnorm_1.4-2       lifecycle_1.0.5    </span></span>
+<span><span class="co">#&gt; [40] vctrs_0.7.3         evaluate_1.0.5      glue_1.8.1         </span></span>
+<span><span class="co">#&gt; [43] farver_2.1.2        ragg_1.5.2          rmarkdown_2.31     </span></span>
+<span><span class="co">#&gt; [46] pkgconfig_2.0.3     tools_4.6.1         htmltools_0.5.9</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

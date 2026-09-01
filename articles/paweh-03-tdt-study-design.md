@@ -199,9 +199,11 @@ error rate.
 
 ### Extending Buyske: prevalence by misclassification
 
-The optional interactive surface evaluates the same Buyske parameters
-over a modest prevalence-by-error grid. It is guarded so the vignette
-remains executable when Plotly is unavailable.
+The optional interactive surface can evaluate the same Buyske parameters
+over a modest prevalence-by-error grid. The example is left unevaluated
+in the installed vignette to avoid embedding a multi-megabyte Plotly
+widget; run the copyable code in an interactive R session to explore the
+surface.
 
 ``` r
 
@@ -216,11 +218,8 @@ plot_tdt_surface3d(
 )
 ```
 
-MSSN sensitivity to prevalence and phenotype misclassification under the
-Buyske model.
-
-This surface extends discrete calculations into a sensitivity analysis;
-it is not an uncertainty distribution.
+When run interactively, this surface extends discrete calculations into
+a sensitivity analysis; it is not an uncertainty distribution.
 
 ## Published-example reproduction: Chen et al. (2009)
 
@@ -311,16 +310,16 @@ Buyske S, Yang G, Matise TC, Gordon D. When a case is not a case:
 effects of phenotype misclassification on power and sample size
 requirements for the transmission disequilibrium test with affected
 child trios. *Human Heredity*. 2009;67(4):287–292.
-<doi:10.1159/000194981>.
+<https://doi.org/10.1159/000194981>.
 
 Chen C, Yang G, Buyske S, Matise T, Finch SJ, Gordon D. Transmission
 disequilibrium test power and sample size in the presence of locus
 heterogeneity. *Statistical Applications in Genetics and Molecular
-Biology*. 2009;8:Article 44. <doi:10.2202/1544-6115.1501>.
+Biology*. 2009;8:Article 44. <https://doi.org/10.2202/1544-6115.1501>.
 
 Gordon D, Finch SJ, Kim W. *Heterogeneity in Statistical Genetics: How
 to Assess, Address, and Account for Mixtures in Association Studies*.
-Springer; 2020. <doi:10.1007/978-3-030-61121-7>.
+Springer; 2020. <https://doi.org/10.1007/978-3-030-61121-7>.
 
 ## Session information
 
@@ -348,26 +347,23 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] paweh_0.0.0.9000 BiocStyle_2.40.0
+#> [1] paweh_0.99.0     BiocStyle_2.40.0
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] gtable_0.3.6        jsonlite_2.0.0      dplyr_1.2.1        
 #>  [4] compiler_4.6.1      BiocManager_1.30.27 tidyselect_1.2.1   
-#>  [7] tidyr_1.3.2         jquerylib_0.1.4     textshaping_1.0.5  
-#> [10] systemfonts_1.3.2   scales_1.4.0        yaml_2.3.12        
-#> [13] fastmap_1.2.0       ggplot2_4.0.3       R6_2.6.1           
-#> [16] labeling_0.4.3      generics_0.1.4      knitr_1.51         
-#> [19] htmlwidgets_1.6.4   tibble_3.3.1        bookdown_0.47      
-#> [22] desc_1.4.3          bslib_0.12.0        pillar_1.11.1      
-#> [25] RColorBrewer_1.1-3  rlang_1.3.0         cachem_1.1.0       
-#> [28] xfun_0.60           fs_2.1.0            sass_0.4.10        
-#> [31] S7_0.2.2            otel_0.2.0          viridisLite_0.4.3  
-#> [34] plotly_4.12.1       cli_3.6.6           withr_3.0.3        
-#> [37] pkgdown_2.2.1       magrittr_2.0.5      crosstalk_1.2.2    
-#> [40] digest_0.6.39       grid_4.6.1          mvtnorm_1.4-2      
-#> [43] lifecycle_1.0.5     vctrs_0.7.3         evaluate_1.0.5     
-#> [46] glue_1.8.1          data.table_1.18.4   farver_2.1.2       
-#> [49] ragg_1.5.2          purrr_1.2.2         httr_1.4.8         
-#> [52] rmarkdown_2.31      tools_4.6.1         pkgconfig_2.0.3    
-#> [55] htmltools_0.5.9
+#>  [7] jquerylib_0.1.4     systemfonts_1.3.2   scales_1.4.0       
+#> [10] textshaping_1.0.5   yaml_2.3.12         fastmap_1.2.0      
+#> [13] ggplot2_4.0.3       R6_2.6.1            labeling_0.4.3     
+#> [16] generics_0.1.4      knitr_1.51          htmlwidgets_1.6.4  
+#> [19] tibble_3.3.1        bookdown_0.48       desc_1.4.3         
+#> [22] bslib_0.12.0        pillar_1.11.1       RColorBrewer_1.1-3 
+#> [25] rlang_1.3.0         cachem_1.1.0        xfun_0.60          
+#> [28] fs_2.1.0            sass_0.4.10         S7_0.2.2           
+#> [31] otel_0.2.0          cli_3.6.6           withr_3.0.3        
+#> [34] pkgdown_2.2.1       magrittr_2.0.5      digest_0.6.39      
+#> [37] grid_4.6.1          mvtnorm_1.4-2       lifecycle_1.0.5    
+#> [40] vctrs_0.7.3         evaluate_1.0.5      glue_1.8.1         
+#> [43] farver_2.1.2        ragg_1.5.2          rmarkdown_2.31     
+#> [46] pkgconfig_2.0.3     tools_4.6.1         htmltools_0.5.9
 ```

@@ -173,7 +173,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] paweh_0.0.0.9000 BiocStyle_2.40.0
+#> [1] paweh_0.99.0     BiocStyle_2.40.0
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] gtable_0.3.6        jsonlite_2.0.0      dplyr_1.2.1        
@@ -182,7 +182,7 @@ sessionInfo()
 #> [10] textshaping_1.0.5   yaml_2.3.12         fastmap_1.2.0      
 #> [13] ggplot2_4.0.3       R6_2.6.1            generics_0.1.4     
 #> [16] knitr_1.51          htmlwidgets_1.6.4   tibble_3.3.1       
-#> [19] bookdown_0.47       desc_1.4.3          bslib_0.12.0       
+#> [19] bookdown_0.48       desc_1.4.3          bslib_0.12.0       
 #> [22] pillar_1.11.1       RColorBrewer_1.1-3  rlang_1.3.0        
 #> [25] cachem_1.1.0        xfun_0.60           fs_2.1.0           
 #> [28] sass_0.4.10         S7_0.2.2            otel_0.2.0         

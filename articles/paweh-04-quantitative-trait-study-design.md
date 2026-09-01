@@ -387,25 +387,26 @@ Current scope limits are important:
 ## References
 
 Genz A, Bretz F. *Computation of Multivariate Normal and t
-Probabilities*. Springer; 2009. <doi:10.1007/978-3-642-01689-9>.
+Probabilities*. Springer; 2009.
+<https://doi.org/10.1007/978-3-642-01689-9>.
 
 Gordon D, Londono D, Patel P, Kim W, Finch SJ, Heiman GA. An analytic
 solution to computation of power and sample size for genetic association
 studies under a pleiotropic mode of inheritance. *Human Heredity*.
-2017;81(4):194–209. <doi:10.1159/000457135>.
+2017;81(4):194–209. <https://doi.org/10.1159/000457135>.
 
 Li Y, Levran O, Kim J, Zhang T, Chen X, Suo C. Extreme sampling design
 in genetic association mapping of quantitative trait loci using balanced
 and unbalanced case-control samples. *Scientific Reports*. 2019;9:15504.
-<doi:10.1038/s41598-019-51790-w>.
+<https://doi.org/10.1038/s41598-019-51790-w>.
 
 Pillai KCS. Some new test criteria in multivariate analysis. *Annals of
 Mathematical Statistics*. 1955;26(1):117–121.
-<doi:10.1214/aoms/1177728599>.
+<https://doi.org/10.1214/aoms/1177728599>.
 
 Yang Q, Wu H, Guo C. Analyze multivariate phenotypes in genetic
 association studies by combining univariate association tests. *Genetic
-Epidemiology*. 2010;34(5):444–454. <doi:10.1002/gepi.20497>.
+Epidemiology*. 2010;34(5):444–454. <https://doi.org/10.1002/gepi.20497>.
 
 ## Session information
 
@@ -433,7 +434,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] paweh_0.0.0.9000 BiocStyle_2.40.0
+#> [1] paweh_0.99.0     BiocStyle_2.40.0
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] gtable_0.3.6        jsonlite_2.0.0      dplyr_1.2.1        
@@ -442,7 +443,7 @@ sessionInfo()
 #> [10] textshaping_1.0.5   yaml_2.3.12         fastmap_1.2.0      
 #> [13] ggplot2_4.0.3       R6_2.6.1            labeling_0.4.3     
 #> [16] generics_0.1.4      isoband_0.3.0       knitr_1.51         
-#> [19] htmlwidgets_1.6.4   tibble_3.3.1        bookdown_0.47      
+#> [19] htmlwidgets_1.6.4   tibble_3.3.1        bookdown_0.48      
 #> [22] desc_1.4.3          bslib_0.12.0        pillar_1.11.1      
 #> [25] RColorBrewer_1.1-3  rlang_1.3.0         cachem_1.1.0       
 #> [28] xfun_0.60           fs_2.1.0            sass_0.4.10        

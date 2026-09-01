@@ -93,7 +93,8 @@ cc_power(
 - pi:
 
   Numeric in \\\[0,1\]\\. Locus-homogeneity fraction used when
-  `locus_het = TRUE`.
+  `locus_het = TRUE`. When `locus_het = FALSE`, `pi` must remain at its
+  default value of 1.
 
 - pheno_misclass:
 

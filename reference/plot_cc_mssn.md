@@ -95,7 +95,11 @@ misclassification model. All arguments in `...` remain fixed while
 `x_var` is swept. The y-axis is the required number of selected cases,
 controls, or total individuals returned by
 [`cc_mssn()`](https://akilanthony.github.io/paweh/reference/cc_mssn.md),
-according to `sample_size`.
+according to `sample_size`. For locus-heterogeneity sweeps, an exact
+`pi = 0` design has no finite MSSN when target power exceeds `alpha`.
+That scientifically structural boundary is retained with MSSN `NA`,
+`finite_mssn = FALSE`, and `status = "no finite MSSN"`; other errors are
+propagated unchanged.
 
 ## See also
 

@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Computational Toolkit for Heterogeneity in Statistical Genetics • paweh</title>
+<title>Power and Sample Size Analysis for Genetic Studies with Heterogeneity and Misclassification • paweh</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Computational Toolkit for Heterogeneity in Statistical Genetics">
-<meta name="description" content='Provides analytic power and minimum sample size necessary (MSSN) calculations for genetic association study designs described in Gordon et al. (2020), "Heterogeneity in Statistical Genetics". Public interfaces cover case-control genotype chi-square and trend tests, family-based transmission disequilibrium tests (TDT), and single- and multivariate quantitative-trait designs using ANOVA, threshold-selected genotype chi-square tests, and Pillai MANOVA. Methods can account for locus heterogeneity and supported phenotype or genotype misclassification mechanisms. Functions return structured results and include static and interactive visualizations for study design, teaching, and methodological validation.'>
-<meta property="og:description" content='Provides analytic power and minimum sample size necessary (MSSN) calculations for genetic association study designs described in Gordon et al. (2020), "Heterogeneity in Statistical Genetics". Public interfaces cover case-control genotype chi-square and trend tests, family-based transmission disequilibrium tests (TDT), and single- and multivariate quantitative-trait designs using ANOVA, threshold-selected genotype chi-square tests, and Pillai MANOVA. Methods can account for locus heterogeneity and supported phenotype or genotype misclassification mechanisms. Functions return structured results and include static and interactive visualizations for study design, teaching, and methodological validation.'>
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Power and Sample Size Analysis for Genetic Studies with Heterogeneity and Misclassification">
+<meta name="description" content="Provides prospective power and minimum sample size necessary (MSSN) calculations for genetic and genomic association study design. Supported designs include case-control studies, transmission disequilibrium tests with affected-child trios, and single- and multivariate quantitative-trait studies. The package emphasizes selected departures from idealized assumptions, including locus heterogeneity and supported forms of genotype and phenotype misclassification. These factors can materially affect power and sample-size requirements but can be difficult to incorporate analytically. Published statistical-genetics methods are implemented in a reproducible, primarily parameter- and model-based framework with static visualizations and an optional Shiny dashboard for interactive exploration. The software supports prospective study planning; it does not perform downstream association testing.">
+<meta property="og:description" content="Provides prospective power and minimum sample size necessary (MSSN) calculations for genetic and genomic association study design. Supported designs include case-control studies, transmission disequilibrium tests with affected-child trios, and single- and multivariate quantitative-trait studies. The package emphasizes selected departures from idealized assumptions, including locus heterogeneity and supported forms of genotype and phenotype misclassification. These factors can materially affect power and sample-size requirements but can be difficult to incorporate analytically. Published statistical-genetics methods are implemented in a reproducible, primarily parameter- and model-based framework with static visualizations and an optional Shiny dashboard for interactive exploration. The software supports prospective study planning; it does not perform downstream association testing.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">paweh</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,6 +50,9 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Interactive Dashboard</h6></li>
     <li><a class="dropdown-item" href="articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Sequencing-Based Genetic Study Design</h6></li>
+    <li><a class="dropdown-item" href="articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a></li>
   </ul>
 </li>
       </ul>
@@ -68,8 +71,9 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="paweh">paweh<a class="anchor" aria-label="anchor" href="#paweh"></a>
 </h1></div>
-<p><code>paweh</code> is an R package for prospective power and minimum sample size necessary (MSSN) calculations in genetic association studies. It helps researchers evaluate study operating characteristics before data collection or genotyping: given a proposed sample size, <code>paweh</code> calculates power; given a target power, it calculates the required sample size.</p>
+<p><code>paweh</code> is statistical-genetics study-design software for prospective power and minimum sample size necessary (MSSN) calculations. Given a proposed sample size, it calculates power; given a target power, it calculates the sample size needed under the specified design assumptions. Its calculations are primarily parameter and model based and are intended for planning before data collection or genotyping, not for downstream association testing.</p>
 <p>The package supports case-control association studies, affected-child trio designs using the Transmission Disequilibrium Test (TDT), and continuous, extreme-phenotype, and multivariate quantitative-trait designs. Depending on the design, calculations can account for genotype misclassification, phenotype misclassification, and locus heterogeneity. Canonical case-control and TDT interfaces support model-based and model-free workflows where those input modes are applicable.</p>
+<p>Genetic study-design calculations are commonly formulated under homogeneous, error-free assumptions. Selected departures from those assumptions can materially affect power and MSSN while being difficult to incorporate analytically. <code>paweh</code> provides accessible, reproducible implementations of published methods for examining supported heterogeneity and misclassification mechanisms alongside conventional power and sample-size calculations.</p>
 <div class="section level2">
 <h2 id="what-paweh-supports">What <code>paweh</code> supports<a class="anchor" aria-label="anchor" href="#what-paweh-supports"></a>
 </h2>
@@ -80,7 +84,10 @@
 <strong>Affected-child trios:</strong> TDT power and required-trio calculations under no-error, phenotype-misclassification, and locus-heterogeneity scenarios.</li>
 <li>
 <strong>Quantitative traits:</strong> one-way genotype-group ANOVA for continuously measured traits, genotype chi-square designs for selected phenotype tails, and multivariate designs using Pillai MANOVA or joint threshold selection.</li>
+<li>
+<strong>Sequencing-based designs:</strong> analytic power, MSSN, and sensitivity plots for fixed equal-depth case-control and TDT1-NGS studies with symmetric per-read sequencing error. Case-control NGS supports locus heterogeneity.</li>
 </ul>
+<p>For case-control NGS, <code>paweh</code> constructs a sequencing-to-called-genotype transition matrix and then applies the published Ahn / Chapman–Nam trend-test framework. TDT1-NGS implements the Kim (2015) raw-read likelihood and information framework under the documented fixed equal-depth multiplicative model. In the matching Kim AIS design, the package reproduces the reported requirements of 654 complete trios at 4x and 416 at 25x.</p>
 <p>Model-based calculations express assumptions through quantities such as prevalence, disease-allele frequency, genotype relative risk, inheritance mode, or quantitative-trait variance. Where model-free input is supported, users can instead supply conditional genotype probabilities or expected transmission and non-transmission counts derived from pilot data, prior work, or external calculations. Model-free input does not eliminate assumptions; it places them in the supplied conditional quantities.</p>
 <p>Most functions return structured objects containing both the primary design answer and intermediate quantities useful for validation. Examples below extract only the result needed for interpretation; consult the reference documentation when diagnostic components are required.</p>
 </div>
@@ -88,13 +95,14 @@
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
 <p>The complete documentation is available at <a href="https://akilanthony.github.io/paweh/">https://akilanthony.github.io/paweh/</a>.</p>
-<p>Five articles provide the main entry points:</p>
+<p>Six articles provide the main entry points:</p>
 <ul>
 <li><a href="https://akilanthony.github.io/paweh/articles/paweh-01-getting-started.html">Getting Started</a></li>
 <li><a href="https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html">Case-Control Study Design</a></li>
 <li><a href="https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.html">TDT Study Design</a></li>
 <li><a href="https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html">Quantitative-Trait Study Design</a></li>
 <li><a href="https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html">Interactive Dashboard</a></li>
+<li><a href="https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design</a></li>
 </ul>
 <p>Function-level reference documentation is also available from the <a href="https://akilanthony.github.io/paweh/reference/">pkgdown reference index</a>.</p>
 </div>
@@ -220,6 +228,20 @@
 </td>
 <td><a href="https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html">Quantitative-Trait Study Design</a></td>
 </tr>
+<tr>
+<td>Case-control NGS</td>
+<td>
+<code><a href="reference/cc_ngs_power.html">cc_ngs_power()</a></code>, <code><a href="reference/cc_ngs_mssn.html">cc_ngs_mssn()</a></code>
+</td>
+<td><a href="https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design</a></td>
+</tr>
+<tr>
+<td>TDT1-NGS</td>
+<td>
+<code><a href="reference/tdt_ngs_power.html">tdt_ngs_power()</a></code>, <code><a href="reference/tdt_ngs_mssn.html">tdt_ngs_mssn()</a></code>
+</td>
+<td><a href="https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design</a></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -271,7 +293,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Akil Anthony <br><small class="roles"> Author, maintainer </small>   </li>
+<li>Akil Anthony <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0009-0008-8813-8560" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 

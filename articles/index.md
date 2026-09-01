@@ -24,3 +24,8 @@
 
 - [Interactive Study Design with the paweh
   Dashboard](https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.md):
+
+### Sequencing-Based Genetic Study Design
+
+- [Sequencing-Based Genetic Study Design with
+  PAWEH](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.md):

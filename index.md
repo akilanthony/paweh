@@ -1,11 +1,12 @@
 # paweh
 
-`paweh` is an R package for prospective power and minimum sample size
-necessary (MSSN) calculations in genetic association studies. It helps
-researchers evaluate study operating characteristics before data
-collection or genotyping: given a proposed sample size, `paweh`
-calculates power; given a target power, it calculates the required
-sample size.
+`paweh` is statistical-genetics study-design software for prospective
+power and minimum sample size necessary (MSSN) calculations. Given a
+proposed sample size, it calculates power; given a target power, it
+calculates the sample size needed under the specified design
+assumptions. Its calculations are primarily parameter and model based
+and are intended for planning before data collection or genotyping, not
+for downstream association testing.
 
 The package supports case-control association studies, affected-child
 trio designs using the Transmission Disequilibrium Test (TDT), and
@@ -14,6 +15,14 @@ designs. Depending on the design, calculations can account for genotype
 misclassification, phenotype misclassification, and locus heterogeneity.
 Canonical case-control and TDT interfaces support model-based and
 model-free workflows where those input modes are applicable.
+
+Genetic study-design calculations are commonly formulated under
+homogeneous, error-free assumptions. Selected departures from those
+assumptions can materially affect power and MSSN while being difficult
+to incorporate analytically. `paweh` provides accessible, reproducible
+implementations of published methods for examining supported
+heterogeneity and misclassification mechanisms alongside conventional
+power and sample-size calculations.
 
 ## What `paweh` supports
 
@@ -28,6 +37,18 @@ model-free workflows where those input modes are applicable.
   measured traits, genotype chi-square designs for selected phenotype
   tails, and multivariate designs using Pillai MANOVA or joint threshold
   selection.
+- **Sequencing-based designs:** analytic power, MSSN, and sensitivity
+  plots for fixed equal-depth case-control and TDT1-NGS studies with
+  symmetric per-read sequencing error. Case-control NGS supports locus
+  heterogeneity.
+
+For case-control NGS, `paweh` constructs a sequencing-to-called-genotype
+transition matrix and then applies the published Ahn / Chapman–Nam
+trend-test framework. TDT1-NGS implements the Kim (2015) raw-read
+likelihood and information framework under the documented fixed
+equal-depth multiplicative model. In the matching Kim AIS design, the
+package reproduces the reported requirements of 654 complete trios at 4x
+and 416 at 25x.
 
 Model-based calculations express assumptions through quantities such as
 prevalence, disease-allele frequency, genotype relative risk,
@@ -49,7 +70,7 @@ required.
 The complete documentation is available at
 <https://akilanthony.github.io/paweh/>.
 
-Five articles provide the main entry points:
+Six articles provide the main entry points:
 
 - [Getting
   Started](https://akilanthony.github.io/paweh/articles/paweh-01-getting-started.html)
@@ -61,6 +82,8 @@ Five articles provide the main entry points:
   Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html)
 - [Interactive
   Dashboard](https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html)
+- [Sequencing-Based Genetic Study
+  Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html)
 
 Function-level reference documentation is also available from the
 [pkgdown reference
@@ -184,6 +207,8 @@ current implementation.
 | Continuous quantitative trait | [`qtl_anova_power()`](https://akilanthony.github.io/paweh/reference/qtl_anova_power.md), [`qtl_anova_mssn()`](https://akilanthony.github.io/paweh/reference/qtl_anova_mssn.md) | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
 | Extreme quantitative trait | [`qtl_threshold_chisq_power()`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_power.md), [`qtl_threshold_chisq_mssn()`](https://akilanthony.github.io/paweh/reference/qtl_threshold_chisq_mssn.md) | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
 | Multivariate quantitative traits | [`qtl_multivariate_power_full()`](https://akilanthony.github.io/paweh/reference/qtl_multivariate_power_full.md), [`qtl_multivariate_mssn_full()`](https://akilanthony.github.io/paweh/reference/qtl_multivariate_mssn_full.md) | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
+| Case-control NGS | [`cc_ngs_power()`](https://akilanthony.github.io/paweh/reference/cc_ngs_power.md), [`cc_ngs_mssn()`](https://akilanthony.github.io/paweh/reference/cc_ngs_mssn.md) | [Sequencing-Based Genetic Study Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html) |
+| TDT1-NGS | [`tdt_ngs_power()`](https://akilanthony.github.io/paweh/reference/tdt_ngs_power.md), [`tdt_ngs_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_ngs_mssn.md) | [Sequencing-Based Genetic Study Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html) |
 
 ## Published-example validation
 

@@ -140,6 +140,23 @@
 - [`plot_qtl_threshold_chisq_power()`](https://akilanthony.github.io/paweh/reference/plot_qtl_threshold_chisq_power.md)
   : Plot Threshold-Selected Genotype Chi-Square Power
 
+## Sequencing study design
+
+- [`ngs_genotype_error_matrix()`](https://akilanthony.github.io/paweh/reference/ngs_genotype_error_matrix.md)
+  : Sequencing-Derived Genotype Error Matrix
+- [`cc_ngs_power()`](https://akilanthony.github.io/paweh/reference/cc_ngs_power.md)
+  : Analytic Power for a Case-Control Sequencing Study
+- [`cc_ngs_mssn()`](https://akilanthony.github.io/paweh/reference/cc_ngs_mssn.md)
+  : Analytic MSSN for a Case-Control Sequencing Study
+- [`tdt_ngs_power()`](https://akilanthony.github.io/paweh/reference/tdt_ngs_power.md)
+  : Analytic Power for a TDT1-NGS Sequencing Study
+- [`tdt_ngs_mssn()`](https://akilanthony.github.io/paweh/reference/tdt_ngs_mssn.md)
+  : Analytic MSSN for a TDT1-NGS Sequencing Study
+- [`plot_ngs_power()`](https://akilanthony.github.io/paweh/reference/plot_ngs_power.md)
+  : Plot Power Sensitivity for Sequencing Designs
+- [`plot_ngs_mssn()`](https://akilanthony.github.io/paweh/reference/plot_ngs_mssn.md)
+  : Plot MSSN Sensitivity for Sequencing Designs
+
 ## Interactive application
 
 - [`paweh_app()`](https://akilanthony.github.io/paweh/reference/paweh_app.md)

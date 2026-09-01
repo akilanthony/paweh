@@ -358,22 +358,23 @@ Interpretation depends on assumptions close to each calculation:
 Ahn K, Haynes C, Kim W, St Fleur R, Gordon D, Finch SJ. The effects of
 SNP genotyping errors on the power of the Cochran-Armitage linear trend
 test for case/control association studies. *Annals of Human Genetics*.
-2007;71(Pt 2):249–261. <doi:10.1111/j.1469-1809.2006.00318.x>.
+2007;71(Pt 2):249–261.
+<https://doi.org/10.1111/j.1469-1809.2006.00318.x>.
 
 Edwards BJ, Haynes C, Levenstien MA, Finch SJ, Gordon D. Power and
 sample size calculations in the presence of phenotype errors for
 case/control genetic association studies. *BMC Genetics*. 2005;6:18.
-<doi:10.1186/1471-2156-6-18>.
+<https://doi.org/10.1186/1471-2156-6-18>.
 
 Gordon D, Finch SJ, Nothnagel M, Ott J. Power and sample size
 calculations for case-control genetic association tests when errors are
 present: application to single nucleotide polymorphisms. *Human
-Heredity*. 2002;54(1):22–33. <doi:10.1159/000066696>.
+Heredity*. 2002;54(1):22–33. <https://doi.org/10.1159/000066696>.
 
 Moskvina V, Craddock N, Holmans P, Owen MJ, O’Donovan MC. Effects of
 differential genotyping error rate on the type I error probability of
 case-control studies. *Human Heredity*. 2006;61(1):55–64.
-<doi:10.1159/000092553>.
+<https://doi.org/10.1159/000092553>.
 
 ## Session information
 
@@ -401,7 +402,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] paweh_0.0.0.9000 BiocStyle_2.40.0
+#> [1] paweh_0.99.0     BiocStyle_2.40.0
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] gtable_0.3.6        jsonlite_2.0.0      dplyr_1.2.1        
@@ -410,7 +411,7 @@ sessionInfo()
 #> [10] textshaping_1.0.5   yaml_2.3.12         fastmap_1.2.0      
 #> [13] ggplot2_4.0.3       R6_2.6.1            labeling_0.4.3     
 #> [16] generics_0.1.4      knitr_1.51          htmlwidgets_1.6.4  
-#> [19] tibble_3.3.1        bookdown_0.47       desc_1.4.3         
+#> [19] tibble_3.3.1        bookdown_0.48       desc_1.4.3         
 #> [22] bslib_0.12.0        pillar_1.11.1       RColorBrewer_1.1-3 
 #> [25] rlang_1.3.0         cachem_1.1.0        xfun_0.60          
 #> [28] fs_2.1.0            sass_0.4.10         S7_0.2.2           

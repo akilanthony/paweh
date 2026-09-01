@@ -92,7 +92,10 @@ fixed while `x_var` is swept. The x-axis contains `x_values`; the y-axis
 is the power returned by
 [`cc_power()`](https://akilanthony.github.io/paweh/reference/cc_power.md)
 for the selected genotype chi-square or trend test. With
-`compare_tests = TRUE`, both powers are drawn on the same axes.
+`compare_tests = TRUE`, both powers are drawn on the same axes. When
+sweeping `x_var = "pi"`, set `locus_het = TRUE`. The exact `pi = 0` null
+boundary is retained in returned and plotted data with zero NCP and
+power equal to `alpha`.
 
 ## See also
 
