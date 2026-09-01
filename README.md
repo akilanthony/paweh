@@ -32,6 +32,16 @@ mechanisms alongside conventional power and sample-size calculations.
 - **Quantitative traits:** one-way genotype-group ANOVA for continuously
   measured traits, genotype chi-square designs for selected phenotype tails,
   and multivariate designs using Pillai MANOVA or joint threshold selection.
+- **Sequencing-based designs:** analytic power, MSSN, and sensitivity plots for
+  fixed equal-depth case-control and TDT1-NGS studies with symmetric per-read
+  sequencing error. Case-control NGS supports locus heterogeneity.
+
+For case-control NGS, `paweh` constructs a sequencing-to-called-genotype
+transition matrix and then applies the published Ahn / Chapman--Nam trend-test
+framework. TDT1-NGS implements the Kim (2015) raw-read likelihood and
+information framework under the documented fixed equal-depth multiplicative
+model. In the matching Kim AIS design, the package reproduces the reported
+requirements of 654 complete trios at 4x and 416 at 25x.
 
 Model-based calculations express assumptions through quantities such as
 prevalence, disease-allele frequency, genotype relative risk, inheritance
@@ -51,13 +61,14 @@ documentation when diagnostic components are required.
 The complete documentation is available at
 [https://akilanthony.github.io/paweh/](https://akilanthony.github.io/paweh/).
 
-Five articles provide the main entry points:
+Six articles provide the main entry points:
 
 - [Getting Started](https://akilanthony.github.io/paweh/articles/paweh-01-getting-started.html)
 - [Case-Control Study Design](https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html)
 - [TDT Study Design](https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.html)
 - [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html)
 - [Interactive Dashboard](https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html)
+- [Sequencing-Based Genetic Study Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html)
 
 Function-level reference documentation is also available from the
 [pkgdown reference index](https://akilanthony.github.io/paweh/reference/).
@@ -170,6 +181,8 @@ are outside the current implementation.
 | Continuous quantitative trait | `qtl_anova_power()`, `qtl_anova_mssn()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
 | Extreme quantitative trait | `qtl_threshold_chisq_power()`, `qtl_threshold_chisq_mssn()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
 | Multivariate quantitative traits | `qtl_multivariate_power_full()`, `qtl_multivariate_mssn_full()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
+| Case-control NGS | `cc_ngs_power()`, `cc_ngs_mssn()` | [Sequencing-Based Genetic Study Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html) |
+| TDT1-NGS | `tdt_ngs_power()`, `tdt_ngs_mssn()` | [Sequencing-Based Genetic Study Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html) |
 
 ## Published-example validation
 
