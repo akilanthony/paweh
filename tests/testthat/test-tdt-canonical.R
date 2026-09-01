@@ -291,7 +291,10 @@ test_that("verbose output is emitted as messages and returns invisibly", {
     ),
     type = "message"
   )
-  expect_match(paste(power_text, collapse = "\n"), "TDT power")
+  expect_match(
+    paste(power_text, collapse = "\n"),
+    "PAWEH Transmission Disequilibrium Test"
+  )
   expect_s3_class(power_result, "tdt_power")
 
   mssn_text <- capture.output(
@@ -302,6 +305,9 @@ test_that("verbose output is emitted as messages and returns invisibly", {
     ),
     type = "message"
   )
-  expect_match(paste(mssn_text, collapse = "\n"), "TDT minimum sample size")
+  expect_match(
+    paste(mssn_text, collapse = "\n"),
+    "Minimum Sample Size Necessary"
+  )
   expect_s3_class(mssn_result, "tdt_mssn")
 })

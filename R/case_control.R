@@ -17,8 +17,8 @@
     stop("Genotype S <= 0; check inputs.")
   if (!is.finite(components$denominator_t) || components$denominator_t <= 0)
     stop("Trend denominator <= 0; check inputs/weights.")
-  if (components$numerator_t < 1e-15)
-    stop("Trend numerator is approximately 0; implies no weighted mean difference.")
+  if (!is.finite(components$numerator_t) || components$numerator_t <= 0)
+    stop("Trend numerator is 0; implies no weighted mean difference.")
   invisible(components)
 }
 
@@ -26,6 +26,10 @@
                                   lambda_star_g, lambda_star_t,
                                   validate = TRUE) {
   components <- .cc_test_components(g_case, g_ctrl, k, w)
+  null_design <- isTRUE(all(g_case == g_ctrl))
+  if (isTRUE(validate) && null_design) {
+    stop("No finite MSSN exists because the trend contrast is zero under this design.")
+  }
   if (isTRUE(validate))
     .cc_validate_test_components(components)
 
@@ -57,7 +61,8 @@
 .cc_power_test_results <- function(g_case, g_ctrl, k, w, N_case, alpha,
                                    validate = TRUE) {
   components <- .cc_test_components(g_case, g_ctrl, k, w)
-  if (isTRUE(validate))
+  null_design <- isTRUE(all(g_case == g_ctrl))
+  if (isTRUE(validate) && !null_design)
     .cc_validate_test_components(components)
 
   lambda_g <- k * N_case * components$S_g
@@ -113,7 +118,8 @@
 #' @param locus_het Logical. If \code{TRUE}, applies locus heterogeneity to the
 #'   case genotype frequencies before phenotype and genotype misclassification.
 #' @param pi Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
-#'   \code{locus_het = TRUE}.
+#'   \code{locus_het = TRUE}. When \code{locus_het = FALSE}, \code{pi} must
+#'   remain at its default value of 1.
 #' @param pheno_misclass Logical. If \code{TRUE}, applies phenotype
 #'   misclassification before genotype misclassification.
 #' @param theta Numeric in \eqn{[0,1)}. Probability that a truly affected
@@ -548,8 +554,10 @@ cc_mssn <- function(
     stop("Trend weights w cannot all be equal.")
   if (!is.logical(locus_het) || length(locus_het) != 1)
     stop("locus_het must be TRUE or FALSE.")
-  if (!is.numeric(pi) || length(pi) != 1 || pi < 0 || pi > 1)
+  if (!is.numeric(pi) || length(pi) != 1 || !is.finite(pi) || pi < 0 || pi > 1)
     stop("pi must be a single number in [0,1].")
+  if (!isTRUE(locus_het) && pi != 1)
+    stop("pi is used only when locus_het = TRUE; set pi = 1 or enable locus heterogeneity.")
   if (!is.logical(pheno_misclass) || length(pheno_misclass) != 1)
     stop("pheno_misclass must be TRUE or FALSE.")
   if (!is.numeric(theta) || length(theta) != 1 || theta < 0 || theta >= 1)
@@ -804,60 +812,8 @@ cc_mssn <- function(
 
   class(out) <- "cc_mssn"
 
-  # ---- clean printed output ----
   if (isTRUE(verbose)) {
-    locus_active <- isTRUE(locus_het) && pi < 1
-    pheno_active <- isTRUE(pheno_misclass) && (theta > 0 || phi > 0)
-    geno_active <- .cc_genotype_error_active(M_case, M_ctrl)
-    any_modifier <- locus_active || pheno_active || geno_active
-
-    format_count <- function(x) {
-      if (is.finite(x)) formatC(x, format = "d", big.mark = ",") else as.character(x)
-    }
-
-    message("Case-control minimum sample size")
-    message(sprintf("Target power: %.1f%%", 100 * power))
-    message("")
-    message("No-error design")
-    message(sprintf("  Genotype test: %s cases, %s controls, %s total",
-                    format_count(baseline_tests$genotypes$MSSN_case),
-                    format_count(baseline_tests$genotypes$MSSN_ctrl),
-                    format_count(baseline_tests$genotypes$MSSN_total)))
-    message(sprintf("  Trend test: %s cases, %s controls, %s total",
-                    format_count(baseline_tests$trend$MSSN_case),
-                    format_count(baseline_tests$trend$MSSN_ctrl),
-                    format_count(baseline_tests$trend$MSSN_total)))
-
-    if (any_modifier) {
-      message("")
-      message("Adjusted design")
-      message("  Active modifiers:")
-      if (locus_active) {
-        message(sprintf("    Locus heterogeneity: %.1f%%", 100 * (1 - pi)))
-      }
-      if (pheno_active) {
-        message(sprintf(
-          "    Phenotype misclassification: theta %.1f%%, phi %.1f%%",
-          100 * theta, 100 * phi
-        ))
-      }
-      if (geno_active) {
-        geno_label <- switch(
-          geno_misclass,
-          `1p` = "1-parameter", `2p` = "2-parameter",
-          `3p` = "3-parameter", diff3p = "differential 3-parameter"
-        )
-        message(paste0("    Genotype misclassification: ", geno_label))
-      }
-      message(sprintf("  Genotype test: %s cases, %s controls, %s total",
-                      format_count(adjusted_tests$genotypes$MSSN_case),
-                      format_count(adjusted_tests$genotypes$MSSN_ctrl),
-                      format_count(adjusted_tests$genotypes$MSSN_total)))
-      message(sprintf("  Trend test: %s cases, %s controls, %s total",
-                      format_count(adjusted_tests$trend$MSSN_case),
-                      format_count(adjusted_tests$trend$MSSN_ctrl),
-                      format_count(adjusted_tests$trend$MSSN_total)))
-    }
+    .paweh_print_cc_mssn(out, baseline_tests)
   }
 
   invisible(out)
@@ -894,7 +850,8 @@ cc_mssn <- function(
 #' @param locus_het Logical. If \code{TRUE}, applies locus heterogeneity to the
 #'   case genotype frequencies before phenotype and genotype misclassification.
 #' @param pi Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
-#'   \code{locus_het = TRUE}.
+#'   \code{locus_het = TRUE}. When \code{locus_het = FALSE}, \code{pi} must
+#'   remain at its default value of 1.
 #' @param pheno_misclass Logical. If \code{TRUE}, applies phenotype
 #'   misclassification before genotype misclassification.
 #' @param theta Numeric in \eqn{[0,1)}. Probability that a truly affected
@@ -1346,8 +1303,10 @@ cc_power <- function(
     stop("Trend weights w cannot all be equal.")
   if (!is.logical(locus_het) || length(locus_het) != 1)
     stop("locus_het must be TRUE or FALSE.")
-  if (!is.numeric(pi) || length(pi) != 1 || pi < 0 || pi > 1)
+  if (!is.numeric(pi) || length(pi) != 1 || !is.finite(pi) || pi < 0 || pi > 1)
     stop("pi must be a single number in [0,1].")
+  if (!isTRUE(locus_het) && pi != 1)
+    stop("pi is used only when locus_het = TRUE; set pi = 1 or enable locus heterogeneity.")
   if (!is.logical(pheno_misclass) || length(pheno_misclass) != 1)
     stop("pheno_misclass must be TRUE or FALSE.")
   if (!is.numeric(theta) || length(theta) != 1 || theta < 0 || theta >= 1)
@@ -1598,52 +1557,8 @@ cc_power <- function(
 
   class(out) <- "cc_power"
 
-  # ---- clean printed output ----
   if (isTRUE(verbose)) {
-    locus_active <- isTRUE(locus_het) && pi < 1
-    pheno_active <- isTRUE(pheno_misclass) && (theta > 0 || phi > 0)
-    geno_active <- .cc_genotype_error_active(M_case, M_ctrl)
-    any_modifier <- locus_active || pheno_active || geno_active
-
-    message("Case-control power")
-    message(sprintf("Cases: %s; controls: %s; total: %s",
-                    formatC(N_case, format = "f", digits = 0, big.mark = ","),
-                    formatC(N_ctrl, format = "f", digits = 0, big.mark = ","),
-                    formatC(N_case + N_ctrl, format = "f", digits = 0,
-                            big.mark = ",")))
-    message("")
-    message("No-error design")
-    message(sprintf("  Genotype test power: %.1f%%",
-                    100 * baseline_tests$genotypes$power))
-    message(sprintf("  Trend test power: %.1f%%",
-                    100 * baseline_tests$trend$power))
-
-    if (any_modifier) {
-      message("")
-      message("Adjusted design")
-      message("  Active modifiers:")
-      if (locus_active) {
-        message(sprintf("    Locus heterogeneity: %.1f%%", 100 * (1 - pi)))
-      }
-      if (pheno_active) {
-        message(sprintf(
-          "    Phenotype misclassification: theta %.1f%%, phi %.1f%%",
-          100 * theta, 100 * phi
-        ))
-      }
-      if (geno_active) {
-        geno_label <- switch(
-          geno_misclass,
-          `1p` = "1-parameter", `2p` = "2-parameter",
-          `3p` = "3-parameter", diff3p = "differential 3-parameter"
-        )
-        message(paste0("    Genotype misclassification: ", geno_label))
-      }
-      message(sprintf("  Genotype test power: %.1f%%",
-                      100 * adjusted_tests$genotypes$power))
-      message(sprintf("  Trend test power: %.1f%%",
-                      100 * adjusted_tests$trend$power))
-    }
+    .paweh_print_cc_power(out, baseline_tests)
   }
 
   invisible(out)

@@ -424,33 +424,6 @@ tdt_power <- function(
   power_loss_misc <- power_nomisc - power_misc
   power_loss_het  <- power_nomisc - power_het
 
-  # ----- Printed summary -----
-  if (isTRUE(verbose)) {
-    message("TDT power")
-    message(sprintf("Affected-child trios: %s", formatC(N, format = "d")))
-    message("")
-    message("No-error design")
-    message(sprintf("  Power: %.1f%%", 100 * power_nomisc))
-
-    if (misclass_rate > 0) {
-      message("")
-      message("Phenotype misclassification")
-      message(sprintf("  Misclassification rate: %.1f%%", 100 * misclass_rate))
-      message(sprintf("  Power: %.1f%%", 100 * power_misc))
-      message(sprintf("  Absolute power loss: %.1f percentage points",
-                      100 * power_loss_misc))
-    }
-
-    if (heter_rate > 0) {
-      message("")
-      message("Locus heterogeneity")
-      message(sprintf("  Heterogeneity rate: %.1f%%", 100 * heter_rate))
-      message(sprintf("  Power: %.1f%%", 100 * power_het))
-      message(sprintf("  Absolute power loss: %.1f percentage points",
-                      100 * power_loss_het))
-    }
-  }
-
   # ----- Clean return object -----
   out <- list(
     alpha = alpha,
@@ -503,6 +476,9 @@ tdt_power <- function(
   )
 
   class(out) <- "tdt_power"
+  if (isTRUE(verbose)) {
+    .paweh_print_tdt_power(out)
+  }
   invisible(out)
 }
 
@@ -896,43 +872,6 @@ tdt_mssn <- function(
   power_loss_misc <- power_nomisc_fixed - power_misc_fixed
   power_loss_het  <- power_nomisc_fixed - power_het_fixed
 
-  if (isTRUE(verbose)) {
-    format_trios <- function(x) {
-      if (is.finite(x)) {
-        formatC(ceiling(x), format = "d", big.mark = ",")
-      } else {
-        as.character(x)
-      }
-    }
-    format_percent_increase <- function(x) {
-      if (is.na(x)) "not defined" else sprintf("%.1f%%", x)
-    }
-
-    message("TDT minimum sample size")
-    message(sprintf("Target power: %.1f%%", 100 * target_power))
-    message("")
-    message("No-error design")
-    message(sprintf("  Required trios: %s", format_trios(N_nomisc)))
-
-    if (misclass_rate > 0) {
-      message("")
-      message("Phenotype misclassification")
-      message(sprintf("  Misclassification rate: %.1f%%", 100 * misclass_rate))
-      message(sprintf("  Required trios: %s", format_trios(N_misc)))
-      message(sprintf("  Percent increase: %s",
-                      format_percent_increase(perc_increase_misc)))
-    }
-
-    if (heter_rate > 0) {
-      message("")
-      message("Locus heterogeneity")
-      message(sprintf("  Heterogeneity rate: %.1f%%", 100 * heter_rate))
-      message(sprintf("  Required trios: %s", format_trios(N_het)))
-      message(sprintf("  Percent increase: %s",
-                      format_percent_increase(perc_increase_het)))
-    }
-  }
-
   out <- list(
     alpha = alpha,
     target_power = target_power,
@@ -979,5 +918,8 @@ tdt_mssn <- function(
   )
 
   class(out) <- "tdt_mssn"
+  if (isTRUE(verbose)) {
+    .paweh_print_tdt_mssn(out)
+  }
   invisible(out)
 }

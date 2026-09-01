@@ -68,6 +68,10 @@ misclassification model.
 All arguments in \code{...} remain fixed while \code{x_var} is swept. The
 y-axis is the required number of selected cases, controls, or total
 individuals returned by \code{cc_mssn()}, according to \code{sample_size}.
+For locus-heterogeneity sweeps, an exact \code{pi = 0} design has no finite
+MSSN when target power exceeds \code{alpha}. That scientifically structural
+boundary is retained with MSSN \code{NA}, \code{finite_mssn = FALSE}, and
+\code{status = "no finite MSSN"}; other errors are propagated unchanged.
 }
 \examples{
 plot_cc_mssn(

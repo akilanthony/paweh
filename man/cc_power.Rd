@@ -68,7 +68,8 @@ genotype frequencies, each ordered as \code{c(g0, g1, g2)} and summing to 1.}
 case genotype frequencies before phenotype and genotype misclassification.}
 
 \item{pi}{Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
-\code{locus_het = TRUE}.}
+\code{locus_het = TRUE}. When \code{locus_het = FALSE}, \code{pi} must
+remain at its default value of 1.}
 
 \item{pheno_misclass}{Logical. If \code{TRUE}, applies phenotype
 misclassification before genotype misclassification.}

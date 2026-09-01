@@ -357,6 +357,12 @@
   stop("Unknown test: ", test)
 }
 
+.plot_cc_extract_lambda <- function(out, test) {
+  if (test == "genotypes") return(out$tests$genotypes$lambda)
+  if (test == "trend") return(out$tests$trend$lambda)
+  stop("Unknown test: ", test)
+}
+
 .plot_cc_extract_mssn <- function(out, test, sample_size) {
   result <- switch(
     test,
@@ -391,11 +397,27 @@
   out$N[[scenario]]
 }
 
+.plot_safe_mssn_call <- function(fun, args) {
+  tryCatch(
+    list(result = do.call(fun, args), finite_mssn = TRUE, status = "finite"),
+    error = function(e) {
+      if (startsWith(conditionMessage(e), "No finite MSSN exists")) {
+        return(list(
+          result = NULL,
+          finite_mssn = FALSE,
+          status = "no finite MSSN"
+        ))
+      }
+      stop(e)
+    }
+  )
+}
+
 .plot_make_line <- function(dat, x_label, y_label, title, subtitle = NULL) {
   .plot_require_ggplot2()
   ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y)) +
-    ggplot2::geom_line(linewidth = 1.05, lineend = "round") +
-    ggplot2::geom_point(size = 2.2, alpha = 0.9) +
+    ggplot2::geom_line(linewidth = 1.05, lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_point(size = 2.2, alpha = 0.9, na.rm = TRUE) +
     ggplot2::labs(
       title = title,
       subtitle = subtitle,
@@ -409,8 +431,8 @@
   .plot_require_ggplot2()
   dat <- .plot_pretty_data(dat)
   ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y, color = .data$group, group = .data$group)) +
-    ggplot2::geom_line(linewidth = 1.05, lineend = "round") +
-    ggplot2::geom_point(size = 2.2, alpha = 0.9) +
+    ggplot2::geom_line(linewidth = 1.05, lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_point(size = 2.2, alpha = 0.9, na.rm = TRUE) +
     ggplot2::labs(
       title = title,
       subtitle = subtitle,
@@ -464,6 +486,9 @@
 #' the power returned by \code{cc_power()} for the selected genotype chi-square
 #' or trend test. With \code{compare_tests = TRUE}, both powers are drawn on
 #' the same axes.
+#' When sweeping \code{x_var = "pi"}, set \code{locus_het = TRUE}. The exact
+#' \code{pi = 0} null boundary is retained in returned and plotted data with
+#' zero NCP and power equal to \code{alpha}.
 #'
 #' @return A ggplot object, or a data frame if \code{return_data = TRUE}.
 #'
@@ -520,26 +545,29 @@ plot_cc_power <- function(
   args0$verbose <- FALSE
 
   dat_list <- lapply(tests, function(test_i) {
-    y <- vapply(x_values, function(x) {
+    rows <- lapply(x_values, function(x) {
       args <- .plot_apply_cc_x(args0, x_var, x)
       args <- .plot_drop_helper_args(args)
       out <- do.call(cc_power, args)
-      .plot_cc_extract_power(out, test_i)
-    }, numeric(1))
-
-    data.frame(
-      x = x_values,
-      group = test_i,
-      y = y,
-      stringsAsFactors = FALSE
-    )
+      data.frame(
+        x = x,
+        group = test_i,
+        y = .plot_cc_extract_power(out, test_i),
+        lambda = .plot_cc_extract_lambda(out, test_i),
+        stringsAsFactors = FALSE
+      )
+    })
+    do.call(rbind, rows)
   })
 
   plot_dat <- do.call(rbind, dat_list)
 
   if (isTRUE(return_data)) {
     out_dat <- .plot_pretty_data(plot_dat)
-    names(out_dat) <- c(x_var, "test", "power")
+    names(out_dat)[1:3] <- c(x_var, "test", "power")
+    if (!x_var %in% c("pi", "locus_het_rate")) {
+      out_dat$lambda <- NULL
+    }
     return(out_dat)
   }
 
@@ -554,7 +582,7 @@ plot_cc_power <- function(
   }
 
   .plot_make_line(
-    data.frame(x = plot_dat$x, y = plot_dat$y),
+    plot_dat,
     x_label = .plot_axis_label(x_var, x_label),
     y_label = if (!is.null(y_label)) y_label else "Power",
     title = .plot_title("Case-control power", x_var, suffix = .plot_test_label(tests), override = title)
@@ -598,6 +626,10 @@ plot_cc_power <- function(
 #' All arguments in \code{...} remain fixed while \code{x_var} is swept. The
 #' y-axis is the required number of selected cases, controls, or total
 #' individuals returned by \code{cc_mssn()}, according to \code{sample_size}.
+#' For locus-heterogeneity sweeps, an exact \code{pi = 0} design has no finite
+#' MSSN when target power exceeds \code{alpha}. That scientifically structural
+#' boundary is retained with MSSN \code{NA}, \code{finite_mssn = FALSE}, and
+#' \code{status = "no finite MSSN"}; other errors are propagated unchanged.
 #'
 #' @return A ggplot object, or a data frame if \code{return_data = TRUE}.
 #'
@@ -660,27 +692,42 @@ plot_cc_mssn <- function(
   args0$verbose <- FALSE
 
   dat_list <- lapply(tests, function(test_i) {
-    y <- vapply(x_values, function(x) {
+    rows <- lapply(x_values, function(x) {
       args <- .plot_apply_cc_x(args0, x_var, x)
       args <- .plot_drop_helper_args(args)
-      out <- do.call(cc_mssn, args)
-      .plot_cc_extract_mssn(out, test_i, sample_size)
-    }, numeric(1))
-
-    data.frame(
-      x = x_values,
-      group = test_i,
-      y = y,
-      stringsAsFactors = FALSE
-    )
+      safe <- .plot_safe_mssn_call(cc_mssn, args)
+      data.frame(
+        x = x,
+        group = test_i,
+        y = if (safe$finite_mssn) {
+          .plot_cc_extract_mssn(safe$result, test_i, sample_size)
+        } else {
+          NA_real_
+        },
+        finite_mssn = safe$finite_mssn,
+        status = safe$status,
+        stringsAsFactors = FALSE
+      )
+    })
+    do.call(rbind, rows)
   })
 
   plot_dat <- do.call(rbind, dat_list)
 
   if (isTRUE(return_data)) {
     out_dat <- .plot_pretty_data(plot_dat)
-    names(out_dat) <- c(x_var, "test", paste0("MSSN_", sample_size))
+    names(out_dat)[1:3] <- c(x_var, "test", paste0("MSSN_", sample_size))
+    if (!x_var %in% c("pi", "locus_het_rate")) {
+      out_dat$finite_mssn <- NULL
+      out_dat$status <- NULL
+    }
     return(out_dat)
+  }
+
+  boundary_subtitle <- if (any(!plot_dat$finite_mssn)) {
+    "No-finite-MSSN rows are retained in plot data with MSSN = NA."
+  } else {
+    NULL
   }
 
   if (isTRUE(compare_tests)) {
@@ -689,15 +736,17 @@ plot_cc_mssn <- function(
       x_label = .plot_axis_label(x_var, x_label),
       y_label = if (!is.null(y_label)) y_label else .plot_sample_size_label(sample_size),
       title = .plot_title("Case-control sample size", x_var, override = title),
-      group_label = "Case-control test"
+      group_label = "Case-control test",
+      subtitle = boundary_subtitle
     ))
   }
 
   .plot_make_line(
-    data.frame(x = plot_dat$x, y = plot_dat$y),
+    plot_dat,
     x_label = .plot_axis_label(x_var, x_label),
     y_label = if (!is.null(y_label)) y_label else .plot_sample_size_label(sample_size),
-    title = .plot_title("Case-control sample size", x_var, suffix = .plot_test_label(tests), override = title)
+    title = .plot_title("Case-control sample size", x_var, suffix = .plot_test_label(tests), override = title),
+    subtitle = boundary_subtitle
   )
 }
 
