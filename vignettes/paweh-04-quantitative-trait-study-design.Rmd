@@ -6,7 +6,7 @@ output:
     toc: true
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{Quantitative-trait genetic association study design}
+  %\VignetteIndexEntry{4. Quantitative-Trait Study Design}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -328,25 +328,25 @@ Current scope limits are important:
 # References
 
 Genz A, Bretz F. *Computation of Multivariate Normal and t Probabilities*.
-Springer; 2009. doi:10.1007/978-3-642-01689-9.
+Springer; 2009. <https://doi.org/10.1007/978-3-642-01689-9>.
 
 Gordon D, Londono D, Patel P, Kim W, Finch SJ, Heiman GA. An analytic solution
 to computation of power and sample size for genetic association studies under
 a pleiotropic mode of inheritance. *Human Heredity*. 2017;81(4):194--209.
-doi:10.1159/000457135.
+<https://doi.org/10.1159/000457135>.
 
 Li Y, Levran O, Kim J, Zhang T, Chen X, Suo C. Extreme sampling design in
 genetic association mapping of quantitative trait loci using balanced and
 unbalanced case-control samples. *Scientific Reports*. 2019;9:15504.
-doi:10.1038/s41598-019-51790-w.
+<https://doi.org/10.1038/s41598-019-51790-w>.
 
 Pillai KCS. Some new test criteria in multivariate analysis. *Annals of
 Mathematical Statistics*. 1955;26(1):117--121.
-doi:10.1214/aoms/1177728599.
+<https://doi.org/10.1214/aoms/1177728599>.
 
 Yang Q, Wu H, Guo C. Analyze multivariate phenotypes in genetic association
 studies by combining univariate association tests. *Genetic Epidemiology*.
-2010;34(5):444--454. doi:10.1002/gepi.20497.
+2010;34(5):444--454. <https://doi.org/10.1002/gepi.20497>.
 
 # Session information
 

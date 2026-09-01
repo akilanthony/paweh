@@ -1,0 +1,495 @@
+---
+title: "Sequencing-Based Genetic Study Design with PAWEH"
+author: "paweh package authors"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{6. Sequencing-Based Genetic Study Design with PAWEH}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.6)
+library(paweh)
+```
+
+# Overview
+
+`paweh` supports prospective analytic power and minimum-sample-size-necessary
+(MSSN) calculations for two scientifically different sequencing designs. The
+inputs describe a planned experiment; these functions do not process FASTQ,
+BAM, or VCF files and do not perform downstream association testing.
+
+For case-control sequencing designs, the pathway is:
+
+> true genotype -> sequencing read model -> deterministic genotype call ->
+> 3 by 3 transition matrix -> Ahn/Chapman--Nam trend NCP -> power or MSSN.
+
+For affected-child sequencing trios, the pathway is:
+
+> latent Mendelian trio state -> raw read-count likelihood -> efficient
+> information -> Kim TDT1-NGS NCP -> power or MSSN.
+
+The case-control calculation therefore propagates uncertainty in called
+genotypes. TDT1-NGS instead retains raw-read likelihood information and does
+not hard-call the three genotypes. These are not interchangeable methods.
+
+# Two sequencing workflows in `paweh`
+
+| Feature | Case-control NGS | TDT1-NGS |
+|---|---|---|
+| Sampling unit | Cases and controls | Complete father-mother-affected-child trios |
+| Sequencing information | Called-genotype probabilities | Raw read-count likelihood |
+| Association kernel | Ahn/Chapman--Nam trend NCP | Kim efficient-information NCP |
+| Public power function | `cc_ngs_power()` | `tdt_ngs_power()` |
+| Public MSSN function | `cc_ngs_mssn()` | `tdt_ngs_mssn()` |
+| Locus heterogeneity | Available | Not currently implemented |
+
+Both designs currently use equal fixed coverage and a symmetric public
+per-read error parameter. Neither uses simulation.
+
+# Exact published TDT1-NGS replication: the Kim AIS example
+
+Kim (2015) used adolescent idiopathic scoliosis (AIS) to illustrate a
+low-coverage trio design. The motivating variant, rs1400180, had a reported
+global minor-allele frequency near 0.349; the design calculation used 0.35.
+The published assumptions were HWE, symmetric read error 0.025, genome-wide
+`alpha = 5e-8`, a multiplicative effect reported as OR at least 2, and target
+power 0.90. In the TDT1-NGS parameterization this effect is `R1 = 2`, with
+`R2 = R1^2`.
+
+```{r kim-ais-replication}
+kim_4x <- tdt_ngs_mssn(
+  power = 0.90,
+  pd = 0.35,
+  R1 = 2,
+  coverage = 4,
+  seq_error = 0.025,
+  alpha = 5e-8,
+  verbose = FALSE
+)
+
+kim_25x <- tdt_ngs_mssn(
+  power = 0.90,
+  pd = 0.35,
+  R1 = 2,
+  coverage = 25,
+  seq_error = 0.025,
+  alpha = 5e-8,
+  verbose = FALSE
+)
+
+data.frame(
+  coverage = c("4x", "25x"),
+  published_trios = c(654, 416),
+  paweh_trios = c(kim_4x$MSSN_trios, kim_25x$MSSN_trios)
+)
+```
+
+Under Kim's published HWE design with MAF 0.35, symmetric read error 0.025,
+genome-wide alpha $5\times10^{-8}$, and multiplicative effect `R1 = 2`,
+PAWEH exactly reproduces the reported integer requirements of 654 complete
+trios at 4x and 416 at 25x for 90% power. This statement applies to this
+specific published design and is not a claim about every model in the paper.
+
+Kim's full Table 3 pairs three target powers with three effect sizes. All six
+integer results reproduce exactly:
+
+```{r kim-table-3}
+kim_table3 <- data.frame(
+  coverage = rep(c(4, 25), times = 3),
+  power = rep(c(0.90, 0.70, 0.10), each = 2),
+  R1 = rep(c(2.0, 1.8, 1.5), each = 2),
+  published_trios = c(654, 416, 716, 456, 733, 466)
+)
+
+kim_table3$paweh_trios <- c(
+  kim_4x$MSSN_trios,
+  kim_25x$MSSN_trios,
+  vapply(3:6, function(i) {
+    tdt_ngs_mssn(
+      power = kim_table3$power[i], pd = 0.35, R1 = kim_table3$R1[i],
+      coverage = kim_table3$coverage[i], seq_error = 0.025,
+      alpha = 5e-8, verbose = FALSE
+    )$MSSN_trios
+  }, numeric(1))
+)
+kim_table3
+```
+
+# TDT1-NGS power and MSSN
+
+For Kim's one-degree-of-freedom multiplicative model, the NCP is
+
+\[
+\lambda=N\{\log(R_1)\}^2 I_{eff},
+\]
+
+where $N$ is the number of complete trios and $I_{eff}$ is the
+nuisance-adjusted per-trio information obtained from the raw-read likelihood
+under the null. The public interface does not require users to manipulate the
+full information matrix.
+
+```{r tdt-ngs-workflow}
+tdt_seq_power <- tdt_ngs_power(
+  N = 5000,
+  pd = 0.325,
+  R1 = 1.2,
+  coverage = 12,
+  seq_error = 0.005,
+  alpha = 5e-8,
+  verbose = FALSE
+)
+
+tdt_seq_mssn <- tdt_ngs_mssn(
+  power = 0.80,
+  pd = 0.325,
+  R1 = 1.2,
+  coverage = 12,
+  seq_error = 0.005,
+  alpha = 5e-8,
+  verbose = FALSE
+)
+
+data.frame(
+  quantity = c("Power at 5,000 trios", "Required trios", "Total individuals"),
+  value = c(
+    tdt_seq_power$power,
+    tdt_seq_mssn$MSSN_trios,
+    tdt_seq_mssn$total_individuals
+  )
+)
+```
+
+The MSSN calculation first finds the target one-degree-of-freedom NCP and then
+solves analytically for $N$. It is not an iterative simulation over possible
+trio counts.
+
+# TDT sequencing sensitivity
+
+A small coverage-by-error grid helps identify whether a proposed design is in
+a steep low-depth region or near a higher-depth plateau.
+
+```{r tdt-ngs-power-plot, fig.cap="TDT1-NGS power across equal fixed coverage for two symmetric per-read error assumptions."}
+plot_ngs_power(
+  design = "tdt",
+  coverage = c(2, 4, 8, 12, 20),
+  seq_error = c(0.005, 0.01),
+  target_power = 0.80,
+  N = 5000, pd = 0.325, R1 = 1.2, alpha = 5e-8
+)
+```
+
+```{r tdt-ngs-mssn-plot, fig.cap="Required complete trios across equal fixed coverage for two symmetric per-read error assumptions."}
+plot_ngs_mssn(
+  design = "tdt",
+  coverage = c(2, 4, 8, 12, 20),
+  seq_error = c(0.005, 0.01),
+  power = 0.80, pd = 0.325, R1 = 1.2, alpha = 5e-8
+)
+```
+
+Low-to-moderate depth gains can be large, whereas gains at higher depth may
+plateau. The effect of sequencing error remains setting-dependent and should
+not be assumed negligible. The current fixed-depth TDT1-NGS implementation
+does not support a design in which every member of every trio is modeled at
+exactly 1x coverage under the full nuisance parameterization. This is a
+specific identifiability boundary of the implemented model, not a claim that
+1x sequencing is universally unusable.
+
+# Published case-control framework: the Ahn example
+
+Ahn et al. (2007) studied ordinary genotype misclassification, not sequencing
+depth. The paper supplies genotype-error probabilities directly. PAWEH
+implements Ahn Equation (1), its analytic MSSN rearrangement, and the published
+trend scores T001 = `(0,0,1)`, T011 = `(0,1,1)`, and T012 = `(0,1,2)`.
+
+The stronger numerical example uses prevalence 0.005, marker and disease
+allele frequencies 0.30, $D'=0.5$, and relative risks 2 and 3. The following
+conditional frequencies were independently reconstructed from Ahn's genetic
+model during package validation. Adjacent-genotype errors of 5% correspond to
+the PAWEH three-parameter matrix with `e01 = e02 = 0.05` and `e03 = 0`.
+
+```{r ahn-published-method-replication}
+ahn_case <- c(0.398125, 0.472500, 0.129375)
+ahn_control <- c(0.490461683417085, 0.419736180904523, 0.089802135678392)
+
+ahn_no_error <- cc_power(
+  N_case = 1000, alpha = 0.001,
+  input_mode = "model_free",
+  g1 = ahn_case, g0 = ahn_control,
+  k = 1, w = c(0, 1, 2),
+  geno_misclass = "none", verbose = FALSE
+)
+
+ahn_adjacent_error <- cc_power(
+  N_case = 1000, alpha = 0.001,
+  input_mode = "model_free",
+  g1 = ahn_case, g0 = ahn_control,
+  k = 1, w = c(0, 1, 2),
+  geno_misclass = "3p", e01 = 0.05, e02 = 0.05, e03 = 0,
+  verbose = FALSE
+)
+
+data.frame(
+  scenario = c("No error", "No error", "5% adjacent error", "5% adjacent error"),
+  test = c("T012", "Genotype chi-square", "T012", "Genotype chi-square"),
+  published_approximate_power = c(0.88, 0.81, 0.79, 0.70),
+  paweh_power = c(
+    ahn_no_error$tests$trend$power,
+    ahn_no_error$tests$genotypes$power,
+    ahn_adjacent_error$tests$trend$power,
+    ahn_adjacent_error$tests$genotypes$power
+  )
+)
+```
+
+This is a **Published-method replication**, not a CC-NGS sequencing-depth
+replication. PAWEH implements Ahn's Equation (1) exactly and closely reproduces
+the paper's ordinary genotype-misclassification power example.
+
+# The PAWEH CC-NGS sequencing bridge
+
+Ahn takes $P(\text{observed genotype}\mid\text{true genotype})$ as an input.
+PAWEH adds an upstream analytic bridge from sequencing assumptions to those
+probabilities. For true genotype $g\in\{0,1,2\}$, alternate-read count $X$,
+and fixed depth $v$,
+
+\[
+X\mid G=g,V=v\sim\operatorname{Binomial}(v,q_g),\qquad
+(q_0,q_1,q_2)=(\epsilon,0.5,1-\epsilon).
+\]
+
+A deterministic maximum-likelihood rule calls genotype $k$. Each transition
+probability
+
+\[
+E_{gk}(v,\epsilon)=P(\text{called genotype}=k\mid\text{true genotype}=g)
+\]
+
+is obtained by finite summation over all possible read counts. Rows of $E$
+are true genotypes and columns are called genotypes. This coverage-to-matrix
+bridge is a PAWEH composition; it was not proposed in the Ahn paper.
+
+```{r cc-transition-matrix}
+ngs_genotype_error_matrix(coverage = 4, seq_error = 0.005)
+```
+
+# CC-NGS power and MSSN
+
+The public case-control interfaces construct true case and control genotype
+probabilities from the disease model, apply the sequencing transition matrix,
+and then use the Ahn/Chapman--Nam trend NCP.
+
+```{r cc-ngs-workflow}
+cc_seq_power <- cc_ngs_power(
+  N_case = 1000,
+  alpha = 5e-8,
+  prev = 0.05,
+  pd = 0.30,
+  R2 = 1.8,
+  coverage = 4,
+  seq_error = 0.005,
+  MOI = "M",
+  k = 1,
+  verbose = FALSE
+)
+
+cc_seq_mssn <- cc_ngs_mssn(
+  power = 0.80,
+  alpha = 5e-8,
+  prev = 0.05,
+  pd = 0.30,
+  R2 = 1.8,
+  coverage = 4,
+  seq_error = 0.005,
+  MOI = "M",
+  k = 1,
+  verbose = FALSE
+)
+
+data.frame(
+  quantity = c(
+    "Power at 1,000 cases", "Required cases", "Required controls", "Total MSSN"
+  ),
+  value = c(
+    cc_seq_power$power,
+    cc_seq_mssn$MSSN_case,
+    cc_seq_mssn$MSSN_ctrl,
+    cc_seq_mssn$MSSN_total
+  )
+)
+```
+
+Sequencing uncertainty is upstream of the published trend NCP. The MSSN
+calculation remains analytic after inversion of the target NCP.
+
+# Why zero per-read error is not perfect at finite depth
+
+Setting `seq_error = 0` eliminates incorrect base reads, but it does not make
+finite-depth heterozygote calls perfect. For a true heterozygote,
+
+\[
+X\sim\operatorname{Binomial}(v,0.5).
+\]
+
+At low $v$, every observed read can come from the same allele. Such an
+observation can be more likely under a homozygous genotype, creating call
+uncertainty even with no per-read sequencing error. This probability decreases
+with depth but is nonzero at every finite depth.
+
+```{r zero-error-matrices}
+list(
+  coverage_2 = ngs_genotype_error_matrix(2, 0),
+  coverage_10 = ngs_genotype_error_matrix(10, 0)
+)
+```
+
+# CC sequencing sensitivity
+
+```{r cc-ngs-power-plot, fig.cap="Case-control sequencing trend power across equal fixed coverage for two symmetric per-read error assumptions."}
+plot_ngs_power(
+  design = "cc",
+  coverage = c(2, 4, 8, 12, 20),
+  seq_error = c(0.005, 0.01),
+  target_power = 0.80,
+  N_case = 1000, alpha = 5e-8,
+  prev = 0.05, pd = 0.30, R2 = 1.8, MOI = "M", k = 1
+)
+```
+
+```{r cc-ngs-mssn-plot, fig.cap="Required case sample size across equal fixed coverage for two symmetric per-read error assumptions."}
+plot_ngs_mssn(
+  design = "cc",
+  coverage = c(2, 4, 8, 12, 20),
+  seq_error = c(0.005, 0.01),
+  power = 0.80, alpha = 5e-8,
+  prev = 0.05, pd = 0.30, R2 = 1.8, MOI = "M", k = 1
+)
+```
+
+These are deterministic scenario curves, not uncertainty bands. A robust
+design should be examined over scientifically plausible depth and error
+values rather than only at a single optimistic point.
+
+# CC locus heterogeneity
+
+Case-control sequencing designs can dilute the associated-case distribution
+with the control distribution:
+
+\[
+g_{case,H}=\pi g_{case}+(1-\pi)g_{control}.
+\]
+
+Here `pi = 1` retains the full locus-associated case distribution and `pi = 0`
+removes the locus-specific contrast. The master switch is strict: when
+`locus_het = FALSE`, `pi` must remain 1.
+
+```{r cc-ngs-heterogeneity}
+cc_heterogeneous <- cc_ngs_power(
+  N_case = 1000, alpha = 0.05,
+  prev = 0.05, pd = 0.30, R2 = 1.8,
+  coverage = 4, seq_error = 0.005,
+  MOI = "M", k = 1,
+  locus_het = TRUE, pi = 0.75,
+  verbose = FALSE
+)
+
+data.frame(
+  pi = cc_heterogeneous$locus_het$pi,
+  lambda = cc_heterogeneous$lambda,
+  power = cc_heterogeneous$power
+)
+```
+
+# The exact `pi = 0` boundary
+
+At `locus_het = TRUE, pi = 0`, case and control genotype distributions are
+identical. Therefore the NCP is zero and power equals `alpha`. If requested
+power exceeds `alpha`, no finite sample size exists.
+
+The plotting-data interface preserves this scientific boundary instead of
+inventing a very large finite MSSN:
+
+```{r cc-ngs-null-boundary}
+pi_boundary <- plot_ngs_mssn(
+  design = "cc",
+  coverage = 4,
+  seq_error = 0.005,
+  return_data = TRUE,
+  power = 0.80, alpha = 0.05,
+  prev = 0.05, pd = 0.30, R2 = 1.8, MOI = "M", k = 1,
+  locus_het = TRUE, pi = c(1, 0.75, 0.50, 0)
+)
+
+pi_boundary[, c("pi", "MSSN_case", "finite_mssn", "status")]
+```
+
+The `pi = 0` row remains visible with `MSSN_case = NA`,
+`finite_mssn = FALSE`, and status `"no finite MSSN"`.
+
+# Fixed-depth assumptions and limitations
+
+Current sequencing APIs assume one equal fixed coverage value for the relevant
+study members. They do not yet integrate over a realistic empirical or
+budget-generated coverage distribution in which a locus may be 0x in some
+samples, 1x or 2x in others, and 4x or greater elsewhere. Variable/BGE
+coverage-distribution modeling is deferred.
+
+| Assumption | CC-NGS | TDT1-NGS |
+|---|---|---|
+| Locus | Single biallelic | Single biallelic |
+| Sampling | Cases and controls | Complete affected-child trios |
+| Genetic model | M, dominant, or recessive trend scores | Multiplicative |
+| Parental HWE/random mating | Not applicable | Assumed by current public design |
+| Coverage | Equal fixed depth | Equal fixed depth |
+| Public read error | Symmetric | Symmetric |
+| Sequencing analysis | Deterministic genotype calls | Raw-read latent-state likelihood |
+| Case/control observation error | Nondifferential | Not applicable |
+| Locus heterogeneity | Optional canonical mixture | Not implemented |
+| Simulation | None | None |
+
+Deferred capabilities include variable/BGE coverage, simulation validation,
+cost-depth optimization, TDT sequencing heterogeneity, and a sequencing Shiny
+module. The existing dashboard covers the non-sequencing study-design modules.
+
+# A practical design workflow
+
+1. Choose an unrelated case-control or affected-child trio design.
+2. Specify allele-frequency and effect assumptions from defensible prior data.
+3. Choose candidate fixed coverage and per-read error scenarios.
+4. Calculate power at the available sample size.
+5. Calculate MSSN for the target power.
+6. Plot coverage and sequencing-error sensitivity.
+7. For case-control designs, stress-test plausible locus heterogeneity.
+8. Report the model, fixed-depth assumption, sampling unit, error assumption,
+   and sensitivity range with the design recommendation.
+
+# References
+
+Ahn K, Haynes C, Kim W, St Fleur R, Gordon D, Finch SJ. The effects of SNP
+genotyping errors on the power of the Cochran-Armitage linear trend test for
+case/control association studies. *Annals of Human Genetics*.
+2007;71(2):249--261.
+<https://doi.org/10.1111/j.1469-1809.2006.00318.x>.
+
+Chapman DG, Nam JM. Asymptotic power of chi square tests for linear trends in
+proportions. *Biometrics*. 1968;24(2):315--327.
+<https://doi.org/10.2307/2528035>.
+
+Gordon D, Finch SJ, Kim W. *Heterogeneity in Statistical Genetics: How to
+Assess, Address, and Account for Mixtures in Association Studies*. Springer;
+2020. <https://doi.org/10.1007/978-3-030-61121-7>.
+
+Kim W. Transmission disequilibrium tests based on read counts for low-coverage
+next-generation sequence data. *Human Heredity*. 2015;80(1):36--49.
+<https://doi.org/10.1159/000434645>.
+
+# Session information
+
+```{r session-info}
+sessionInfo()
+```

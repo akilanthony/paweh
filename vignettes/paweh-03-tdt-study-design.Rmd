@@ -6,7 +6,7 @@ output:
     toc: true
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{Transmission disequilibrium test study design}
+  %\VignetteIndexEntry{3. TDT Study Design}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -174,11 +174,12 @@ confidence interval or a probability distribution over the error rate.
 
 ## Extending Buyske: prevalence by misclassification
 
-The optional interactive surface evaluates the same Buyske parameters over a
-modest prevalence-by-error grid. It is guarded so the vignette remains
-executable when Plotly is unavailable.
+The optional interactive surface can evaluate the same Buyske parameters over
+a modest prevalence-by-error grid. The example is left unevaluated in the
+installed vignette to avoid embedding a multi-megabyte Plotly widget; run the
+copyable code in an interactive R session to explore the surface.
 
-```{r buyske-surface, eval=requireNamespace("plotly", quietly=TRUE), fig.cap="MSSN sensitivity to prevalence and phenotype misclassification under the Buyske model."}
+```{r buyske-surface, eval=FALSE}
 plot_tdt_surface3d(
   metric = "mssn", scenario = "misclassification",
   x = "prev", y = "misclass_rate",
@@ -190,8 +191,8 @@ plot_tdt_surface3d(
 )
 ```
 
-This surface extends discrete calculations into a sensitivity analysis; it is
-not an uncertainty distribution.
+When run interactively, this surface extends discrete calculations into a
+sensitivity analysis; it is not an uncertainty distribution.
 
 # Published-example reproduction: Chen et al. (2009)
 
@@ -267,16 +268,16 @@ from homogeneity require substantially more families.
 Buyske S, Yang G, Matise TC, Gordon D. When a case is not a case: effects of
 phenotype misclassification on power and sample size requirements for the
 transmission disequilibrium test with affected child trios. *Human Heredity*.
-2009;67(4):287--292. doi:10.1159/000194981.
+2009;67(4):287--292. <https://doi.org/10.1159/000194981>.
 
 Chen C, Yang G, Buyske S, Matise T, Finch SJ, Gordon D. Transmission
 disequilibrium test power and sample size in the presence of locus
 heterogeneity. *Statistical Applications in Genetics and Molecular Biology*.
-2009;8:Article 44. doi:10.2202/1544-6115.1501.
+2009;8:Article 44. <https://doi.org/10.2202/1544-6115.1501>.
 
 Gordon D, Finch SJ, Kim W. *Heterogeneity in Statistical Genetics: How to
 Assess, Address, and Account for Mixtures in Association Studies*. Springer;
-2020. doi:10.1007/978-3-030-61121-7.
+2020. <https://doi.org/10.1007/978-3-030-61121-7>.
 
 # Session information
 

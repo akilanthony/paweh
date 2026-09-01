@@ -1,6 +1,17 @@
 test_that("renamed specialized TDT 2D plots use the canonical backends", {
   skip_if_not_installed("ggplot2")
 
+  plot_file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(plot_file)
+  plot_device <- grDevices::dev.cur()
+  on.exit({
+    open_devices <- grDevices::dev.list()
+    if (!is.null(open_devices) && plot_device %in% open_devices) {
+      grDevices::dev.off(plot_device)
+    }
+    unlink(plot_file)
+  }, add = TRUE)
+
   common <- list(
     pd = 0.3, prev = 0.05, R1 = 1.5, R2 = 2.25,
     alpha = 0.05, delta_prime = 1
