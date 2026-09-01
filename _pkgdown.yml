@@ -81,6 +81,15 @@ reference:
   - plot_qtl_multivariate_surface3d
   - plot_qtl_threshold_chisq_mssn
   - plot_qtl_threshold_chisq_power
+- title: 'Sequencing study design'
+  contents:
+  - ngs_genotype_error_matrix
+  - cc_ngs_power
+  - cc_ngs_mssn
+  - tdt_ngs_power
+  - tdt_ngs_mssn
+  - plot_ngs_power
+  - plot_ngs_mssn
 - title: 'Interactive application'
   contents:
   - paweh_app
@@ -100,3 +109,6 @@ articles:
 - title: Interactive Dashboard
   navbar: Interactive Dashboard
   contents: paweh-05-interactive-dashboard
+- title: Sequencing-Based Genetic Study Design
+  navbar: Sequencing-Based Genetic Study Design
+  contents: paweh-06-sequencing-study-design
