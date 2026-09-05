@@ -69,6 +69,7 @@
     coverage = coverage,
     seq_error = seq_error
   )
+  E <- .validate_genotype_misclassification_matrix(E, tolerance = 1e-12)
   case_called <- as.numeric(t(E) %*% g_case)
   control_called <- as.numeric(t(E) %*% g_control)
 

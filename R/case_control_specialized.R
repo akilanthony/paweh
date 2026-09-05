@@ -194,15 +194,15 @@ cc_chisq_mssn_genotype_misclassification_1p <- function(
   cc_misclass_matrix_symmetric <- function(e) {
     if (!is.numeric(e) || length(e) != 1 || e < 0 || e > 0.5)
       stop("e must be a single number in [0, 0.5].")
-    matrix(c(
+    .validate_genotype_misclassification_matrix(matrix(c(
       1 - 2*e, e,       e,
       e,       1 - 2*e, e,
       e,       e,       1 - 2*e
-    ), nrow = 3, byrow = TRUE)
+    ), nrow = 3, byrow = TRUE))
   }
 
   cc_apply_genotype_misclass <- function(g, M) {
-    as.numeric(M %*% g)
+    as.numeric(.validate_genotype_misclassification_matrix(M) %*% g)
   }
 
   .fmt_f <- function(x, digits = 3) formatC(x, format = "f", digits = digits)
@@ -354,15 +354,15 @@ cc_chisq_power_genotype_misclassification_1p <- function(
   cc_misclass_matrix_symmetric <- function(e) {
     if (!is.numeric(e) || length(e) != 1 || e < 0 || e > 0.5)
       stop("e must be a single number in [0, 0.5].")
-    matrix(c(
+    .validate_genotype_misclassification_matrix(matrix(c(
       1 - 2*e, e,       e,
       e,       1 - 2*e, e,
       e,       e,       1 - 2*e
-    ), nrow = 3, byrow = TRUE)
+    ), nrow = 3, byrow = TRUE))
   }
 
   cc_apply_genotype_misclass <- function(g, M) {
-    as.numeric(M %*% g)
+    as.numeric(.validate_genotype_misclassification_matrix(M) %*% g)
   }
 
   .fmt_f <- function(x, digits = 3) formatC(x, format = "f", digits = digits)
@@ -535,17 +535,12 @@ cc_chisq_mssn_genotype_misclassification_2p <- function(
       0,       e1,       1 - e1
     ), nrow = 3, byrow = TRUE)
 
-    if (any(abs(rowSums(M) - 1) > 1e-10))
-      stop("Misclassification matrix rows do not sum to 1.")
-    if (any(M < -1e-12))
-      stop("Misclassification matrix has negative entries; check e1/e2.")
-
-    M
+    .validate_genotype_misclassification_matrix(M)
   }
 
   cc_apply_genotype_misclass <- function(g_true, M_true_to_obs) {
     if (length(g_true) != 3) stop("g_true must be length 3 (g0,g1,g2).")
-    as.numeric(t(M_true_to_obs) %*% g_true)
+    as.numeric(t(.validate_genotype_misclassification_matrix(M_true_to_obs)) %*% g_true)
   }
 
   .fmt_f <- function(x, digits = 3) formatC(x, format = "f", digits = digits)
@@ -706,16 +701,12 @@ cc_chisq_power_genotype_misclassification_2p <- function(
       0,       e1,       1 - e1
     ), nrow = 3, byrow = TRUE)
 
-    if (any(abs(rowSums(M) - 1) > 1e-10))
-      stop("Misclassification matrix rows do not sum to 1.")
-    if (any(M < -1e-12))
-      stop("Misclassification matrix has negative entries; check e1/e2.")
-    M
+    .validate_genotype_misclassification_matrix(M)
   }
 
   cc_apply_genotype_misclass <- function(g_true, M_true_to_obs) {
     if (length(g_true) != 3) stop("g_true must be length 3 (g0,g1,g2).")
-    as.numeric(t(M_true_to_obs) %*% g_true)
+    as.numeric(t(.validate_genotype_misclassification_matrix(M_true_to_obs)) %*% g_true)
   }
 
   .fmt_f <- function(x, digits = 3) formatC(x, format = "f", digits = digits)
@@ -930,14 +921,12 @@ cc_chisq_mssn_genotype_misclassification_3p <- function(
       e03,              e01,            1 - (e01 + e03)
     ), nrow = 3, byrow = TRUE)
 
-    if (any(abs(rowSums(M) - 1) > 1e-10)) stop("Misclassification matrix rows do not sum to 1.")
-    if (any(M < -1e-12)) stop("Misclassification matrix has negative entries; check e01/e02/e03.")
-    M
+    .validate_genotype_misclassification_matrix(M)
   }
 
   cc_apply_genotype_misclass <- function(g_true, M_true_to_obs) {
     if (length(g_true) != 3) stop("g_true must be length 3.")
-    as.numeric(t(M_true_to_obs) %*% g_true)
+    as.numeric(t(.validate_genotype_misclassification_matrix(M_true_to_obs)) %*% g_true)
   }
 
   .fmt_f <- function(x, digits = 3) formatC(x, format = "f", digits = digits)
@@ -1090,13 +1079,11 @@ cc_chisq_power_genotype_misclassification_3p <- function(
       e03,              e01,            1 - (e01 + e03)
     ), nrow = 3, byrow = TRUE)
 
-    if (any(abs(rowSums(M) - 1) > 1e-10)) stop("Misclassification matrix rows do not sum to 1.")
-    if (any(M < -1e-12)) stop("Misclassification matrix has negative entries; check e01/e02/e03.")
-    M
+    .validate_genotype_misclassification_matrix(M)
   }
 
   cc_apply_genotype_misclass <- function(g_true, M_true_to_obs) {
-    as.numeric(t(M_true_to_obs) %*% g_true)
+    as.numeric(t(.validate_genotype_misclassification_matrix(M_true_to_obs)) %*% g_true)
   }
 
   .fmt_f <- function(x, digits = 3) formatC(x, format = "f", digits = digits)
@@ -1214,12 +1201,7 @@ cc_misclass_matrix_3p <- function(e01 = 0, e02 = 0, e03 = 0) {
     e03,              e01,            1 - (e01 + e03)
   ), nrow = 3, byrow = TRUE)
 
-  if (any(abs(rowSums(M) - 1) > 1e-10))
-    stop("Misclassification matrix rows do not sum to 1.")
-  if (any(M < -1e-12))
-    stop("Misclassification matrix has negative entries; check e01/e02/e03.")
-
-  M
+  .validate_genotype_misclassification_matrix(M)
 }
 
 
@@ -1233,7 +1215,7 @@ cc_apply_genotype_misclass <- function(g_true, M_true_to_obs) {
   if (!is.matrix(M_true_to_obs) || any(dim(M_true_to_obs) != c(3, 3)))
     stop("M_true_to_obs must be a 3 x 3 matrix.")
 
-  g_obs <- as.numeric(t(M_true_to_obs) %*% g_true)
+  g_obs <- as.numeric(t(.validate_genotype_misclassification_matrix(M_true_to_obs)) %*% g_true)
   g_obs / sum(g_obs)
 }
 #' @rdname case_control_genotype_misclassification

@@ -453,12 +453,7 @@ cc_mssn <- function(
       e,       e,       1 - 2*e
     ), nrow = 3, byrow = TRUE)
 
-    if (any(abs(rowSums(M) - 1) > 1e-10))
-      stop("1p misclassification matrix rows do not sum to 1.")
-    if (any(M < -1e-12))
-      stop("1p misclassification matrix has negative entries; check e.")
-
-    M
+    .validate_genotype_misclassification_matrix(M)
   }
 
   cc_misclass_matrix_2p <- function(e1, e2) {
@@ -473,12 +468,7 @@ cc_mssn <- function(
       0,       e1,       1 - e1
     ), nrow = 3, byrow = TRUE)
 
-    if (any(abs(rowSums(M) - 1) > 1e-10))
-      stop("2p misclassification matrix rows do not sum to 1.")
-    if (any(M < -1e-12))
-      stop("2p misclassification matrix has negative entries; check e1/e2.")
-
-    M
+    .validate_genotype_misclassification_matrix(M)
   }
 
   cc_misclass_matrix_3p <- function(e01, e02, e03) {
@@ -497,18 +487,13 @@ cc_mssn <- function(
       e03,              e01,            1 - (e01 + e03)
     ), nrow = 3, byrow = TRUE)
 
-    if (any(abs(rowSums(M) - 1) > 1e-10))
-      stop("3p misclassification matrix rows do not sum to 1.")
-    if (any(M < -1e-12))
-      stop("3p misclassification matrix has negative entries; check e01/e02/e03.")
-
-    M
+    .validate_genotype_misclassification_matrix(M)
   }
 
   cc_apply_genotype_misclass <- function(g_true, M_true_to_obs) {
     if (length(g_true) != 3)
       stop("g_true must be length 3.")
-    as.numeric(t(M_true_to_obs) %*% g_true)
+    as.numeric(t(.validate_genotype_misclassification_matrix(M_true_to_obs)) %*% g_true)
   }
 
   cc_scale_3p_errors <- function(e01, e02, e03, multiplier) {
@@ -1202,12 +1187,7 @@ cc_power <- function(
       e,       e,       1 - 2*e
     ), nrow = 3, byrow = TRUE)
 
-    if (any(abs(rowSums(M) - 1) > 1e-10))
-      stop("1p misclassification matrix rows do not sum to 1.")
-    if (any(M < -1e-12))
-      stop("1p misclassification matrix has negative entries; check e.")
-
-    M
+    .validate_genotype_misclassification_matrix(M)
   }
 
   cc_misclass_matrix_2p <- function(e1, e2) {
@@ -1222,12 +1202,7 @@ cc_power <- function(
       0,       e1,       1 - e1
     ), nrow = 3, byrow = TRUE)
 
-    if (any(abs(rowSums(M) - 1) > 1e-10))
-      stop("2p misclassification matrix rows do not sum to 1.")
-    if (any(M < -1e-12))
-      stop("2p misclassification matrix has negative entries; check e1/e2.")
-
-    M
+    .validate_genotype_misclassification_matrix(M)
   }
 
   cc_misclass_matrix_3p <- function(e01, e02, e03) {
@@ -1246,18 +1221,13 @@ cc_power <- function(
       e03,              e01,            1 - (e01 + e03)
     ), nrow = 3, byrow = TRUE)
 
-    if (any(abs(rowSums(M) - 1) > 1e-10))
-      stop("3p misclassification matrix rows do not sum to 1.")
-    if (any(M < -1e-12))
-      stop("3p misclassification matrix has negative entries; check e01/e02/e03.")
-
-    M
+    .validate_genotype_misclassification_matrix(M)
   }
 
   cc_apply_genotype_misclass <- function(g_true, M_true_to_obs) {
     if (length(g_true) != 3)
       stop("g_true must be length 3.")
-    as.numeric(t(M_true_to_obs) %*% g_true)
+    as.numeric(t(.validate_genotype_misclassification_matrix(M_true_to_obs)) %*% g_true)
   }
 
   cc_scale_3p_errors <- function(e01, e02, e03, multiplier) {
