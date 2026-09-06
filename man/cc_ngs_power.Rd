@@ -10,13 +10,17 @@ cc_ngs_power(
   prev,
   pd,
   R2,
-  coverage,
-  seq_error,
+  coverage = NULL,
+  seq_error = NULL,
   MOI = c("M", "D", "Rec"),
   k = 1,
   verbose = TRUE,
   locus_het = FALSE,
-  pi = 1
+  pi = 1,
+  case_coverage = coverage,
+  ctrl_coverage = coverage,
+  case_seq_error = seq_error,
+  ctrl_seq_error = seq_error
 )
 }
 \arguments{
@@ -30,10 +34,12 @@ cc_ngs_power(
 
 \item{R2}{Numeric \eqn{> 0}. Homozygote relative risk.}
 
-\item{coverage}{Positive integer sequencing depth.}
+\item{coverage}{Common positive integer fixed sequencing depth. May be omitted
+when both group-specific depths are supplied.}
 
 \item{seq_error}{Symmetric per-read sequencing-error probability in
-\eqn{[0,0.5)}.}
+\eqn{[0,0.5)}. Common shorthand; may be omitted when both group-specific
+errors are supplied.}
 
 \item{MOI}{Character mode of inheritance: \code{"M"} for multiplicative,
 \code{"D"} for dominant, or \code{"Rec"} for recessive.}
@@ -50,11 +56,23 @@ case-control locus-heterogeneity mixture before sequencing observation.}
 \code{locus_het = TRUE}. One retains the original associated-case
 distribution; zero makes the case distribution equal to controls. When
 \code{locus_het = FALSE}, \code{pi} must remain at its default value of 1.}
+
+\item{case_coverage, ctrl_coverage}{Case/control fixed depths, respectively.
+Each defaults to \code{coverage}; an explicit value overrides it.}
+
+\item{case_seq_error, ctrl_seq_error}{Case/control per-read error probabilities.
+Each defaults to \code{seq_error}; an explicit value overrides it.
+Effective depths and errors obey the common parameter constraints.}
 }
 \value{
 Invisibly, an object of class \code{"cc_ngs_power"} containing the
 design inputs, trend scores, NCP and power, model information, true and
 called genotype frequencies, and the true-to-called transition matrix.
+The \code{sequencing} list records the four effective group parameters and
+\code{case_transition_matrix}/\code{ctrl_transition_matrix}. Legacy
+\code{coverage}/\code{seq_error} retain supplied common inputs (or NULL);
+\code{transition_matrix} aliases the case matrix, shared when mechanisms
+are equal. Use the two explicit matrices for differential designs.
 }
 \description{
 Computes prospective asymptotic power for a model-based case-control
@@ -75,13 +93,17 @@ Locus heterogeneity uses the same parameterization as ordinary PAWEH
 case-control design:
 \deqn{g_{case,H} = \pi g_{case} + (1-\pi)g_{control},}
 with the control distribution unchanged. This biological mixture is applied
-to true genotype probabilities before sequencing observation. Because the
-current sequencing-error model is nondifferential, the same transition
-matrix is applied to cases and controls, so mixing and sequencing commute by
-matrix linearity. This identity does not extend automatically to future
-differential case/control sequencing-error models. At \eqn{\pi=0}, the
-case-control contrast and NCP are zero, and asymptotic power equals
-\code{alpha}.
+to true genotype probabilities before sequencing observation. Separate
+row-true, column-called matrices are constructed using each group's effective
+depth and error, then applied as \code{t(M_case) \%*\% g_case} and
+\code{t(M_ctrl) \%*\% g_control}. Only equal mechanisms permit commuting the
+mixture and sequencing. At \eqn{\pi=0}, equal mechanisms give zero NCP
+and power equal to \code{alpha}.
+
+Differential sequencing mechanisms can create observed case/control
+differences even under a biological null. Results remain nominal asymptotic
+calculations using the existing chi-square critical value; the null
+distribution and Type I error are not separately recalibrated here.
 
 This is an analytic study-design calculation applied to sequencing-derived
 called genotypes. It is not a raw-read likelihood or EM analysis, performs

@@ -324,8 +324,8 @@ test_that("zero trend contrast gives an informative finite-MSSN error", {
 test_that("CC-NGS MSSN API excludes deferred sequencing features", {
   arguments <- names(formals(cc_ngs_mssn))
   excluded <- c(
-    "N_case", "pheno_misclass", "theta", "phi", "case_seq_error",
-    "ctrl_seq_error", "coverage_dist", "g1", "g0", "raw_reads", "trios",
+    "N_case", "pheno_misclass", "theta", "phi",
+    "coverage_dist", "g1", "g0", "raw_reads", "trios",
     "plot", "shiny"
   )
 

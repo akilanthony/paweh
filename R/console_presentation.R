@@ -560,8 +560,21 @@
 
 .paweh_print_cc_ngs_sequencing <- function(x) {
   .paweh_console_section("Sequencing Model")
-  .paweh_console_parameter("Fixed coverage", x$coverage, integer = TRUE)
-  .paweh_console_parameter("Per-read sequencing error", x$seq_error, 5L)
+  z <- x$sequencing
+  if (is.null(z)) {
+    z <- list(case_coverage = x$coverage, ctrl_coverage = x$coverage,
+              case_seq_error = x$seq_error, ctrl_seq_error = x$seq_error)
+  }
+  if (z$case_coverage == z$ctrl_coverage &&
+      z$case_seq_error == z$ctrl_seq_error) {
+    .paweh_console_parameter("Fixed coverage", z$case_coverage, integer = TRUE)
+    .paweh_console_parameter("Per-read sequencing error", z$case_seq_error, 5L)
+  } else {
+    .paweh_console_parameter("Case coverage", z$case_coverage, integer = TRUE)
+    .paweh_console_parameter("Control coverage", z$ctrl_coverage, integer = TRUE)
+    .paweh_console_parameter("Case sequencing error", z$case_seq_error, 5L)
+    .paweh_console_parameter("Control sequencing error", z$ctrl_seq_error, 5L)
+  }
   .paweh_console_parameter(
     "Genotype calling", "Deterministic maximum-likelihood calling"
   )
@@ -579,6 +592,13 @@
   .paweh_console_rule()
   .paweh_console_section("Sequencing-Derived Genotype-Call Matrix")
   .paweh_console_transition_matrix(x$transition_matrix)
+  if (!is.null(x$sequencing) &&
+      !identical(x$sequencing$case_transition_matrix,
+                 x$sequencing$ctrl_transition_matrix)) {
+    .paweh_console_parameter("Matrix above", "Cases")
+    .paweh_console_section("Control Sequencing-Derived Genotype-Call Matrix")
+    .paweh_console_transition_matrix(x$sequencing$ctrl_transition_matrix)
+  }
   .paweh_console_rule()
   .paweh_console_section("Called Genotype Frequencies")
   .paweh_console_genotype_table(list(

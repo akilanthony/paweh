@@ -48,8 +48,9 @@ not hard-call the three genotypes. These are not interchangeable methods.
 | Public MSSN function | `cc_ngs_mssn()` | `tdt_ngs_mssn()` |
 | Locus heterogeneity | Available | Not currently implemented |
 
-Both designs currently use equal fixed coverage and a symmetric public
-per-read error parameter. Neither uses simulation.
+Both designs use fixed coverage and symmetric per-read error. CC-NGS permits
+separate case/control depths and error rates; TDT1-NGS retains equal settings.
+Neither uses simulation.
 
 # Exact published TDT1-NGS replication: the Kim AIS example
 
@@ -327,6 +328,43 @@ data.frame(
 Sequencing uncertainty is upstream of the published trend NCP. The MSSN
 calculation remains analytic after inversion of the target NCP.
 
+# Separate case/control sequencing
+
+For both `cc_ngs_power()` and `cc_ngs_mssn()`, `coverage` and `seq_error`
+remain common shorthand. `case_coverage` and `ctrl_coverage` independently
+override `coverage`; `case_seq_error` and `ctrl_seq_error` independently
+override `seq_error`. A common parameter may be omitted when both corresponding
+overrides are supplied. Explicit invalid overrides, including `NULL`, are
+rejected. Only effective parameters are validated.
+
+```{r cc-ngs-differential}
+cc_differential <- cc_ngs_power(
+  N_case = 1000, alpha = 0.05, prev = 0.05, pd = 0.30, R2 = 1.8,
+  coverage = 10, seq_error = 0.01,
+  case_coverage = 4, case_seq_error = 0.04,
+  locus_het = TRUE, pi = 0.75, verbose = FALSE
+)
+cc_differential$sequencing
+```
+
+Locus heterogeneity is applied to the true frequencies first. The case matrix
+then gives `t(M_case) %*% g_case`, and the control matrix gives
+`t(M_ctrl) %*% g_control`. Both matrices have true-genotype rows and
+called-genotype columns. The existing Ahn/Chapman--Nam calculation receives
+these called distributions unchanged.
+
+The `sequencing` list records all four effective parameters and both matrices.
+Legacy `coverage` and `seq_error` fields retain common inputs (or `NULL` if
+omitted); `transition_matrix` retains the case matrix, shared by both groups
+when settings are equal. Use the explicit matrices for differential designs.
+
+Different sequencing mechanisms can create observed differences even under a
+biological null. Power and MSSN are nominal asymptotic results using the
+existing chi-square critical value; neither the null distribution nor Type I
+error is independently recalibrated for differential sequencing. In particular,
+`pi = 0` need not remove the observed contrast. Plot extensions are deferred;
+the plotting examples below use common sequencing settings.
+
 # Why zero per-read error is not perfect at finite depth
 
 Setting `seq_error = 0` eliminates incorrect base reads, but it does not make
@@ -407,8 +445,8 @@ data.frame(
 
 # The exact `pi = 0` boundary
 
-At `locus_het = TRUE, pi = 0`, case and control genotype distributions are
-identical. Therefore the NCP is zero and power equals `alpha`. If requested
+With equal sequencing mechanisms and `locus_het = TRUE, pi = 0`, case and
+control called genotype distributions are identical. Therefore the NCP is zero and power equals `alpha`. If requested
 power exceeds `alpha`, no finite sample size exists.
 
 The plotting-data interface preserves this scientific boundary instead of
@@ -433,8 +471,8 @@ The `pi = 0` row remains visible with `MSSN_case = NA`,
 
 # Fixed-depth assumptions and limitations
 
-Current sequencing APIs assume one equal fixed coverage value for the relevant
-study members. They do not yet integrate over a realistic empirical or
+CC-NGS assumes fixed coverage within each group; TDT1-NGS assumes one equal
+fixed coverage value for the trio members. They do not yet integrate over a realistic empirical or
 budget-generated coverage distribution in which a locus may be 0x in some
 samples, 1x or 2x in others, and 4x or greater elsewhere. Variable/BGE
 coverage-distribution modeling is deferred.
@@ -445,10 +483,10 @@ coverage-distribution modeling is deferred.
 | Sampling | Cases and controls | Complete affected-child trios |
 | Genetic model | M, dominant, or recessive trend scores | Multiplicative |
 | Parental HWE/random mating | Not applicable | Assumed by current public design |
-| Coverage | Equal fixed depth | Equal fixed depth |
+| Coverage | Fixed depth per group | Equal fixed depth |
 | Public read error | Symmetric | Symmetric |
 | Sequencing analysis | Deterministic genotype calls | Raw-read latent-state likelihood |
-| Case/control observation error | Nondifferential | Not applicable |
+| Case/control observation error | Common or differential sequencing | Not applicable |
 | Locus heterogeneity | Optional canonical mixture | Not implemented |
 | Simulation | None | None |
 

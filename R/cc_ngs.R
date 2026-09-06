@@ -166,9 +166,16 @@
 #' @param prev Numeric in \eqn{(0,1)}. Disease prevalence.
 #' @param pd Numeric in \eqn{(0,1)}. Disease-allele frequency.
 #' @param R2 Numeric \eqn{> 0}. Homozygote relative risk.
-#' @param coverage Positive integer sequencing depth.
+#' @param coverage Common positive integer fixed sequencing depth. May be omitted
+#'   when both group-specific depths are supplied.
 #' @param seq_error Symmetric per-read sequencing-error probability in
-#'   \eqn{[0,0.5)}.
+#'   \eqn{[0,0.5)}. Common shorthand; may be omitted when both group-specific
+#'   errors are supplied.
+#' @param case_coverage,ctrl_coverage Case/control fixed depths, respectively.
+#'   Each defaults to \code{coverage}; an explicit value overrides it.
+#' @param case_seq_error,ctrl_seq_error Case/control per-read error probabilities.
+#'   Each defaults to \code{seq_error}; an explicit value overrides it.
+#'   Effective depths and errors obey the common parameter constraints.
 #' @param MOI Character mode of inheritance: \code{"M"} for multiplicative,
 #'   \code{"D"} for dominant, or \code{"Rec"} for recessive.
 #' @param k Numeric \eqn{> 0}. Control-to-case sample-size ratio
@@ -192,13 +199,17 @@
 #' case-control design:
 #' \deqn{g_{case,H} = \pi g_{case} + (1-\pi)g_{control},}
 #' with the control distribution unchanged. This biological mixture is applied
-#' to true genotype probabilities before sequencing observation. Because the
-#' current sequencing-error model is nondifferential, the same transition
-#' matrix is applied to cases and controls, so mixing and sequencing commute by
-#' matrix linearity. This identity does not extend automatically to future
-#' differential case/control sequencing-error models. At \eqn{\pi=0}, the
-#' case-control contrast and NCP are zero, and asymptotic power equals
-#' \code{alpha}.
+#' to true genotype probabilities before sequencing observation. Separate
+#' row-true, column-called matrices are constructed using each group's effective
+#' depth and error, then applied as `t(M_case) %*% g_case` and
+#' `t(M_ctrl) %*% g_control`. Only equal mechanisms permit commuting the
+#' mixture and sequencing. At \eqn{\pi=0}, equal mechanisms give zero NCP
+#' and power equal to \code{alpha}.
+#'
+#' Differential sequencing mechanisms can create observed case/control
+#' differences even under a biological null. Results remain nominal asymptotic
+#' calculations using the existing chi-square critical value; the null
+#' distribution and Type I error are not separately recalibrated here.
 #'
 #' This is an analytic study-design calculation applied to sequencing-derived
 #' called genotypes. It is not a raw-read likelihood or EM analysis, performs
@@ -209,6 +220,11 @@
 #' @return Invisibly, an object of class \code{"cc_ngs_power"} containing the
 #'   design inputs, trend scores, NCP and power, model information, true and
 #'   called genotype frequencies, and the true-to-called transition matrix.
+#'   The \code{sequencing} list records the four effective group parameters and
+#'   \code{case_transition_matrix}/\code{ctrl_transition_matrix}. Legacy
+#'   \code{coverage}/\code{seq_error} retain supplied common inputs (or NULL);
+#'   \code{transition_matrix} aliases the case matrix, shared when mechanisms
+#'   are equal. Use the two explicit matrices for differential designs.
 #'
 #' @references
 #' Ahn, K., Haynes, C., Kim, W., St. Fleur, R., Gordon, D., & Finch, S. J.
@@ -233,12 +249,16 @@
 cc_ngs_power <- function(
     N_case, alpha,
     prev, pd, R2,
-    coverage, seq_error,
+    coverage = NULL, seq_error = NULL,
     MOI = c("M", "D", "Rec"),
     k = 1,
     verbose = TRUE,
     locus_het = FALSE,
-    pi = 1
+    pi = 1,
+    case_coverage = coverage,
+    ctrl_coverage = coverage,
+    case_seq_error = seq_error,
+    ctrl_seq_error = seq_error
 ) {
   MOI <- match.arg(MOI)
 
@@ -278,7 +298,9 @@ cc_ngs_power <- function(
     N_control = N_ctrl,
     coverage = coverage,
     seq_error = seq_error,
-    scores = scores
+    scores = scores,
+    case_coverage = case_coverage, ctrl_coverage = ctrl_coverage,
+    case_seq_error = case_seq_error, ctrl_seq_error = ctrl_seq_error
   )
 
   power <- .cc_ngs_chisq_power(ngs$lambda, alpha)
@@ -315,7 +337,8 @@ cc_ngs_power <- function(
       case_called = ngs$case_called,
       control_called = ngs$control_called
     ),
-    transition_matrix = ngs$E
+    transition_matrix = ngs$E,
+    sequencing = ngs$sequencing
   )
   class(out) <- "cc_ngs_power"
 
@@ -333,8 +356,7 @@ print.cc_ngs_power <- function(x, ...) {
               formatC(x$N_case, format = "f", digits = 0, big.mark = ","),
               formatC(x$N_ctrl, format = "f", digits = 0, big.mark = ","),
               formatC(x$N_total, format = "f", digits = 0, big.mark = ",")))
-  cat(sprintf("Coverage: %s; sequencing error: %.4g\n",
-              formatC(x$coverage, format = "f", digits = 0), x$seq_error))
+  .cc_ngs_print_sequencing(x)
   if (isTRUE(x$locus_het$enabled) && x$locus_het$pi < 1) {
     cat(sprintf("Locus heterogeneity: %.1f%% (pi = %.4g)\n",
                 100 * (1 - x$locus_het$pi), x$locus_het$pi))
@@ -356,9 +378,16 @@ print.cc_ngs_power <- function(x, ...) {
 #' @param prev Numeric in \eqn{(0,1)}. Disease prevalence.
 #' @param pd Numeric in \eqn{(0,1)}. Disease-allele frequency.
 #' @param R2 Numeric \eqn{> 0}. Homozygote relative risk.
-#' @param coverage Positive integer sequencing depth.
+#' @param coverage Common positive integer fixed sequencing depth. May be omitted
+#'   when both group-specific depths are supplied.
 #' @param seq_error Symmetric per-read sequencing-error probability in
-#'   \eqn{[0,0.5)}.
+#'   \eqn{[0,0.5)}. Common shorthand; may be omitted when both group-specific
+#'   errors are supplied.
+#' @param case_coverage,ctrl_coverage Case/control fixed depths, respectively.
+#'   Each defaults to \code{coverage}; an explicit value overrides it.
+#' @param case_seq_error,ctrl_seq_error Case/control per-read error probabilities.
+#'   Each defaults to \code{seq_error}; an explicit value overrides it.
+#'   Effective depths and errors obey the common parameter constraints.
 #' @param MOI Character mode of inheritance: \code{"M"} for multiplicative,
 #'   \code{"D"} for dominant, or \code{"Rec"} for recessive.
 #' @param k Numeric \eqn{> 0}. Planned control-to-case sample-size ratio.
@@ -374,12 +403,13 @@ print.cc_ngs_power <- function(x, ...) {
 #' Locus heterogeneity is applied to true case genotype probabilities as
 #' \eqn{g_{case,H}=\pi g_{case}+(1-\pi)g_{control}}, using the same
 #' parameterization as ordinary PAWEH case-control design. Sequencing
-#' observation follows this mixture. Under the current nondifferential error
-#' model, applying the common transition matrix before or after forming the
-#' mixture is algebraically equivalent; this need not hold for future
-#' differential case/control sequencing error. When \eqn{\pi=0}, no finite
-#' MSSN exists for target power greater than \code{alpha} because the trend
-#' contrast is zero.
+#' observation follows this mixture, using separate case/control transition
+#' matrices as described in \code{\link{cc_ngs_power}}. When \eqn{\pi=0}
+#' and mechanisms are equal, no finite MSSN exists for target power greater
+#' than \code{alpha}. Differential mechanisms may create an observed contrast
+#' even under a biological null. MSSN is a nominal asymptotic calculation using
+#' the existing chi-square critical value, without separate null-distribution
+#' or Type I error recalibration.
 #'
 #' The function numerically inverts the one-degree-of-freedom noncentral
 #' chi-square distribution only to obtain the target NCP. It then solves the
@@ -402,7 +432,8 @@ print.cc_ngs_power <- function(x, ...) {
 #' @return Invisibly, an object of class \code{"cc_ngs_mssn"} containing the
 #'   target and achieved power and NCP, continuous and integer sample sizes,
 #'   model and sequencing inputs, true and called genotype frequencies, and
-#'   the true-to-called transition matrix.
+#'   the true-to-called transition matrix. See \code{\link{cc_ngs_power}}
+#'   for sequencing metadata and legacy-field conventions.
 #'
 #' @references
 #' Ahn, K., Haynes, C., Kim, W., St. Fleur, R., Gordon, D., & Finch, S. J.
@@ -427,12 +458,16 @@ print.cc_ngs_power <- function(x, ...) {
 cc_ngs_mssn <- function(
     power, alpha,
     prev, pd, R2,
-    coverage, seq_error,
+    coverage = NULL, seq_error = NULL,
     MOI = c("M", "D", "Rec"),
     k = 1,
     verbose = TRUE,
     locus_het = FALSE,
-    pi = 1
+    pi = 1,
+    case_coverage = coverage,
+    ctrl_coverage = coverage,
+    case_seq_error = seq_error,
+    ctrl_seq_error = seq_error
 ) {
   MOI <- match.arg(MOI)
 
@@ -468,7 +503,9 @@ cc_ngs_mssn <- function(
     g_case = heterogeneity$g_case_after_locus_het,
     g_control = heterogeneity$g_ctrl_after_locus_het,
     coverage = coverage,
-    seq_error = seq_error
+    seq_error = seq_error,
+    case_coverage = case_coverage, ctrl_coverage = ctrl_coverage,
+    case_seq_error = case_seq_error, ctrl_seq_error = ctrl_seq_error
   )
   lambda_target <- .cc_ngs_target_ncp(power, alpha)
   components <- .cc_ngs_mssn_components(
@@ -547,7 +584,8 @@ cc_ngs_mssn <- function(
       case_called = called$case_called,
       control_called = called$control_called
     ),
-    transition_matrix = called$E
+    transition_matrix = called$E,
+    sequencing = called$sequencing
   )
   class(out) <- "cc_ngs_mssn"
 
@@ -567,13 +605,30 @@ print.cc_ngs_mssn <- function(x, ...) {
               formatC(x$MSSN_case, format = "f", digits = 0, big.mark = ","),
               formatC(x$MSSN_ctrl, format = "f", digits = 0, big.mark = ","),
               formatC(x$MSSN_total, format = "f", digits = 0, big.mark = ",")))
-  cat(sprintf("Coverage: %s; sequencing error: %.4g; MOI: %s\n",
-              formatC(x$coverage, format = "f", digits = 0),
-              x$seq_error, x$MOI))
+  .cc_ngs_print_sequencing(x)
+  cat(sprintf("MOI: %s\n", x$MOI))
   if (isTRUE(x$locus_het$enabled) && x$locus_het$pi < 1) {
     cat(sprintf("Locus heterogeneity: %.1f%% (pi = %.4g)\n",
                 100 * (1 - x$locus_het$pi), x$locus_het$pi))
   }
   cat(sprintf("Achieved power: %.1f%%\n", 100 * x$achieved_power))
   invisible(x)
+}
+
+.cc_ngs_print_sequencing <- function(x) {
+  z <- x$sequencing
+  if (is.null(z)) {
+    z <- list(case_coverage = x$coverage, ctrl_coverage = x$coverage,
+              case_seq_error = x$seq_error, ctrl_seq_error = x$seq_error)
+  }
+  if (z$case_coverage == z$ctrl_coverage &&
+      z$case_seq_error == z$ctrl_seq_error) {
+    cat(sprintf("Coverage: %s; sequencing error: %.4g\n",
+                z$case_coverage, z$case_seq_error))
+  } else {
+    cat(sprintf("Cases coverage: %s; sequencing error: %.4g\n",
+                z$case_coverage, z$case_seq_error))
+    cat(sprintf("Controls coverage: %s; sequencing error: %.4g\n",
+                z$ctrl_coverage, z$ctrl_seq_error))
+  }
 }

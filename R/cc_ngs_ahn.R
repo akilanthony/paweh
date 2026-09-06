@@ -60,24 +60,50 @@
   as.numeric(lambda)
 }
 
+# Apply group-specific fixed-depth sequencing after any biological mixture.
+# Defaults lazily inherit common parameters; explicit invalid values (including
+# NULL) are validated by the existing matrix generator, with group context.
+.cc_ngs_group_matrix <- function(coverage, seq_error, group) {
+  tryCatch(
+    .validate_genotype_misclassification_matrix(
+      ngs_genotype_error_matrix(coverage, seq_error), tolerance = 1e-12
+    ),
+    error = function(e) stop(group, " sequencing: ", conditionMessage(e),
+                             call. = FALSE)
+  )
+}
+
 .cc_ngs_called_frequencies <- function(g_case, g_control, coverage,
-                                       seq_error) {
+                                       seq_error, case_coverage = coverage,
+                                       ctrl_coverage = coverage,
+                                       case_seq_error = seq_error,
+                                       ctrl_seq_error = seq_error) {
   .cc_ngs_validate_genotype_frequencies(g_case, "g_case")
   .cc_ngs_validate_genotype_frequencies(g_control, "g_control")
 
-  E <- ngs_genotype_error_matrix(
-    coverage = coverage,
-    seq_error = seq_error
-  )
-  E <- .validate_genotype_misclassification_matrix(E, tolerance = 1e-12)
-  case_called <- as.numeric(t(E) %*% g_case)
-  control_called <- as.numeric(t(E) %*% g_control)
+  E_case <- .cc_ngs_group_matrix(case_coverage, case_seq_error, "case")
+  E_ctrl <- if (identical(case_coverage, ctrl_coverage) &&
+                identical(case_seq_error, ctrl_seq_error)) {
+    E_case
+  } else {
+    .cc_ngs_group_matrix(ctrl_coverage, ctrl_seq_error, "control")
+  }
+  case_called <- as.numeric(t(E_case) %*% g_case)
+  control_called <- as.numeric(t(E_ctrl) %*% g_control)
 
   .cc_ngs_validate_genotype_frequencies(case_called, "case_called")
   .cc_ngs_validate_genotype_frequencies(control_called, "control_called")
 
   list(
-    E = E,
+    E = E_case,
+    sequencing = list(
+      case_coverage = case_coverage,
+      ctrl_coverage = ctrl_coverage,
+      case_seq_error = case_seq_error,
+      ctrl_seq_error = ctrl_seq_error,
+      case_transition_matrix = E_case,
+      ctrl_transition_matrix = E_ctrl
+    ),
     case_true = as.numeric(g_case),
     control_true = as.numeric(g_control),
     case_called = case_called,
@@ -86,12 +112,17 @@
 }
 
 .cc_ngs_ahn_ncp <- function(g_case, g_control, N_case, N_control, coverage,
-                            seq_error, scores = c(0, 1, 2)) {
+                            seq_error, scores = c(0, 1, 2),
+                            case_coverage = coverage, ctrl_coverage = coverage,
+                            case_seq_error = seq_error,
+                            ctrl_seq_error = seq_error) {
   called <- .cc_ngs_called_frequencies(
     g_case = g_case,
     g_control = g_control,
     coverage = coverage,
-    seq_error = seq_error
+    seq_error = seq_error,
+    case_coverage = case_coverage, ctrl_coverage = ctrl_coverage,
+    case_seq_error = case_seq_error, ctrl_seq_error = ctrl_seq_error
   )
   lambda <- .cc_ahn_trend_ncp(
     g_case = called$case_called,
@@ -104,6 +135,7 @@
   list(
     lambda = lambda,
     E = called$E,
+    sequencing = called$sequencing,
     case_true = called$case_true,
     control_true = called$control_true,
     case_called = called$case_called,
