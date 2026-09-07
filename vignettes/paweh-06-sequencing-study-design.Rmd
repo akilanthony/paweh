@@ -25,8 +25,9 @@ BAM, or VCF files and do not perform downstream association testing.
 
 For case-control sequencing designs, the pathway is:
 
-> true genotype -> sequencing read model -> deterministic genotype call ->
-> 3 by 3 transition matrix -> Ahn/Chapman--Nam trend NCP -> power or MSSN.
+> baseline genotype -> locus heterogeneity -> phenotype misclassification ->
+> group-specific sequencing call -> genotype misclassification ->
+> Ahn/Chapman--Nam trend NCP -> power or MSSN.
 
 For affected-child sequencing trios, the pathway is:
 
@@ -284,7 +285,8 @@ ngs_genotype_error_matrix(coverage = 4, seq_error = 0.005)
 
 The public case-control interfaces construct true case and control genotype
 probabilities from the disease model, apply the sequencing transition matrix,
-and then use the Ahn/Chapman--Nam trend NCP.
+optionally apply the ordinary PAWEH genotype-misclassification model, and then
+use the Ahn/Chapman--Nam trend NCP.
 
 ```{r cc-ngs-workflow}
 cc_seq_power <- cc_ngs_power(
@@ -367,13 +369,37 @@ cc_pheno_differential <- cc_ngs_power(
 cc_pheno_differential$errors$phenotype_misclass
 ```
 
+The same interfaces support ordinary case-control `"1p"`, `"2p"`, `"3p"`,
+and `"diff3p"` genotype misclassification after sequencing. Sequencing models
+read and genotype-call uncertainty; `geno_misclass` then models error in those
+called genotypes. Both stages may be active, and each may differ between cases
+and controls.
+
+```{r cc-ngs-genotype-misclassification}
+cc_all_errors <- cc_ngs_power(
+  N_case = 1000, alpha = 0.05, prev = 0.05, pd = 0.30, R2 = 1.8,
+  case_coverage = 4, ctrl_coverage = 10,
+  case_seq_error = 0.04, ctrl_seq_error = 0.01,
+  locus_het = TRUE, pi = 0.75,
+  pheno_misclass = TRUE, theta = 0.02, phi = 0.01,
+  geno_misclass = "diff3p",
+  case_e01 = 0.03, case_e02 = 0.01, case_e03 = 0.004,
+  ctrl_e01 = 0.01, ctrl_e02 = 0.005, ctrl_e03 = 0.002,
+  verbose = FALSE
+)
+cc_all_errors$errors$genotype_misclass
+```
+
 The complete order is baseline genotype model, locus heterogeneity, phenotype
-misclassification, group-specific sequencing, and then the Ahn/Chapman--Nam
-trend calculation. Thus case sequencing settings apply to individuals observed
-as cases after phenotype classification, while control settings apply to the
-observed controls. The case matrix gives `t(M_case) %*% g_case_preseq`, and the
-control matrix gives `t(M_ctrl) %*% g_ctrl_preseq`. Both matrices have
-true-genotype rows and called-genotype columns.
+misclassification, group-specific sequencing, genotype misclassification, and
+then the Ahn/Chapman--Nam trend calculation. Thus case sequencing settings
+apply to individuals observed as cases after phenotype classification, while
+control settings apply to the observed controls. The sequencing matrices give
+`t(M_seq_case) %*% g_case_preseq` and
+`t(M_seq_ctrl) %*% g_ctrl_preseq`. The genotype-error matrices then transform
+those results. All matrices have current-genotype rows and observed-genotype
+columns; equivalently, each group's total matrix is
+`M_seq %*% M_geno`.
 
 The `sequencing` list records all four effective parameters and both matrices.
 Legacy `coverage` and `seq_error` fields retain common inputs (or `NULL` if
@@ -381,14 +407,17 @@ omitted); `transition_matrix` retains the case matrix, shared by both groups
 when settings are equal. Use the explicit matrices for differential designs.
 The `freqs` list exposes post-heterogeneity and pre-sequencing frequencies, and
 the `errors$phenotype_misclass` list records the phenotype transformation and
-its observed-group denominators.
+its observed-group denominators. Post-sequencing and final frequencies are
+available in `freqs`, while `errors$genotype_misclass` records the selected
+model, parameters, and case/control matrices.
 
-Different sequencing mechanisms can create observed differences even under a
-biological null. Power and MSSN are nominal asymptotic results using the
-existing chi-square critical value; neither the null distribution nor Type I
-error is independently recalibrated for differential sequencing. In particular,
-`pi = 0` need not remove the observed contrast. Plot extensions are deferred;
-the plotting examples below use common sequencing settings.
+Different sequencing or genotype-error mechanisms can create observed
+differences even under a biological null. Power and MSSN are nominal
+asymptotic results using the existing chi-square critical value; neither the
+null distribution nor Type I error is independently recalibrated for
+differential observation. In particular, `pi = 0` need not remove the observed
+contrast. Plot extensions are deferred; the plotting examples below use common
+sequencing settings.
 
 # Why zero per-read error is not perfect at finite depth
 
@@ -514,6 +543,7 @@ coverage-distribution modeling is deferred.
 | Case/control observation error | Common or differential sequencing | Not applicable |
 | Locus heterogeneity | Optional canonical mixture | Not implemented |
 | Phenotype misclassification | Optional prevalence-weighted mixture | Not implemented |
+| Genotype misclassification | Optional 1p, 2p, 3p, or differential 3p | Not implemented |
 | Simulation | None | None |
 
 Deferred capabilities include variable/BGE coverage, simulation validation,

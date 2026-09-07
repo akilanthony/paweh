@@ -23,7 +23,22 @@ cc_ngs_mssn(
   ctrl_seq_error = seq_error,
   pheno_misclass = FALSE,
   theta = 0,
-  phi = 0
+  phi = 0,
+  geno_misclass = c("none", "1p", "2p", "3p", "diff3p"),
+  e = 0,
+  e1 = 0,
+  e2 = 0,
+  e01 = 0,
+  e02 = 0,
+  e03 = 0,
+  case_e01 = 0,
+  case_e02 = 0,
+  case_e03 = 0,
+  ctrl_e01 = 0,
+  ctrl_e02 = 0,
+  ctrl_e03 = 0,
+  diff_source = c("explicit", "case", "ctrl"),
+  diff_multiplier = 1
 )
 }
 \arguments{
@@ -74,6 +89,28 @@ individual is classified as a control.}
 
 \item{phi}{Numeric in \eqn{[0,1)}. Probability that a truly unaffected
 individual is classified as a case.}
+
+\item{geno_misclass}{Character genotype-misclassification model:
+\code{"none"}, \code{"1p"}, \code{"2p"}, \code{"3p"}, or
+\code{"diff3p"}. The selected model is applied after sequencing calls.}
+
+\item{e}{Numeric in \eqn{[0,0.5]}. One-parameter symmetric error rate.}
+
+\item{e1, e2}{Numeric two-parameter homozygote-to-heterozygote and
+heterozygote-to-homozygote error rates.}
+
+\item{e01, e02, e03}{Numeric non-differential three-parameter error rates.}
+
+\item{case_e01, case_e02, case_e03}{Case-specific three-parameter error rates.}
+
+\item{ctrl_e01, ctrl_e02, ctrl_e03}{Control-specific three-parameter error
+rates.}
+
+\item{diff_source}{Character source for differential three-parameter errors:
+\code{"explicit"}, \code{"case"}, or \code{"ctrl"}.}
+
+\item{diff_multiplier}{Nonnegative multiplier used to derive the other
+group's rates when \code{diff_source} is \code{"case"} or \code{"ctrl"}.}
 }
 \value{
 Invisibly, an object of class \code{"cc_ngs_mssn"} containing the
@@ -85,8 +122,8 @@ for sequencing metadata and legacy-field conventions.
 \description{
 Computes the minimum sample size necessary (MSSN) for a model-based
 case-control sequencing trend design. It uses the same phenotype modifier,
-group-specific fixed-depth symmetric sequencing-error models, and
-deterministic maximum-likelihood genotype calls as
+group-specific fixed-depth symmetric sequencing-error models, deterministic
+maximum-likelihood genotype calls, and genotype-misclassification stage as
 \code{\link{cc_ngs_power}}.
 }
 \details{
@@ -96,7 +133,8 @@ parameterization as ordinary PAWEH case-control design. The optional
 prevalence-weighted phenotype transformation from \code{\link{cc_mssn}}
 follows locus heterogeneity and precedes sequencing. Case sequencing settings
 apply to individuals observed as cases after phenotype classification, and
-control settings apply to individuals observed as controls. See
+control settings apply to individuals observed as controls. Genotype
+misclassification is applied to the resulting sequencing calls. See
 \code{\link{cc_ngs_power}} for the complete order and matrix convention.
 When \eqn{\pi=0} and sequencing mechanisms are equal, no finite MSSN exists
 for target power greater than \code{alpha} if the observed contrast is zero.

@@ -564,6 +564,22 @@
     .paweh_console_parameter("Unaffected classified as case (phi)",
                              pheno$phi, 4L)
   }
+  genotype <- x$errors$genotype_misclass
+  if (!is.null(genotype) && isTRUE(genotype$enabled)) {
+    model <- switch(
+      genotype$model,
+      `1p_symmetric` = "1-parameter",
+      `2p_hom_het` = "2-parameter",
+      `3p_homhet_homhom` = "3-parameter",
+      `diff3p_homhet_homhom` = "Differential 3-parameter",
+      genotype$model
+    )
+    .paweh_console_parameter("Genotype misclassification", model)
+    if (identical(genotype$model, "diff3p_homhet_homhom")) {
+      .paweh_console_parameter("Differential error source",
+                               genotype$diff_source)
+    }
+  }
 }
 
 .paweh_print_cc_ngs_sequencing <- function(x) {
@@ -613,7 +629,14 @@
     .paweh_console_transition_matrix(x$sequencing$ctrl_transition_matrix)
   }
   .paweh_console_rule()
-  .paweh_console_section("Called Genotype Frequencies")
+  genotype <- x$errors$genotype_misclass
+  .paweh_console_section(
+    if (!is.null(genotype) && isTRUE(genotype$enabled)) {
+      "Final Observed Genotype Frequencies"
+    } else {
+      "Called Genotype Frequencies"
+    }
+  )
   .paweh_console_genotype_table(list(
     list(label = "Cases", values = x$freqs$case_called),
     list(label = "Controls", values = x$freqs$control_called)

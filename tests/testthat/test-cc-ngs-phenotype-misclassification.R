@@ -314,13 +314,17 @@ test_that("phenotype metadata and reporting are explicit only when active", {
   expect_true(any(grepl("phi", verbose, fixed = TRUE)))
 })
 
-test_that("phenotype arguments append after the differential sequencing API", {
+test_that("phenotype and genotype arguments preserve positional sequencing API", {
   expected_tail <- c(
     "case_coverage", "ctrl_coverage", "case_seq_error", "ctrl_seq_error",
-    "pheno_misclass", "theta", "phi"
+    "pheno_misclass", "theta", "phi", "geno_misclass", "e", "e1", "e2",
+    "e01", "e02", "e03", "case_e01", "case_e02", "case_e03",
+    "ctrl_e01", "ctrl_e02", "ctrl_e03", "diff_source", "diff_multiplier"
   )
-  expect_identical(tail(names(formals(cc_ngs_power)), 7), expected_tail)
-  expect_identical(tail(names(formals(cc_ngs_mssn)), 7), expected_tail)
+  expect_identical(tail(names(formals(cc_ngs_power)), length(expected_tail)),
+                   expected_tail)
+  expect_identical(tail(names(formals(cc_ngs_mssn)), length(expected_tail)),
+                   expected_tail)
 
   old_power <- cc_ngs_power(
     1000, 0.05, 0.05, 0.3, 1.8, 10, 0.01,

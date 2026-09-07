@@ -23,7 +23,22 @@ cc_ngs_power(
   ctrl_seq_error = seq_error,
   pheno_misclass = FALSE,
   theta = 0,
-  phi = 0
+  phi = 0,
+  geno_misclass = c("none", "1p", "2p", "3p", "diff3p"),
+  e = 0,
+  e1 = 0,
+  e2 = 0,
+  e01 = 0,
+  e02 = 0,
+  e03 = 0,
+  case_e01 = 0,
+  case_e02 = 0,
+  case_e03 = 0,
+  ctrl_e01 = 0,
+  ctrl_e02 = 0,
+  ctrl_e03 = 0,
+  diff_source = c("explicit", "case", "ctrl"),
+  diff_multiplier = 1
 )
 }
 \arguments{
@@ -75,12 +90,35 @@ individual is classified as a control.}
 
 \item{phi}{Numeric in \eqn{[0,1)}. Probability that a truly unaffected
 individual is classified as a case.}
+
+\item{geno_misclass}{Character genotype-misclassification model:
+\code{"none"}, \code{"1p"}, \code{"2p"}, \code{"3p"}, or
+\code{"diff3p"}. The selected model is applied after sequencing calls.}
+
+\item{e}{Numeric in \eqn{[0,0.5]}. One-parameter symmetric error rate.}
+
+\item{e1, e2}{Numeric two-parameter homozygote-to-heterozygote and
+heterozygote-to-homozygote error rates.}
+
+\item{e01, e02, e03}{Numeric non-differential three-parameter error rates.}
+
+\item{case_e01, case_e02, case_e03}{Case-specific three-parameter error rates.}
+
+\item{ctrl_e01, ctrl_e02, ctrl_e03}{Control-specific three-parameter error
+rates.}
+
+\item{diff_source}{Character source for differential three-parameter errors:
+\code{"explicit"}, \code{"case"}, or \code{"ctrl"}.}
+
+\item{diff_multiplier}{Nonnegative multiplier used to derive the other
+group's rates when \code{diff_source} is \code{"case"} or \code{"ctrl"}.}
 }
 \value{
 Invisibly, an object of class \code{"cc_ngs_power"} containing the
 design inputs, trend scores, NCP and power, model information, staged and
-called genotype frequencies, phenotype-error metadata, and the
-true-to-called transition matrix.
+called genotype frequencies, phenotype- and genotype-error metadata, and
+the true-to-called transition matrix. The frequency list distinguishes
+post-sequencing calls from final post-genotype-misclassification values.
 The \code{sequencing} list records the four effective group parameters and
 \code{case_transition_matrix}/\code{ctrl_transition_matrix}. Legacy
 \code{coverage}/\code{seq_error} retain supplied common inputs (or NULL);
@@ -92,9 +130,10 @@ Computes prospective asymptotic power for a model-based case-control
 sequencing design. The calculation constructs true case and control
 genotype probabilities, applies optional locus and phenotype modifiers,
 observes each group through its fixed-depth symmetric sequencing-error model
-with deterministic maximum-likelihood genotype calls, and evaluates the
-Ahn/Chapman-Nam Cochran-Armitage trend-test noncentrality parameter on the
-resulting called-genotype probabilities.
+with deterministic maximum-likelihood genotype calls, applies optional
+genotype misclassification, and evaluates the Ahn/Chapman-Nam
+Cochran-Armitage trend-test noncentrality parameter on the final observed
+genotype probabilities.
 }
 \details{
 Trend scores are selected from \code{MOI}: \code{"M"} uses
@@ -108,7 +147,8 @@ case-control design:
 \deqn{g_{case,H} = \pi g_{case} + (1-\pi)g_{control},}
 with the control distribution unchanged. The full observation order is:
 baseline genotype model, optional locus heterogeneity, optional phenotype
-misclassification, group-specific sequencing, then the trend-test NCP.
+misclassification, group-specific sequencing, optional genotype
+misclassification, then the trend-test NCP.
 Phenotype misclassification uses the same prevalence-weighted transformation
 as \code{\link{cc_power}}, with
 \code{theta = Pr(affected -> control)} and
@@ -116,16 +156,20 @@ as \code{\link{cc_power}}, with
 observed-control distributions enter sequencing. Separate row-true,
 column-called matrices are then constructed using each observed group's
 effective depth and error, and applied as \code{t(M_case) \%*\% g_case} and
-\code{t(M_ctrl) \%*\% g_control}. Phenotype and differential sequencing errors may
-be active simultaneously. Only equal sequencing mechanisms permit commuting
+\code{t(M_ctrl) \%*\% g_control}. The ordinary PAWEH 1p, 2p, 3p, or differential
+3p genotype-error matrices are then applied to those sequencing-called
+frequencies with the same row-current, column-observed convention.
+Phenotype, sequencing, and genotype errors may be active simultaneously.
+Only equal sequencing mechanisms permit commuting
 a shared biological mixture and sequencing. At \eqn{\pi=0}, equal mechanisms
 with no phenotype-induced difference give zero NCP and power equal to
 \code{alpha}.
 
-Differential sequencing mechanisms can create observed case/control
-differences even under a biological null. Results remain nominal asymptotic
-calculations using the existing chi-square critical value; the null
-distribution and Type I error are not separately recalibrated here.
+Differential sequencing or genotype-misclassification mechanisms can create
+observed case/control differences even under a biological null. Results
+remain nominal asymptotic calculations using the existing chi-square
+critical value; the null distribution and Type I error are not separately
+recalibrated here.
 
 This is an analytic study-design calculation applied to sequencing-derived
 called genotypes. It is not a raw-read likelihood or EM analysis, performs

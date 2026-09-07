@@ -151,6 +151,53 @@
   )
 }
 
+.cc_ngs_apply_genotype_misclassification <- function(
+    g_case, g_control,
+    geno_misclass = c("none", "1p", "2p", "3p", "diff3p"),
+    e = 0, e1 = 0, e2 = 0,
+    e01 = 0, e02 = 0, e03 = 0,
+    case_e01 = 0, case_e02 = 0, case_e03 = 0,
+    ctrl_e01 = 0, ctrl_e02 = 0, ctrl_e03 = 0,
+    diff_source = c("explicit", "case", "ctrl"),
+    diff_multiplier = 1
+) {
+  genotype <- .cc_resolve_genotype_misclassification(
+    geno_misclass = geno_misclass,
+    e = e, e1 = e1, e2 = e2,
+    e01 = e01, e02 = e02, e03 = e03,
+    case_e01 = case_e01, case_e02 = case_e02, case_e03 = case_e03,
+    ctrl_e01 = ctrl_e01, ctrl_e02 = ctrl_e02, ctrl_e03 = ctrl_e03,
+    diff_source = diff_source,
+    diff_multiplier = diff_multiplier
+  )
+  if (identical(genotype$info$model, "none")) {
+    info <- genotype$info
+    info$M_case <- genotype$M_case
+    info$M_ctrl <- genotype$M_ctrl
+    return(list(
+      case_final = as.numeric(g_case),
+      control_final = as.numeric(g_control),
+      info = info
+    ))
+  }
+  case_final <- .cc_apply_genotype_misclass(g_case, genotype$M_case)
+  case_final <- case_final / sum(case_final)
+  control_final <- .cc_apply_genotype_misclass(g_control, genotype$M_ctrl)
+  control_final <- control_final / sum(control_final)
+  .cc_ngs_validate_genotype_frequencies(case_final, "case_final")
+  .cc_ngs_validate_genotype_frequencies(control_final, "control_final")
+
+  info <- genotype$info
+  if (is.null(info$M_case)) info$M_case <- genotype$M_case
+  if (is.null(info$M_ctrl)) info$M_ctrl <- genotype$M_ctrl
+
+  list(
+    case_final = case_final,
+    control_final = control_final,
+    info = info
+  )
+}
+
 .cc_ngs_chisq_power <- function(lambda, alpha) {
   critical <- qchisq(1 - alpha, df = 1)
   as.numeric(pchisq(
@@ -215,9 +262,10 @@
 #' sequencing design. The calculation constructs true case and control
 #' genotype probabilities, applies optional locus and phenotype modifiers,
 #' observes each group through its fixed-depth symmetric sequencing-error model
-#' with deterministic maximum-likelihood genotype calls, and evaluates the
-#' Ahn/Chapman-Nam Cochran-Armitage trend-test noncentrality parameter on the
-#' resulting called-genotype probabilities.
+#' with deterministic maximum-likelihood genotype calls, applies optional
+#' genotype misclassification, and evaluates the Ahn/Chapman-Nam
+#' Cochran-Armitage trend-test noncentrality parameter on the final observed
+#' genotype probabilities.
 #'
 #' @param N_case Numeric \eqn{> 0}. Number of cases.
 #' @param alpha Numeric in \eqn{(0,1)}. Significance level.
@@ -240,6 +288,20 @@
 #'   individual is classified as a control.
 #' @param phi Numeric in \eqn{[0,1)}. Probability that a truly unaffected
 #'   individual is classified as a case.
+#' @param geno_misclass Character genotype-misclassification model:
+#'   \code{"none"}, \code{"1p"}, \code{"2p"}, \code{"3p"}, or
+#'   \code{"diff3p"}. The selected model is applied after sequencing calls.
+#' @param e Numeric in \eqn{[0,0.5]}. One-parameter symmetric error rate.
+#' @param e1,e2 Numeric two-parameter homozygote-to-heterozygote and
+#'   heterozygote-to-homozygote error rates.
+#' @param e01,e02,e03 Numeric non-differential three-parameter error rates.
+#' @param case_e01,case_e02,case_e03 Case-specific three-parameter error rates.
+#' @param ctrl_e01,ctrl_e02,ctrl_e03 Control-specific three-parameter error
+#'   rates.
+#' @param diff_source Character source for differential three-parameter errors:
+#'   \code{"explicit"}, \code{"case"}, or \code{"ctrl"}.
+#' @param diff_multiplier Nonnegative multiplier used to derive the other
+#'   group's rates when \code{diff_source} is \code{"case"} or \code{"ctrl"}.
 #' @param MOI Character mode of inheritance: \code{"M"} for multiplicative,
 #'   \code{"D"} for dominant, or \code{"Rec"} for recessive.
 #' @param k Numeric \eqn{> 0}. Control-to-case sample-size ratio
@@ -264,7 +326,8 @@
 #' \deqn{g_{case,H} = \pi g_{case} + (1-\pi)g_{control},}
 #' with the control distribution unchanged. The full observation order is:
 #' baseline genotype model, optional locus heterogeneity, optional phenotype
-#' misclassification, group-specific sequencing, then the trend-test NCP.
+#' misclassification, group-specific sequencing, optional genotype
+#' misclassification, then the trend-test NCP.
 #' Phenotype misclassification uses the same prevalence-weighted transformation
 #' as \code{\link{cc_power}}, with
 #' \code{theta = Pr(affected -> control)} and
@@ -272,16 +335,20 @@
 #' observed-control distributions enter sequencing. Separate row-true,
 #' column-called matrices are then constructed using each observed group's
 #' effective depth and error, and applied as `t(M_case) %*% g_case` and
-#' `t(M_ctrl) %*% g_control`. Phenotype and differential sequencing errors may
-#' be active simultaneously. Only equal sequencing mechanisms permit commuting
+#' `t(M_ctrl) %*% g_control`. The ordinary PAWEH 1p, 2p, 3p, or differential
+#' 3p genotype-error matrices are then applied to those sequencing-called
+#' frequencies with the same row-current, column-observed convention.
+#' Phenotype, sequencing, and genotype errors may be active simultaneously.
+#' Only equal sequencing mechanisms permit commuting
 #' a shared biological mixture and sequencing. At \eqn{\pi=0}, equal mechanisms
 #' with no phenotype-induced difference give zero NCP and power equal to
 #' \code{alpha}.
 #'
-#' Differential sequencing mechanisms can create observed case/control
-#' differences even under a biological null. Results remain nominal asymptotic
-#' calculations using the existing chi-square critical value; the null
-#' distribution and Type I error are not separately recalibrated here.
+#' Differential sequencing or genotype-misclassification mechanisms can create
+#' observed case/control differences even under a biological null. Results
+#' remain nominal asymptotic calculations using the existing chi-square
+#' critical value; the null distribution and Type I error are not separately
+#' recalibrated here.
 #'
 #' This is an analytic study-design calculation applied to sequencing-derived
 #' called genotypes. It is not a raw-read likelihood or EM analysis, performs
@@ -291,8 +358,9 @@
 #'
 #' @return Invisibly, an object of class \code{"cc_ngs_power"} containing the
 #'   design inputs, trend scores, NCP and power, model information, staged and
-#'   called genotype frequencies, phenotype-error metadata, and the
-#'   true-to-called transition matrix.
+#'   called genotype frequencies, phenotype- and genotype-error metadata, and
+#'   the true-to-called transition matrix. The frequency list distinguishes
+#'   post-sequencing calls from final post-genotype-misclassification values.
 #'   The \code{sequencing} list records the four effective group parameters and
 #'   \code{case_transition_matrix}/\code{ctrl_transition_matrix}. Legacy
 #'   \code{coverage}/\code{seq_error} retain supplied common inputs (or NULL);
@@ -334,9 +402,26 @@ cc_ngs_power <- function(
     ctrl_seq_error = seq_error,
     pheno_misclass = FALSE,
     theta = 0,
-    phi = 0
+    phi = 0,
+    geno_misclass = c("none", "1p", "2p", "3p", "diff3p"),
+    e = 0,
+    e1 = 0,
+    e2 = 0,
+    e01 = 0,
+    e02 = 0,
+    e03 = 0,
+    case_e01 = 0,
+    case_e02 = 0,
+    case_e03 = 0,
+    ctrl_e01 = 0,
+    ctrl_e02 = 0,
+    ctrl_e03 = 0,
+    diff_source = c("explicit", "case", "ctrl"),
+    diff_multiplier = 1
 ) {
   MOI <- match.arg(MOI)
+  geno_misclass <- match.arg(geno_misclass)
+  diff_source <- match.arg(diff_source)
 
   if (!is.numeric(N_case) || length(N_case) != 1L || !is.finite(N_case) ||
       N_case <= 0) {
@@ -375,19 +460,34 @@ cc_ngs_power <- function(
   )
   scores <- .cc_ngs_scores_from_moi(MOI)
   N_ctrl <- k * N_case
-  ngs <- .cc_ngs_ahn_ncp(
+  called <- .cc_ngs_called_frequencies(
     g_case = phenotype$g_case_after_pheno_misclass,
     g_control = phenotype$g_ctrl_after_pheno_misclass,
-    N_case = N_case,
-    N_control = N_ctrl,
     coverage = coverage,
     seq_error = seq_error,
-    scores = scores,
     case_coverage = case_coverage, ctrl_coverage = ctrl_coverage,
     case_seq_error = case_seq_error, ctrl_seq_error = ctrl_seq_error
   )
+  genotype <- .cc_ngs_apply_genotype_misclassification(
+    g_case = called$case_called,
+    g_control = called$control_called,
+    geno_misclass = geno_misclass,
+    e = e, e1 = e1, e2 = e2,
+    e01 = e01, e02 = e02, e03 = e03,
+    case_e01 = case_e01, case_e02 = case_e02, case_e03 = case_e03,
+    ctrl_e01 = ctrl_e01, ctrl_e02 = ctrl_e02, ctrl_e03 = ctrl_e03,
+    diff_source = diff_source,
+    diff_multiplier = diff_multiplier
+  )
+  lambda <- .cc_ahn_trend_ncp(
+    g_case = genotype$case_final,
+    g_control = genotype$control_final,
+    N_case = N_case,
+    N_control = N_ctrl,
+    scores = scores
+  )
 
-  power <- .cc_ngs_chisq_power(ngs$lambda, alpha)
+  power <- .cc_ngs_chisq_power(lambda, alpha)
 
   out <- list(
     alpha = alpha,
@@ -396,13 +496,16 @@ cc_ngs_power <- function(
     N_total = N_case + N_ctrl,
     k = k,
     power = as.numeric(power),
-    lambda = ngs$lambda,
+    lambda = lambda,
     MOI = MOI,
     scores = scores,
     coverage = coverage,
     seq_error = seq_error,
     locus_het = heterogeneity,
-    errors = list(phenotype_misclass = phenotype),
+    errors = list(
+      phenotype_misclass = phenotype,
+      genotype_misclass = genotype$info
+    ),
     model_info = list(
       input_mode = "model_based",
       prev = prev,
@@ -421,13 +524,17 @@ cc_ngs_power <- function(
       control_post_heterogeneity = heterogeneity$g_ctrl_after_locus_het,
       case_preseq = phenotype$g_case_after_pheno_misclass,
       control_preseq = phenotype$g_ctrl_after_pheno_misclass,
-      case_true = ngs$case_true,
-      control_true = ngs$control_true,
-      case_called = ngs$case_called,
-      control_called = ngs$control_called
+      case_true = called$case_true,
+      control_true = called$control_true,
+      case_post_sequencing = called$case_called,
+      control_post_sequencing = called$control_called,
+      case_final = genotype$case_final,
+      control_final = genotype$control_final,
+      case_called = genotype$case_final,
+      control_called = genotype$control_final
     ),
-    transition_matrix = ngs$E,
-    sequencing = ngs$sequencing
+    transition_matrix = called$E,
+    sequencing = called$sequencing
   )
   class(out) <- "cc_ngs_power"
 
@@ -455,6 +562,12 @@ print.cc_ngs_power <- function(x, ...) {
     cat(sprintf("Phenotype misclassification: theta = %.4g; phi = %.4g\n",
                 pheno$theta, pheno$phi))
   }
+  genotype <- x$errors$genotype_misclass
+  if (!is.null(genotype) && isTRUE(genotype$enabled)) {
+    cat(sprintf("Genotype misclassification: %s%s\n", genotype$model,
+                if (identical(genotype$model, "diff3p_homhet_homhom"))
+                  " (differential)" else ""))
+  }
   cat(sprintf("MOI: %s; alpha: %.4g\n", x$MOI, x$alpha))
   cat(sprintf("NCP: %.4f; power: %.1f%%\n", x$lambda, 100 * x$power))
   invisible(x)
@@ -464,8 +577,8 @@ print.cc_ngs_power <- function(x, ...) {
 #'
 #' Computes the minimum sample size necessary (MSSN) for a model-based
 #' case-control sequencing trend design. It uses the same phenotype modifier,
-#' group-specific fixed-depth symmetric sequencing-error models, and
-#' deterministic maximum-likelihood genotype calls as
+#' group-specific fixed-depth symmetric sequencing-error models, deterministic
+#' maximum-likelihood genotype calls, and genotype-misclassification stage as
 #' \code{\link{cc_ngs_power}}.
 #'
 #' @param power Numeric in \eqn{(0,1)}. Requested power.
@@ -489,6 +602,20 @@ print.cc_ngs_power <- function(x, ...) {
 #'   individual is classified as a control.
 #' @param phi Numeric in \eqn{[0,1)}. Probability that a truly unaffected
 #'   individual is classified as a case.
+#' @param geno_misclass Character genotype-misclassification model:
+#'   \code{"none"}, \code{"1p"}, \code{"2p"}, \code{"3p"}, or
+#'   \code{"diff3p"}. The selected model is applied after sequencing calls.
+#' @param e Numeric in \eqn{[0,0.5]}. One-parameter symmetric error rate.
+#' @param e1,e2 Numeric two-parameter homozygote-to-heterozygote and
+#'   heterozygote-to-homozygote error rates.
+#' @param e01,e02,e03 Numeric non-differential three-parameter error rates.
+#' @param case_e01,case_e02,case_e03 Case-specific three-parameter error rates.
+#' @param ctrl_e01,ctrl_e02,ctrl_e03 Control-specific three-parameter error
+#'   rates.
+#' @param diff_source Character source for differential three-parameter errors:
+#'   \code{"explicit"}, \code{"case"}, or \code{"ctrl"}.
+#' @param diff_multiplier Nonnegative multiplier used to derive the other
+#'   group's rates when \code{diff_source} is \code{"case"} or \code{"ctrl"}.
 #' @param MOI Character mode of inheritance: \code{"M"} for multiplicative,
 #'   \code{"D"} for dominant, or \code{"Rec"} for recessive.
 #' @param k Numeric \eqn{> 0}. Planned control-to-case sample-size ratio.
@@ -507,7 +634,8 @@ print.cc_ngs_power <- function(x, ...) {
 #' prevalence-weighted phenotype transformation from \code{\link{cc_mssn}}
 #' follows locus heterogeneity and precedes sequencing. Case sequencing settings
 #' apply to individuals observed as cases after phenotype classification, and
-#' control settings apply to individuals observed as controls. See
+#' control settings apply to individuals observed as controls. Genotype
+#' misclassification is applied to the resulting sequencing calls. See
 #' \code{\link{cc_ngs_power}} for the complete order and matrix convention.
 #' When \eqn{\pi=0} and sequencing mechanisms are equal, no finite MSSN exists
 #' for target power greater than \code{alpha} if the observed contrast is zero.
@@ -575,9 +703,26 @@ cc_ngs_mssn <- function(
     ctrl_seq_error = seq_error,
     pheno_misclass = FALSE,
     theta = 0,
-    phi = 0
+    phi = 0,
+    geno_misclass = c("none", "1p", "2p", "3p", "diff3p"),
+    e = 0,
+    e1 = 0,
+    e2 = 0,
+    e01 = 0,
+    e02 = 0,
+    e03 = 0,
+    case_e01 = 0,
+    case_e02 = 0,
+    case_e03 = 0,
+    ctrl_e01 = 0,
+    ctrl_e02 = 0,
+    ctrl_e03 = 0,
+    diff_source = c("explicit", "case", "ctrl"),
+    diff_multiplier = 1
 ) {
   MOI <- match.arg(MOI)
+  geno_misclass <- match.arg(geno_misclass)
+  diff_source <- match.arg(diff_source)
 
   if (!is.numeric(power) || length(power) != 1L || !is.finite(power) ||
       power <= 0 || power >= 1) {
@@ -623,10 +768,21 @@ cc_ngs_mssn <- function(
     case_coverage = case_coverage, ctrl_coverage = ctrl_coverage,
     case_seq_error = case_seq_error, ctrl_seq_error = ctrl_seq_error
   )
-  lambda_target <- .cc_ngs_target_ncp(power, alpha)
-  components <- .cc_ngs_mssn_components(
+  genotype <- .cc_ngs_apply_genotype_misclassification(
     g_case = called$case_called,
     g_control = called$control_called,
+    geno_misclass = geno_misclass,
+    e = e, e1 = e1, e2 = e2,
+    e01 = e01, e02 = e02, e03 = e03,
+    case_e01 = case_e01, case_e02 = case_e02, case_e03 = case_e03,
+    ctrl_e01 = ctrl_e01, ctrl_e02 = ctrl_e02, ctrl_e03 = ctrl_e03,
+    diff_source = diff_source,
+    diff_multiplier = diff_multiplier
+  )
+  lambda_target <- .cc_ngs_target_ncp(power, alpha)
+  components <- .cc_ngs_mssn_components(
+    g_case = genotype$case_final,
+    g_control = genotype$control_final,
     k = k,
     scores = scores,
     lambda_target = lambda_target
@@ -636,8 +792,8 @@ cc_ngs_mssn <- function(
   evaluate_design <- function(N_case) {
     N_control <- ceiling(k * N_case)
     lambda <- .cc_ahn_trend_ncp(
-      g_case = called$case_called,
-      g_control = called$control_called,
+      g_case = genotype$case_final,
+      g_control = genotype$control_final,
       N_case = N_case,
       N_control = N_control,
       scores = scores
@@ -681,7 +837,10 @@ cc_ngs_mssn <- function(
     coverage = coverage,
     seq_error = seq_error,
     locus_het = heterogeneity,
-    errors = list(phenotype_misclass = phenotype),
+    errors = list(
+      phenotype_misclass = phenotype,
+      genotype_misclass = genotype$info
+    ),
     model_info = list(
       input_mode = "model_based",
       prev = prev,
@@ -702,8 +861,12 @@ cc_ngs_mssn <- function(
       control_preseq = phenotype$g_ctrl_after_pheno_misclass,
       case_true = called$case_true,
       control_true = called$control_true,
-      case_called = called$case_called,
-      control_called = called$control_called
+      case_post_sequencing = called$case_called,
+      control_post_sequencing = called$control_called,
+      case_final = genotype$case_final,
+      control_final = genotype$control_final,
+      case_called = genotype$case_final,
+      control_called = genotype$control_final
     ),
     transition_matrix = called$E,
     sequencing = called$sequencing
@@ -736,6 +899,12 @@ print.cc_ngs_mssn <- function(x, ...) {
   if (!is.null(pheno) && isTRUE(pheno$enabled)) {
     cat(sprintf("Phenotype misclassification: theta = %.4g; phi = %.4g\n",
                 pheno$theta, pheno$phi))
+  }
+  genotype <- x$errors$genotype_misclass
+  if (!is.null(genotype) && isTRUE(genotype$enabled)) {
+    cat(sprintf("Genotype misclassification: %s%s\n", genotype$model,
+                if (identical(genotype$model, "diff3p_homhet_homhom"))
+                  " (differential)" else ""))
   }
   cat(sprintf("Achieved power: %.1f%%\n", 100 * x$achieved_power))
   invisible(x)
