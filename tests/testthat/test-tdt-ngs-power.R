@@ -200,7 +200,9 @@ test_that("result structure is transparent, finite, and returned invisibly", {
     result,
     c(
       "N", "alpha", "power", "lambda", "pd", "R1", "R2", "t",
-      "delta", "coverage", "seq_error", "efficient_information",
+      "delta", "coverage", "seq_error", "father_coverage",
+      "mother_coverage", "child_coverage", "epsilon0", "epsilon1",
+      "symmetric_error", "sequencing", "efficient_information",
       "information_matrix", "nuisance_rcond", "score_mean", "model_info"
     )
   )
@@ -287,6 +289,10 @@ test_that("public scope contains no hard-call or ordinary-TDT substitution", {
   }
   expect_identical(
     names(formals(tdt_ngs_power)),
-    c("N", "pd", "R1", "coverage", "seq_error", "alpha", "verbose")
+    c(
+      "N", "pd", "R1", "coverage", "seq_error", "alpha", "verbose",
+      "father_coverage", "mother_coverage", "child_coverage",
+      "epsilon0", "epsilon1"
+    )
   )
 })

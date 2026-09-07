@@ -4,7 +4,20 @@
 \alias{tdt_ngs_mssn}
 \title{Analytic MSSN for a TDT1-NGS Sequencing Study}
 \usage{
-tdt_ngs_mssn(power, pd, R1, coverage, seq_error, alpha = 0.05, verbose = TRUE)
+tdt_ngs_mssn(
+  power,
+  pd,
+  R1,
+  coverage = NULL,
+  seq_error = NULL,
+  alpha = 0.05,
+  verbose = TRUE,
+  father_coverage = coverage,
+  mother_coverage = coverage,
+  child_coverage = coverage,
+  epsilon0 = seq_error,
+  epsilon1 = seq_error
+)
 }
 \arguments{
 \item{power}{A single finite target power strictly between 0 and 1.}
@@ -16,25 +29,38 @@ and 1. The supplied allele labeling is retained.}
 the multiplicative model. The homozygote relative risk is
 \eqn{R_2 = R_1^2}.}
 
-\item{coverage}{A single finite integer greater than or equal to 2. This is
-the equal fixed read depth for the father, mother, and affected child.}
+\item{coverage}{A single finite integer greater than or equal to 2. Common
+fixed-depth shorthand for the father, mother, and affected child. It may
+be omitted when all three member-specific depths are supplied.}
 
 \item{seq_error}{A single finite symmetric per-read sequencing-error
 probability in \eqn{[0,0.5)}. Internally, the directional error parameters
-are evaluated at \eqn{\epsilon_0 = \epsilon_1 =} \code{seq_error}.}
+default to \eqn{\epsilon_0 = \epsilon_1 =} \code{seq_error}. It may be
+omitted when both directional parameters are supplied.}
 
 \item{alpha}{A single finite significance level in \eqn{(0,1)}. Defaults to
 0.05.}
 
 \item{verbose}{Logical scalar. If \code{TRUE}, print a concise result
 summary.}
+
+\item{father_coverage, mother_coverage, child_coverage}{Optional fixed depths
+for each trio member. An explicitly supplied member depth overrides
+\code{coverage}; otherwise that member inherits \code{coverage}.}
+
+\item{epsilon0}{Directional probability that a reference-allele read is
+observed as the alternative allele. Defaults to \code{seq_error}.}
+
+\item{epsilon1}{Directional probability that an alternative-allele read is
+observed as the reference allele. Defaults to \code{seq_error}.}
 }
 \value{
 Invisibly, an object of class \code{"tdt_ngs_mssn"} containing the
 target, continuous and integer trio requirements, achieved power and NCP,
 per-trio NCP coefficient, multiplicative-model parameters, efficient
-information, the 11 by 11 information matrix, numerical diagnostics, and
-model metadata.
+information, the 11 by 11 information matrix, numerical diagnostics,
+effective sequencing-design metadata, and model metadata. Legacy
+\code{coverage} and \code{seq_error} fields retain supplied shorthand.
 }
 \description{
 Computes the prospective minimum sample size necessary (MSSN), measured in
@@ -58,9 +84,11 @@ zero and the minimum supported design is one trio. If \code{R1 = 1} and
 target power exceeds alpha, no finite MSSN exists because the transmission
 effect is zero.
 
-The method uses equal fixed coverage and symmetric public sequencing error.
-Coverage 1 is unsupported because efficient information is not identifiable
-under the implemented 11-parameter nuisance model. This prospective
+Each member uses its resolved fixed coverage, and the directional read model
+is \eqn{q_G=\epsilon_0+(1-\epsilon_0-\epsilon_1)G/2}. See
+\code{\link{tdt_ngs_power}} for parameter precedence and interpretation.
+Coverage 1 is unsupported for every member because efficient information is
+not identifiable under the implemented 11-parameter nuisance model. This prospective
 calculation uses raw sequencing read-count information and latent trio
 genotype states; it performs no simulation, genotype calling, or EM fitting.
 }

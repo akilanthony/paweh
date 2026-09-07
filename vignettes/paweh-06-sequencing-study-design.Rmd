@@ -50,9 +50,9 @@ not hard-call the three genotypes. These are not interchangeable methods.
 | Locus heterogeneity | Available | Not currently implemented |
 | Phenotype misclassification | Available | Not currently implemented |
 
-Both designs use fixed coverage and symmetric per-read error. CC-NGS permits
-separate case/control depths and error rates; TDT1-NGS retains equal settings.
-Neither uses simulation.
+Both designs use fixed coverage. CC-NGS permits separate case/control depths
+and errors. TDT1-NGS permits separate father, mother, and child depths with a
+common directional read-error pair. Neither uses simulation.
 
 # Exact published TDT1-NGS replication: the Kim AIS example
 
@@ -171,6 +171,30 @@ The MSSN calculation first finds the target one-degree-of-freedom NCP and then
 solves analytically for $N$. It is not an iterative simulation over possible
 trio counts.
 
+`coverage` remains shorthand for one equal fixed depth. The optional
+`father_coverage`, `mother_coverage`, and `child_coverage` arguments override
+it independently. Likewise, `seq_error` sets the symmetric shorthand
+`epsilon0 = epsilon1 = seq_error`; either directional value can override its
+side, and `seq_error` may be omitted when both are supplied.
+
+```{r tdt-ngs-member-sequencing}
+tdt_member_specific <- tdt_ngs_power(
+  N = 5000, pd = 0.325, R1 = 1.2,
+  father_coverage = 6, mother_coverage = 12, child_coverage = 20,
+  epsilon0 = 0.005, epsilon1 = 0.015,
+  alpha = 5e-8, verbose = FALSE
+)
+tdt_member_specific$sequencing
+```
+
+The directional convention is
+$q_G=\epsilon_0+(1-\epsilon_0-\epsilon_1)G/2$. Thus a genotype-0 read is
+alternative with probability $\epsilon_0$, a genotype-2 read is alternative
+with probability $1-\epsilon_1$, and a heterozygote has probability
+$(1+\epsilon_0-\epsilon_1)/2$. The heterozygote probability is one-half when
+the errors are symmetric. These settings enter the same raw-read latent-state
+likelihood; genotypes are not hard-called.
+
 # TDT sequencing sensitivity
 
 A small coverage-by-error grid helps identify whether a proposed design is in
@@ -198,8 +222,8 @@ plot_ngs_mssn(
 Low-to-moderate depth gains can be large, whereas gains at higher depth may
 plateau. The effect of sequencing error remains setting-dependent and should
 not be assumed negligible. The current fixed-depth TDT1-NGS implementation
-does not support a design in which every member of every trio is modeled at
-exactly 1x coverage under the full nuisance parameterization. This is a
+does not support a design in which any trio member is modeled at exactly 1x
+coverage under the full nuisance parameterization. This is a
 specific identifiability boundary of the implemented model, not a claim that
 1x sequencing is universally unusable.
 
@@ -525,8 +549,8 @@ The `pi = 0` row remains visible with `MSSN_case = NA`,
 
 # Fixed-depth assumptions and limitations
 
-CC-NGS assumes fixed coverage within each group; TDT1-NGS assumes one equal
-fixed coverage value for the trio members. They do not yet integrate over a realistic empirical or
+CC-NGS assumes fixed coverage within each group; TDT1-NGS allows a separate
+fixed coverage value for each trio member. They do not yet integrate over a realistic empirical or
 budget-generated coverage distribution in which a locus may be 0x in some
 samples, 1x or 2x in others, and 4x or greater elsewhere. Variable/BGE
 coverage-distribution modeling is deferred.
@@ -537,8 +561,8 @@ coverage-distribution modeling is deferred.
 | Sampling | Cases and controls | Complete affected-child trios |
 | Genetic model | M, dominant, or recessive trend scores | Multiplicative |
 | Parental HWE/random mating | Not applicable | Assumed by current public design |
-| Coverage | Fixed depth per group | Equal fixed depth |
-| Public read error | Symmetric | Symmetric |
+| Coverage | Fixed depth per group | Fixed depth per trio member |
+| Public read error | Symmetric | Common directional pair |
 | Sequencing analysis | Deterministic genotype calls | Raw-read latent-state likelihood |
 | Case/control observation error | Common or differential sequencing | Not applicable |
 | Locus heterogeneity | Optional canonical mixture | Not implemented |

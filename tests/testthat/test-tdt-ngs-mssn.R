@@ -290,7 +290,9 @@ test_that("MSSN result is transparent, valid, and returned invisibly", {
       "N_trios_continuous", "achieved_power", "achieved_lambda",
       "lambda_target", "ncp_per_trio", "initial_MSSN_trios",
       "rounding_adjustment", "pd", "R1", "R2", "t", "delta",
-      "coverage", "seq_error", "efficient_information",
+      "coverage", "seq_error", "father_coverage", "mother_coverage",
+      "child_coverage", "epsilon0", "epsilon1", "symmetric_error",
+      "sequencing", "efficient_information",
       "information_matrix", "nuisance_rcond", "score_mean", "model_info"
     )
   )
@@ -382,6 +384,10 @@ test_that("MSSN source retains the intended analytic raw-read scope", {
   }
   expect_identical(
     names(formals(tdt_ngs_mssn)),
-    c("power", "pd", "R1", "coverage", "seq_error", "alpha", "verbose")
+    c(
+      "power", "pd", "R1", "coverage", "seq_error", "alpha", "verbose",
+      "father_coverage", "mother_coverage", "child_coverage",
+      "epsilon0", "epsilon1"
+    )
   )
 })

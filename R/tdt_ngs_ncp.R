@@ -22,6 +22,28 @@
   invisible(TRUE)
 }
 
+.tdt_ngs_validate_coverage <- function(coverage) {
+  if (!is.numeric(coverage) || !(length(coverage) %in% c(1L, 3L)) ||
+      any(!is.finite(coverage)) || any(coverage < 1) ||
+      any(coverage != floor(coverage))) {
+    stop("coverage must be one or three finite positive integers.")
+  }
+  if (length(coverage) == 1L) {
+    coverage <- rep(coverage, 3L)
+  }
+  names(coverage) <- c("father", "mother", "child")
+  coverage
+}
+
+.tdt_ngs_validate_directional_error <- function(epsilon0, epsilon1) {
+  .tdt_ngs_validate_scalar(epsilon0, "epsilon0", 0, 1, FALSE, TRUE)
+  .tdt_ngs_validate_scalar(epsilon1, "epsilon1", 0, 1, FALSE, TRUE)
+  if (epsilon0 + epsilon1 >= 1) {
+    stop("epsilon0 + epsilon1 must be less than 1.")
+  }
+  invisible(TRUE)
+}
+
 .tdt_ngs_trio_states <- function() {
   score_delta <- c(
     0, -0.5, -0.5, 0.5, 0.5, 0, 0, -1, 0, 1,
@@ -110,20 +132,14 @@
       !is.finite(genotype) || !(genotype %in% 0:2)) {
     stop("genotype must be a single value in {0, 1, 2}.")
   }
-  .tdt_ngs_validate_scalar(epsilon0, "epsilon0", 0, 1, FALSE, TRUE)
-  .tdt_ngs_validate_scalar(epsilon1, "epsilon1", 0, 1, FALSE, TRUE)
-  if (epsilon0 + epsilon1 >= 1) {
-    stop("epsilon0 + epsilon1 must be less than 1.")
-  }
+  .tdt_ngs_validate_directional_error(epsilon0, epsilon1)
 
   epsilon0 + ((1 - epsilon0 - epsilon1) / 2) * genotype
 }
 
 .tdt_ngs_read_likelihood <- function(x, coverage, genotypes,
                                      epsilon0, epsilon1, log = FALSE) {
-  .tdt_ngs_validate_scalar(
-    coverage, "coverage", 1, Inf, FALSE, FALSE, integer = TRUE
-  )
+  coverage <- .tdt_ngs_validate_coverage(coverage)
   if (!is.numeric(x) || length(x) != 3L || any(!is.finite(x)) ||
       any(x < 0) || any(x > coverage) || any(x != floor(x))) {
     stop("x must contain three integer read counts between 0 and coverage.")
@@ -232,35 +248,51 @@
   )
 }
 
-.tdt_ngs_information_matrix <- function(pd, coverage, seq_error) {
+.tdt_ngs_information_matrix <- function(
+    pd, coverage, seq_error = NULL,
+    epsilon0 = seq_error, epsilon1 = seq_error
+) {
   .tdt_ngs_validate_scalar(pd, "pd", 0, 1, TRUE, TRUE)
-  .tdt_ngs_validate_scalar(
-    coverage, "coverage", 1, Inf, FALSE, FALSE, integer = TRUE
-  )
-  .tdt_ngs_validate_scalar(seq_error, "seq_error", 0, 0.5, FALSE, TRUE)
+  if (missing(epsilon0) && missing(epsilon1)) {
+    .tdt_ngs_validate_scalar(
+      seq_error, "seq_error", 0, 0.5, FALSE, TRUE
+    )
+  }
+  coverage_input <- coverage
+  coverage <- .tdt_ngs_validate_coverage(coverage)
+  .tdt_ngs_validate_directional_error(epsilon0, epsilon1)
 
   states <- .tdt_ngs_trio_states()
   mu <- .tdt_ngs_hwe_mating_freqs(pd)
   pi <- .tdt_ngs_state_probabilities(mu, t = 0.5)
-  counts <- 0:coverage
+  counts <- lapply(coverage, function(value) 0:value)
   grid <- expand.grid(
-    father = counts, mother = counts, child = counts,
+    father = counts$father, mother = counts$mother, child = counts$child,
     KEEP.OUT.ATTRS = FALSE
   )
   member_columns <- c("father", "mother", "child")
 
   q <- vapply(
     0:2, .tdt_ngs_read_probability, numeric(1),
-    epsilon0 = seq_error, epsilon1 = seq_error
+    epsilon0 = epsilon0, epsilon1 = epsilon1
   )
-  pmf <- dq <- matrix(0, nrow = coverage + 1L, ncol = 3L)
-  for (g in 0:2) {
-    values <- .tdt_ngs_binomial_pmf_derivative(counts, coverage, q[[g + 1L]])
-    pmf[, g + 1L] <- values$pmf
-    dq[, g + 1L] <- values$derivative
-  }
-  dq0 <- sweep(dq, 2, 1 - (0:2) / 2, `*`)
-  dq1 <- sweep(dq, 2, -(0:2) / 2, `*`)
+  member_pmf <- lapply(seq_along(coverage), function(member) {
+    pmf <- dq <- matrix(
+      0, nrow = coverage[[member]] + 1L, ncol = 3L
+    )
+    for (g in 0:2) {
+      values <- .tdt_ngs_binomial_pmf_derivative(
+        counts[[member]], coverage[[member]], q[[g + 1L]]
+      )
+      pmf[, g + 1L] <- values$pmf
+      dq[, g + 1L] <- values$derivative
+    }
+    list(
+      pmf = pmf,
+      dq0 = sweep(dq, 2, 1 - (0:2) / 2, `*`),
+      dq1 = sweep(dq, 2, -(0:2) / 2, `*`)
+    )
+  })
 
   n_read_states <- nrow(grid)
   indices <- Map(function(column) grid[[column]] + 1L, member_columns)
@@ -270,9 +302,18 @@
   )
   for (i in seq_len(nrow(states))) {
     g <- unlist(states[i, member_columns])
-    p <- Map(function(index, genotype) pmf[index, genotype + 1L], indices, g)
-    d0 <- Map(function(index, genotype) dq0[index, genotype + 1L], indices, g)
-    d1 <- Map(function(index, genotype) dq1[index, genotype + 1L], indices, g)
+    p <- Map(
+      function(values, index, genotype) values$pmf[index, genotype + 1L],
+      member_pmf, indices, g
+    )
+    d0 <- Map(
+      function(values, index, genotype) values$dq0[index, genotype + 1L],
+      member_pmf, indices, g
+    )
+    d1 <- Map(
+      function(values, index, genotype) values$dq1[index, genotype + 1L],
+      member_pmf, indices, g
+    )
 
     state_likelihood[, i] <- p[[1]] * p[[2]] * p[[3]]
     derivative0[, i] <-
@@ -311,13 +352,26 @@
     pi = pi,
     null_read_probability_sum = sum(h),
     score_mean = colSums(scores * h),
-    coverage = coverage,
-    seq_error = seq_error
+    coverage = coverage_input,
+    effective_coverage = coverage,
+    seq_error = seq_error,
+    epsilon0 = epsilon0,
+    epsilon1 = epsilon1
   )
 }
 
-.tdt_ngs_information <- function(pd, coverage, seq_error) {
-  result <- .tdt_ngs_information_matrix(pd, coverage, seq_error)
+.tdt_ngs_information <- function(
+    pd, coverage, seq_error = NULL,
+    epsilon0 = seq_error, epsilon1 = seq_error
+) {
+  if (missing(epsilon0) && missing(epsilon1)) {
+    .tdt_ngs_validate_scalar(
+      seq_error, "seq_error", 0, 0.5, FALSE, TRUE
+    )
+  }
+  result <- .tdt_ngs_information_matrix(
+    pd, coverage, seq_error, epsilon0, epsilon1
+  )
   information <- result$information_matrix
   nuisance <- information[-1, -1, drop = FALSE]
   nuisance_scale <- sqrt(diag(nuisance))
@@ -352,18 +406,27 @@
   ))
 }
 
-.tdt_ngs_ncp <- function(N, pd, R1, coverage, seq_error) {
+.tdt_ngs_ncp <- function(
+    N, pd, R1, coverage, seq_error = NULL,
+    epsilon0 = seq_error, epsilon1 = seq_error
+) {
   .tdt_ngs_validate_scalar(N, "N", 1, Inf, FALSE, FALSE, integer = TRUE)
   .tdt_ngs_validate_scalar(pd, "pd", 0, 1, TRUE, TRUE)
   .tdt_ngs_validate_scalar(R1, "R1", 0, Inf, TRUE, FALSE)
-  .tdt_ngs_validate_scalar(
-    coverage, "coverage", 1, Inf, FALSE, FALSE, integer = TRUE
-  )
-  .tdt_ngs_validate_scalar(seq_error, "seq_error", 0, 0.5, FALSE, TRUE)
+  if (missing(epsilon0) && missing(epsilon1)) {
+    .tdt_ngs_validate_scalar(
+      seq_error, "seq_error", 0, 0.5, FALSE, TRUE
+    )
+  }
+  coverage_input <- coverage
+  .tdt_ngs_validate_coverage(coverage)
+  .tdt_ngs_validate_directional_error(epsilon0, epsilon1)
 
   t <- R1 / (1 + R1)
   delta <- log(t / (1 - t))
-  information <- .tdt_ngs_information(pd, coverage, seq_error)
+  information <- .tdt_ngs_information(
+    pd, coverage, seq_error, epsilon0, epsilon1
+  )
   lambda <- N * delta^2 * information$efficient_information
 
   if (!is.finite(lambda) || lambda < 0) {
@@ -377,8 +440,11 @@
     R2 = R1^2,
     t = t,
     delta = delta,
-    coverage = coverage,
+    coverage = coverage_input,
+    effective_coverage = information$effective_coverage,
     seq_error = seq_error,
+    epsilon0 = epsilon0,
+    epsilon1 = epsilon1,
     efficient_information = information$efficient_information,
     information_matrix = information$information_matrix,
     nuisance_information = information$I_etaeta,

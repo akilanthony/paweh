@@ -4,7 +4,20 @@
 \alias{tdt_ngs_power}
 \title{Analytic Power for a TDT1-NGS Sequencing Study}
 \usage{
-tdt_ngs_power(N, pd, R1, coverage, seq_error, alpha = 0.05, verbose = TRUE)
+tdt_ngs_power(
+  N,
+  pd,
+  R1,
+  coverage = NULL,
+  seq_error = NULL,
+  alpha = 0.05,
+  verbose = TRUE,
+  father_coverage = coverage,
+  mother_coverage = coverage,
+  child_coverage = coverage,
+  epsilon0 = seq_error,
+  epsilon1 = seq_error
+)
 }
 \arguments{
 \item{N}{A single finite integer greater than or equal to 1. Number of
@@ -18,24 +31,38 @@ and 1. The null information is reflection-symmetric in \code{pd} and
 the multiplicative model. The homozygote relative risk is
 \eqn{R_2 = R_1^2}.}
 
-\item{coverage}{A single finite integer greater than or equal to 2. This is
-the equal fixed read depth for the father, mother, and affected child.}
+\item{coverage}{A single finite integer greater than or equal to 2. Common
+fixed-depth shorthand for the father, mother, and affected child. It may
+be omitted when all three member-specific depths are supplied.}
 
 \item{seq_error}{A single finite symmetric per-read sequencing-error
 probability in \eqn{[0,0.5)}. Internally, the directional error parameters
-are evaluated at \eqn{\epsilon_0 = \epsilon_1 =} \code{seq_error}.}
+default to \eqn{\epsilon_0 = \epsilon_1 =} \code{seq_error}. It may be
+omitted when both directional parameters are supplied.}
 
 \item{alpha}{A single finite significance level in \eqn{(0,1)}. Defaults to
 0.05.}
 
 \item{verbose}{Logical scalar. If \code{TRUE}, print a concise result
 summary.}
+
+\item{father_coverage, mother_coverage, child_coverage}{Optional fixed depths
+for each trio member. An explicitly supplied member depth overrides
+\code{coverage}; otherwise that member inherits \code{coverage}.}
+
+\item{epsilon0}{Directional probability that a reference-allele read is
+observed as the alternative allele. Defaults to \code{seq_error}.}
+
+\item{epsilon1}{Directional probability that an alternative-allele read is
+observed as the reference allele. Defaults to \code{seq_error}.}
 }
 \value{
 Invisibly, an object of class \code{"tdt_ngs_power"} containing the
 design inputs, power and NCP, multiplicative-model parameters, efficient
 information, the 11 by 11 information matrix, compact numerical
-diagnostics, and model metadata.
+diagnostics, effective member-specific coverage and directional-error
+metadata, and model metadata. Legacy \code{coverage} and \code{seq_error}
+fields retain the supplied common shorthand values.
 }
 \description{
 Computes prospective analytic power for a single-variant TDT1-NGS study of
@@ -46,7 +73,8 @@ genotype calls.
 \details{
 TDT1-NGS is evaluated for one biallelic variant under Hardy-Weinberg
 parental genotype frequencies, random mating, a multiplicative disease
-model, equal fixed coverage, and symmetric public sequencing error. With
+model, fixed member-specific coverage, and common directional sequencing
+error. With
 \eqn{t = R_1/(1+R_1)}, the transmission parameter is
 \eqn{\delta = \log\{t/(1-t)\} = \log(R_1)} and \eqn{R_2 = R_1^2}.
 
@@ -58,6 +86,14 @@ latent Mendelian trio states. Power is the upper-tail probability beyond
 the central one-degree-of-freedom chi-square critical value under a
 noncentral chi-square distribution with NCP \eqn{\lambda}.
 
+The existing directional read model is
+\deqn{q_G=\epsilon_0 + (1-\epsilon_0-\epsilon_1)G/2,}
+for genotype \eqn{G\in\{0,1,2\}}. Thus \eqn{q_0=\epsilon_0},
+\eqn{q_2=1-\epsilon_1}, and
+\eqn{q_1=(1+\epsilon_0-\epsilon_1)/2}; the heterozygote probability is
+one-half in the symmetric case. The effective errors must be nonnegative
+and sum to less than one.
+
 Coverage 1 is unsupported under the full published nuisance model. Its
 eight observable read-count triples provide at most seven independent
 probability dimensions for an 11-parameter information model, so efficient
@@ -65,8 +101,9 @@ information is not identifiable without changing the model or using a
 generalized inverse.
 
 This prospective calculation performs no simulation or EM fitting. It does
-not implement TDT2-NGS, unequal member-specific coverage, locus
-heterogeneity, phenotype misclassification, or multi-locus testing.
+not implement TDT2-NGS, locus heterogeneity, phenotype misclassification,
+conventional genotype misclassification/TDTae, or multi-locus testing.
+Coverage is fixed for each member rather than random or sample-specific.
 }
 \examples{
 tdt_ngs_power(

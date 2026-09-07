@@ -2,6 +2,73 @@
 # Kim (2015), Appendix B. All statistical computation is delegated to the
 # frozen raw-read likelihood kernel in tdt_ngs_ncp.R.
 
+.tdt_ngs_resolve_sequencing_design <- function(
+    coverage, seq_error,
+    father_coverage, mother_coverage, child_coverage,
+    epsilon0, epsilon1,
+    father_supplied, mother_supplied, child_supplied,
+    epsilon0_supplied, epsilon1_supplied
+) {
+  coverage_values <- list(
+    father = if (father_supplied) father_coverage else coverage,
+    mother = if (mother_supplied) mother_coverage else coverage,
+    child = if (child_supplied) child_coverage else coverage
+  )
+  coverage_sources <- c(
+    father = if (father_supplied) "father_coverage" else "coverage",
+    mother = if (mother_supplied) "mother_coverage" else "coverage",
+    child = if (child_supplied) "child_coverage" else "coverage"
+  )
+  for (member in names(coverage_values)) {
+    value <- coverage_values[[member]]
+    source <- coverage_sources[[member]]
+    if (!is.numeric(value) || length(value) != 1L || !is.finite(value) ||
+        value != floor(value) || value < 1) {
+      stop(source, " must be a single finite integer greater than or equal to 2.")
+    }
+    if (value == 1) {
+      stop(
+        source, " = 1 is unsupported: TDT1-NGS efficient information is not ",
+        "identifiable under the implemented 11-parameter nuisance model."
+      )
+    }
+  }
+  effective_coverage <- unlist(coverage_values, use.names = TRUE)
+
+  if (!epsilon0_supplied || !epsilon1_supplied) {
+    if (!is.numeric(seq_error) || length(seq_error) != 1L ||
+        !is.finite(seq_error) || seq_error < 0 || seq_error >= 0.5) {
+      stop("seq_error must be a single finite number in [0, 0.5).")
+    }
+  }
+  effective_epsilon0 <- if (epsilon0_supplied) epsilon0 else seq_error
+  effective_epsilon1 <- if (epsilon1_supplied) epsilon1 else seq_error
+  if (!is.numeric(effective_epsilon0) || length(effective_epsilon0) != 1L ||
+      !is.finite(effective_epsilon0) || effective_epsilon0 < 0 ||
+      effective_epsilon0 >= 1) {
+    stop("epsilon0 must be a single finite number in [0, 1).")
+  }
+  if (!is.numeric(effective_epsilon1) || length(effective_epsilon1) != 1L ||
+      !is.finite(effective_epsilon1) || effective_epsilon1 < 0 ||
+      effective_epsilon1 >= 1) {
+    stop("epsilon1 must be a single finite number in [0, 1).")
+  }
+  if (effective_epsilon0 + effective_epsilon1 >= 1) {
+    stop("epsilon0 + epsilon1 must be less than 1.")
+  }
+
+  list(
+    coverage = effective_coverage,
+    father_coverage = unname(effective_coverage[["father"]]),
+    mother_coverage = unname(effective_coverage[["mother"]]),
+    child_coverage = unname(effective_coverage[["child"]]),
+    epsilon0 = effective_epsilon0,
+    epsilon1 = effective_epsilon1,
+    equal_coverage = length(unique(effective_coverage)) == 1L,
+    symmetric_error = identical(effective_epsilon0, effective_epsilon1)
+  )
+}
+
 #' Analytic Power for a TDT1-NGS Sequencing Study
 #'
 #' Computes prospective analytic power for a single-variant TDT1-NGS study of
@@ -17,11 +84,20 @@
 #' @param R1 A single finite positive heterozygote genotype relative risk under
 #'   the multiplicative model. The homozygote relative risk is
 #'   \eqn{R_2 = R_1^2}.
-#' @param coverage A single finite integer greater than or equal to 2. This is
-#'   the equal fixed read depth for the father, mother, and affected child.
+#' @param coverage A single finite integer greater than or equal to 2. Common
+#'   fixed-depth shorthand for the father, mother, and affected child. It may
+#'   be omitted when all three member-specific depths are supplied.
 #' @param seq_error A single finite symmetric per-read sequencing-error
 #'   probability in \eqn{[0,0.5)}. Internally, the directional error parameters
-#'   are evaluated at \eqn{\epsilon_0 = \epsilon_1 =} \code{seq_error}.
+#'   default to \eqn{\epsilon_0 = \epsilon_1 =} \code{seq_error}. It may be
+#'   omitted when both directional parameters are supplied.
+#' @param father_coverage,mother_coverage,child_coverage Optional fixed depths
+#'   for each trio member. An explicitly supplied member depth overrides
+#'   \code{coverage}; otherwise that member inherits \code{coverage}.
+#' @param epsilon0 Directional probability that a reference-allele read is
+#'   observed as the alternative allele. Defaults to \code{seq_error}.
+#' @param epsilon1 Directional probability that an alternative-allele read is
+#'   observed as the reference allele. Defaults to \code{seq_error}.
 #' @param alpha A single finite significance level in \eqn{(0,1)}. Defaults to
 #'   0.05.
 #' @param verbose Logical scalar. If \code{TRUE}, print a concise result
@@ -30,7 +106,8 @@
 #' @details
 #' TDT1-NGS is evaluated for one biallelic variant under Hardy-Weinberg
 #' parental genotype frequencies, random mating, a multiplicative disease
-#' model, equal fixed coverage, and symmetric public sequencing error. With
+#' model, fixed member-specific coverage, and common directional sequencing
+#' error. With
 #' \eqn{t = R_1/(1+R_1)}, the transmission parameter is
 #' \eqn{\delta = \log\{t/(1-t)\} = \log(R_1)} and \eqn{R_2 = R_1^2}.
 #'
@@ -42,6 +119,14 @@
 #' the central one-degree-of-freedom chi-square critical value under a
 #' noncentral chi-square distribution with NCP \eqn{\lambda}.
 #'
+#' The existing directional read model is
+#' \deqn{q_G=\epsilon_0 + (1-\epsilon_0-\epsilon_1)G/2,}
+#' for genotype \eqn{G\in\{0,1,2\}}. Thus \eqn{q_0=\epsilon_0},
+#' \eqn{q_2=1-\epsilon_1}, and
+#' \eqn{q_1=(1+\epsilon_0-\epsilon_1)/2}; the heterozygote probability is
+#' one-half in the symmetric case. The effective errors must be nonnegative
+#' and sum to less than one.
+#'
 #' Coverage 1 is unsupported under the full published nuisance model. Its
 #' eight observable read-count triples provide at most seven independent
 #' probability dimensions for an 11-parameter information model, so efficient
@@ -49,13 +134,16 @@
 #' generalized inverse.
 #'
 #' This prospective calculation performs no simulation or EM fitting. It does
-#' not implement TDT2-NGS, unequal member-specific coverage, locus
-#' heterogeneity, phenotype misclassification, or multi-locus testing.
+#' not implement TDT2-NGS, locus heterogeneity, phenotype misclassification,
+#' conventional genotype misclassification/TDTae, or multi-locus testing.
+#' Coverage is fixed for each member rather than random or sample-specific.
 #'
 #' @return Invisibly, an object of class \code{"tdt_ngs_power"} containing the
 #'   design inputs, power and NCP, multiplicative-model parameters, efficient
 #'   information, the 11 by 11 information matrix, compact numerical
-#'   diagnostics, and model metadata.
+#'   diagnostics, effective member-specific coverage and directional-error
+#'   metadata, and model metadata. Legacy \code{coverage} and \code{seq_error}
+#'   fields retain the supplied common shorthand values.
 #'
 #' @references
 #' Kim, W. (2015). Transmission disequilibrium tests based on read counts for
@@ -75,10 +163,15 @@ tdt_ngs_power <- function(
     N,
     pd,
     R1,
-    coverage,
-    seq_error,
+    coverage = NULL,
+    seq_error = NULL,
     alpha = 0.05,
-    verbose = TRUE
+    verbose = TRUE,
+    father_coverage = coverage,
+    mother_coverage = coverage,
+    child_coverage = coverage,
+    epsilon0 = seq_error,
+    epsilon1 = seq_error
 ) {
   if (!is.numeric(N) || length(N) != 1L || !is.finite(N) ||
       N < 1 || N != floor(N)) {
@@ -91,20 +184,18 @@ tdt_ngs_power <- function(
   if (!is.numeric(R1) || length(R1) != 1L || !is.finite(R1) || R1 <= 0) {
     stop("R1 must be a single finite positive number.")
   }
-  if (!is.numeric(coverage) || length(coverage) != 1L ||
-      !is.finite(coverage) || coverage != floor(coverage) || coverage < 1) {
-    stop("coverage must be a single finite integer greater than or equal to 2.")
-  }
-  if (coverage == 1) {
-    stop(
-      "coverage = 1 is unsupported: TDT1-NGS efficient information is not ",
-      "identifiable under the implemented 11-parameter nuisance model."
-    )
-  }
-  if (!is.numeric(seq_error) || length(seq_error) != 1L ||
-      !is.finite(seq_error) || seq_error < 0 || seq_error >= 0.5) {
-    stop("seq_error must be a single finite number in [0, 0.5).")
-  }
+  sequencing <- .tdt_ngs_resolve_sequencing_design(
+    coverage = coverage, seq_error = seq_error,
+    father_coverage = father_coverage,
+    mother_coverage = mother_coverage,
+    child_coverage = child_coverage,
+    epsilon0 = epsilon0, epsilon1 = epsilon1,
+    father_supplied = !missing(father_coverage),
+    mother_supplied = !missing(mother_coverage),
+    child_supplied = !missing(child_coverage),
+    epsilon0_supplied = !missing(epsilon0),
+    epsilon1_supplied = !missing(epsilon1)
+  )
   if (!is.numeric(alpha) || length(alpha) != 1L || !is.finite(alpha) ||
       alpha <= 0 || alpha >= 1) {
     stop("alpha must be a single finite number in (0, 1).")
@@ -117,8 +208,10 @@ tdt_ngs_power <- function(
     N = N,
     pd = pd,
     R1 = R1,
-    coverage = coverage,
-    seq_error = seq_error
+    coverage = sequencing$coverage,
+    seq_error = seq_error,
+    epsilon0 = sequencing$epsilon0,
+    epsilon1 = sequencing$epsilon1
   )
   critical <- stats::qchisq(1 - alpha, df = 1)
   power <- stats::pchisq(
@@ -144,6 +237,13 @@ tdt_ngs_power <- function(
     delta = fit$delta,
     coverage = coverage,
     seq_error = seq_error,
+    father_coverage = sequencing$father_coverage,
+    mother_coverage = sequencing$mother_coverage,
+    child_coverage = sequencing$child_coverage,
+    epsilon0 = sequencing$epsilon0,
+    epsilon1 = sequencing$epsilon1,
+    symmetric_error = sequencing$symmetric_error,
+    sequencing = sequencing,
     efficient_information = fit$efficient_information,
     information_matrix = fit$information_matrix,
     nuisance_rcond = fit$nuisance_rcond,
@@ -151,8 +251,16 @@ tdt_ngs_power <- function(
     model_info = list(
       test = "TDT1-NGS",
       inheritance = "multiplicative",
-      coverage_model = "equal_fixed",
-      sequencing_error = "symmetric",
+      coverage_model = if (sequencing$equal_coverage) {
+        "equal_fixed"
+      } else {
+        "member_specific_fixed"
+      },
+      sequencing_error = if (sequencing$symmetric_error) {
+        "symmetric"
+      } else {
+        "directional"
+      },
       trio_type = "father-mother-affected-child",
       likelihood = "raw_read_counts_with_latent_trio_states",
       information_evaluation = "null"
@@ -172,8 +280,24 @@ print.tdt_ngs_power <- function(x, ...) {
   cat(sprintf("Affected-child trios: %s\n",
               formatC(x$N, format = "d", big.mark = ",")))
   cat(sprintf("Disease allele frequency: %.4g; R1: %.4g\n", x$pd, x$R1))
-  cat(sprintf("Coverage: %s; sequencing error: %.4g\n",
-              formatC(x$coverage, format = "d"), x$seq_error))
+  if (is.null(x$sequencing) ||
+      (isTRUE(x$sequencing$equal_coverage) &&
+       isTRUE(x$sequencing$symmetric_error) &&
+       !is.null(x$coverage) && !is.null(x$seq_error))) {
+    cat(sprintf("Coverage: %s; sequencing error: %.4g\n",
+                formatC(x$coverage, format = "d"), x$seq_error))
+  } else {
+    cat(sprintf("Coverage (father/mother/child): %s/%s/%s\n",
+                x$father_coverage, x$mother_coverage, x$child_coverage))
+    if (isTRUE(x$symmetric_error)) {
+      cat(sprintf("Symmetric sequencing error: %.4g\n", x$epsilon0))
+    } else {
+      cat(sprintf(
+        "Directional sequencing error: epsilon0 = %.4g; epsilon1 = %.4g\n",
+        x$epsilon0, x$epsilon1
+      ))
+    }
+  }
   cat(sprintf("Alpha: %.4g; NCP: %.4f; power: %.1f%%\n",
               x$alpha, x$lambda, 100 * x$power))
   invisible(x)
@@ -198,11 +322,20 @@ print.tdt_ngs_power <- function(x, ...) {
 #' @param R1 A single finite positive heterozygote genotype relative risk under
 #'   the multiplicative model. The homozygote relative risk is
 #'   \eqn{R_2 = R_1^2}.
-#' @param coverage A single finite integer greater than or equal to 2. This is
-#'   the equal fixed read depth for the father, mother, and affected child.
+#' @param coverage A single finite integer greater than or equal to 2. Common
+#'   fixed-depth shorthand for the father, mother, and affected child. It may
+#'   be omitted when all three member-specific depths are supplied.
 #' @param seq_error A single finite symmetric per-read sequencing-error
 #'   probability in \eqn{[0,0.5)}. Internally, the directional error parameters
-#'   are evaluated at \eqn{\epsilon_0 = \epsilon_1 =} \code{seq_error}.
+#'   default to \eqn{\epsilon_0 = \epsilon_1 =} \code{seq_error}. It may be
+#'   omitted when both directional parameters are supplied.
+#' @param father_coverage,mother_coverage,child_coverage Optional fixed depths
+#'   for each trio member. An explicitly supplied member depth overrides
+#'   \code{coverage}; otherwise that member inherits \code{coverage}.
+#' @param epsilon0 Directional probability that a reference-allele read is
+#'   observed as the alternative allele. Defaults to \code{seq_error}.
+#' @param epsilon1 Directional probability that an alternative-allele read is
+#'   observed as the reference allele. Defaults to \code{seq_error}.
 #' @param alpha A single finite significance level in \eqn{(0,1)}. Defaults to
 #'   0.05.
 #' @param verbose Logical scalar. If \code{TRUE}, print a concise result
@@ -225,17 +358,20 @@ print.tdt_ngs_power <- function(x, ...) {
 #' target power exceeds alpha, no finite MSSN exists because the transmission
 #' effect is zero.
 #'
-#' The method uses equal fixed coverage and symmetric public sequencing error.
-#' Coverage 1 is unsupported because efficient information is not identifiable
-#' under the implemented 11-parameter nuisance model. This prospective
+#' Each member uses its resolved fixed coverage, and the directional read model
+#' is \eqn{q_G=\epsilon_0+(1-\epsilon_0-\epsilon_1)G/2}. See
+#' \code{\link{tdt_ngs_power}} for parameter precedence and interpretation.
+#' Coverage 1 is unsupported for every member because efficient information is
+#' not identifiable under the implemented 11-parameter nuisance model. This prospective
 #' calculation uses raw sequencing read-count information and latent trio
 #' genotype states; it performs no simulation, genotype calling, or EM fitting.
 #'
 #' @return Invisibly, an object of class \code{"tdt_ngs_mssn"} containing the
 #'   target, continuous and integer trio requirements, achieved power and NCP,
 #'   per-trio NCP coefficient, multiplicative-model parameters, efficient
-#'   information, the 11 by 11 information matrix, numerical diagnostics, and
-#'   model metadata.
+#'   information, the 11 by 11 information matrix, numerical diagnostics,
+#'   effective sequencing-design metadata, and model metadata. Legacy
+#'   \code{coverage} and \code{seq_error} fields retain supplied shorthand.
 #'
 #' @references
 #' Kim, W. (2015). Transmission disequilibrium tests based on read counts for
@@ -257,10 +393,15 @@ tdt_ngs_mssn <- function(
     power,
     pd,
     R1,
-    coverage,
-    seq_error,
+    coverage = NULL,
+    seq_error = NULL,
     alpha = 0.05,
-    verbose = TRUE
+    verbose = TRUE,
+    father_coverage = coverage,
+    mother_coverage = coverage,
+    child_coverage = coverage,
+    epsilon0 = seq_error,
+    epsilon1 = seq_error
 ) {
   if (!is.numeric(power) || length(power) != 1L || !is.finite(power) ||
       power <= 0 || power >= 1) {
@@ -273,20 +414,18 @@ tdt_ngs_mssn <- function(
   if (!is.numeric(R1) || length(R1) != 1L || !is.finite(R1) || R1 <= 0) {
     stop("R1 must be a single finite positive number.")
   }
-  if (!is.numeric(coverage) || length(coverage) != 1L ||
-      !is.finite(coverage) || coverage != floor(coverage) || coverage < 1) {
-    stop("coverage must be a single finite integer greater than or equal to 2.")
-  }
-  if (coverage == 1) {
-    stop(
-      "coverage = 1 is unsupported: TDT1-NGS efficient information is not ",
-      "identifiable under the implemented 11-parameter nuisance model."
-    )
-  }
-  if (!is.numeric(seq_error) || length(seq_error) != 1L ||
-      !is.finite(seq_error) || seq_error < 0 || seq_error >= 0.5) {
-    stop("seq_error must be a single finite number in [0, 0.5).")
-  }
+  sequencing <- .tdt_ngs_resolve_sequencing_design(
+    coverage = coverage, seq_error = seq_error,
+    father_coverage = father_coverage,
+    mother_coverage = mother_coverage,
+    child_coverage = child_coverage,
+    epsilon0 = epsilon0, epsilon1 = epsilon1,
+    father_supplied = !missing(father_coverage),
+    mother_supplied = !missing(mother_coverage),
+    child_supplied = !missing(child_coverage),
+    epsilon0_supplied = !missing(epsilon0),
+    epsilon1_supplied = !missing(epsilon1)
+  )
   if (!is.numeric(alpha) || length(alpha) != 1L || !is.finite(alpha) ||
       alpha <= 0 || alpha >= 1) {
     stop("alpha must be a single finite number in (0, 1).")
@@ -297,8 +436,10 @@ tdt_ngs_mssn <- function(
 
   information <- .tdt_ngs_information(
     pd = pd,
-    coverage = coverage,
-    seq_error = seq_error
+    coverage = sequencing$coverage,
+    seq_error = seq_error,
+    epsilon0 = sequencing$epsilon0,
+    epsilon1 = sequencing$epsilon1
   )
   efficient_information <- information$efficient_information
   if (!is.finite(efficient_information) || efficient_information <= 0) {
@@ -374,6 +515,13 @@ tdt_ngs_mssn <- function(
     delta = delta,
     coverage = coverage,
     seq_error = seq_error,
+    father_coverage = sequencing$father_coverage,
+    mother_coverage = sequencing$mother_coverage,
+    child_coverage = sequencing$child_coverage,
+    epsilon0 = sequencing$epsilon0,
+    epsilon1 = sequencing$epsilon1,
+    symmetric_error = sequencing$symmetric_error,
+    sequencing = sequencing,
     efficient_information = efficient_information,
     information_matrix = information$information_matrix,
     nuisance_rcond = information$nuisance_rcond,
@@ -383,8 +531,16 @@ tdt_ngs_mssn <- function(
       objective = "MSSN",
       sampling_unit = "complete_trios",
       inheritance = "multiplicative",
-      coverage_model = "equal_fixed",
-      sequencing_error = "symmetric",
+      coverage_model = if (sequencing$equal_coverage) {
+        "equal_fixed"
+      } else {
+        "member_specific_fixed"
+      },
+      sequencing_error = if (sequencing$symmetric_error) {
+        "symmetric"
+      } else {
+        "directional"
+      },
       trio_type = "father-mother-affected-child",
       likelihood = "raw_read_counts_with_latent_trio_states",
       information_evaluation = "null",
@@ -408,8 +564,24 @@ print.tdt_ngs_mssn <- function(x, ...) {
               formatC(x$MSSN_trios, format = "d", big.mark = ","),
               formatC(x$total_individuals, format = "d", big.mark = ",")))
   cat(sprintf("Disease allele frequency: %.4g; R1: %.4g\n", x$pd, x$R1))
-  cat(sprintf("Coverage: %s; sequencing error: %.4g\n",
-              formatC(x$coverage, format = "d"), x$seq_error))
+  if (is.null(x$sequencing) ||
+      (isTRUE(x$sequencing$equal_coverage) &&
+       isTRUE(x$sequencing$symmetric_error) &&
+       !is.null(x$coverage) && !is.null(x$seq_error))) {
+    cat(sprintf("Coverage: %s; sequencing error: %.4g\n",
+                formatC(x$coverage, format = "d"), x$seq_error))
+  } else {
+    cat(sprintf("Coverage (father/mother/child): %s/%s/%s\n",
+                x$father_coverage, x$mother_coverage, x$child_coverage))
+    if (isTRUE(x$symmetric_error)) {
+      cat(sprintf("Symmetric sequencing error: %.4g\n", x$epsilon0))
+    } else {
+      cat(sprintf(
+        "Directional sequencing error: epsilon0 = %.4g; epsilon1 = %.4g\n",
+        x$epsilon0, x$epsilon1
+      ))
+    }
+  }
   cat(sprintf("Achieved power: %.1f%%\n", 100 * x$achieved_power))
   invisible(x)
 }

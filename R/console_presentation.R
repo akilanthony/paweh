@@ -699,8 +699,27 @@
 
 .paweh_print_tdt_ngs_sequencing <- function(x) {
   .paweh_console_section("Sequencing Model")
-  .paweh_console_parameter("Equal fixed coverage", x$coverage, integer = TRUE)
-  .paweh_console_parameter("Per-read sequencing error", x$seq_error, 5L)
+  sequencing <- x$sequencing
+  if (is.null(sequencing) || isTRUE(sequencing$equal_coverage)) {
+    coverage <- if (is.null(sequencing)) x$coverage else x$father_coverage
+    .paweh_console_parameter("Equal fixed coverage", coverage, integer = TRUE)
+  } else {
+    .paweh_console_parameter("Father coverage", x$father_coverage,
+                             integer = TRUE)
+    .paweh_console_parameter("Mother coverage", x$mother_coverage,
+                             integer = TRUE)
+    .paweh_console_parameter("Child coverage", x$child_coverage,
+                             integer = TRUE)
+  }
+  if (is.null(sequencing) || isTRUE(sequencing$symmetric_error)) {
+    error <- if (is.null(sequencing)) x$seq_error else x$epsilon0
+    .paweh_console_parameter("Per-read sequencing error", error, 5L)
+  } else {
+    .paweh_console_parameter("Reference-to-alternative error (epsilon0)",
+                             x$epsilon0, 5L)
+    .paweh_console_parameter("Alternative-to-reference error (epsilon1)",
+                             x$epsilon1, 5L)
+  }
   .paweh_console_parameter("Analysis", "Raw-read TDT1-NGS likelihood")
 }
 
