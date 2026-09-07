@@ -38,7 +38,8 @@ test_that("advanced modifiers and zero-error narration follow canonical metadata
   for (model in c("1p","2p","3p","diff3p")) {
     z <- paweh:::.paweh_cc_defaults(); z$genotype_error <- TRUE; z$geno_misclass <- model
     zero <- paweh:::.paweh_cc_calculate(paweh:::.paweh_cc_snapshot(z))
-    expect_false(zero$active$genotype)
+    expect_true(zero$active$genotype)
+    expect_true("genotype_misclassification" %in% names(zero$adjusted$scenarios))
     expect_equal(zero$adjusted$tests, zero$baseline$tests)
   }
 })

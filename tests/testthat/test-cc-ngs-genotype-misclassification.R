@@ -299,7 +299,7 @@ test_that("sequential and total-matrix compositions agree for both groups", {
   }
 })
 
-test_that("effectively perfect sequencing bridges to ordinary case-control", {
+test_that("effectively perfect sequencing retains the CC-NGS sequential kernel", {
   common <- list(
     prev = 0.05, pd = 0.30, R2 = 1.8, MOI = "M", k = 1.2,
     locus_het = TRUE, pi = 0.8,
@@ -311,18 +311,26 @@ test_that("effectively perfect sequencing bridges to ordinary case-control", {
     list(N_case = 1000, alpha = 0.05, coverage = 100, seq_error = 0),
     common
   ))
-  ordinary <- do.call(cc_power, c(
-    list(N_case = 1000, alpha = 0.05, input_mode = "model_based",
-         w = c(0, 1, 2)),
-    common
-  ))
+  expected_case <- .cc_apply_genotype_misclass(
+    ngs$freqs$case_post_sequencing,
+    ngs$errors$genotype_misclass$M_case
+  )
+  expected_ctrl <- .cc_apply_genotype_misclass(
+    ngs$freqs$control_post_sequencing,
+    ngs$errors$genotype_misclass$M_ctrl
+  )
+  expected_lambda <- .cc_ahn_trend_ncp(
+    expected_case, expected_ctrl, 1000, 1200, c(0, 1, 2)
+  )
+  expected_power <- pchisq(
+    qchisq(0.95, df = 1), df = 1, ncp = expected_lambda,
+    lower.tail = FALSE
+  )
 
-  expect_equal(ngs$freqs$case_final, ordinary$freqs$g_obs_case,
-               tolerance = 1e-15)
-  expect_equal(ngs$freqs$control_final, ordinary$freqs$g_obs_ctrl,
-               tolerance = 1e-15)
-  expect_equal(ngs$lambda, ordinary$tests$trend$lambda, tolerance = 1e-12)
-  expect_equal(ngs$power, ordinary$tests$trend$power, tolerance = 1e-14)
+  expect_equal(ngs$freqs$case_final, expected_case, tolerance = 1e-15)
+  expect_equal(ngs$freqs$control_final, expected_ctrl, tolerance = 1e-15)
+  expect_equal(ngs$lambda, expected_lambda, tolerance = 1e-12)
+  expect_equal(ngs$power, expected_power, tolerance = 1e-14)
 })
 
 test_that("MSSN round trips for 1p, 3p, and differential 3p", {

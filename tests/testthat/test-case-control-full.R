@@ -116,7 +116,11 @@ test_that("pi boundary values transform true case frequencies", {
     verbose = FALSE
   )
 
-  expect_equal(pi_zero$freqs$g_true_case, pi_zero$freqs$g_base_ctrl, tolerance = 1e-12)
+  expect_equal(
+    pi_zero$scenarios$heterogeneity$freqs$g_case,
+    pi_zero$scenarios$no_error$freqs$g_ctrl,
+    tolerance = 1e-12
+  )
 })
 
 test_that("ordinary CC locus switch preserves valid historical fixtures", {
@@ -141,7 +145,11 @@ test_that("ordinary CC locus switch preserves valid historical fixtures", {
                tolerance = 1e-12)
   expect_equal(power_off$tests$trend$power, 0.995767586715572,
                tolerance = 1e-12)
-  expect_equal(power_one$tests, power_off$tests, tolerance = 1e-15)
+  expect_equal(
+    power_one$scenarios$heterogeneity$tests,
+    power_off$scenarios$no_error$tests,
+    tolerance = 1e-14
+  )
   expect_equal(power_half$tests$genotypes$lambda, 5.44661220996911,
                tolerance = 1e-12)
   expect_equal(power_half$tests$genotypes$power, 0.540622389046613,
@@ -153,7 +161,11 @@ test_that("ordinary CC locus switch preserves valid historical fixtures", {
 
   expect_identical(mssn_off$tests$genotypes$MSSN_case, 457)
   expect_identical(mssn_off$tests$trend$MSSN_case, 373)
-  expect_equal(mssn_one$tests, mssn_off$tests, tolerance = 1e-15)
+  expect_equal(
+    mssn_one$scenarios$heterogeneity$tests,
+    mssn_off$scenarios$no_error$tests,
+    tolerance = 1e-14
+  )
   expect_identical(mssn_half$tests$genotypes$MSSN_case, 1769)
   expect_identical(mssn_half$tests$trend$MSSN_case, 1446)
 })

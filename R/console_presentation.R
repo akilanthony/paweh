@@ -128,11 +128,9 @@
 
 .paweh_cc_modifier_flags <- function(x) {
   list(
-    locus = isTRUE(x$locus_het$enabled) && x$locus_het$pi < 1,
-    phenotype = isTRUE(x$errors$phenotype_misclass$enabled) &&
-      (x$errors$phenotype_misclass$theta > 0 ||
-         x$errors$phenotype_misclass$phi > 0),
-    genotype = isTRUE(x$errors$genotype_misclass$enabled)
+    locus = "heterogeneity" %in% names(x$scenarios),
+    phenotype = "phenotype_misclassification" %in% names(x$scenarios),
+    genotype = "genotype_misclassification" %in% names(x$scenarios)
   )
 }
 
@@ -222,40 +220,38 @@
 
 .paweh_print_cc_frequencies <- function(x, flags) {
   .paweh_console_section("Genotype Frequencies")
-  rows <- list(
-    list(label = "No-error cases", values = x$freqs$g_base_case),
-    list(label = "No-error controls", values = x$freqs$g_base_ctrl)
-  )
-  if (any(unlist(flags))) {
-    rows <- c(rows, list(
-      list(label = "Adjusted cases", values = x$freqs$g_obs_case),
-      list(label = "Adjusted controls", values = x$freqs$g_obs_ctrl)
-    ))
-  }
+  rows <- unlist(lapply(x$scenarios, function(scenario) {
+    list(
+      list(label = paste(scenario$label, "cases"),
+           values = scenario$freqs$g_case),
+      list(label = paste(scenario$label, "controls"),
+           values = scenario$freqs$g_ctrl)
+    )
+  }), recursive = FALSE)
   .paweh_console_genotype_table(rows)
-  .paweh_console_parameter(
-    "No-error risk-allele frequency (cases)",
-    x$freqs$g_base_case[2L] / 2 + x$freqs$g_base_case[3L], 5L
-  )
-  .paweh_console_parameter(
-    "No-error risk-allele frequency (controls)",
-    x$freqs$g_base_ctrl[2L] / 2 + x$freqs$g_base_ctrl[3L], 5L
-  )
-  if (any(unlist(flags))) {
+}
+
+.paweh_print_cc_power_scenario <- function(scenario, baseline_tests) {
+  .paweh_console_section(scenario$label)
+  tests <- scenario$tests
+  .paweh_console_parameter("Genotype-test NCP", tests$genotypes$lambda, 6L)
+  .paweh_console_parameter("Genotype-test power", tests$genotypes$power, 6L)
+  .paweh_console_parameter("Trend-test NCP", tests$trend$lambda, 6L)
+  .paweh_console_parameter("Trend-test power", tests$trend$power, 6L)
+  if (!identical(scenario$label, "No error")) {
     .paweh_console_parameter(
-      "Adjusted risk-allele frequency (cases)",
-      x$freqs$g_obs_case[2L] / 2 + x$freqs$g_obs_case[3L], 5L
+      "Genotype-test absolute power loss",
+      baseline_tests$genotypes$power - tests$genotypes$power, 6L
     )
     .paweh_console_parameter(
-      "Adjusted risk-allele frequency (controls)",
-      x$freqs$g_obs_ctrl[2L] / 2 + x$freqs$g_obs_ctrl[3L], 5L
+      "Trend-test absolute power loss",
+      baseline_tests$trend$power - tests$trend$power, 6L
     )
   }
 }
 
-.paweh_print_cc_power <- function(x, baseline_tests) {
+.paweh_print_cc_power <- function(x) {
   flags <- .paweh_cc_modifier_flags(x)
-  adjusted <- any(unlist(flags))
   .paweh_console_header("PAWEH Case-Control Study", "Power Analysis")
   .paweh_console_section("Study Design")
   .paweh_console_parameter("Cases", x$N_case, integer = TRUE)
@@ -265,27 +261,10 @@
   .paweh_console_parameter("Significance level (alpha)", x$alpha, 2L, TRUE)
   .paweh_print_cc_model(x)
   .paweh_print_cc_modifiers(x, flags)
-  .paweh_console_rule()
-  .paweh_console_section("No-Error Design")
-  .paweh_console_parameter("Genotype-test NCP", baseline_tests$genotypes$lambda, 6L)
-  .paweh_console_parameter("Genotype-test power", baseline_tests$genotypes$power, 6L)
-  .paweh_console_parameter("Trend-test NCP", baseline_tests$trend$lambda, 6L)
-  .paweh_console_parameter("Trend-test power", baseline_tests$trend$power, 6L)
-  if (adjusted) {
+  baseline_tests <- x$scenarios$no_error$tests
+  for (scenario in x$scenarios) {
     .paweh_console_rule()
-    .paweh_console_section("Adjusted Design")
-    .paweh_console_parameter("Genotype-test NCP", x$tests$genotypes$lambda, 6L)
-    .paweh_console_parameter("Genotype-test power", x$tests$genotypes$power, 6L)
-    .paweh_console_parameter(
-      "Genotype-test absolute power loss",
-      baseline_tests$genotypes$power - x$tests$genotypes$power, 6L
-    )
-    .paweh_console_parameter("Trend-test NCP", x$tests$trend$lambda, 6L)
-    .paweh_console_parameter("Trend-test power", x$tests$trend$power, 6L)
-    .paweh_console_parameter(
-      "Trend-test absolute power loss",
-      baseline_tests$trend$power - x$tests$trend$power, 6L
-    )
+    .paweh_print_cc_power_scenario(scenario, baseline_tests)
   }
   .paweh_console_rule()
   .paweh_print_cc_frequencies(x, flags)
@@ -316,9 +295,31 @@
                            integer = TRUE)
 }
 
-.paweh_print_cc_mssn <- function(x, baseline_tests) {
+.paweh_print_cc_mssn_scenario <- function(scenario, baseline_tests) {
+  .paweh_console_section(scenario$label)
+  tests <- scenario$tests
+  .paweh_print_cc_mssn_test("Genotype test", tests$genotypes)
+  .paweh_print_cc_mssn_test("Trend test", tests$trend)
+  if (!identical(scenario$label, "No error")) {
+    .paweh_console_parameter(
+      "Genotype-test MSSN inflation",
+      .paweh_console_inflation(
+        tests$genotypes$MSSN_total,
+        baseline_tests$genotypes$MSSN_total
+      )
+    )
+    .paweh_console_parameter(
+      "Trend-test MSSN inflation",
+      .paweh_console_inflation(
+        tests$trend$MSSN_total,
+        baseline_tests$trend$MSSN_total
+      )
+    )
+  }
+}
+
+.paweh_print_cc_mssn <- function(x) {
   flags <- .paweh_cc_modifier_flags(x)
-  adjusted <- any(unlist(flags))
   .paweh_console_header(
     "PAWEH Case-Control Study", "Minimum Sample Size Necessary"
   )
@@ -328,29 +329,10 @@
   .paweh_console_parameter("Control-to-case ratio", x$k, 3L)
   .paweh_print_cc_model(x)
   .paweh_print_cc_modifiers(x, flags)
-  .paweh_console_rule()
-  .paweh_console_section("No-Error Design")
-  .paweh_print_cc_mssn_test("Genotype test", baseline_tests$genotypes)
-  .paweh_print_cc_mssn_test("Trend test", baseline_tests$trend)
-  if (adjusted) {
+  baseline_tests <- x$scenarios$no_error$tests
+  for (scenario in x$scenarios) {
     .paweh_console_rule()
-    .paweh_console_section("Adjusted Design")
-    .paweh_print_cc_mssn_test("Genotype test", x$tests$genotypes)
-    .paweh_console_parameter(
-      "Genotype-test MSSN inflation",
-      .paweh_console_inflation(
-        x$tests$genotypes$MSSN_total,
-        baseline_tests$genotypes$MSSN_total
-      )
-    )
-    .paweh_print_cc_mssn_test("Trend test", x$tests$trend)
-    .paweh_console_parameter(
-      "Trend-test MSSN inflation",
-      .paweh_console_inflation(
-        x$tests$trend$MSSN_total,
-        baseline_tests$trend$MSSN_total
-      )
-    )
+    .paweh_print_cc_mssn_scenario(scenario, baseline_tests)
   }
   .paweh_console_rule()
   .paweh_print_cc_frequencies(x, flags)

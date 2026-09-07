@@ -351,23 +351,48 @@
   args
 }
 
-.plot_cc_extract_power <- function(out, test) {
-  if (test == "genotypes") return(out$tests$genotypes$power)
-  if (test == "trend") return(out$tests$trend$power)
+.plot_cc_scenario_for_x <- function(out, x_var) {
+  scenario <- if (x_var %in% c(
+    "pi", "locus_het_rate"
+  )) {
+    "heterogeneity"
+  } else if (x_var %in% c(
+    "theta", "phi", "pheno_error_multiplier"
+  )) {
+    "phenotype_misclassification"
+  } else if (x_var %in% c(
+    "e", "e1", "e2", "e01", "e02", "e03",
+    "case_e01", "case_e02", "case_e03",
+    "ctrl_e01", "ctrl_e02", "ctrl_e03",
+    "geno_error_multiplier", "diff_multiplier"
+  )) {
+    "genotype_misclassification"
+  } else {
+    out$compatibility_scenario
+  }
+  if (!scenario %in% names(out$scenarios)) "no_error" else scenario
+}
+
+.plot_cc_extract_power <- function(out, test, scenario = out$compatibility_scenario) {
+  tests <- out$scenarios[[scenario]]$tests
+  if (test == "genotypes") return(tests$genotypes$power)
+  if (test == "trend") return(tests$trend$power)
   stop("Unknown test: ", test)
 }
 
-.plot_cc_extract_lambda <- function(out, test) {
-  if (test == "genotypes") return(out$tests$genotypes$lambda)
-  if (test == "trend") return(out$tests$trend$lambda)
+.plot_cc_extract_lambda <- function(out, test, scenario = out$compatibility_scenario) {
+  tests <- out$scenarios[[scenario]]$tests
+  if (test == "genotypes") return(tests$genotypes$lambda)
+  if (test == "trend") return(tests$trend$lambda)
   stop("Unknown test: ", test)
 }
 
-.plot_cc_extract_mssn <- function(out, test, sample_size) {
+.plot_cc_extract_mssn <- function(out, test, sample_size,
+                                  scenario = out$compatibility_scenario) {
   result <- switch(
     test,
-    genotypes = out$tests$genotypes,
-    trend = out$tests$trend,
+    genotypes = out$scenarios[[scenario]]$tests$genotypes,
+    trend = out$scenarios[[scenario]]$tests$trend,
     stop("Unknown test: ", test)
   )
   if (is.null(result)) stop("Requested test output is NULL.")
@@ -549,11 +574,12 @@ plot_cc_power <- function(
       args <- .plot_apply_cc_x(args0, x_var, x)
       args <- .plot_drop_helper_args(args)
       out <- do.call(cc_power, args)
+      scenario <- .plot_cc_scenario_for_x(out, x_var)
       data.frame(
         x = x,
         group = test_i,
-        y = .plot_cc_extract_power(out, test_i),
-        lambda = .plot_cc_extract_lambda(out, test_i),
+        y = .plot_cc_extract_power(out, test_i, scenario),
+        lambda = .plot_cc_extract_lambda(out, test_i, scenario),
         stringsAsFactors = FALSE
       )
     })
@@ -696,11 +722,18 @@ plot_cc_mssn <- function(
       args <- .plot_apply_cc_x(args0, x_var, x)
       args <- .plot_drop_helper_args(args)
       safe <- .plot_safe_mssn_call(cc_mssn, args)
+      scenario <- if (safe$finite_mssn) {
+        .plot_cc_scenario_for_x(safe$result, x_var)
+      } else {
+        NULL
+      }
       data.frame(
         x = x,
         group = test_i,
         y = if (safe$finite_mssn) {
-          .plot_cc_extract_mssn(safe$result, test_i, sample_size)
+          .plot_cc_extract_mssn(
+            safe$result, test_i, sample_size, scenario
+          )
         } else {
           NA_real_
         },

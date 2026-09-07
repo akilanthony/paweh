@@ -64,15 +64,15 @@ for recessive.}
 \code{g1} gives case genotype frequencies and \code{g0} gives control
 genotype frequencies, each ordered as \code{c(g0, g1, g2)} and summing to 1.}
 
-\item{locus_het}{Logical. If \code{TRUE}, applies locus heterogeneity to the
-case genotype frequencies before phenotype and genotype misclassification.}
+\item{locus_het}{Logical. If \code{TRUE}, requests a separate locus-
+heterogeneity sensitivity scenario starting from the baseline frequencies.}
 
 \item{pi}{Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
 \code{locus_het = TRUE}. When \code{locus_het = FALSE}, \code{pi} must
 remain at its default value of 1.}
 
-\item{pheno_misclass}{Logical. If \code{TRUE}, applies phenotype
-misclassification before genotype misclassification.}
+\item{pheno_misclass}{Logical. If \code{TRUE}, requests a separate
+phenotype-misclassification sensitivity scenario starting from baseline.}
 
 \item{theta}{Numeric in \eqn{[0,1)}. Probability that a truly affected
 individual is classified as a control.}
@@ -124,11 +124,14 @@ scores, and locus-heterogeneity settings.}
 settings and intermediate frequencies.}
 \item{model_info}{Model-based penetrances and risk-model inputs, or
 model-free identifying information.}
-\item{tests$genotypes, tests$trend}{Test label, degrees of freedom, NCP
-\code{lambda}, internal \code{S}, and power. The trend result also contains
-its numerator and denominator.}
-\item{freqs}{Baseline, post-heterogeneity (true), post-phenotype-error, and
-final observed case and control genotype-probability vectors.}
+\item{scenarios}{Named independent results. \code{no_error} always exists;
+requested modifiers add \code{phenotype_misclassification},
+\code{heterogeneity}, and \code{genotype_misclassification}. Each contains
+scenario frequencies, modifier metadata, and genotype/trend power results.}
+\item{tests, freqs, compatibility_scenario}{Compatibility fields. With zero
+or one modifier, they mirror the sole design previously returned. With
+several modifiers, they explicitly mirror \code{no_error}; use
+\code{scenarios} for each sensitivity result.}
 }
 }
 \description{
@@ -139,24 +142,21 @@ phenotype misclassification, optional genotype misclassification, genotype
 chi-square tests and genotype trend tests.
 }
 \details{
-The workflow is:
-\enumerate{
-\item Construct baseline conditional genotype frequencies for cases and
-controls.
-\item Optionally apply locus heterogeneity to cases as
-\eqn{g_{case,true} = \pi g_{case,base} + (1 - \pi) g_{ctrl,base}}.
-\item Optionally apply phenotype misclassification, where
-\code{theta = Pr(affected -> control)} and
-\code{phi = Pr(unaffected -> case)}.
-\item Optionally apply genotype misclassification matrices to the resulting
-case and control genotype frequencies.
-\item Compute genotype chi-square and genotype trend-test non-centrality
-parameters and powers from the observed genotype frequencies.
+The no-error scenario is always calculated from the baseline conditional
+case and control genotype frequencies. Each requested modifier is evaluated
+independently from that same baseline:
+\itemize{
+\item no error: baseline -> tests;
+\item phenotype misclassification: baseline -> phenotype
+misclassification -> tests;
+\item locus heterogeneity: baseline -> locus heterogeneity -> tests;
+\item genotype misclassification: baseline -> genotype
+misclassification -> tests.
 }
-The defaults (\code{locus_het = FALSE}, \code{pheno_misclass = FALSE}, and
-\code{geno_misclass = "none"}) give the ordinary no-error design. When
-modifiers are active, they are applied sequentially in the order above and
-therefore form one combined adjusted design.
+Supplying several modifiers requests several independent sensitivity
+scenarios. Ordinary \code{cc_power()} does not combine modifiers. Specialized
+joint-error methods such as LRTae and LTTae are separate methods and are not
+implemented here.
 
 With \code{input_mode = "model_based"}, conditional case and control genotype
 frequencies are derived from \code{prev}, \code{pd}, \code{R2}, and
@@ -167,10 +167,12 @@ enabled, \code{g1} is treated as the true affected genotype distribution and
 \code{g0} is treated as the true unaffected genotype distribution.
 
 Phenotype misclassification requires \code{prev} in both input modes because
-disease prevalence is used to mix the true affected and unaffected genotype
-distributions into observed case and control genotype distributions. It is
-applied after optional locus heterogeneity and before optional genotype
-misclassification.
+disease prevalence is used to mix the baseline affected and unaffected
+genotype distributions into observed case and control distributions. Locus
+heterogeneity uses
+\eqn{g_{case,het} = \pi g_{case,base} + (1 - \pi) g_{ctrl,base}} and leaves
+controls unchanged. Genotype misclassification matrices are likewise applied
+directly to baseline case and control frequencies.
 
 The genotype misclassification models are:
 \code{"none"} for identity matrices, \code{"1p"} for one symmetric error

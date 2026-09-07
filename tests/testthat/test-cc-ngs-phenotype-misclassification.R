@@ -9,24 +9,34 @@ cc_ngs_pheno_args <- function(...) {
   )
 }
 
-cc_ngs_pheno_ordinary <- function(args, N_case = 1000) {
-  cc_power(
-    N_case = N_case,
-    alpha = args$alpha,
-    input_mode = "model_based",
-    prev = args$prev,
-    pd = args$pd,
-    R2 = args$R2,
-    MOI = args$MOI,
-    locus_het = if (is.null(args$locus_het)) FALSE else args$locus_het,
-    pi = if (is.null(args$pi)) 1 else args$pi,
-    pheno_misclass = args$pheno_misclass,
-    theta = args$theta,
-    phi = args$phi,
-    k = args$k,
-    w = .cc_ngs_scores_from_moi(args$MOI),
-    geno_misclass = "none",
-    verbose = FALSE
+cc_ngs_pheno_sequential_reference <- function(args, N_case = 1000) {
+  model <- .cc_model_genotype_frequencies(
+    args$pd, args$R2, args$MOI, args$prev
+  )
+  g_case <- if (isTRUE(args$locus_het)) {
+    args$pi * model$case + (1 - args$pi) * model$control
+  } else {
+    model$case
+  }
+  pheno <- .cc_apply_pheno_misclass(
+    g_case, model$control, args$prev, args$theta, args$phi
+  )
+  tests <- .cc_power_test_results(
+    pheno$g_case_obs, pheno$g_ctrl_obs, args$k,
+    .cc_ngs_scores_from_moi(args$MOI), N_case, args$alpha
+  )
+  list(
+    freqs = list(
+      g_true_case = pheno$g_case_obs,
+      g_true_ctrl = pheno$g_ctrl_obs
+    ),
+    errors = list(phenotype_misclass = list(
+      g_case_after_pheno_misclass = pheno$g_case_obs,
+      g_ctrl_after_pheno_misclass = pheno$g_ctrl_obs,
+      case_denom = pheno$case_denom,
+      ctrl_denom = pheno$ctrl_denom
+    )),
+    tests = tests
   )
 }
 
@@ -91,7 +101,7 @@ test_that("active zero phenotype error is a numerical identity", {
   }
 })
 
-test_that("CC-NGS pre-sequencing frequencies equal ordinary case-control", {
+test_that("CC-NGS pre-sequencing frequencies retain the sequential kernel", {
   for (MOI in c("M", "D", "Rec")) {
     for (setting in list(
       list(locus_het = FALSE, pi = 1),
@@ -103,7 +113,7 @@ test_that("CC-NGS pre-sequencing frequencies equal ordinary case-control", {
                theta = 0.08, phi = 0.015), setting)
       )
       ngs <- do.call(cc_ngs_power, c(list(N_case = 1000), args))
-      ordinary <- cc_ngs_pheno_ordinary(args)
+      ordinary <- cc_ngs_pheno_sequential_reference(args)
 
       expect_identical(ngs$freqs$case_preseq,
                        ordinary$freqs$g_true_case)
@@ -266,14 +276,14 @@ test_that("CC-NGS phenotype inputs follow ordinary case-control validation", {
   }
 })
 
-test_that("high-depth phenotype CC-NGS agrees with ordinary trend design", {
+test_that("high-depth phenotype CC-NGS agrees with its sequential reference", {
   args <- cc_ngs_pheno_args(
     coverage = 100, seq_error = 0,
     locus_het = TRUE, pi = 0.7,
     pheno_misclass = TRUE, theta = 0.05, phi = 0.01
   )
   ngs <- do.call(cc_ngs_power, c(list(N_case = 1000), args))
-  ordinary <- cc_ngs_pheno_ordinary(args)
+  ordinary <- cc_ngs_pheno_sequential_reference(args)
   expect_equal(ngs$freqs$case_preseq, ordinary$freqs$g_true_case,
                tolerance = 1e-15)
   expect_equal(ngs$freqs$control_preseq, ordinary$freqs$g_true_ctrl,

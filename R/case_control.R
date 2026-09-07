@@ -129,6 +129,112 @@
   any(M_case != identity) || any(M_ctrl != identity)
 }
 
+.cc_power_scenario <- function(label, g_case_base, g_ctrl_base,
+                               g_case, g_ctrl, k, w, N_case, alpha,
+                               modifier = list(type = "none")) {
+  results <- .cc_power_test_results(
+    g_case = g_case, g_ctrl = g_ctrl, k = k, w = w,
+    N_case = N_case, alpha = alpha
+  )
+  list(
+    label = label,
+    modifier = modifier,
+    freqs = list(
+      g_case_base = g_case_base,
+      g_ctrl_base = g_ctrl_base,
+      g_case_input = g_case_base,
+      g_ctrl_input = g_ctrl_base,
+      g_case = g_case,
+      g_ctrl = g_ctrl
+    ),
+    tests = list(
+      genotypes = c(
+        list(
+          test = "case-control chi-square test of independence for genotypes",
+          df = 2
+        ),
+        results$genotypes
+      ),
+      trend = c(
+        list(test = "trend test for genotypes", df = 1),
+        results$trend
+      )
+    )
+  )
+}
+
+.cc_mssn_scenario <- function(label, g_case_base, g_ctrl_base,
+                              g_case, g_ctrl, k, w,
+                              lambda_star_g, lambda_star_t,
+                              modifier = list(type = "none")) {
+  results <- .cc_mssn_test_results(
+    g_case = g_case, g_ctrl = g_ctrl, k = k, w = w,
+    lambda_star_g = lambda_star_g, lambda_star_t = lambda_star_t
+  )
+  list(
+    label = label,
+    modifier = modifier,
+    freqs = list(
+      g_case_base = g_case_base,
+      g_ctrl_base = g_ctrl_base,
+      g_case_input = g_case_base,
+      g_ctrl_input = g_ctrl_base,
+      g_case = g_case,
+      g_ctrl = g_ctrl
+    ),
+    tests = list(
+      genotypes = c(
+        list(
+          test = "case-control chi-square test of independence for genotypes",
+          df = 2
+        ),
+        results$genotypes
+      ),
+      trend = c(
+        list(test = "trend test for genotypes", df = 1),
+        results$trend
+      )
+    )
+  )
+}
+
+.cc_compatibility_scenario <- function(scenarios) {
+  if (length(scenarios) == 2L) names(scenarios)[2L] else "no_error"
+}
+
+.cc_legacy_freqs <- function(scenario_name, scenarios) {
+  scenario <- scenarios[[scenario_name]]
+  base <- scenarios$no_error$freqs
+  true <- if (scenario_name %in% c("no_error", "genotype_misclassification")) {
+    base$g_case_base
+  } else {
+    scenario$freqs$g_case
+  }
+  true_ctrl <- if (scenario_name %in% c("no_error", "genotype_misclassification")) {
+    base$g_ctrl_base
+  } else {
+    scenario$freqs$g_ctrl
+  }
+  list(
+    g_base_case = base$g_case_base,
+    g_base_ctrl = base$g_ctrl_base,
+    g_true_case = true,
+    g_true_ctrl = true_ctrl,
+    g_after_pheno_case = if (identical(scenario_name, "phenotype_misclassification")) {
+      scenario$freqs$g_case
+    } else {
+      true
+    },
+    g_after_pheno_ctrl = if (identical(scenario_name, "phenotype_misclassification")) {
+      scenario$freqs$g_ctrl
+    } else {
+      true_ctrl
+    },
+    g_obs_case = scenario$freqs$g_case,
+    g_obs_ctrl = scenario$freqs$g_ctrl
+  )
+}
+
 #' Case-Control Minimum Sample Size for Conditional Genotype Frequencies
 #'
 #' Computes the minimum sample size necessary (MSSN) for case-control association
@@ -153,13 +259,13 @@
 #' @param g1,g0 Numeric vectors of length 3 for \code{input_mode = "model_free"}.
 #'   \code{g1} gives case genotype frequencies and \code{g0} gives control
 #'   genotype frequencies, each ordered as \code{c(g0, g1, g2)} and summing to 1.
-#' @param locus_het Logical. If \code{TRUE}, applies locus heterogeneity to the
-#'   case genotype frequencies before phenotype and genotype misclassification.
+#' @param locus_het Logical. If \code{TRUE}, requests a separate locus-
+#'   heterogeneity sensitivity scenario starting from the baseline frequencies.
 #' @param pi Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
 #'   \code{locus_het = TRUE}. When \code{locus_het = FALSE}, \code{pi} must
 #'   remain at its default value of 1.
-#' @param pheno_misclass Logical. If \code{TRUE}, applies phenotype
-#'   misclassification before genotype misclassification.
+#' @param pheno_misclass Logical. If \code{TRUE}, requests a separate
+#'   phenotype-misclassification sensitivity scenario starting from baseline.
 #' @param theta Numeric in \eqn{[0,1)}. Probability that a truly affected
 #'   individual is classified as a control.
 #' @param phi Numeric in \eqn{[0,1)}. Probability that a truly unaffected
@@ -189,24 +295,21 @@
 #' @param verbose Logical. If \code{TRUE}, prints a clean formatted summary.
 #'
 #' @details
-#' The workflow is:
-#' \enumerate{
-#' \item Construct baseline conditional genotype frequencies for cases and
-#' controls.
-#' \item Optionally apply locus heterogeneity to cases as
-#' \eqn{g_{case,true} = \pi g_{case,base} + (1 - \pi) g_{ctrl,base}}.
-#' \item Optionally apply phenotype misclassification, where
-#' \code{theta = Pr(affected -> control)} and
-#' \code{phi = Pr(unaffected -> case)}.
-#' \item Optionally apply genotype misclassification matrices to the resulting
-#' case and control genotype frequencies.
-#' \item Compute genotype chi-square and genotype trend-test MSSN values from
-#' the observed genotype frequencies.
+#' The no-error scenario is always calculated from the baseline conditional
+#' case and control genotype frequencies. Each requested modifier is evaluated
+#' independently from that same baseline:
+#' \itemize{
+#' \item no error: baseline -> tests;
+#' \item phenotype misclassification: baseline -> phenotype
+#' misclassification -> tests;
+#' \item locus heterogeneity: baseline -> locus heterogeneity -> tests;
+#' \item genotype misclassification: baseline -> genotype
+#' misclassification -> tests.
 #' }
-#' The defaults (\code{locus_het = FALSE}, \code{pheno_misclass = FALSE}, and
-#' \code{geno_misclass = "none"}) give the ordinary no-error design. When
-#' modifiers are active, they are applied sequentially in the order above and
-#' therefore form one combined adjusted design.
+#' Supplying several modifiers requests several independent sensitivity
+#' scenarios. Ordinary \code{cc_mssn()} does not combine modifiers. Specialized
+#' joint-error methods such as LRTae and LTTae are separate methods and are not
+#' implemented here.
 #'
 #' With \code{input_mode = "model_based"}, conditional case and control genotype
 #' frequencies are derived from \code{prev}, \code{pd}, \code{R2}, and
@@ -217,10 +320,12 @@
 #' \code{g0} is treated as the true unaffected genotype distribution.
 #'
 #' Phenotype misclassification requires \code{prev} in both input modes because
-#' disease prevalence is used to mix the true affected and unaffected genotype
-#' distributions into observed case and control genotype distributions. It is
-#' applied after optional locus heterogeneity and before optional genotype
-#' misclassification.
+#' disease prevalence is used to mix the baseline affected and unaffected
+#' genotype distributions into observed case and control distributions. Locus
+#' heterogeneity uses
+#' \eqn{g_{case,het} = \pi g_{case,base} + (1 - \pi) g_{ctrl,base}} and leaves
+#' controls unchanged. Genotype misclassification matrices are likewise applied
+#' directly to baseline case and control frequencies.
 #'
 #' The genotype misclassification models are:
 #' \code{"none"} for identity matrices, \code{"1p"} for one symmetric error
@@ -266,12 +371,14 @@
 #' settings and intermediate frequencies.}
 #' \item{model_info}{Model-based penetrances and risk-model inputs, or
 #' model-free identifying information.}
-#' \item{tests$genotypes, tests$trend}{Test label, degrees of freedom, target
-#' NCP \code{lambda_star}, internal \code{S}, and case, control, and total MSSN.
-#' The trend result also contains its numerator and denominator. Sample sizes
-#' are numbers of individuals.}
-#' \item{freqs}{Baseline, post-heterogeneity (true), post-phenotype-error, and
-#' final observed case and control genotype-probability vectors.}
+#' \item{scenarios}{Named independent results. \code{no_error} always exists;
+#' requested modifiers add \code{phenotype_misclassification},
+#' \code{heterogeneity}, and \code{genotype_misclassification}. Each contains
+#' scenario frequencies, modifier metadata, and genotype/trend MSSN results.}
+#' \item{tests, freqs, compatibility_scenario}{Compatibility fields. With zero
+#' or one modifier, they mirror the sole design previously returned. With
+#' several modifiers, they explicitly mirror \code{no_error}; use
+#' \code{scenarios} for each sensitivity result.}
 #' }
 #'
 #' @examples
@@ -534,55 +641,45 @@ cc_mssn <- function(
     )
   }
 
-  # ---- apply locus heterogeneity as optional modifier ----
-  if (isTRUE(locus_het)) {
-    g1_true <- pi * g1_base + (1 - pi) * g0_base
-    g0_true <- g0_base
+  # ---- resolve independent modifier inputs ----
+  g1_het <- if (isTRUE(locus_het)) {
+    pi * g1_base + (1 - pi) * g0_base
   } else {
-    g1_true <- g1_base
-    g0_true <- g0_base
+    g1_base
   }
-
+  g0_het <- g0_base
   locus_het_info <- list(
     enabled = locus_het,
     pi = pi,
     g_case_before_locus_het = g1_base,
     g_ctrl_before_locus_het = g0_base,
-    g_case_after_locus_het = g1_true,
-    g_ctrl_after_locus_het = g0_true
+    g_case_after_locus_het = g1_het,
+    g_ctrl_after_locus_het = g0_het
   )
 
-  # ---- apply phenotype misclassification as optional modifier ----
-  if (isTRUE(pheno_misclass)) {
-    pheno <- .cc_apply_pheno_misclass(
-      g_aff = g1_true,
-      g_unaff = g0_true,
-      prev = prev,
-      theta = theta,
-      phi = phi
+  pheno <- if (isTRUE(pheno_misclass)) {
+    .cc_apply_pheno_misclass(
+      g_aff = g1_base, g_unaff = g0_base, prev = prev,
+      theta = theta, phi = phi
     )
-    g1_true <- pheno$g_case_obs
-    g0_true <- pheno$g_ctrl_obs
   } else {
-    pheno <- list(
-      g_case_obs = g1_true,
-      g_ctrl_obs = g0_true,
-      case_denom = NA_real_,
-      ctrl_denom = NA_real_
+    list(
+      g_case_obs = g1_base, g_ctrl_obs = g0_base,
+      case_denom = NA_real_, ctrl_denom = NA_real_
     )
   }
-
   pheno_misclass_info <- list(
     enabled = pheno_misclass,
     theta = theta,
     phi = phi,
-    g_case_after_pheno_misclass = g1_true,
-    g_ctrl_after_pheno_misclass = g0_true,
+    g_case_before_pheno_misclass = g1_base,
+    g_ctrl_before_pheno_misclass = g0_base,
+    g_case_after_pheno_misclass = pheno$g_case_obs,
+    g_ctrl_after_pheno_misclass = pheno$g_ctrl_obs,
     case_denom = pheno$case_denom,
     ctrl_denom = pheno$ctrl_denom
   )
 
-  # ---- choose genotype misclassification model ----
   genotype <- .cc_resolve_genotype_misclassification(
     geno_misclass = geno_misclass,
     e = e, e1 = e1, e2 = e2,
@@ -595,31 +692,63 @@ cc_mssn <- function(
   M_case <- genotype$M_case
   M_ctrl <- genotype$M_ctrl
   misclass_info <- genotype$info
-
-  # ---- observed genotype frequencies after misclassification ----
-  g1_obs <- .cc_apply_genotype_misclass(g1_true, M_case)
-  g1_obs <- g1_obs / sum(g1_obs)
-
-  g0_obs <- .cc_apply_genotype_misclass(g0_true, M_ctrl)
-  g0_obs <- g0_obs / sum(g0_obs)
+  g1_no_error <- .cc_apply_genotype_misclass(g1_base, diag(3))
+  g1_no_error <- g1_no_error / sum(g1_no_error)
+  g0_no_error <- .cc_apply_genotype_misclass(g0_base, diag(3))
+  g0_no_error <- g0_no_error / sum(g0_no_error)
+  g1_geno <- .cc_apply_genotype_misclass(g1_base, M_case)
+  g1_geno <- g1_geno / sum(g1_geno)
+  g0_geno <- .cc_apply_genotype_misclass(g0_base, M_ctrl)
+  g0_geno <- g0_geno / sum(g0_geno)
 
   # ---- target lambdas ----
   lambda_star_g <- chisq_ncp_target(power = power, alpha = alpha, df = 2)
   lambda_star_1 <- chisq_ncp_target(power = power, alpha = alpha, df = 1)
 
-  adjusted_tests <- .cc_mssn_test_results(
-    g_case = g1_obs, g_ctrl = g0_obs, k = k, w = w,
-    lambda_star_g = lambda_star_g, lambda_star_t = lambda_star_1
-  )
-  baseline_tests <- if (isTRUE(verbose)) {
-    .cc_mssn_test_results(
-      g_case = g1_base, g_ctrl = g0_base, k = k, w = w,
-      lambda_star_g = lambda_star_g, lambda_star_t = lambda_star_1,
-      validate = FALSE
+  scenarios <- list(
+    no_error = .cc_mssn_scenario(
+      "No error", g1_base, g0_base, g1_no_error, g0_no_error, k, w,
+      lambda_star_g, lambda_star_1
     )
-  } else {
-    NULL
+  )
+  if (isTRUE(pheno_misclass)) {
+    scenarios$phenotype_misclassification <- .cc_mssn_scenario(
+      "Phenotype misclassification", g1_base, g0_base,
+      pheno$g_case_obs, pheno$g_ctrl_obs, k, w,
+      lambda_star_g, lambda_star_1,
+      modifier = pheno_misclass_info
+    )
+    scenarios$phenotype_misclassification$freqs$g_case_observed <-
+      pheno$g_case_obs
+    scenarios$phenotype_misclassification$freqs$g_ctrl_observed <-
+      pheno$g_ctrl_obs
+    scenarios$phenotype_misclassification$freqs$case_denom <-
+      pheno$case_denom
+    scenarios$phenotype_misclassification$freqs$ctrl_denom <-
+      pheno$ctrl_denom
   }
+  if (isTRUE(locus_het)) {
+    scenarios$heterogeneity <- .cc_mssn_scenario(
+      "Locus heterogeneity", g1_base, g0_base, g1_het, g0_het, k, w,
+      lambda_star_g, lambda_star_1,
+      modifier = locus_het_info
+    )
+    scenarios$heterogeneity$freqs$g_case_heterogeneous <- g1_het
+    scenarios$heterogeneity$freqs$g_ctrl_heterogeneous <- g0_het
+  }
+  if (!identical(geno_misclass, "none")) {
+    scenarios$genotype_misclassification <- .cc_mssn_scenario(
+      "Genotype misclassification", g1_base, g0_base,
+      g1_geno, g0_geno, k, w, lambda_star_g, lambda_star_1,
+      modifier = misclass_info
+    )
+    scenarios$genotype_misclassification$freqs$g_case_observed <- g1_geno
+    scenarios$genotype_misclassification$freqs$g_ctrl_observed <- g0_geno
+    scenarios$genotype_misclassification$freqs$M_case <- M_case
+    scenarios$genotype_misclassification$freqs$M_ctrl <- M_ctrl
+  }
+
+  compatibility_scenario <- .cc_compatibility_scenario(scenarios)
 
   # ---- output ----
   out <- list(
@@ -634,44 +763,16 @@ cc_mssn <- function(
       genotype_misclass = misclass_info
     ),
     model_info = model_info,
-    tests = list(
-      genotypes = list(
-        test = "case-control chi-square test of independence for genotypes",
-        df = 2,
-        lambda_star = lambda_star_g,
-        S = adjusted_tests$genotypes$S,
-        MSSN_case = adjusted_tests$genotypes$MSSN_case,
-        MSSN_ctrl = adjusted_tests$genotypes$MSSN_ctrl,
-        MSSN_total = adjusted_tests$genotypes$MSSN_total
-      ),
-      trend = list(
-        test = "trend test for genotypes",
-        df = 1,
-        lambda_star = lambda_star_1,
-        S = adjusted_tests$trend$S,
-        numerator = adjusted_tests$trend$numerator,
-        denominator = adjusted_tests$trend$denominator,
-        MSSN_case = adjusted_tests$trend$MSSN_case,
-        MSSN_ctrl = adjusted_tests$trend$MSSN_ctrl,
-        MSSN_total = adjusted_tests$trend$MSSN_total
-      )
-    ),
-    freqs = list(
-      g_base_case = g1_base,
-      g_base_ctrl = g0_base,
-      g_true_case = g1_true,
-      g_true_ctrl = g0_true,
-      g_after_pheno_case = pheno$g_case_obs,
-      g_after_pheno_ctrl = pheno$g_ctrl_obs,
-      g_obs_case  = g1_obs,
-      g_obs_ctrl  = g0_obs
-    )
+    scenarios = scenarios,
+    compatibility_scenario = compatibility_scenario,
+    tests = scenarios[[compatibility_scenario]]$tests,
+    freqs = .cc_legacy_freqs(compatibility_scenario, scenarios)
   )
 
   class(out) <- "cc_mssn"
 
   if (isTRUE(verbose)) {
-    .paweh_print_cc_mssn(out, baseline_tests)
+    .paweh_print_cc_mssn(out)
   }
 
   invisible(out)
@@ -705,13 +806,13 @@ cc_mssn <- function(
 #' @param g1,g0 Numeric vectors of length 3 for \code{input_mode = "model_free"}.
 #'   \code{g1} gives case genotype frequencies and \code{g0} gives control
 #'   genotype frequencies, each ordered as \code{c(g0, g1, g2)} and summing to 1.
-#' @param locus_het Logical. If \code{TRUE}, applies locus heterogeneity to the
-#'   case genotype frequencies before phenotype and genotype misclassification.
+#' @param locus_het Logical. If \code{TRUE}, requests a separate locus-
+#'   heterogeneity sensitivity scenario starting from the baseline frequencies.
 #' @param pi Numeric in \eqn{[0,1]}. Locus-homogeneity fraction used when
 #'   \code{locus_het = TRUE}. When \code{locus_het = FALSE}, \code{pi} must
 #'   remain at its default value of 1.
-#' @param pheno_misclass Logical. If \code{TRUE}, applies phenotype
-#'   misclassification before genotype misclassification.
+#' @param pheno_misclass Logical. If \code{TRUE}, requests a separate
+#'   phenotype-misclassification sensitivity scenario starting from baseline.
 #' @param theta Numeric in \eqn{[0,1)}. Probability that a truly affected
 #'   individual is classified as a control.
 #' @param phi Numeric in \eqn{[0,1)}. Probability that a truly unaffected
@@ -740,24 +841,21 @@ cc_mssn <- function(
 #' @param verbose Logical. If \code{TRUE}, prints a clean formatted summary.
 #'
 #' @details
-#' The workflow is:
-#' \enumerate{
-#' \item Construct baseline conditional genotype frequencies for cases and
-#' controls.
-#' \item Optionally apply locus heterogeneity to cases as
-#' \eqn{g_{case,true} = \pi g_{case,base} + (1 - \pi) g_{ctrl,base}}.
-#' \item Optionally apply phenotype misclassification, where
-#' \code{theta = Pr(affected -> control)} and
-#' \code{phi = Pr(unaffected -> case)}.
-#' \item Optionally apply genotype misclassification matrices to the resulting
-#' case and control genotype frequencies.
-#' \item Compute genotype chi-square and genotype trend-test non-centrality
-#' parameters and powers from the observed genotype frequencies.
+#' The no-error scenario is always calculated from the baseline conditional
+#' case and control genotype frequencies. Each requested modifier is evaluated
+#' independently from that same baseline:
+#' \itemize{
+#' \item no error: baseline -> tests;
+#' \item phenotype misclassification: baseline -> phenotype
+#' misclassification -> tests;
+#' \item locus heterogeneity: baseline -> locus heterogeneity -> tests;
+#' \item genotype misclassification: baseline -> genotype
+#' misclassification -> tests.
 #' }
-#' The defaults (\code{locus_het = FALSE}, \code{pheno_misclass = FALSE}, and
-#' \code{geno_misclass = "none"}) give the ordinary no-error design. When
-#' modifiers are active, they are applied sequentially in the order above and
-#' therefore form one combined adjusted design.
+#' Supplying several modifiers requests several independent sensitivity
+#' scenarios. Ordinary \code{cc_power()} does not combine modifiers. Specialized
+#' joint-error methods such as LRTae and LTTae are separate methods and are not
+#' implemented here.
 #'
 #' With \code{input_mode = "model_based"}, conditional case and control genotype
 #' frequencies are derived from \code{prev}, \code{pd}, \code{R2}, and
@@ -768,10 +866,12 @@ cc_mssn <- function(
 #' \code{g0} is treated as the true unaffected genotype distribution.
 #'
 #' Phenotype misclassification requires \code{prev} in both input modes because
-#' disease prevalence is used to mix the true affected and unaffected genotype
-#' distributions into observed case and control genotype distributions. It is
-#' applied after optional locus heterogeneity and before optional genotype
-#' misclassification.
+#' disease prevalence is used to mix the baseline affected and unaffected
+#' genotype distributions into observed case and control distributions. Locus
+#' heterogeneity uses
+#' \eqn{g_{case,het} = \pi g_{case,base} + (1 - \pi) g_{ctrl,base}} and leaves
+#' controls unchanged. Genotype misclassification matrices are likewise applied
+#' directly to baseline case and control frequencies.
 #'
 #' The genotype misclassification models are:
 #' \code{"none"} for identity matrices, \code{"1p"} for one symmetric error
@@ -814,11 +914,14 @@ cc_mssn <- function(
 #' settings and intermediate frequencies.}
 #' \item{model_info}{Model-based penetrances and risk-model inputs, or
 #' model-free identifying information.}
-#' \item{tests$genotypes, tests$trend}{Test label, degrees of freedom, NCP
-#' \code{lambda}, internal \code{S}, and power. The trend result also contains
-#' its numerator and denominator.}
-#' \item{freqs}{Baseline, post-heterogeneity (true), post-phenotype-error, and
-#' final observed case and control genotype-probability vectors.}
+#' \item{scenarios}{Named independent results. \code{no_error} always exists;
+#' requested modifiers add \code{phenotype_misclassification},
+#' \code{heterogeneity}, and \code{genotype_misclassification}. Each contains
+#' scenario frequencies, modifier metadata, and genotype/trend power results.}
+#' \item{tests, freqs, compatibility_scenario}{Compatibility fields. With zero
+#' or one modifier, they mirror the sole design previously returned. With
+#' several modifiers, they explicitly mirror \code{no_error}; use
+#' \code{scenarios} for each sensitivity result.}
 #' }
 #'
 #' @examples
@@ -1103,55 +1206,45 @@ cc_power <- function(
     )
   }
 
-  # ---- apply locus heterogeneity as optional modifier ----
-  if (isTRUE(locus_het)) {
-    g1_true <- pi * g1_base + (1 - pi) * g0_base
-    g0_true <- g0_base
+  # ---- resolve independent modifier inputs ----
+  g1_het <- if (isTRUE(locus_het)) {
+    pi * g1_base + (1 - pi) * g0_base
   } else {
-    g1_true <- g1_base
-    g0_true <- g0_base
+    g1_base
   }
-
+  g0_het <- g0_base
   locus_het_info <- list(
     enabled = locus_het,
     pi = pi,
     g_case_before_locus_het = g1_base,
     g_ctrl_before_locus_het = g0_base,
-    g_case_after_locus_het = g1_true,
-    g_ctrl_after_locus_het = g0_true
+    g_case_after_locus_het = g1_het,
+    g_ctrl_after_locus_het = g0_het
   )
 
-  # ---- apply phenotype misclassification as optional modifier ----
-  if (isTRUE(pheno_misclass)) {
-    pheno <- .cc_apply_pheno_misclass(
-      g_aff = g1_true,
-      g_unaff = g0_true,
-      prev = prev,
-      theta = theta,
-      phi = phi
+  pheno <- if (isTRUE(pheno_misclass)) {
+    .cc_apply_pheno_misclass(
+      g_aff = g1_base, g_unaff = g0_base, prev = prev,
+      theta = theta, phi = phi
     )
-    g1_true <- pheno$g_case_obs
-    g0_true <- pheno$g_ctrl_obs
   } else {
-    pheno <- list(
-      g_case_obs = g1_true,
-      g_ctrl_obs = g0_true,
-      case_denom = NA_real_,
-      ctrl_denom = NA_real_
+    list(
+      g_case_obs = g1_base, g_ctrl_obs = g0_base,
+      case_denom = NA_real_, ctrl_denom = NA_real_
     )
   }
-
   pheno_misclass_info <- list(
     enabled = pheno_misclass,
     theta = theta,
     phi = phi,
-    g_case_after_pheno_misclass = g1_true,
-    g_ctrl_after_pheno_misclass = g0_true,
+    g_case_before_pheno_misclass = g1_base,
+    g_ctrl_before_pheno_misclass = g0_base,
+    g_case_after_pheno_misclass = pheno$g_case_obs,
+    g_ctrl_after_pheno_misclass = pheno$g_ctrl_obs,
     case_denom = pheno$case_denom,
     ctrl_denom = pheno$ctrl_denom
   )
 
-  # ---- choose genotype misclassification model ----
   genotype <- .cc_resolve_genotype_misclassification(
     geno_misclass = geno_misclass,
     e = e, e1 = e1, e2 = e2,
@@ -1164,29 +1257,61 @@ cc_power <- function(
   M_case <- genotype$M_case
   M_ctrl <- genotype$M_ctrl
   misclass_info <- genotype$info
-
-  # ---- observed genotype frequencies after misclassification ----
-  g1_obs <- .cc_apply_genotype_misclass(g1_true, M_case)
-  g1_obs <- g1_obs / sum(g1_obs)
-
-  g0_obs <- .cc_apply_genotype_misclass(g0_true, M_ctrl)
-  g0_obs <- g0_obs / sum(g0_obs)
+  g1_no_error <- .cc_apply_genotype_misclass(g1_base, diag(3))
+  g1_no_error <- g1_no_error / sum(g1_no_error)
+  g0_no_error <- .cc_apply_genotype_misclass(g0_base, diag(3))
+  g0_no_error <- g0_no_error / sum(g0_no_error)
+  g1_geno <- .cc_apply_genotype_misclass(g1_base, M_case)
+  g1_geno <- g1_geno / sum(g1_geno)
+  g0_geno <- .cc_apply_genotype_misclass(g0_base, M_ctrl)
+  g0_geno <- g0_geno / sum(g0_geno)
 
   # ---- sample sizes ----
   N_ctrl <- k * N_case
 
-  adjusted_tests <- .cc_power_test_results(
-    g_case = g1_obs, g_ctrl = g0_obs, k = k, w = w,
-    N_case = N_case, alpha = alpha
-  )
-  baseline_tests <- if (isTRUE(verbose)) {
-    .cc_power_test_results(
-      g_case = g1_base, g_ctrl = g0_base, k = k, w = w,
-      N_case = N_case, alpha = alpha, validate = FALSE
+  scenarios <- list(
+    no_error = .cc_power_scenario(
+      "No error", g1_base, g0_base, g1_no_error, g0_no_error,
+      k, w, N_case, alpha
     )
-  } else {
-    NULL
+  )
+  if (isTRUE(pheno_misclass)) {
+    scenarios$phenotype_misclassification <- .cc_power_scenario(
+      "Phenotype misclassification", g1_base, g0_base,
+      pheno$g_case_obs, pheno$g_ctrl_obs, k, w, N_case, alpha,
+      modifier = pheno_misclass_info
+    )
+    scenarios$phenotype_misclassification$freqs$g_case_observed <-
+      pheno$g_case_obs
+    scenarios$phenotype_misclassification$freqs$g_ctrl_observed <-
+      pheno$g_ctrl_obs
+    scenarios$phenotype_misclassification$freqs$case_denom <-
+      pheno$case_denom
+    scenarios$phenotype_misclassification$freqs$ctrl_denom <-
+      pheno$ctrl_denom
   }
+  if (isTRUE(locus_het)) {
+    scenarios$heterogeneity <- .cc_power_scenario(
+      "Locus heterogeneity", g1_base, g0_base, g1_het, g0_het,
+      k, w, N_case, alpha,
+      modifier = locus_het_info
+    )
+    scenarios$heterogeneity$freqs$g_case_heterogeneous <- g1_het
+    scenarios$heterogeneity$freqs$g_ctrl_heterogeneous <- g0_het
+  }
+  if (!identical(geno_misclass, "none")) {
+    scenarios$genotype_misclassification <- .cc_power_scenario(
+      "Genotype misclassification", g1_base, g0_base,
+      g1_geno, g0_geno, k, w, N_case, alpha,
+      modifier = misclass_info
+    )
+    scenarios$genotype_misclassification$freqs$g_case_observed <- g1_geno
+    scenarios$genotype_misclassification$freqs$g_ctrl_observed <- g0_geno
+    scenarios$genotype_misclassification$freqs$M_case <- M_case
+    scenarios$genotype_misclassification$freqs$M_ctrl <- M_ctrl
+  }
+
+  compatibility_scenario <- .cc_compatibility_scenario(scenarios)
 
   # ---- output ----
   out <- list(
@@ -1203,40 +1328,16 @@ cc_power <- function(
       genotype_misclass = misclass_info
     ),
     model_info = model_info,
-    tests = list(
-      genotypes = list(
-        test = "case-control chi-square test of independence for genotypes",
-        df = 2,
-        lambda = adjusted_tests$genotypes$lambda,
-        S = adjusted_tests$genotypes$S,
-        power = adjusted_tests$genotypes$power
-      ),
-      trend = list(
-        test = "trend test for genotypes",
-        df = 1,
-        lambda = adjusted_tests$trend$lambda,
-        S = adjusted_tests$trend$S,
-        numerator = adjusted_tests$trend$numerator,
-        denominator = adjusted_tests$trend$denominator,
-        power = adjusted_tests$trend$power
-      )
-    ),
-    freqs = list(
-      g_base_case = g1_base,
-      g_base_ctrl = g0_base,
-      g_true_case = g1_true,
-      g_true_ctrl = g0_true,
-      g_after_pheno_case = pheno$g_case_obs,
-      g_after_pheno_ctrl = pheno$g_ctrl_obs,
-      g_obs_case  = g1_obs,
-      g_obs_ctrl  = g0_obs
-    )
+    scenarios = scenarios,
+    compatibility_scenario = compatibility_scenario,
+    tests = scenarios[[compatibility_scenario]]$tests,
+    freqs = .cc_legacy_freqs(compatibility_scenario, scenarios)
   )
 
   class(out) <- "cc_power"
 
   if (isTRUE(verbose)) {
-    .paweh_print_cc_power(out, baseline_tests)
+    .paweh_print_cc_power(out)
   }
 
   invisible(out)

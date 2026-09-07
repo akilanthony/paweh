@@ -259,13 +259,14 @@ not independently recalibrate an arbitrary differential-error null
 distribution. These nominal operating characteristics must not be interpreted
 as protection against the Type I error inflation described by Moskvina et al.
 
-# A combined realistic workflow
+# Independent sensitivity scenarios
 
-The unified interface can combine compatible modifiers. This illustrative
-scenario is not a published reproduction.
+The unified interface accepts several modifiers in one call and reports each
+as a separate sensitivity scenario from the same no-error baseline. It does
+not combine the modifier transformations.
 
-```{r combined-cc}
-combined_cc <- cc_mssn(
+```{r independent-cc-scenarios}
+scenario_cc <- cc_mssn(
   power = 0.80, alpha = 0.05, k = 1,
   input_mode = "model_free",
   g1 = g_gordon_case, g0 = g_gordon_control,
@@ -275,19 +276,18 @@ combined_cc <- cc_mssn(
   verbose = FALSE
 )
 
-data.frame(
-  test = c("Genotype chi-square", "Trend"),
-  required_cases = c(
-    combined_cc$tests$genotypes$MSSN_case,
-    combined_cc$tests$trend$MSSN_case
+lapply(scenario_cc$scenarios, function(scenario) {
+  c(
+    genotype_cases = scenario$tests$genotypes$MSSN_case,
+    trend_cases = scenario$tests$trend$MSSN_case
   )
-)
+})
 ```
 
 # Choosing an interface and recognizing limits
 
 Use `cc_power()` and `cc_mssn()` for most designs, particularly when switching
-between model-based and model-free inputs or combining modifiers. Specialized
+between model-based and model-free inputs or comparing modifier scenarios. Specialized
 genotype-only functions remain available in the reference manual for focused
 calculations.
 
