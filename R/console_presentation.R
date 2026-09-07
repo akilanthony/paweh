@@ -758,6 +758,28 @@
   .paweh_print_tdt_ngs_model(x)
   .paweh_print_tdt_ngs_sequencing(x)
   .paweh_console_rule()
+  if (identical(x$compatibility_scenario, "phenotype_misclassification")) {
+    bridge <- x$scenarios$phenotype_misclassification$ordinary_tdt_bridge
+    .paweh_console_section("Phenotype Adjustment")
+    .paweh_console_parameter(
+      "Method", "ordinary-TDT NCP attenuation bridge"
+    )
+    .paweh_console_parameter("Prevalence", bridge$prev, 5L)
+    .paweh_console_parameter("Unaffected as affected (pi01)", bridge$pi01, 5L)
+    .paweh_console_parameter("Attenuation factor", bridge$attenuation_factor, 8L)
+    .paweh_console_rule()
+    .paweh_console_section("Sequencing only")
+    .paweh_console_parameter(
+      "Noncentrality parameter (NCP)",
+      x$scenarios$sequencing_only$lambda, 6L
+    )
+    .paweh_console_parameter("Power", x$scenarios$sequencing_only$power, 6L)
+    .paweh_console_section("Phenotype misclassification")
+    .paweh_console_parameter("Adjusted NCP", x$lambda, 6L)
+    .paweh_console_parameter("Adjusted power", x$power, 6L)
+    .paweh_console_rule()
+    return(invisible(x))
+  }
   .paweh_console_section("Information and Power")
   .paweh_console_parameter("Efficient information per trio",
                            x$efficient_information, 8L)
@@ -772,6 +794,38 @@
   .paweh_console_parameter("Target power", x$power_target, 3L)
   .paweh_console_parameter("Significance level (alpha)", x$alpha, 2L, TRUE)
   .paweh_console_rule()
+  if (identical(x$compatibility_scenario, "phenotype_misclassification")) {
+    bridge <- x$scenarios$phenotype_misclassification$ordinary_tdt_bridge
+    base <- x$scenarios$sequencing_only
+    adjusted <- x$scenarios$phenotype_misclassification
+    .paweh_console_section("Phenotype Adjustment")
+    .paweh_console_parameter(
+      "Method", "ordinary-TDT NCP attenuation bridge"
+    )
+    .paweh_console_parameter("Prevalence", bridge$prev, 5L)
+    .paweh_console_parameter("Unaffected as affected (pi01)", bridge$pi01, 5L)
+    .paweh_console_parameter("Attenuation factor", bridge$attenuation_factor, 8L)
+    .paweh_console_rule()
+    .paweh_console_section("Sequencing only")
+    .paweh_console_parameter("Continuous trio requirement",
+                             base$N_trios_continuous, 3L)
+    .paweh_console_parameter("Required complete trios", base$MSSN_trios,
+                             integer = TRUE)
+    .paweh_console_parameter("Achieved power", base$achieved_power, 6L)
+    .paweh_console_section("Phenotype misclassification")
+    .paweh_console_parameter("Adjusted continuous trio requirement",
+                             adjusted$N_trios_continuous, 3L)
+    .paweh_console_parameter("Adjusted required complete trios",
+                             adjusted$MSSN_trios, integer = TRUE)
+    .paweh_console_parameter("Adjusted achieved NCP",
+                             adjusted$achieved_lambda, 6L)
+    .paweh_console_parameter("Adjusted achieved power",
+                             adjusted$achieved_power, 6L)
+    .paweh_print_tdt_ngs_model(x)
+    .paweh_print_tdt_ngs_sequencing(x)
+    .paweh_console_rule()
+    return(invisible(x))
+  }
   .paweh_console_section("Required Sample Size")
   .paweh_console_parameter("Continuous trio requirement",
                            x$N_trios_continuous, 3L)

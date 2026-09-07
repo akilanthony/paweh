@@ -293,7 +293,8 @@ test_that("MSSN result is transparent, valid, and returned invisibly", {
       "coverage", "seq_error", "father_coverage", "mother_coverage",
       "child_coverage", "epsilon0", "epsilon1", "symmetric_error",
       "sequencing", "efficient_information",
-      "information_matrix", "nuisance_rcond", "score_mean", "model_info"
+      "information_matrix", "nuisance_rcond", "score_mean", "model_info",
+      "scenarios", "compatibility_scenario"
     )
   )
   expect_gt(result$MSSN_trios, 0)
@@ -387,7 +388,7 @@ test_that("MSSN source retains the intended analytic raw-read scope", {
     c(
       "power", "pd", "R1", "coverage", "seq_error", "alpha", "verbose",
       "father_coverage", "mother_coverage", "child_coverage",
-      "epsilon0", "epsilon1"
+      "epsilon0", "epsilon1", "pheno_misclass", "prev", "pi01"
     )
   )
 })

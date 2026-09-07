@@ -16,7 +16,10 @@ tdt_ngs_power(
   mother_coverage = coverage,
   child_coverage = coverage,
   epsilon0 = seq_error,
-  epsilon1 = seq_error
+  epsilon1 = seq_error,
+  pheno_misclass = FALSE,
+  prev = NULL,
+  pi01 = 0
 )
 }
 \arguments{
@@ -55,14 +58,29 @@ observed as the alternative allele. Defaults to \code{seq_error}.}
 
 \item{epsilon1}{Directional probability that an alternative-allele read is
 observed as the reference allele. Defaults to \code{seq_error}.}
+
+\item{pheno_misclass}{Logical scalar. If \code{TRUE}, add a phenotype-
+misclassification sensitivity scenario using the ordinary-TDT NCP bridge.}
+
+\item{prev}{Disease prevalence in \eqn{(0,1)}. Required only when
+\code{pheno_misclass = TRUE}; it is used by the ordinary-TDT bridge and
+does not alter the raw-read likelihood.}
+
+\item{pi01}{Probability that an unaffected individual is misclassified or
+ascertained as affected, in \eqn{[0,1)}. It must be zero unless
+\code{pheno_misclass = TRUE}.}
 }
 \value{
 Invisibly, an object of class \code{"tdt_ngs_power"} containing the
 design inputs, power and NCP, multiplicative-model parameters, efficient
 information, the 11 by 11 information matrix, compact numerical
 diagnostics, effective member-specific coverage and directional-error
-metadata, and model metadata. Legacy \code{coverage} and \code{seq_error}
-fields retain the supplied common shorthand values.
+metadata, model metadata, and a \code{scenarios} list that always contains
+\code{sequencing_only} and, when requested,
+\code{phenotype_misclassification}. The phenotype scenario records the
+ordinary-TDT bridge inputs, coefficients, attenuation factor, and confirms
+that the raw-read likelihood was not modified. Legacy \code{coverage} and
+\code{seq_error} fields retain the supplied common shorthand values.
 }
 \description{
 Computes prospective analytic power for a single-variant TDT1-NGS study of
@@ -86,6 +104,17 @@ latent Mendelian trio states. Power is the upper-tail probability beyond
 the central one-degree-of-freedom chi-square critical value under a
 noncentral chi-square distribution with NCP \eqn{\lambda}.
 
+When requested, phenotype misclassification is a sensitivity bridge rather
+than a phenotype-aware sequencing likelihood. Let
+\eqn{c=2(g_T-g_{NT})^2/(g_T+g_{NT})} be the ordinary-TDT per-trio NCP
+coefficient. The bridge computes
+\deqn{r_{pheno}=c_{pheno}/c_{noerror}}
+from the ordinary-TDT expected transmission and nontransmission
+probabilities, using the fixed assumptions \eqn{R_2=R_1^2},
+\eqn{\delta'=1}, and \eqn{\theta_1=p_d}. It then reports
+\eqn{\lambda_{pheno}=\lambda_{NGS}r_{pheno}}. Kim's raw-read likelihood,
+information matrix, and efficient information remain unchanged.
+
 The existing directional read model is
 \deqn{q_G=\epsilon_0 + (1-\epsilon_0-\epsilon_1)G/2,}
 for genotype \eqn{G\in\{0,1,2\}}. Thus \eqn{q_0=\epsilon_0},
@@ -101,8 +130,8 @@ information is not identifiable without changing the model or using a
 generalized inverse.
 
 This prospective calculation performs no simulation or EM fitting. It does
-not implement TDT2-NGS, locus heterogeneity, phenotype misclassification,
-conventional genotype misclassification/TDTae, or multi-locus testing.
+not implement TDT2-NGS, locus heterogeneity, conventional genotype
+misclassification/TDTae, or multi-locus testing.
 Coverage is fixed for each member rather than random or sample-specific.
 }
 \examples{
@@ -111,10 +140,26 @@ tdt_ngs_power(
   coverage = 12, seq_error = 0.005,
   alpha = 5e-8, verbose = FALSE
 )
+tdt_ngs_power(
+  N = 5000, pd = 0.325, R1 = 1.2, coverage = 12, seq_error = 0.005,
+  pheno_misclass = TRUE, prev = 0.01, pi01 = 0.05,
+  alpha = 5e-8, verbose = FALSE
+)
 
 }
 \references{
 Kim, W. (2015). Transmission disequilibrium tests based on read counts for
 low-coverage next-generation sequence data. \emph{Human Heredity}, 80(1),
 36--49. \doi{10.1159/000434645}.
+
+Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+a case: Effects of phenotype misclassification on power and sample size
+requirements for the transmission disequilibrium test with affected child
+trios. \emph{Human Heredity}, 67(4), 287--292.
+\doi{10.1159/000194981}.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
 }

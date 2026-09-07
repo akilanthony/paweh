@@ -52,7 +52,7 @@ not hard-call the three genotypes. These are not interchangeable methods.
 | Public power function | `cc_ngs_power()` | `tdt_ngs_power()` |
 | Public MSSN function | `cc_ngs_mssn()` | `tdt_ngs_mssn()` |
 | Locus heterogeneity | Available | Not currently implemented |
-| Phenotype misclassification | Available | Not currently implemented |
+| Phenotype misclassification | Available | Ordinary-TDT NCP attenuation sensitivity |
 
 Both designs use fixed coverage. CC-NGS permits separate case/control depths
 and errors. TDT1-NGS permits separate father, mother, and child depths with a
@@ -174,6 +174,35 @@ data.frame(
 The MSSN calculation first finds the target one-degree-of-freedom NCP and then
 solves analytically for $N$. It is not an iterative simulation over possible
 trio counts.
+
+TDT1-NGS can also report phenotype misclassification as a separate sensitivity
+scenario. It obtains the ordinary-TDT per-trio coefficient
+$c=2(g_T-g_{NT})^2/(g_T+g_{NT})$ with and without misclassification and applies
+$r_{pheno}=c_{pheno}/c_{noerror}$ to the sequencing NCP. The bridge fixes
+$R_2=R_1^2$, $\delta'=1$, and $\theta_1=p_d$. Prevalence is used only by this
+bridge, and `pi01` is the probability that an unaffected individual is
+misclassified or ascertained as affected. Kim's raw-read likelihood,
+information matrix, and efficient information are unchanged.
+
+```{r tdt-ngs-phenotype-misclassification}
+tdt_pheno <- tdt_ngs_power(
+  N = 5000, pd = 0.325, R1 = 1.2,
+  coverage = 12, seq_error = 0.005,
+  pheno_misclass = TRUE, prev = 0.01, pi01 = 0.05,
+  alpha = 5e-8, verbose = FALSE
+)
+
+data.frame(
+  scenario = names(tdt_pheno$scenarios),
+  lambda = vapply(tdt_pheno$scenarios, `[[`, numeric(1), "lambda"),
+  power = vapply(tdt_pheno$scenarios, `[[`, numeric(1), "power")
+)
+tdt_pheno$scenarios$phenotype_misclassification$ordinary_tdt_bridge
+```
+
+The phenotype scenario scales the per-trio coefficient before MSSN inversion.
+It is an ordinary-TDT attenuation bridge, not a phenotype-aware raw-read
+likelihood, TDTae, locus-heterogeneity model, or simulation.
 
 `coverage` remains shorthand for one equal fixed depth. The optional
 `father_coverage`, `mother_coverage`, and `child_coverage` arguments override
@@ -572,7 +601,7 @@ coverage-distribution modeling is deferred.
 | Sequencing analysis | Deterministic genotype calls | Raw-read latent-state likelihood |
 | Case/control observation error | Common or differential sequencing | Not applicable |
 | Locus heterogeneity | Optional canonical mixture | Not implemented |
-| Phenotype misclassification | Optional prevalence-weighted mixture | Not implemented |
+| Phenotype misclassification | Optional prevalence-weighted mixture | Optional ordinary-TDT NCP attenuation bridge |
 | Genotype misclassification | Optional 1p, 2p, 3p, or differential 3p | Not implemented |
 | Simulation | None | None |
 

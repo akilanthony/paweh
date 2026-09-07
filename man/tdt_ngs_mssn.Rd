@@ -16,7 +16,10 @@ tdt_ngs_mssn(
   mother_coverage = coverage,
   child_coverage = coverage,
   epsilon0 = seq_error,
-  epsilon1 = seq_error
+  epsilon1 = seq_error,
+  pheno_misclass = FALSE,
+  prev = NULL,
+  pi01 = 0
 )
 }
 \arguments{
@@ -53,13 +56,25 @@ observed as the alternative allele. Defaults to \code{seq_error}.}
 
 \item{epsilon1}{Directional probability that an alternative-allele read is
 observed as the reference allele. Defaults to \code{seq_error}.}
+
+\item{pheno_misclass}{Logical scalar. If \code{TRUE}, add a phenotype-
+misclassification sensitivity scenario using the ordinary-TDT NCP bridge.}
+
+\item{prev}{Disease prevalence in \eqn{(0,1)}. Required only when
+\code{pheno_misclass = TRUE}; it is used by the ordinary-TDT bridge and
+does not alter the raw-read likelihood.}
+
+\item{pi01}{Probability that an unaffected individual is misclassified or
+ascertained as affected, in \eqn{[0,1)}. It must be zero unless
+\code{pheno_misclass = TRUE}.}
 }
 \value{
 Invisibly, an object of class \code{"tdt_ngs_mssn"} containing the
 target, continuous and integer trio requirements, achieved power and NCP,
 per-trio NCP coefficient, multiplicative-model parameters, efficient
 information, the 11 by 11 information matrix, numerical diagnostics,
-effective sequencing-design metadata, and model metadata. Legacy
+effective sequencing-design metadata, model metadata, and scenario-level
+base and phenotype-adjusted coefficients and sample sizes. Legacy
 \code{coverage} and \code{seq_error} fields retain supplied shorthand.
 }
 \description{
@@ -78,6 +93,14 @@ noncentral chi-square power function. Trio MSSN is then solved analytically:
 \deqn{N_{continuous} = \frac{\lambda_*}{\log(R_1)^2 I_{eff}}.}
 The planned MSSN is the ceiling of this quantity, with achieved power and
 the immediately smaller design checked at the integer boundary.
+For the optional phenotype scenario, the ordinary-TDT attenuation factor
+\eqn{r_{pheno}} described in \code{\link{tdt_ngs_power}} multiplies the
+per-trio coefficient before inversion:
+\deqn{N_{continuous,pheno}=
+  \frac{\lambda_*}{\log(R_1)^2 I_{eff}r_{pheno}}.}
+The bridge fixes \eqn{R_2=R_1^2}, \eqn{\delta'=1}, and
+\eqn{\theta_1=p_d}. It does not modify Kim's likelihood or information
+matrix and is not a TDTae, locus-heterogeneity, or simulation model.
 
 If target \code{power} is no greater than \code{alpha}, the target NCP is
 zero and the minimum supported design is one trio. If \code{R1 = 1} and
@@ -98,12 +121,28 @@ tdt_ngs_mssn(
   coverage = 12, seq_error = 0.005,
   alpha = 5e-8, verbose = FALSE
 )
+tdt_ngs_mssn(
+  power = 0.80, pd = 0.325, R1 = 1.2, coverage = 12, seq_error = 0.005,
+  pheno_misclass = TRUE, prev = 0.01, pi01 = 0.05,
+  alpha = 5e-8, verbose = FALSE
+)
 
 }
 \references{
 Kim, W. (2015). Transmission disequilibrium tests based on read counts for
 low-coverage next-generation sequence data. \emph{Human Heredity}, 80(1),
 36--49. \doi{10.1159/000434645}.
+
+Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+a case: Effects of phenotype misclassification on power and sample size
+requirements for the transmission disequilibrium test with affected child
+trios. \emph{Human Heredity}, 67(4), 287--292.
+\doi{10.1159/000194981}.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
 }
 \seealso{
 \code{\link{tdt_ngs_power}}

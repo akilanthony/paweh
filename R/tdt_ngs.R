@@ -69,6 +69,190 @@
   )
 }
 
+.tdt_ngs_validate_pheno_bridge <- function(pheno_misclass, prev, pi01) {
+  if (!is.logical(pheno_misclass) || length(pheno_misclass) != 1L ||
+      is.na(pheno_misclass)) {
+    stop("pheno_misclass must be TRUE or FALSE.")
+  }
+  if (!is.numeric(pi01) || length(pi01) != 1L || !is.finite(pi01) ||
+      pi01 < 0 || pi01 >= 1) {
+    stop("pi01 must be a single finite number in [0, 1).")
+  }
+  if (!isTRUE(pheno_misclass) && pi01 != 0) {
+    stop("pi01 must be 0 unless pheno_misclass = TRUE.")
+  }
+  if (isTRUE(pheno_misclass) &&
+      (is.null(prev) || !is.numeric(prev) || length(prev) != 1L ||
+       !is.finite(prev) || prev <= 0 || prev >= 1)) {
+    stop(
+      "When pheno_misclass = TRUE, prev must be a single finite number in (0, 1)."
+    )
+  }
+  invisible(TRUE)
+}
+
+.tdt_ngs_ncp_per_trio <- function(gT, gNT) {
+  value <- 2 * (gT - gNT)^2 / (gT + gNT)
+  if (!is.finite(value) || value < 0) {
+    stop("The ordinary-TDT per-trio NCP coefficient must be finite and nonnegative.")
+  }
+  as.numeric(value)
+}
+
+.tdt_ngs_phenotype_bridge <- function(pd, R1, prev, pi01) {
+  bridge_args <- list(
+    pd = pd, prev = prev, R1 = R1, R2 = R1^2,
+    delta_prime = 1, theta1 = pd, verbose = FALSE
+  )
+  transmission0 <- do.call(
+    tdt_expected_transmission_probability,
+    c(bridge_args, list(pi01 = 0))
+  )
+  nontransmission0 <- do.call(
+    tdt_expected_nontransmission_probability,
+    c(bridge_args, list(pi01 = 0))
+  )
+  transmission1 <- do.call(
+    tdt_expected_transmission_probability,
+    c(bridge_args, list(pi01 = pi01))
+  )
+  nontransmission1 <- do.call(
+    tdt_expected_nontransmission_probability,
+    c(bridge_args, list(pi01 = pi01))
+  )
+  c0 <- .tdt_ngs_ncp_per_trio(
+    transmission0$gT_star, nontransmission0$gNT_star
+  )
+  c1 <- .tdt_ngs_ncp_per_trio(
+    transmission1$gT_star, nontransmission1$gNT_star
+  )
+  tolerance <- 1e-14 * max(1, abs(c0), abs(c1))
+  if (c0 <= tolerance) {
+    if (c1 > tolerance) {
+      stop(
+        "Internal phenotype-bridge inconsistency: ordinary-TDT phenotype ",
+        "NCP is positive while its no-error baseline is zero."
+      )
+    }
+    attenuation <- 1
+    status <- "zero_baseline_effect_identity"
+  } else {
+    attenuation <- if (pi01 == 0) 1 else c1 / c0
+    status <- if (pi01 == 0) "identity_pi01_zero" else "estimated"
+  }
+  if (!is.finite(attenuation) || attenuation < 0) {
+    stop("The ordinary-TDT phenotype attenuation factor must be finite and nonnegative.")
+  }
+
+  list(
+    prev = prev,
+    pi01 = pi01,
+    pd = pd,
+    R1 = R1,
+    R2 = R1^2,
+    delta_prime = 1,
+    theta1 = pd,
+    gT_noerror = transmission0$gT_star,
+    gNT_noerror = nontransmission0$gNT_star,
+    ncp_per_trio_noerror = c0,
+    gT_pheno = transmission1$gT_star,
+    gNT_pheno = nontransmission1$gNT_star,
+    ncp_per_trio_pheno = c1,
+    attenuation_factor = as.numeric(attenuation),
+    status = status,
+    method = "ordinary_TDT_NCP_attenuation_bridge",
+    raw_read_likelihood_modified = FALSE
+  )
+}
+
+.tdt_ngs_power_scenario <- function(label, modifier, N, alpha,
+                                    ncp_per_trio, base_ncp_per_trio,
+                                    lambda = N * ncp_per_trio,
+                                    base_lambda = N * base_ncp_per_trio,
+                                    attenuation_factor, sequencing,
+                                    efficient_information, delta,
+                                    ordinary_tdt_bridge = NULL,
+                                    model_info = NULL) {
+  lambda <- as.numeric(lambda)
+  critical <- stats::qchisq(1 - alpha, df = 1)
+  power <- stats::pchisq(
+    critical, df = 1, ncp = lambda, lower.tail = FALSE
+  )
+  if (!is.finite(power) || power < 0 || power > 1) {
+    stop("Computed TDT1-NGS power must be a finite probability in [0, 1].")
+  }
+  list(
+    label = label,
+    modifier = modifier,
+    N = N,
+    alpha = alpha,
+    lambda = lambda,
+    power = as.numeric(power),
+    ncp_per_trio = ncp_per_trio,
+    base_lambda = as.numeric(base_lambda),
+    base_ncp_per_trio = base_ncp_per_trio,
+    attenuation_factor = attenuation_factor,
+    sequencing = sequencing,
+    efficient_information = efficient_information,
+    delta = delta,
+    ordinary_tdt_bridge = ordinary_tdt_bridge,
+    model_info = model_info
+  )
+}
+
+.tdt_ngs_mssn_scenario <- function(label, modifier, power, alpha,
+                                   ncp_per_trio, base_ncp_per_trio,
+                                   attenuation_factor, lambda_target,
+                                   sequencing, efficient_information, delta,
+                                   ordinary_tdt_bridge = NULL,
+                                   model_info = NULL) {
+  if (ncp_per_trio == 0 && lambda_target > 0) {
+    stop("No finite MSSN exists because R1 = 1 implies zero transmission effect.")
+  }
+  N_continuous <- if (lambda_target == 0) 0 else lambda_target / ncp_per_trio
+  if (!is.finite(N_continuous) || N_continuous < 0) {
+    stop("The analytic TDT1-NGS continuous MSSN must be finite and nonnegative.")
+  }
+  critical <- stats::qchisq(1 - alpha, df = 1)
+  evaluate_integer <- function(N) {
+    lambda <- N * ncp_per_trio
+    achieved <- stats::pchisq(
+      critical, df = 1, ncp = lambda, lower.tail = FALSE
+    )
+    list(N = N, lambda = as.numeric(lambda), power = as.numeric(achieved))
+  }
+  initial_MSSN <- max(1, ceiling(N_continuous))
+  planned <- evaluate_integer(initial_MSSN)
+  if (planned$power < power) planned <- evaluate_integer(planned$N + 1)
+  while (planned$N > 1) {
+    previous <- evaluate_integer(planned$N - 1)
+    if (previous$power < power) break
+    planned <- previous
+  }
+  list(
+    label = label,
+    modifier = modifier,
+    power_target = power,
+    alpha = alpha,
+    MSSN_trios = planned$N,
+    total_individuals = 3 * planned$N,
+    N_trios_continuous = N_continuous,
+    achieved_power = planned$power,
+    achieved_lambda = planned$lambda,
+    lambda_target = lambda_target,
+    ncp_per_trio = ncp_per_trio,
+    ncp_per_trio_base = base_ncp_per_trio,
+    attenuation_factor = attenuation_factor,
+    initial_MSSN_trios = initial_MSSN,
+    rounding_adjustment = planned$N - initial_MSSN,
+    sequencing = sequencing,
+    efficient_information = efficient_information,
+    delta = delta,
+    ordinary_tdt_bridge = ordinary_tdt_bridge,
+    model_info = model_info
+  )
+}
+
 #' Analytic Power for a TDT1-NGS Sequencing Study
 #'
 #' Computes prospective analytic power for a single-variant TDT1-NGS study of
@@ -98,6 +282,14 @@
 #'   observed as the alternative allele. Defaults to \code{seq_error}.
 #' @param epsilon1 Directional probability that an alternative-allele read is
 #'   observed as the reference allele. Defaults to \code{seq_error}.
+#' @param pheno_misclass Logical scalar. If \code{TRUE}, add a phenotype-
+#'   misclassification sensitivity scenario using the ordinary-TDT NCP bridge.
+#' @param prev Disease prevalence in \eqn{(0,1)}. Required only when
+#'   \code{pheno_misclass = TRUE}; it is used by the ordinary-TDT bridge and
+#'   does not alter the raw-read likelihood.
+#' @param pi01 Probability that an unaffected individual is misclassified or
+#'   ascertained as affected, in \eqn{[0,1)}. It must be zero unless
+#'   \code{pheno_misclass = TRUE}.
 #' @param alpha A single finite significance level in \eqn{(0,1)}. Defaults to
 #'   0.05.
 #' @param verbose Logical scalar. If \code{TRUE}, print a concise result
@@ -119,6 +311,17 @@
 #' the central one-degree-of-freedom chi-square critical value under a
 #' noncentral chi-square distribution with NCP \eqn{\lambda}.
 #'
+#' When requested, phenotype misclassification is a sensitivity bridge rather
+#' than a phenotype-aware sequencing likelihood. Let
+#' \eqn{c=2(g_T-g_{NT})^2/(g_T+g_{NT})} be the ordinary-TDT per-trio NCP
+#' coefficient. The bridge computes
+#' \deqn{r_{pheno}=c_{pheno}/c_{noerror}}
+#' from the ordinary-TDT expected transmission and nontransmission
+#' probabilities, using the fixed assumptions \eqn{R_2=R_1^2},
+#' \eqn{\delta'=1}, and \eqn{\theta_1=p_d}. It then reports
+#' \eqn{\lambda_{pheno}=\lambda_{NGS}r_{pheno}}. Kim's raw-read likelihood,
+#' information matrix, and efficient information remain unchanged.
+#'
 #' The existing directional read model is
 #' \deqn{q_G=\epsilon_0 + (1-\epsilon_0-\epsilon_1)G/2,}
 #' for genotype \eqn{G\in\{0,1,2\}}. Thus \eqn{q_0=\epsilon_0},
@@ -134,26 +337,46 @@
 #' generalized inverse.
 #'
 #' This prospective calculation performs no simulation or EM fitting. It does
-#' not implement TDT2-NGS, locus heterogeneity, phenotype misclassification,
-#' conventional genotype misclassification/TDTae, or multi-locus testing.
+#' not implement TDT2-NGS, locus heterogeneity, conventional genotype
+#' misclassification/TDTae, or multi-locus testing.
 #' Coverage is fixed for each member rather than random or sample-specific.
 #'
 #' @return Invisibly, an object of class \code{"tdt_ngs_power"} containing the
 #'   design inputs, power and NCP, multiplicative-model parameters, efficient
 #'   information, the 11 by 11 information matrix, compact numerical
 #'   diagnostics, effective member-specific coverage and directional-error
-#'   metadata, and model metadata. Legacy \code{coverage} and \code{seq_error}
-#'   fields retain the supplied common shorthand values.
+#'   metadata, model metadata, and a \code{scenarios} list that always contains
+#'   \code{sequencing_only} and, when requested,
+#'   \code{phenotype_misclassification}. The phenotype scenario records the
+#'   ordinary-TDT bridge inputs, coefficients, attenuation factor, and confirms
+#'   that the raw-read likelihood was not modified. Legacy \code{coverage} and
+#'   \code{seq_error} fields retain the supplied common shorthand values.
 #'
 #' @references
 #' Kim, W. (2015). Transmission disequilibrium tests based on read counts for
 #' low-coverage next-generation sequence data. \emph{Human Heredity}, 80(1),
 #' 36--49. \doi{10.1159/000434645}.
 #'
+#' Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+#' a case: Effects of phenotype misclassification on power and sample size
+#' requirements for the transmission disequilibrium test with affected child
+#' trios. \emph{Human Heredity}, 67(4), 287--292.
+#' \doi{10.1159/000194981}.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
 #' @examples
 #' tdt_ngs_power(
 #'   N = 5000, pd = 0.325, R1 = 1.2,
 #'   coverage = 12, seq_error = 0.005,
+#'   alpha = 5e-8, verbose = FALSE
+#' )
+#' tdt_ngs_power(
+#'   N = 5000, pd = 0.325, R1 = 1.2, coverage = 12, seq_error = 0.005,
+#'   pheno_misclass = TRUE, prev = 0.01, pi01 = 0.05,
 #'   alpha = 5e-8, verbose = FALSE
 #' )
 #'
@@ -171,7 +394,10 @@ tdt_ngs_power <- function(
     mother_coverage = coverage,
     child_coverage = coverage,
     epsilon0 = seq_error,
-    epsilon1 = seq_error
+    epsilon1 = seq_error,
+    pheno_misclass = FALSE,
+    prev = NULL,
+    pi01 = 0
 ) {
   if (!is.numeric(N) || length(N) != 1L || !is.finite(N) ||
       N < 1 || N != floor(N)) {
@@ -203,6 +429,7 @@ tdt_ngs_power <- function(
   if (!is.logical(verbose) || length(verbose) != 1L || is.na(verbose)) {
     stop("verbose must be TRUE or FALSE.")
   }
+  .tdt_ngs_validate_pheno_bridge(pheno_misclass, prev, pi01)
 
   fit <- .tdt_ngs_ncp(
     N = N,
@@ -213,23 +440,74 @@ tdt_ngs_power <- function(
     epsilon0 = sequencing$epsilon0,
     epsilon1 = sequencing$epsilon1
   )
-  critical <- stats::qchisq(1 - alpha, df = 1)
-  power <- stats::pchisq(
-    critical,
-    df = 1,
-    ncp = fit$lambda,
-    lower.tail = FALSE
+  base_ncp_per_trio <- fit$delta^2 * fit$efficient_information
+  base_model_info <- list(
+    test = "TDT1-NGS",
+    inheritance = "multiplicative",
+    coverage_model = if (sequencing$equal_coverage) {
+      "equal_fixed"
+    } else {
+      "member_specific_fixed"
+    },
+    sequencing_error = if (sequencing$symmetric_error) {
+      "symmetric"
+    } else {
+      "directional"
+    },
+    trio_type = "father-mother-affected-child",
+    likelihood = "raw_read_counts_with_latent_trio_states",
+    information_evaluation = "null"
   )
-
-  if (!is.finite(power) || power < 0 || power > 1) {
-    stop("Computed TDT1-NGS power must be a finite probability in [0, 1].")
+  scenarios <- list(sequencing_only = .tdt_ngs_power_scenario(
+    label = "Sequencing only", modifier = "sequencing_only",
+    N = N, alpha = alpha,
+    ncp_per_trio = base_ncp_per_trio,
+    base_ncp_per_trio = base_ncp_per_trio,
+    lambda = fit$lambda,
+    base_lambda = fit$lambda,
+    attenuation_factor = 1,
+    sequencing = sequencing,
+    efficient_information = fit$efficient_information,
+    delta = fit$delta,
+    model_info = base_model_info
+  ))
+  if (isTRUE(pheno_misclass)) {
+    bridge <- .tdt_ngs_phenotype_bridge(pd, R1, prev, pi01)
+    phenotype_model_info <- c(base_model_info, list(
+      phenotype_adjustment = "ordinary_TDT_NCP_attenuation_bridge",
+      raw_read_likelihood_modified = FALSE,
+      bridge_R2 = R1^2,
+      bridge_delta_prime = 1,
+      bridge_theta1 = pd
+    ))
+    scenarios$phenotype_misclassification <- .tdt_ngs_power_scenario(
+      label = "Phenotype misclassification",
+      modifier = "phenotype_misclassification",
+      N = N, alpha = alpha,
+      ncp_per_trio = base_ncp_per_trio * bridge$attenuation_factor,
+      base_ncp_per_trio = base_ncp_per_trio,
+      lambda = fit$lambda * bridge$attenuation_factor,
+      base_lambda = fit$lambda,
+      attenuation_factor = bridge$attenuation_factor,
+      sequencing = sequencing,
+      efficient_information = fit$efficient_information,
+      delta = fit$delta,
+      ordinary_tdt_bridge = bridge,
+      model_info = phenotype_model_info
+    )
   }
+  compatibility_scenario <- if (isTRUE(pheno_misclass)) {
+    "phenotype_misclassification"
+  } else {
+    "sequencing_only"
+  }
+  selected <- scenarios[[compatibility_scenario]]
 
   out <- list(
     N = N,
     alpha = alpha,
-    power = as.numeric(power),
-    lambda = fit$lambda,
+    power = selected$power,
+    lambda = selected$lambda,
     pd = pd,
     R1 = fit$R1,
     R2 = fit$R2,
@@ -248,23 +526,10 @@ tdt_ngs_power <- function(
     information_matrix = fit$information_matrix,
     nuisance_rcond = fit$nuisance_rcond,
     score_mean = fit$score_mean,
-    model_info = list(
-      test = "TDT1-NGS",
-      inheritance = "multiplicative",
-      coverage_model = if (sequencing$equal_coverage) {
-        "equal_fixed"
-      } else {
-        "member_specific_fixed"
-      },
-      sequencing_error = if (sequencing$symmetric_error) {
-        "symmetric"
-      } else {
-        "directional"
-      },
-      trio_type = "father-mother-affected-child",
-      likelihood = "raw_read_counts_with_latent_trio_states",
-      information_evaluation = "null"
-    )
+    model_info = base_model_info,
+    ncp_per_trio = selected$ncp_per_trio,
+    scenarios = scenarios,
+    compatibility_scenario = compatibility_scenario
   )
   class(out) <- "tdt_ngs_power"
 
@@ -336,6 +601,14 @@ print.tdt_ngs_power <- function(x, ...) {
 #'   observed as the alternative allele. Defaults to \code{seq_error}.
 #' @param epsilon1 Directional probability that an alternative-allele read is
 #'   observed as the reference allele. Defaults to \code{seq_error}.
+#' @param pheno_misclass Logical scalar. If \code{TRUE}, add a phenotype-
+#'   misclassification sensitivity scenario using the ordinary-TDT NCP bridge.
+#' @param prev Disease prevalence in \eqn{(0,1)}. Required only when
+#'   \code{pheno_misclass = TRUE}; it is used by the ordinary-TDT bridge and
+#'   does not alter the raw-read likelihood.
+#' @param pi01 Probability that an unaffected individual is misclassified or
+#'   ascertained as affected, in \eqn{[0,1)}. It must be zero unless
+#'   \code{pheno_misclass = TRUE}.
 #' @param alpha A single finite significance level in \eqn{(0,1)}. Defaults to
 #'   0.05.
 #' @param verbose Logical scalar. If \code{TRUE}, print a concise result
@@ -352,6 +625,14 @@ print.tdt_ngs_power <- function(x, ...) {
 #' \deqn{N_{continuous} = \frac{\lambda_*}{\log(R_1)^2 I_{eff}}.}
 #' The planned MSSN is the ceiling of this quantity, with achieved power and
 #' the immediately smaller design checked at the integer boundary.
+#' For the optional phenotype scenario, the ordinary-TDT attenuation factor
+#' \eqn{r_{pheno}} described in \code{\link{tdt_ngs_power}} multiplies the
+#' per-trio coefficient before inversion:
+#' \deqn{N_{continuous,pheno}=
+#'   \frac{\lambda_*}{\log(R_1)^2 I_{eff}r_{pheno}}.}
+#' The bridge fixes \eqn{R_2=R_1^2}, \eqn{\delta'=1}, and
+#' \eqn{\theta_1=p_d}. It does not modify Kim's likelihood or information
+#' matrix and is not a TDTae, locus-heterogeneity, or simulation model.
 #'
 #' If target \code{power} is no greater than \code{alpha}, the target NCP is
 #' zero and the minimum supported design is one trio. If \code{R1 = 1} and
@@ -370,7 +651,8 @@ print.tdt_ngs_power <- function(x, ...) {
 #'   target, continuous and integer trio requirements, achieved power and NCP,
 #'   per-trio NCP coefficient, multiplicative-model parameters, efficient
 #'   information, the 11 by 11 information matrix, numerical diagnostics,
-#'   effective sequencing-design metadata, and model metadata. Legacy
+#'   effective sequencing-design metadata, model metadata, and scenario-level
+#'   base and phenotype-adjusted coefficients and sample sizes. Legacy
 #'   \code{coverage} and \code{seq_error} fields retain supplied shorthand.
 #'
 #' @references
@@ -378,12 +660,28 @@ print.tdt_ngs_power <- function(x, ...) {
 #' low-coverage next-generation sequence data. \emph{Human Heredity}, 80(1),
 #' 36--49. \doi{10.1159/000434645}.
 #'
+#' Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+#' a case: Effects of phenotype misclassification on power and sample size
+#' requirements for the transmission disequilibrium test with affected child
+#' trios. \emph{Human Heredity}, 67(4), 287--292.
+#' \doi{10.1159/000194981}.
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020).
+#' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+#' Account for Mixtures in Association Studies}. Springer.
+#' \doi{10.1007/978-3-030-61121-7}.
+#'
 #' @seealso \code{\link{tdt_ngs_power}}
 #'
 #' @examples
 #' tdt_ngs_mssn(
 #'   power = 0.80, pd = 0.325, R1 = 1.2,
 #'   coverage = 12, seq_error = 0.005,
+#'   alpha = 5e-8, verbose = FALSE
+#' )
+#' tdt_ngs_mssn(
+#'   power = 0.80, pd = 0.325, R1 = 1.2, coverage = 12, seq_error = 0.005,
+#'   pheno_misclass = TRUE, prev = 0.01, pi01 = 0.05,
 #'   alpha = 5e-8, verbose = FALSE
 #' )
 #'
@@ -401,7 +699,10 @@ tdt_ngs_mssn <- function(
     mother_coverage = coverage,
     child_coverage = coverage,
     epsilon0 = seq_error,
-    epsilon1 = seq_error
+    epsilon1 = seq_error,
+    pheno_misclass = FALSE,
+    prev = NULL,
+    pi01 = 0
 ) {
   if (!is.numeric(power) || length(power) != 1L || !is.finite(power) ||
       power <= 0 || power >= 1) {
@@ -433,6 +734,7 @@ tdt_ngs_mssn <- function(
   if (!is.logical(verbose) || length(verbose) != 1L || is.na(verbose)) {
     stop("verbose must be TRUE or FALSE.")
   }
+  .tdt_ngs_validate_pheno_bridge(pheno_misclass, prev, pi01)
 
   information <- .tdt_ngs_information(
     pd = pd,
@@ -453,61 +755,81 @@ tdt_ngs_mssn <- function(
   delta <- log(t / (1 - t))
   coefficient <- delta^2 * efficient_information
   lambda_target <- .tdt_ngs_target_ncp(power, alpha)
-
-  if (coefficient == 0 && lambda_target > 0) {
-    stop(
-      "No finite MSSN exists because R1 = 1 implies zero transmission effect."
+  base_model_info <- list(
+    test = "TDT1-NGS",
+    objective = "MSSN",
+    sampling_unit = "complete_trios",
+    inheritance = "multiplicative",
+    coverage_model = if (sequencing$equal_coverage) {
+      "equal_fixed"
+    } else {
+      "member_specific_fixed"
+    },
+    sequencing_error = if (sequencing$symmetric_error) {
+      "symmetric"
+    } else {
+      "directional"
+    },
+    trio_type = "father-mother-affected-child",
+    likelihood = "raw_read_counts_with_latent_trio_states",
+    information_evaluation = "null",
+    sample_size_solution = "analytic"
+  )
+  scenarios <- list(sequencing_only = .tdt_ngs_mssn_scenario(
+    label = "Sequencing only", modifier = "sequencing_only",
+    power = power, alpha = alpha,
+    ncp_per_trio = coefficient,
+    base_ncp_per_trio = coefficient,
+    attenuation_factor = 1,
+    lambda_target = lambda_target,
+    sequencing = sequencing,
+    efficient_information = efficient_information,
+    delta = delta,
+    model_info = base_model_info
+  ))
+  if (isTRUE(pheno_misclass)) {
+    bridge <- .tdt_ngs_phenotype_bridge(pd, R1, prev, pi01)
+    phenotype_model_info <- c(base_model_info, list(
+      phenotype_adjustment = "ordinary_TDT_NCP_attenuation_bridge",
+      raw_read_likelihood_modified = FALSE,
+      bridge_R2 = R1^2,
+      bridge_delta_prime = 1,
+      bridge_theta1 = pd
+    ))
+    scenarios$phenotype_misclassification <- .tdt_ngs_mssn_scenario(
+      label = "Phenotype misclassification",
+      modifier = "phenotype_misclassification",
+      power = power, alpha = alpha,
+      ncp_per_trio = coefficient * bridge$attenuation_factor,
+      base_ncp_per_trio = coefficient,
+      attenuation_factor = bridge$attenuation_factor,
+      lambda_target = lambda_target,
+      sequencing = sequencing,
+      efficient_information = efficient_information,
+      delta = delta,
+      ordinary_tdt_bridge = bridge,
+      model_info = phenotype_model_info
     )
   }
-  N_continuous <- if (lambda_target == 0) {
-    0
+  compatibility_scenario <- if (isTRUE(pheno_misclass)) {
+    "phenotype_misclassification"
   } else {
-    lambda_target / coefficient
+    "sequencing_only"
   }
-  if (!is.finite(N_continuous) || N_continuous < 0) {
-    stop("The analytic TDT1-NGS continuous MSSN must be finite and nonnegative.")
-  }
-
-  critical <- stats::qchisq(1 - alpha, df = 1)
-  evaluate_integer <- function(N) {
-    lambda <- N * coefficient
-    achieved <- stats::pchisq(
-      critical,
-      df = 1,
-      ncp = lambda,
-      lower.tail = FALSE
-    )
-    list(N = N, lambda = as.numeric(lambda), power = as.numeric(achieved))
-  }
-
-  initial_MSSN <- max(1, ceiling(N_continuous))
-  planned <- evaluate_integer(initial_MSSN)
-
-  # Only an adjacent floating-point boundary correction is possible because
-  # lambda is exactly linear in the single integer sampling dimension N.
-  if (planned$power < power) {
-    planned <- evaluate_integer(planned$N + 1)
-  }
-  while (planned$N > 1) {
-    previous <- evaluate_integer(planned$N - 1)
-    if (previous$power < power) {
-      break
-    }
-    planned <- previous
-  }
+  selected <- scenarios[[compatibility_scenario]]
 
   out <- list(
     power_target = power,
     alpha = alpha,
-    MSSN_trios = planned$N,
-    total_individuals = 3 * planned$N,
-    N_trios_continuous = N_continuous,
-    achieved_power = planned$power,
-    achieved_lambda = planned$lambda,
+    MSSN_trios = selected$MSSN_trios,
+    total_individuals = selected$total_individuals,
+    N_trios_continuous = selected$N_trios_continuous,
+    achieved_power = selected$achieved_power,
+    achieved_lambda = selected$achieved_lambda,
     lambda_target = lambda_target,
-    ncp_per_trio = coefficient,
-    initial_MSSN_trios = initial_MSSN,
-    rounding_adjustment = planned$N - initial_MSSN,
+    ncp_per_trio = selected$ncp_per_trio,
+    initial_MSSN_trios = selected$initial_MSSN_trios,
+    rounding_adjustment = selected$rounding_adjustment,
     pd = pd,
     R1 = R1,
     R2 = R1^2,
@@ -526,26 +848,9 @@ tdt_ngs_mssn <- function(
     information_matrix = information$information_matrix,
     nuisance_rcond = information$nuisance_rcond,
     score_mean = information$score_mean,
-    model_info = list(
-      test = "TDT1-NGS",
-      objective = "MSSN",
-      sampling_unit = "complete_trios",
-      inheritance = "multiplicative",
-      coverage_model = if (sequencing$equal_coverage) {
-        "equal_fixed"
-      } else {
-        "member_specific_fixed"
-      },
-      sequencing_error = if (sequencing$symmetric_error) {
-        "symmetric"
-      } else {
-        "directional"
-      },
-      trio_type = "father-mother-affected-child",
-      likelihood = "raw_read_counts_with_latent_trio_states",
-      information_evaluation = "null",
-      sample_size_solution = "analytic"
-    )
+    model_info = base_model_info,
+    scenarios = scenarios,
+    compatibility_scenario = compatibility_scenario
   )
   class(out) <- "tdt_ngs_mssn"
 
