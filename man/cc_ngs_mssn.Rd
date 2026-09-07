@@ -113,29 +113,28 @@ rates.}
 group's rates when \code{diff_source} is \code{"case"} or \code{"ctrl"}.}
 }
 \value{
-Invisibly, an object of class \code{"cc_ngs_mssn"} containing the
-target and achieved power and NCP, continuous and integer sample sizes,
-model and sequencing inputs, true and called genotype frequencies, and
-the true-to-called transition matrix. See \code{\link{cc_ngs_power}}
-for sequencing metadata and legacy-field conventions.
+Invisibly, an object of class \code{"cc_ngs_mssn"} containing a
+scenario-first \code{scenarios} list. Each scenario records target NCP,
+\code{D}/\code{Q}, continuous and integer sample sizes, achieved NCP and
+power, rounding metadata, staged frequencies, and sequencing/error
+matrices. Legacy fields follow the \code{compatibility_scenario}
+convention documented for \code{\link{cc_ngs_power}}.
 }
 \description{
 Computes the minimum sample size necessary (MSSN) for a model-based
-case-control sequencing trend design. It uses the same phenotype modifier,
-group-specific fixed-depth symmetric sequencing-error models, deterministic
-maximum-likelihood genotype calls, and genotype-misclassification stage as
-\code{\link{cc_ngs_power}}.
+case-control sequencing trend design. It evaluates the same independent
+sequencing-only, phenotype, heterogeneity, and post-call genotype-error
+scenarios as \code{\link{cc_ngs_power}}.
 }
 \details{
-Locus heterogeneity is applied to true case genotype probabilities as
-\eqn{g_{case,H}=\pi g_{case}+(1-\pi)g_{control}}, using the same
-parameterization as ordinary PAWEH case-control design. The optional
-prevalence-weighted phenotype transformation from \code{\link{cc_mssn}}
-follows locus heterogeneity and precedes sequencing. Case sequencing settings
-apply to individuals observed as cases after phenotype classification, and
-control settings apply to individuals observed as controls. Genotype
-misclassification is applied to the resulting sequencing calls. See
-\code{\link{cc_ngs_power}} for the complete order and matrix convention.
+Locus heterogeneity uses
+\eqn{g_{case,H}=\pi g_{case}+(1-\pi)g_{control}} in its independent branch.
+The prevalence-weighted phenotype transformation from
+\code{\link{cc_mssn}} is applied directly to the common biological baseline
+in its branch. Case and control sequencing settings are then applied to the
+corresponding pre-sequencing groups. Conventional genotype
+misclassification is applied after sequencing only in its own branch. See
+\code{\link{cc_ngs_power}} for the scenario paths and matrix convention.
 When \eqn{\pi=0} and sequencing mechanisms are equal, no finite MSSN exists
 for target power greater than \code{alpha} if the observed contrast is zero.
 Differential mechanisms may create an observed contrast even under a

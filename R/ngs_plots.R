@@ -224,14 +224,17 @@ plot_ngs_power <- function(
         verbose = FALSE
       ))
       out <- do.call(cc_ngs_power, call_args)
+      scenario <- if (isTRUE(settings$locus_het)) {
+        out$scenarios$heterogeneity
+      } else out$scenarios$sequencing_only
       data.frame(
         coverage = grid$coverage[i],
         seq_error = grid$seq_error[i],
         pi = grid$pi[i],
         N_case = out$N_case,
         N_ctrl = out$N_ctrl,
-        lambda = out$lambda,
-        power = out$power
+        lambda = scenario$lambda,
+        power = scenario$power
       )
     })
   } else {
@@ -365,14 +368,19 @@ plot_ngs_mssn <- function(
       ))
       safe <- .plot_safe_mssn_call(cc_ngs_mssn, call_args)
       out <- safe$result
+      scenario <- if (safe$finite_mssn && isTRUE(settings$locus_het)) {
+        out$scenarios$heterogeneity
+      } else if (safe$finite_mssn) {
+        out$scenarios$sequencing_only
+      } else NULL
       data.frame(
         coverage = grid$coverage[i],
         seq_error = grid$seq_error[i],
         pi = grid$pi[i],
-        MSSN_case = if (safe$finite_mssn) out$MSSN_case else NA_real_,
-        MSSN_ctrl = if (safe$finite_mssn) out$MSSN_ctrl else NA_real_,
-        MSSN_total = if (safe$finite_mssn) out$MSSN_total else NA_real_,
-        achieved_power = if (safe$finite_mssn) out$achieved_power else NA_real_,
+        MSSN_case = if (safe$finite_mssn) scenario$MSSN_case else NA_real_,
+        MSSN_ctrl = if (safe$finite_mssn) scenario$MSSN_ctrl else NA_real_,
+        MSSN_total = if (safe$finite_mssn) scenario$MSSN_total else NA_real_,
+        achieved_power = if (safe$finite_mssn) scenario$achieved_power else NA_real_,
         finite_mssn = safe$finite_mssn,
         status = safe$status,
         stringsAsFactors = FALSE

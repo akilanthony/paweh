@@ -114,10 +114,14 @@ rates.}
 group's rates when \code{diff_source} is \code{"case"} or \code{"ctrl"}.}
 }
 \value{
-Invisibly, an object of class \code{"cc_ngs_power"} containing the
-design inputs, trend scores, NCP and power, model information, staged and
-called genotype frequencies, phenotype- and genotype-error metadata, and
-the true-to-called transition matrix. The frequency list distinguishes
+Invisibly, an object of class \code{"cc_ngs_power"}. The
+\code{scenarios} list always contains \code{sequencing_only} and each
+explicitly requested modifier scenario. Every scenario records staged
+frequencies, sequencing and error matrices, Ahn components \code{D} and
+\code{Q}, NCP, and power. Legacy top-level result fields mirror sequencing
+only with zero or multiple optional modifiers and the requested modifier
+with exactly one; \code{compatibility_scenario} identifies it. The
+frequency list distinguishes
 post-sequencing calls from final post-genotype-misclassification values.
 The \code{sequencing} list records the four effective group parameters and
 \code{case_transition_matrix}/\code{ctrl_transition_matrix}. Legacy
@@ -127,13 +131,10 @@ are equal. Use the two explicit matrices for differential designs.
 }
 \description{
 Computes prospective asymptotic power for a model-based case-control
-sequencing design. The calculation constructs true case and control
-genotype probabilities, applies optional locus and phenotype modifiers,
-observes each group through its fixed-depth symmetric sequencing-error model
-with deterministic maximum-likelihood genotype calls, applies optional
-genotype misclassification, and evaluates the Ahn/Chapman-Nam
-Cochran-Armitage trend-test noncentrality parameter on the final observed
-genotype probabilities.
+sequencing design. Sequencing is the common reference mechanism. Optional
+phenotype misclassification, locus heterogeneity, and conventional genotype
+misclassification are evaluated as independent sensitivity scenarios from
+the same biological baseline and sequencing design.
 }
 \details{
 Trend scores are selected from \code{MOI}: \code{"M"} uses
@@ -145,10 +146,15 @@ chi-square distribution with the calculated NCP.
 Locus heterogeneity uses the same parameterization as ordinary PAWEH
 case-control design:
 \deqn{g_{case,H} = \pi g_{case} + (1-\pi)g_{control},}
-with the control distribution unchanged. The full observation order is:
-baseline genotype model, optional locus heterogeneity, optional phenotype
-misclassification, group-specific sequencing, optional genotype
-misclassification, then the trend-test NCP.
+with the control distribution unchanged. The scenario paths are:
+sequencing only, baseline to sequencing to test; phenotype, baseline to
+phenotype misclassification to sequencing to test; heterogeneity, baseline
+to locus heterogeneity to sequencing to test; and genotype, baseline to
+sequencing to conventional genotype misclassification to test. Supplying
+multiple modifiers returns multiple independent scenarios; modifiers are
+not combined.
+The same effective case/control coverage and sequencing-error settings are
+used in every scenario.
 Phenotype misclassification uses the same prevalence-weighted transformation
 as \code{\link{cc_power}}, with
 \code{theta = Pr(affected -> control)} and
@@ -157,9 +163,9 @@ observed-control distributions enter sequencing. Separate row-true,
 column-called matrices are then constructed using each observed group's
 effective depth and error, and applied as \code{t(M_case) \%*\% g_case} and
 \code{t(M_ctrl) \%*\% g_control}. The ordinary PAWEH 1p, 2p, 3p, or differential
-3p genotype-error matrices are then applied to those sequencing-called
-frequencies with the same row-current, column-observed convention.
-Phenotype, sequencing, and genotype errors may be active simultaneously.
+3p genotype-error matrices are applied only in their independent scenario,
+after sequencing calls, with the same row-current, column-observed
+convention.
 Only equal sequencing mechanisms permit commuting
 a shared biological mixture and sequencing. At \eqn{\pi=0}, equal mechanisms
 with no phenotype-induced difference give zero NCP and power equal to

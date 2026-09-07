@@ -23,11 +23,15 @@ library(paweh)
 inputs describe a planned experiment; these functions do not process FASTQ,
 BAM, or VCF files and do not perform downstream association testing.
 
-For case-control sequencing designs, the pathway is:
+For case-control sequencing designs, sequencing is the common reference:
 
-> baseline genotype -> locus heterogeneity -> phenotype misclassification ->
-> group-specific sequencing call -> genotype misclassification ->
+> baseline genotype -> group-specific sequencing call ->
 > Ahn/Chapman--Nam trend NCP -> power or MSSN.
+
+Phenotype misclassification, locus heterogeneity, and conventional genotype
+misclassification are independent sensitivity scenarios. Each starts from the
+same biological baseline and uses the same sequencing design; conventional
+genotype misclassification is applied after the sequencing call.
 
 For affected-child sequencing trios, the pathway is:
 
@@ -411,19 +415,21 @@ cc_all_errors <- cc_ngs_power(
   ctrl_e01 = 0.01, ctrl_e02 = 0.005, ctrl_e03 = 0.002,
   verbose = FALSE
 )
-cc_all_errors$errors$genotype_misclass
+names(cc_all_errors$scenarios)
+cc_all_errors$scenarios$genotype_misclassification$errors$genotype_misclass
 ```
 
-The complete order is baseline genotype model, locus heterogeneity, phenotype
-misclassification, group-specific sequencing, genotype misclassification, and
-then the Ahn/Chapman--Nam trend calculation. Thus case sequencing settings
-apply to individuals observed as cases after phenotype classification, while
-control settings apply to the observed controls. The sequencing matrices give
+CC-NGS always reports `sequencing_only`. Requested phenotype and heterogeneity
+scenarios transform the biological baseline before group-specific sequencing.
+The requested genotype-misclassification scenario sequences the unmodified
+baseline first and applies conventional genotype error to the called
+genotypes. Multiple modifiers request multiple independent results rather than
+a combined error path. The sequencing matrices give
 `t(M_seq_case) %*% g_case_preseq` and
-`t(M_seq_ctrl) %*% g_ctrl_preseq`. The genotype-error matrices then transform
-those results. All matrices have current-genotype rows and observed-genotype
-columns; equivalently, each group's total matrix is
-`M_seq %*% M_geno`.
+`t(M_seq_ctrl) %*% g_ctrl_preseq`. In the genotype scenario, the genotype-error
+matrices then transform those calls. All matrices have current-genotype rows
+and observed-genotype columns; equivalently, each group's genotype scenario
+uses `M_seq %*% M_geno`.
 
 The `sequencing` list records all four effective parameters and both matrices.
 Legacy `coverage` and `seq_error` fields retain common inputs (or `NULL` if

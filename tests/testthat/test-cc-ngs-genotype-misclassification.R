@@ -105,6 +105,7 @@ test_that("CC-NGS genotype stage follows sequencing and feeds the Ahn trend", {
     ctrl_e01 = 0.01, ctrl_e02 = 0.005, ctrl_e03 = 0.002,
     k = 1.3, verbose = FALSE
   )
+  out <- out$scenarios$genotype_misclassification
   expected_lambda <- .cc_ahn_trend_ncp(
     out$freqs$case_final, out$freqs$control_final,
     out$N_case, out$N_ctrl, out$scores
@@ -299,7 +300,7 @@ test_that("sequential and total-matrix compositions agree for both groups", {
   }
 })
 
-test_that("effectively perfect sequencing retains the CC-NGS sequential kernel", {
+test_that("effectively perfect sequencing retains the genotype scenario kernel", {
   common <- list(
     prev = 0.05, pd = 0.30, R2 = 1.8, MOI = "M", k = 1.2,
     locus_het = TRUE, pi = 0.8,
@@ -310,7 +311,7 @@ test_that("effectively perfect sequencing retains the CC-NGS sequential kernel",
   ngs <- do.call(cc_ngs_power, c(
     list(N_case = 1000, alpha = 0.05, coverage = 100, seq_error = 0),
     common
-  ))
+  ))$scenarios$genotype_misclassification
   expected_case <- .cc_apply_genotype_misclass(
     ngs$freqs$case_post_sequencing,
     ngs$errors$genotype_misclass$M_case
@@ -355,14 +356,17 @@ test_that("MSSN round trips for 1p, 3p, and differential 3p", {
       coverage = 12, seq_error = 0.02, k = 1, verbose = FALSE
     ), setting)
     mssn <- do.call(cc_ngs_mssn, c(list(power = 0.8), common))
-    achieved <- do.call(cc_ngs_power, c(list(N_case = mssn$MSSN_case), common))
+    mssn <- mssn$scenarios$genotype_misclassification
+    achieved <- do.call(cc_ngs_power, c(
+      list(N_case = mssn$MSSN_case), common
+    ))$scenarios$genotype_misclassification
     expect_gte(achieved$power + 1e-12, 0.8)
     expect_equal(achieved$lambda, mssn$achieved_lambda, tolerance = 1e-12)
 
     if (mssn$MSSN_case > 1) {
       previous <- do.call(cc_ngs_power, c(
         list(N_case = mssn$MSSN_case - 1), common
-      ))
+      ))$scenarios$genotype_misclassification
       expect_lt(previous$power, 0.8)
     }
   }

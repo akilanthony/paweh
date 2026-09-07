@@ -625,6 +625,36 @@
   ))
 }
 
+.paweh_print_cc_ngs_scenario_modifier <- function(x) {
+  if (isTRUE(x$locus_het$enabled)) {
+    .paweh_console_parameter("Locus-homogeneity fraction (pi)",
+                             x$locus_het$pi, 4L)
+  }
+  pheno <- x$errors$phenotype_misclass
+  if (isTRUE(pheno$enabled)) {
+    .paweh_console_parameter("Affected classified as control (theta)",
+                             pheno$theta, 4L)
+    .paweh_console_parameter("Unaffected classified as case (phi)",
+                             pheno$phi, 4L)
+  }
+  genotype <- x$errors$genotype_misclass
+  if (isTRUE(genotype$enabled)) {
+    model <- switch(
+      genotype$model,
+      `1p_symmetric` = "1-parameter",
+      `2p_hom_het` = "2-parameter",
+      `3p_homhet_homhom` = "3-parameter",
+      `diff3p_homhet_homhom` = "Differential 3-parameter",
+      genotype$model
+    )
+    .paweh_console_parameter("Genotype misclassification", model)
+    if (identical(genotype$model, "diff3p_homhet_homhom")) {
+      .paweh_console_parameter("Differential error source",
+                               genotype$diff_source)
+    }
+  }
+}
+
 .paweh_print_cc_ngs_power <- function(x) {
   .paweh_console_header("PAWEH Case-Control NGS Study", "Power Analysis")
   .paweh_console_section("Study Design")
@@ -636,11 +666,17 @@
   .paweh_print_cc_ngs_model(x)
   .paweh_print_cc_ngs_sequencing(x)
   .paweh_console_rule()
-  .paweh_print_cc_ngs_frequencies(x)
-  .paweh_console_rule()
   .paweh_console_section("Power Result")
-  .paweh_console_parameter("Noncentrality parameter (NCP)", x$lambda, 6L)
-  .paweh_console_parameter("Power", x$power, 6L)
+  scenarios <- if (is.null(x$scenarios)) list(`Power Result` = x) else x$scenarios
+  for (scenario in scenarios) {
+    .paweh_console_section(scenario$label)
+    .paweh_print_cc_ngs_scenario_modifier(scenario)
+    .paweh_console_parameter("Noncentrality parameter (NCP)",
+                             scenario$lambda, 6L)
+    .paweh_console_parameter("Power", scenario$power, 6L)
+  }
+  .paweh_console_rule()
+  .paweh_print_cc_ngs_frequencies(x)
   .paweh_console_rule()
 }
 
@@ -655,17 +691,25 @@
   .paweh_print_cc_ngs_model(x)
   .paweh_print_cc_ngs_sequencing(x)
   .paweh_console_rule()
-  .paweh_print_cc_ngs_frequencies(x)
-  .paweh_console_rule()
   .paweh_console_section("Required Sample Size")
-  .paweh_console_parameter("Continuous case requirement",
-                           x$N_case_continuous, 3L)
-  .paweh_console_parameter("Required cases", x$MSSN_case, integer = TRUE)
-  .paweh_console_parameter("Required controls", x$MSSN_ctrl, integer = TRUE)
-  .paweh_console_parameter("Total MSSN", x$MSSN_total, integer = TRUE)
-  .paweh_console_parameter("Target NCP", x$lambda_target, 6L)
-  .paweh_console_parameter("Achieved NCP", x$achieved_lambda, 6L)
-  .paweh_console_parameter("Achieved power", x$achieved_power, 6L)
+  scenarios <- if (is.null(x$scenarios)) list(`Required Sample Size` = x) else x$scenarios
+  for (scenario in scenarios) {
+    .paweh_console_section(scenario$label)
+    .paweh_print_cc_ngs_scenario_modifier(scenario)
+    .paweh_console_parameter("Continuous case requirement",
+                             scenario$N_case_continuous, 3L)
+    .paweh_console_parameter("Required cases", scenario$MSSN_case,
+                             integer = TRUE)
+    .paweh_console_parameter("Required controls", scenario$MSSN_ctrl,
+                             integer = TRUE)
+    .paweh_console_parameter("Total MSSN", scenario$MSSN_total,
+                             integer = TRUE)
+    .paweh_console_parameter("Target NCP", scenario$lambda_target, 6L)
+    .paweh_console_parameter("Achieved NCP", scenario$achieved_lambda, 6L)
+    .paweh_console_parameter("Achieved power", scenario$achieved_power, 6L)
+  }
+  .paweh_console_rule()
+  .paweh_print_cc_ngs_frequencies(x)
   .paweh_console_rule()
 }
 

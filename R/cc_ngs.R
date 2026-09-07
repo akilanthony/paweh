@@ -256,16 +256,160 @@
   )
 }
 
+.cc_ngs_scenario_frequencies <- function(model, heterogeneity, phenotype,
+                                         called, genotype) {
+  list(
+    population = model$population,
+    case_true_pre_heterogeneity = model$case,
+    control_true_pre_heterogeneity = model$control,
+    case_post_heterogeneity = heterogeneity$g_case_after_locus_het,
+    control_post_heterogeneity = heterogeneity$g_ctrl_after_locus_het,
+    case_preseq = phenotype$g_case_after_pheno_misclass,
+    control_preseq = phenotype$g_ctrl_after_pheno_misclass,
+    case_true = called$case_true,
+    control_true = called$control_true,
+    case_post_sequencing = called$case_called,
+    control_post_sequencing = called$control_called,
+    case_final = genotype$case_final,
+    control_final = genotype$control_final,
+    case_called = genotype$case_final,
+    control_called = genotype$control_final
+  )
+}
+
+.cc_ngs_evaluate_observed_scenario <- function(
+    label, modifier, model, heterogeneity, phenotype,
+    coverage, seq_error, case_coverage, ctrl_coverage,
+    case_seq_error, ctrl_seq_error, genotype_args
+) {
+  called <- .cc_ngs_called_frequencies(
+    g_case = phenotype$g_case_after_pheno_misclass,
+    g_control = phenotype$g_ctrl_after_pheno_misclass,
+    coverage = coverage,
+    seq_error = seq_error,
+    case_coverage = case_coverage,
+    ctrl_coverage = ctrl_coverage,
+    case_seq_error = case_seq_error,
+    ctrl_seq_error = ctrl_seq_error
+  )
+  genotype <- do.call(
+    .cc_ngs_apply_genotype_misclassification,
+    c(list(g_case = called$case_called, g_control = called$control_called),
+      genotype_args)
+  )
+
+  list(
+    label = label,
+    modifier = modifier,
+    locus_het = heterogeneity,
+    errors = list(
+      phenotype_misclass = phenotype,
+      genotype_misclass = genotype$info
+    ),
+    freqs = .cc_ngs_scenario_frequencies(
+      model, heterogeneity, phenotype, called, genotype
+    ),
+    transition_matrix = called$E,
+    sequencing = called$sequencing
+  )
+}
+
+.cc_ngs_power_scenario <- function(observed, N_case, N_ctrl, k, scores, alpha) {
+  lambda <- .cc_ahn_trend_ncp(
+    g_case = observed$freqs$case_final,
+    g_control = observed$freqs$control_final,
+    N_case = N_case,
+    N_control = N_ctrl,
+    scores = scores
+  )
+  components <- .cc_ngs_mssn_components(
+    g_case = observed$freqs$case_final,
+    g_control = observed$freqs$control_final,
+    k = k,
+    scores = scores,
+    lambda_target = 0
+  )
+  c(observed, list(
+    alpha = alpha,
+    N_case = N_case,
+    N_ctrl = N_ctrl,
+    N_total = N_case + N_ctrl,
+    scores = scores,
+    D = components$D,
+    Q = components$Q,
+    lambda = lambda,
+    power = as.numeric(.cc_ngs_chisq_power(lambda, alpha))
+  ))
+}
+
+.cc_ngs_mssn_scenario <- function(observed, power, alpha, k, scores,
+                                  lambda_target) {
+  components <- .cc_ngs_mssn_components(
+    g_case = observed$freqs$case_final,
+    g_control = observed$freqs$control_final,
+    k = k,
+    scores = scores,
+    lambda_target = lambda_target
+  )
+  initial_case <- max(1, ceiling(components$N_case_continuous))
+  evaluate_design <- function(N_case) {
+    N_control <- ceiling(k * N_case)
+    lambda <- .cc_ahn_trend_ncp(
+      g_case = observed$freqs$case_final,
+      g_control = observed$freqs$control_final,
+      N_case = N_case,
+      N_control = N_control,
+      scores = scores
+    )
+    list(
+      N_case = N_case,
+      N_control = N_control,
+      lambda = lambda,
+      power = .cc_ngs_chisq_power(lambda, alpha)
+    )
+  }
+
+  planned <- evaluate_design(initial_case)
+  tolerance <- 1e-12
+  while (planned$N_case > 1) {
+    previous <- evaluate_design(planned$N_case - 1)
+    if (previous$power < power - tolerance) break
+    planned <- previous
+  }
+  while (planned$power < power - tolerance) {
+    planned <- evaluate_design(planned$N_case + 1)
+  }
+
+  c(observed, list(
+    power_target = power,
+    alpha = alpha,
+    k = k,
+    scores = scores,
+    D = components$D,
+    Q = components$Q,
+    MSSN_case = planned$N_case,
+    MSSN_ctrl = planned$N_control,
+    MSSN_total = planned$N_case + planned$N_control,
+    N_case_continuous = components$N_case_continuous,
+    achieved_power = planned$power,
+    achieved_lambda = planned$lambda,
+    lambda_target = lambda_target,
+    initial_MSSN_case = initial_case,
+    rounding_adjustment = planned$N_case - initial_case
+  ))
+}
+
+.cc_ngs_compatibility_scenario <- function(scenarios) {
+  if (length(scenarios) == 2L) names(scenarios)[[2L]] else "sequencing_only"
+}
+
 #' Analytic Power for a Case-Control Sequencing Study
 #'
 #' Computes prospective asymptotic power for a model-based case-control
-#' sequencing design. The calculation constructs true case and control
-#' genotype probabilities, applies optional locus and phenotype modifiers,
-#' observes each group through its fixed-depth symmetric sequencing-error model
-#' with deterministic maximum-likelihood genotype calls, applies optional
-#' genotype misclassification, and evaluates the Ahn/Chapman-Nam
-#' Cochran-Armitage trend-test noncentrality parameter on the final observed
-#' genotype probabilities.
+#' sequencing design. Sequencing is the common reference mechanism. Optional
+#' phenotype misclassification, locus heterogeneity, and conventional genotype
+#' misclassification are evaluated as independent sensitivity scenarios from
+#' the same biological baseline and sequencing design.
 #'
 #' @param N_case Numeric \eqn{> 0}. Number of cases.
 #' @param alpha Numeric in \eqn{(0,1)}. Significance level.
@@ -324,10 +468,15 @@
 #' Locus heterogeneity uses the same parameterization as ordinary PAWEH
 #' case-control design:
 #' \deqn{g_{case,H} = \pi g_{case} + (1-\pi)g_{control},}
-#' with the control distribution unchanged. The full observation order is:
-#' baseline genotype model, optional locus heterogeneity, optional phenotype
-#' misclassification, group-specific sequencing, optional genotype
-#' misclassification, then the trend-test NCP.
+#' with the control distribution unchanged. The scenario paths are:
+#' sequencing only, baseline to sequencing to test; phenotype, baseline to
+#' phenotype misclassification to sequencing to test; heterogeneity, baseline
+#' to locus heterogeneity to sequencing to test; and genotype, baseline to
+#' sequencing to conventional genotype misclassification to test. Supplying
+#' multiple modifiers returns multiple independent scenarios; modifiers are
+#' not combined.
+#' The same effective case/control coverage and sequencing-error settings are
+#' used in every scenario.
 #' Phenotype misclassification uses the same prevalence-weighted transformation
 #' as \code{\link{cc_power}}, with
 #' \code{theta = Pr(affected -> control)} and
@@ -336,9 +485,9 @@
 #' column-called matrices are then constructed using each observed group's
 #' effective depth and error, and applied as `t(M_case) %*% g_case` and
 #' `t(M_ctrl) %*% g_control`. The ordinary PAWEH 1p, 2p, 3p, or differential
-#' 3p genotype-error matrices are then applied to those sequencing-called
-#' frequencies with the same row-current, column-observed convention.
-#' Phenotype, sequencing, and genotype errors may be active simultaneously.
+#' 3p genotype-error matrices are applied only in their independent scenario,
+#' after sequencing calls, with the same row-current, column-observed
+#' convention.
 #' Only equal sequencing mechanisms permit commuting
 #' a shared biological mixture and sequencing. At \eqn{\pi=0}, equal mechanisms
 #' with no phenotype-induced difference give zero NCP and power equal to
@@ -356,10 +505,14 @@
 #' \code{seq_error = 0}, finite depth can cause call uncertainty because a true
 #' heterozygote can yield reads from only one allele.
 #'
-#' @return Invisibly, an object of class \code{"cc_ngs_power"} containing the
-#'   design inputs, trend scores, NCP and power, model information, staged and
-#'   called genotype frequencies, phenotype- and genotype-error metadata, and
-#'   the true-to-called transition matrix. The frequency list distinguishes
+#' @return Invisibly, an object of class \code{"cc_ngs_power"}. The
+#'   \code{scenarios} list always contains \code{sequencing_only} and each
+#'   explicitly requested modifier scenario. Every scenario records staged
+#'   frequencies, sequencing and error matrices, Ahn components \code{D} and
+#'   \code{Q}, NCP, and power. Legacy top-level result fields mirror sequencing
+#'   only with zero or multiple optional modifiers and the requested modifier
+#'   with exactly one; \code{compatibility_scenario} identifies it. The
+#'   frequency list distinguishes
 #'   post-sequencing calls from final post-genotype-misclassification values.
 #'   The \code{sequencing} list records the four effective group parameters and
 #'   \code{case_transition_matrix}/\code{ctrl_transition_matrix}. Legacy
@@ -444,33 +597,23 @@ cc_ngs_power <- function(
     MOI = MOI,
     prev = prev
   )
-  heterogeneity <- .cc_ngs_apply_locus_heterogeneity(
-    g_case = model$case,
-    g_control = model$control,
-    locus_het = locus_het,
-    pi = pi
+  requested_heterogeneity <- .cc_ngs_apply_locus_heterogeneity(
+    model$case, model$control, locus_het, pi
   )
-  phenotype <- .cc_ngs_apply_pheno_misclassification(
-    g_case = heterogeneity$g_case_after_locus_het,
-    g_control = heterogeneity$g_ctrl_after_locus_het,
-    prev = prev,
-    pheno_misclass = pheno_misclass,
-    theta = theta,
-    phi = phi
+  baseline_heterogeneity <- if (isTRUE(locus_het)) {
+    .cc_ngs_apply_locus_heterogeneity(model$case, model$control, FALSE, 1)
+  } else requested_heterogeneity
+  requested_phenotype <- .cc_ngs_apply_pheno_misclassification(
+    model$case, model$control, prev, pheno_misclass, theta, phi
   )
+  baseline_phenotype <- if (isTRUE(pheno_misclass)) {
+    .cc_ngs_apply_pheno_misclassification(
+      model$case, model$control, prev, FALSE, theta, phi
+    )
+  } else requested_phenotype
   scores <- .cc_ngs_scores_from_moi(MOI)
   N_ctrl <- k * N_case
-  called <- .cc_ngs_called_frequencies(
-    g_case = phenotype$g_case_after_pheno_misclass,
-    g_control = phenotype$g_ctrl_after_pheno_misclass,
-    coverage = coverage,
-    seq_error = seq_error,
-    case_coverage = case_coverage, ctrl_coverage = ctrl_coverage,
-    case_seq_error = case_seq_error, ctrl_seq_error = ctrl_seq_error
-  )
-  genotype <- .cc_ngs_apply_genotype_misclassification(
-    g_case = called$case_called,
-    g_control = called$control_called,
+  genotype_args <- list(
     geno_misclass = geno_misclass,
     e = e, e1 = e1, e2 = e2,
     e01 = e01, e02 = e02, e03 = e03,
@@ -479,15 +622,55 @@ cc_ngs_power <- function(
     diff_source = diff_source,
     diff_multiplier = diff_multiplier
   )
-  lambda <- .cc_ahn_trend_ncp(
-    g_case = genotype$case_final,
-    g_control = genotype$control_final,
-    N_case = N_case,
-    N_control = N_ctrl,
-    scores = scores
-  )
+  no_genotype_args <- genotype_args
+  no_genotype_args$geno_misclass <- "none"
 
-  power <- .cc_ngs_chisq_power(lambda, alpha)
+  observe <- function(label, modifier, heterogeneity, phenotype,
+                      genotype = no_genotype_args) {
+    .cc_ngs_evaluate_observed_scenario(
+      label = label, modifier = modifier, model = model,
+      heterogeneity = heterogeneity, phenotype = phenotype,
+      coverage = coverage, seq_error = seq_error,
+      case_coverage = case_coverage, ctrl_coverage = ctrl_coverage,
+      case_seq_error = case_seq_error, ctrl_seq_error = ctrl_seq_error,
+      genotype_args = genotype
+    )
+  }
+  scenarios <- list(sequencing_only = .cc_ngs_power_scenario(
+    observe("Sequencing only", "sequencing_only",
+            baseline_heterogeneity, baseline_phenotype),
+    N_case, N_ctrl, k, scores, alpha
+  ))
+  if (isTRUE(pheno_misclass)) {
+    phenotype <- requested_phenotype
+    scenarios$phenotype_misclassification <- .cc_ngs_power_scenario(
+      observe("Phenotype misclassification", "phenotype_misclassification",
+              baseline_heterogeneity, phenotype),
+      N_case, N_ctrl, k, scores, alpha
+    )
+  }
+  if (isTRUE(locus_het)) {
+    heterogeneity <- requested_heterogeneity
+    no_phenotype <- .cc_ngs_apply_pheno_misclassification(
+      heterogeneity$g_case_after_locus_het,
+      heterogeneity$g_ctrl_after_locus_het,
+      prev, FALSE, theta, phi
+    )
+    scenarios$heterogeneity <- .cc_ngs_power_scenario(
+      observe("Locus heterogeneity", "heterogeneity",
+              heterogeneity, no_phenotype),
+      N_case, N_ctrl, k, scores, alpha
+    )
+  }
+  if (!identical(geno_misclass, "none")) {
+    scenarios$genotype_misclassification <- .cc_ngs_power_scenario(
+      observe("Genotype misclassification", "genotype_misclassification",
+              baseline_heterogeneity, baseline_phenotype, genotype_args),
+      N_case, N_ctrl, k, scores, alpha
+    )
+  }
+  compatibility_scenario <- .cc_ngs_compatibility_scenario(scenarios)
+  selected <- scenarios[[compatibility_scenario]]
 
   out <- list(
     alpha = alpha,
@@ -495,17 +678,14 @@ cc_ngs_power <- function(
     N_ctrl = N_ctrl,
     N_total = N_case + N_ctrl,
     k = k,
-    power = as.numeric(power),
-    lambda = lambda,
+    power = selected$power,
+    lambda = selected$lambda,
     MOI = MOI,
     scores = scores,
     coverage = coverage,
     seq_error = seq_error,
-    locus_het = heterogeneity,
-    errors = list(
-      phenotype_misclass = phenotype,
-      genotype_misclass = genotype$info
-    ),
+    locus_het = selected$locus_het,
+    errors = selected$errors,
     model_info = list(
       input_mode = "model_based",
       prev = prev,
@@ -516,25 +696,11 @@ cc_ngs_power <- function(
       MOI = model$MOI,
       penetrances = model$penetrances
     ),
-    freqs = list(
-      population = model$population,
-      case_true_pre_heterogeneity = model$case,
-      control_true_pre_heterogeneity = model$control,
-      case_post_heterogeneity = heterogeneity$g_case_after_locus_het,
-      control_post_heterogeneity = heterogeneity$g_ctrl_after_locus_het,
-      case_preseq = phenotype$g_case_after_pheno_misclass,
-      control_preseq = phenotype$g_ctrl_after_pheno_misclass,
-      case_true = called$case_true,
-      control_true = called$control_true,
-      case_post_sequencing = called$case_called,
-      control_post_sequencing = called$control_called,
-      case_final = genotype$case_final,
-      control_final = genotype$control_final,
-      case_called = genotype$case_final,
-      control_called = genotype$control_final
-    ),
-    transition_matrix = called$E,
-    sequencing = called$sequencing
+    freqs = selected$freqs,
+    transition_matrix = selected$transition_matrix,
+    sequencing = selected$sequencing,
+    scenarios = scenarios,
+    compatibility_scenario = compatibility_scenario
   )
   class(out) <- "cc_ngs_power"
 
@@ -576,10 +742,9 @@ print.cc_ngs_power <- function(x, ...) {
 #' Analytic MSSN for a Case-Control Sequencing Study
 #'
 #' Computes the minimum sample size necessary (MSSN) for a model-based
-#' case-control sequencing trend design. It uses the same phenotype modifier,
-#' group-specific fixed-depth symmetric sequencing-error models, deterministic
-#' maximum-likelihood genotype calls, and genotype-misclassification stage as
-#' \code{\link{cc_ngs_power}}.
+#' case-control sequencing trend design. It evaluates the same independent
+#' sequencing-only, phenotype, heterogeneity, and post-call genotype-error
+#' scenarios as \code{\link{cc_ngs_power}}.
 #'
 #' @param power Numeric in \eqn{(0,1)}. Requested power.
 #' @param alpha Numeric in \eqn{(0,1)}. Significance level.
@@ -628,15 +793,14 @@ print.cc_ngs_power <- function(x, ...) {
 #'   \code{locus_het = FALSE}, \code{pi} must remain at its default value of 1.
 #'
 #' @details
-#' Locus heterogeneity is applied to true case genotype probabilities as
-#' \eqn{g_{case,H}=\pi g_{case}+(1-\pi)g_{control}}, using the same
-#' parameterization as ordinary PAWEH case-control design. The optional
-#' prevalence-weighted phenotype transformation from \code{\link{cc_mssn}}
-#' follows locus heterogeneity and precedes sequencing. Case sequencing settings
-#' apply to individuals observed as cases after phenotype classification, and
-#' control settings apply to individuals observed as controls. Genotype
-#' misclassification is applied to the resulting sequencing calls. See
-#' \code{\link{cc_ngs_power}} for the complete order and matrix convention.
+#' Locus heterogeneity uses
+#' \eqn{g_{case,H}=\pi g_{case}+(1-\pi)g_{control}} in its independent branch.
+#' The prevalence-weighted phenotype transformation from
+#' \code{\link{cc_mssn}} is applied directly to the common biological baseline
+#' in its branch. Case and control sequencing settings are then applied to the
+#' corresponding pre-sequencing groups. Conventional genotype
+#' misclassification is applied after sequencing only in its own branch. See
+#' \code{\link{cc_ngs_power}} for the scenario paths and matrix convention.
 #' When \eqn{\pi=0} and sequencing mechanisms are equal, no finite MSSN exists
 #' for target power greater than \code{alpha} if the observed contrast is zero.
 #' Differential mechanisms may create an observed contrast even under a
@@ -662,11 +826,12 @@ print.cc_ngs_power <- function(x, ...) {
 #' latent-genotype likelihood or EM method, downstream association testing, or
 #' simulation.
 #'
-#' @return Invisibly, an object of class \code{"cc_ngs_mssn"} containing the
-#'   target and achieved power and NCP, continuous and integer sample sizes,
-#'   model and sequencing inputs, true and called genotype frequencies, and
-#'   the true-to-called transition matrix. See \code{\link{cc_ngs_power}}
-#'   for sequencing metadata and legacy-field conventions.
+#' @return Invisibly, an object of class \code{"cc_ngs_mssn"} containing a
+#'   scenario-first \code{scenarios} list. Each scenario records target NCP,
+#'   \code{D}/\code{Q}, continuous and integer sample sizes, achieved NCP and
+#'   power, rounding metadata, staged frequencies, and sequencing/error
+#'   matrices. Legacy fields follow the \code{compatibility_scenario}
+#'   convention documented for \code{\link{cc_ngs_power}}.
 #'
 #' @references
 #' Ahn, K., Haynes, C., Kim, W., St. Fleur, R., Gordon, D., & Finch, S. J.
@@ -740,136 +905,110 @@ cc_ngs_mssn <- function(
   }
 
   model <- .cc_model_genotype_frequencies(
-    pd = pd,
-    R2 = R2,
-    MOI = MOI,
-    prev = prev
+    pd = pd, R2 = R2, MOI = MOI, prev = prev
   )
-  heterogeneity <- .cc_ngs_apply_locus_heterogeneity(
-    g_case = model$case,
-    g_control = model$control,
-    locus_het = locus_het,
-    pi = pi
+  requested_heterogeneity <- .cc_ngs_apply_locus_heterogeneity(
+    model$case, model$control, locus_het, pi
   )
-  phenotype <- .cc_ngs_apply_pheno_misclassification(
-    g_case = heterogeneity$g_case_after_locus_het,
-    g_control = heterogeneity$g_ctrl_after_locus_het,
-    prev = prev,
-    pheno_misclass = pheno_misclass,
-    theta = theta,
-    phi = phi
+  baseline_heterogeneity <- if (isTRUE(locus_het)) {
+    .cc_ngs_apply_locus_heterogeneity(model$case, model$control, FALSE, 1)
+  } else requested_heterogeneity
+  requested_phenotype <- .cc_ngs_apply_pheno_misclassification(
+    model$case, model$control, prev, pheno_misclass, theta, phi
   )
+  baseline_phenotype <- if (isTRUE(pheno_misclass)) {
+    .cc_ngs_apply_pheno_misclassification(
+      model$case, model$control, prev, FALSE, theta, phi
+    )
+  } else requested_phenotype
   scores <- .cc_ngs_scores_from_moi(MOI)
-  called <- .cc_ngs_called_frequencies(
-    g_case = phenotype$g_case_after_pheno_misclass,
-    g_control = phenotype$g_ctrl_after_pheno_misclass,
-    coverage = coverage,
-    seq_error = seq_error,
-    case_coverage = case_coverage, ctrl_coverage = ctrl_coverage,
-    case_seq_error = case_seq_error, ctrl_seq_error = ctrl_seq_error
-  )
-  genotype <- .cc_ngs_apply_genotype_misclassification(
-    g_case = called$case_called,
-    g_control = called$control_called,
+  genotype_args <- list(
     geno_misclass = geno_misclass,
     e = e, e1 = e1, e2 = e2,
     e01 = e01, e02 = e02, e03 = e03,
     case_e01 = case_e01, case_e02 = case_e02, case_e03 = case_e03,
     ctrl_e01 = ctrl_e01, ctrl_e02 = ctrl_e02, ctrl_e03 = ctrl_e03,
-    diff_source = diff_source,
-    diff_multiplier = diff_multiplier
+    diff_source = diff_source, diff_multiplier = diff_multiplier
   )
+  no_genotype_args <- genotype_args
+  no_genotype_args$geno_misclass <- "none"
+  observe <- function(label, modifier, heterogeneity, phenotype,
+                      genotype = no_genotype_args) {
+    .cc_ngs_evaluate_observed_scenario(
+      label = label, modifier = modifier, model = model,
+      heterogeneity = heterogeneity, phenotype = phenotype,
+      coverage = coverage, seq_error = seq_error,
+      case_coverage = case_coverage, ctrl_coverage = ctrl_coverage,
+      case_seq_error = case_seq_error, ctrl_seq_error = ctrl_seq_error,
+      genotype_args = genotype
+    )
+  }
   lambda_target <- .cc_ngs_target_ncp(power, alpha)
-  components <- .cc_ngs_mssn_components(
-    g_case = genotype$case_final,
-    g_control = genotype$control_final,
-    k = k,
-    scores = scores,
-    lambda_target = lambda_target
-  )
-
-  initial_case <- max(1, ceiling(components$N_case_continuous))
-  evaluate_design <- function(N_case) {
-    N_control <- ceiling(k * N_case)
-    lambda <- .cc_ahn_trend_ncp(
-      g_case = genotype$case_final,
-      g_control = genotype$control_final,
-      N_case = N_case,
-      N_control = N_control,
-      scores = scores
-    )
-    list(
-      N_case = N_case,
-      N_control = N_control,
-      lambda = lambda,
-      power = .cc_ngs_chisq_power(lambda, alpha)
+  scenarios <- list(sequencing_only = .cc_ngs_mssn_scenario(
+    observe("Sequencing only", "sequencing_only",
+            baseline_heterogeneity, baseline_phenotype),
+    power, alpha, k, scores, lambda_target
+  ))
+  if (isTRUE(pheno_misclass)) {
+    phenotype <- requested_phenotype
+    scenarios$phenotype_misclassification <- .cc_ngs_mssn_scenario(
+      observe("Phenotype misclassification", "phenotype_misclassification",
+              baseline_heterogeneity, phenotype),
+      power, alpha, k, scores, lambda_target
     )
   }
-
-  planned <- evaluate_design(initial_case)
-  tolerance <- 1e-12
-  while (planned$N_case > 1) {
-    previous <- evaluate_design(planned$N_case - 1)
-    if (previous$power < power - tolerance) {
-      break
-    }
-    planned <- previous
+  if (isTRUE(locus_het)) {
+    heterogeneity <- requested_heterogeneity
+    no_phenotype <- .cc_ngs_apply_pheno_misclassification(
+      heterogeneity$g_case_after_locus_het,
+      heterogeneity$g_ctrl_after_locus_het,
+      prev, FALSE, theta, phi
+    )
+    scenarios$heterogeneity <- .cc_ngs_mssn_scenario(
+      observe("Locus heterogeneity", "heterogeneity",
+              heterogeneity, no_phenotype),
+      power, alpha, k, scores, lambda_target
+    )
   }
-  while (planned$power < power - tolerance) {
-    planned <- evaluate_design(planned$N_case + 1)
+  if (!identical(geno_misclass, "none")) {
+    scenarios$genotype_misclassification <- .cc_ngs_mssn_scenario(
+      observe("Genotype misclassification", "genotype_misclassification",
+              baseline_heterogeneity, baseline_phenotype, genotype_args),
+      power, alpha, k, scores, lambda_target
+    )
   }
+  compatibility_scenario <- .cc_ngs_compatibility_scenario(scenarios)
+  selected <- scenarios[[compatibility_scenario]]
 
   out <- list(
     power_target = power,
     alpha = alpha,
-    MSSN_case = planned$N_case,
-    MSSN_ctrl = planned$N_control,
-    MSSN_total = planned$N_case + planned$N_control,
-    N_case_continuous = components$N_case_continuous,
-    achieved_power = planned$power,
-    achieved_lambda = planned$lambda,
-    lambda_target = lambda_target,
-    initial_MSSN_case = initial_case,
-    rounding_adjustment = planned$N_case - initial_case,
+    MSSN_case = selected$MSSN_case,
+    MSSN_ctrl = selected$MSSN_ctrl,
+    MSSN_total = selected$MSSN_total,
+    N_case_continuous = selected$N_case_continuous,
+    achieved_power = selected$achieved_power,
+    achieved_lambda = selected$achieved_lambda,
+    lambda_target = selected$lambda_target,
+    initial_MSSN_case = selected$initial_MSSN_case,
+    rounding_adjustment = selected$rounding_adjustment,
     k = k,
     MOI = MOI,
     scores = scores,
     coverage = coverage,
     seq_error = seq_error,
-    locus_het = heterogeneity,
-    errors = list(
-      phenotype_misclass = phenotype,
-      genotype_misclass = genotype$info
-    ),
+    locus_het = selected$locus_het,
+    errors = selected$errors,
     model_info = list(
-      input_mode = "model_based",
-      prev = prev,
-      pd = pd,
-      qd = 1 - pd,
-      R1 = model$R1,
-      R2 = model$R2,
-      MOI = model$MOI,
+      input_mode = "model_based", prev = prev, pd = pd, qd = 1 - pd,
+      R1 = model$R1, R2 = model$R2, MOI = model$MOI,
       penetrances = model$penetrances
     ),
-    freqs = list(
-      population = model$population,
-      case_true_pre_heterogeneity = model$case,
-      control_true_pre_heterogeneity = model$control,
-      case_post_heterogeneity = heterogeneity$g_case_after_locus_het,
-      control_post_heterogeneity = heterogeneity$g_ctrl_after_locus_het,
-      case_preseq = phenotype$g_case_after_pheno_misclass,
-      control_preseq = phenotype$g_ctrl_after_pheno_misclass,
-      case_true = called$case_true,
-      control_true = called$control_true,
-      case_post_sequencing = called$case_called,
-      control_post_sequencing = called$control_called,
-      case_final = genotype$case_final,
-      control_final = genotype$control_final,
-      case_called = genotype$case_final,
-      control_called = genotype$control_final
-    ),
-    transition_matrix = called$E,
-    sequencing = called$sequencing
+    freqs = selected$freqs,
+    transition_matrix = selected$transition_matrix,
+    sequencing = selected$sequencing,
+    scenarios = scenarios,
+    compatibility_scenario = compatibility_scenario
   )
   class(out) <- "cc_ngs_mssn"
 

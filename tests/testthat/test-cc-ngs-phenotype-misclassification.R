@@ -9,17 +9,12 @@ cc_ngs_pheno_args <- function(...) {
   )
 }
 
-cc_ngs_pheno_sequential_reference <- function(args, N_case = 1000) {
+cc_ngs_pheno_reference <- function(args, N_case = 1000) {
   model <- .cc_model_genotype_frequencies(
     args$pd, args$R2, args$MOI, args$prev
   )
-  g_case <- if (isTRUE(args$locus_het)) {
-    args$pi * model$case + (1 - args$pi) * model$control
-  } else {
-    model$case
-  }
   pheno <- .cc_apply_pheno_misclass(
-    g_case, model$control, args$prev, args$theta, args$phi
+    model$case, model$control, args$prev, args$theta, args$phi
   )
   tests <- .cc_power_test_results(
     pheno$g_case_obs, pheno$g_ctrl_obs, args$k,
@@ -82,26 +77,29 @@ test_that("active zero phenotype error is a numerical identity", {
     } else {
       list(power = 0.8)
     }
-    none <- do.call(fun, c(size, args))
     zero <- do.call(
       fun,
       c(size, args, list(pheno_misclass = TRUE, theta = 0, phi = 0))
     )
-    expect_identical(zero$freqs, none$freqs)
-    expect_identical(zero$sequencing, none$sequencing)
+    observed <- zero$scenarios$phenotype_misclassification
+    none <- zero$scenarios$sequencing_only
+    expect_equal(observed$freqs, none$freqs, tolerance = 1e-15)
+    expect_identical(observed$sequencing, none$sequencing)
     if (identical(fun, cc_ngs_power)) {
-      expect_identical(zero$lambda, none$lambda)
-      expect_identical(zero$power, none$power)
+      expect_equal(observed$lambda, none$lambda, tolerance = 1e-13)
+      expect_equal(observed$power, none$power, tolerance = 1e-14)
     } else {
-      expect_identical(zero$N_case_continuous, none$N_case_continuous)
-      expect_identical(zero$MSSN_case, none$MSSN_case)
-      expect_identical(zero$MSSN_ctrl, none$MSSN_ctrl)
-      expect_identical(zero$achieved_power, none$achieved_power)
+      expect_equal(observed$N_case_continuous, none$N_case_continuous,
+                   tolerance = 1e-12)
+      expect_identical(observed$MSSN_case, none$MSSN_case)
+      expect_identical(observed$MSSN_ctrl, none$MSSN_ctrl)
+      expect_equal(observed$achieved_power, none$achieved_power,
+                   tolerance = 1e-14)
     }
   }
 })
 
-test_that("CC-NGS pre-sequencing frequencies retain the sequential kernel", {
+test_that("CC-NGS phenotype scenarios start directly from baseline", {
   for (MOI in c("M", "D", "Rec")) {
     for (setting in list(
       list(locus_het = FALSE, pi = 1),
@@ -112,8 +110,9 @@ test_that("CC-NGS pre-sequencing frequencies retain the sequential kernel", {
         c(list(MOI = MOI, pheno_misclass = TRUE,
                theta = 0.08, phi = 0.015), setting)
       )
-      ngs <- do.call(cc_ngs_power, c(list(N_case = 1000), args))
-      ordinary <- cc_ngs_pheno_sequential_reference(args)
+      result <- do.call(cc_ngs_power, c(list(N_case = 1000), args))
+      ngs <- result$scenarios$phenotype_misclassification
+      ordinary <- cc_ngs_pheno_reference(args)
 
       expect_identical(ngs$freqs$case_preseq,
                        ordinary$freqs$g_true_case)
@@ -159,6 +158,7 @@ test_that("phenotype and sequencing composition matches manual matrices", {
              theta = 0.08, phi = 0.015), setting)
     )
     out <- do.call(cc_ngs_power, c(list(N_case = 700), args))
+    out <- out$scenarios$phenotype_misclassification
     E_case <- ngs_genotype_error_matrix(
       out$sequencing$case_coverage, out$sequencing$case_seq_error
     )
@@ -182,7 +182,7 @@ test_that("phenotype and sequencing composition matches manual matrices", {
   }
 })
 
-test_that("heterogeneity precedes phenotype mixing and sequencing", {
+test_that("phenotype and heterogeneity branch independently before sequencing", {
   args <- cc_ngs_pheno_args(
     MOI = "Rec", locus_het = TRUE, pi = 0.55,
     pheno_misclass = TRUE, theta = 0.12, phi = 0.02,
@@ -195,7 +195,7 @@ test_that("heterogeneity precedes phenotype mixing and sequencing", {
   )
   case_het <- args$pi * model$case + (1 - args$pi) * model$control
   pheno <- .cc_apply_pheno_misclass(
-    case_het, model$control, args$prev, args$theta, args$phi
+    model$case, model$control, args$prev, args$theta, args$phi
   )
   E_case <- ngs_genotype_error_matrix(
     args$case_coverage, args$case_seq_error
@@ -204,15 +204,17 @@ test_that("heterogeneity precedes phenotype mixing and sequencing", {
     args$ctrl_coverage, args$ctrl_seq_error
   )
 
-  expect_equal(out$freqs$case_post_heterogeneity, case_het,
+  phenotype <- out$scenarios$phenotype_misclassification
+  heterogeneity <- out$scenarios$heterogeneity
+  expect_equal(heterogeneity$freqs$case_preseq, case_het,
                tolerance = 1e-15)
-  expect_identical(out$freqs$control_post_heterogeneity, model$control)
-  expect_identical(out$freqs$case_preseq, pheno$g_case_obs)
-  expect_identical(out$freqs$control_preseq, pheno$g_ctrl_obs)
-  expect_equal(out$freqs$case_called,
+  expect_identical(heterogeneity$freqs$control_preseq, model$control)
+  expect_identical(phenotype$freqs$case_preseq, pheno$g_case_obs)
+  expect_identical(phenotype$freqs$control_preseq, pheno$g_ctrl_obs)
+  expect_equal(phenotype$freqs$case_called,
                as.numeric(t(E_case) %*% pheno$g_case_obs),
                tolerance = 1e-15)
-  expect_equal(out$freqs$control_called,
+  expect_equal(phenotype$freqs$control_called,
                as.numeric(t(E_ctrl) %*% pheno$g_ctrl_obs),
                tolerance = 1e-15)
 })
@@ -232,17 +234,18 @@ test_that("phenotype-misclassified MSSNs attain target and are minimal", {
       c(list(pheno_misclass = TRUE, theta = 0.05, phi = 0.01), setting)
     )
     mssn <- do.call(cc_ngs_mssn, c(list(power = 0.8), args))
+    mssn_result <- mssn$scenarios$phenotype_misclassification
     achieved <- do.call(
       cc_ngs_power,
-      c(list(N_case = mssn$MSSN_case), args)
-    )
-    expect_equal(mssn$achieved_power, achieved$power, tolerance = 1e-14)
+      c(list(N_case = mssn_result$MSSN_case), args)
+    )$scenarios$phenotype_misclassification
+    expect_equal(mssn_result$achieved_power, achieved$power, tolerance = 1e-14)
     expect_gte(achieved$power + 1e-12, 0.8)
-    if (mssn$MSSN_case > 1) {
+    if (mssn_result$MSSN_case > 1) {
       previous <- do.call(
         cc_ngs_power,
-        c(list(N_case = mssn$MSSN_case - 1), args)
-      )
+        c(list(N_case = mssn_result$MSSN_case - 1), args)
+      )$scenarios$phenotype_misclassification
       expect_lt(previous$power, 0.8)
     }
   }
@@ -276,14 +279,15 @@ test_that("CC-NGS phenotype inputs follow ordinary case-control validation", {
   }
 })
 
-test_that("high-depth phenotype CC-NGS agrees with its sequential reference", {
+test_that("high-depth phenotype CC-NGS agrees with its independent reference", {
   args <- cc_ngs_pheno_args(
     coverage = 100, seq_error = 0,
     locus_het = TRUE, pi = 0.7,
     pheno_misclass = TRUE, theta = 0.05, phi = 0.01
   )
-  ngs <- do.call(cc_ngs_power, c(list(N_case = 1000), args))
-  ordinary <- cc_ngs_pheno_sequential_reference(args)
+  ngs <- do.call(cc_ngs_power, c(list(N_case = 1000), args))$
+    scenarios$phenotype_misclassification
+  ordinary <- cc_ngs_pheno_reference(args)
   expect_equal(ngs$freqs$case_preseq, ordinary$freqs$g_true_case,
                tolerance = 1e-15)
   expect_equal(ngs$freqs$control_preseq, ordinary$freqs$g_true_ctrl,

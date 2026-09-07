@@ -71,6 +71,25 @@ test_that("CC-NGS plots retain heterogeneity and exact-null semantics", {
   expect_true(all(null$status == "no finite MSSN"))
 })
 
+test_that("CC-NGS plots select heterogeneity among multiple scenarios", {
+  dat <- plot_ngs_power(
+    design = "cc", coverage = c(8, 10), seq_error = 0.01,
+    return_data = TRUE, N_case = 700, alpha = 0.05,
+    prev = 0.05, pd = 0.30, R2 = 1.8, MOI = "M", k = 1.2,
+    locus_het = TRUE, pi = 0.7,
+    pheno_misclass = TRUE, theta = 0.05, phi = 0.01
+  )
+  direct <- cc_ngs_power(
+    N_case = 700, alpha = 0.05, prev = 0.05, pd = 0.30, R2 = 1.8,
+    coverage = 8, seq_error = 0.01, MOI = "M", k = 1.2,
+    locus_het = TRUE, pi = 0.7,
+    pheno_misclass = TRUE, theta = 0.05, phi = 0.01,
+    verbose = FALSE
+  )
+  expect_identical(dat$lambda[[1L]], direct$scenarios$heterogeneity$lambda)
+  expect_identical(dat$power[[1L]], direct$scenarios$heterogeneity$power)
+})
+
 test_that("CC-NGS strict master switch and validation errors propagate", {
   expect_error(
     plot_ngs_power(
