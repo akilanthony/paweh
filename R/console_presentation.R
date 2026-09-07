@@ -556,6 +556,14 @@
     .paweh_console_parameter("Locus-homogeneity fraction (pi)",
                              x$locus_het$pi, 4L)
   }
+  pheno <- x$errors$phenotype_misclass
+  if (!is.null(pheno) && isTRUE(pheno$enabled)) {
+    .paweh_console_parameter("Phenotype misclassification", "Enabled")
+    .paweh_console_parameter("Affected classified as control (theta)",
+                             pheno$theta, 4L)
+    .paweh_console_parameter("Unaffected classified as case (phi)",
+                             pheno$phi, 4L)
+  }
 }
 
 .paweh_print_cc_ngs_sequencing <- function(x) {
@@ -584,7 +592,12 @@
 }
 
 .paweh_print_cc_ngs_frequencies <- function(x) {
-  .paweh_console_section("True Genotype Frequencies")
+  pheno <- x$errors$phenotype_misclass
+  .paweh_console_section(if (!is.null(pheno) && isTRUE(pheno$enabled)) {
+    "Pre-Sequencing Observed-Group Genotype Frequencies"
+  } else {
+    "True Genotype Frequencies"
+  })
   .paweh_console_genotype_table(list(
     list(label = "Cases", values = x$freqs$case_true),
     list(label = "Controls", values = x$freqs$control_true)

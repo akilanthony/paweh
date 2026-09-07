@@ -47,6 +47,7 @@ not hard-call the three genotypes. These are not interchangeable methods.
 | Public power function | `cc_ngs_power()` | `tdt_ngs_power()` |
 | Public MSSN function | `cc_ngs_mssn()` | `tdt_ngs_mssn()` |
 | Locus heterogeneity | Available | Not currently implemented |
+| Phenotype misclassification | Available | Not currently implemented |
 
 Both designs use fixed coverage and symmetric per-read error. CC-NGS permits
 separate case/control depths and error rates; TDT1-NGS retains equal settings.
@@ -347,16 +348,40 @@ cc_differential <- cc_ngs_power(
 cc_differential$sequencing
 ```
 
-Locus heterogeneity is applied to the true frequencies first. The case matrix
-then gives `t(M_case) %*% g_case`, and the control matrix gives
-`t(M_ctrl) %*% g_control`. Both matrices have true-genotype rows and
-called-genotype columns. The existing Ahn/Chapman--Nam calculation receives
-these called distributions unchanged.
+CC-NGS also accepts the ordinary case-control phenotype-error parameters:
+`pheno_misclass`, `theta`, and `phi`. Here `theta` is the probability that a
+truly affected individual is classified as a control, and `phi` is the
+probability that a truly unaffected individual is classified as a case.
+The transformation uses disease prevalence exactly as `cc_power()` and
+`cc_mssn()` do.
+
+```{r cc-ngs-phenotype-misclassification}
+cc_pheno_differential <- cc_ngs_power(
+  N_case = 1000, alpha = 0.05, prev = 0.05, pd = 0.30, R2 = 1.8,
+  coverage = 10, seq_error = 0.01,
+  case_coverage = 4, case_seq_error = 0.04,
+  locus_het = TRUE, pi = 0.75,
+  pheno_misclass = TRUE, theta = 0.02, phi = 0.01,
+  verbose = FALSE
+)
+cc_pheno_differential$errors$phenotype_misclass
+```
+
+The complete order is baseline genotype model, locus heterogeneity, phenotype
+misclassification, group-specific sequencing, and then the Ahn/Chapman--Nam
+trend calculation. Thus case sequencing settings apply to individuals observed
+as cases after phenotype classification, while control settings apply to the
+observed controls. The case matrix gives `t(M_case) %*% g_case_preseq`, and the
+control matrix gives `t(M_ctrl) %*% g_ctrl_preseq`. Both matrices have
+true-genotype rows and called-genotype columns.
 
 The `sequencing` list records all four effective parameters and both matrices.
 Legacy `coverage` and `seq_error` fields retain common inputs (or `NULL` if
 omitted); `transition_matrix` retains the case matrix, shared by both groups
 when settings are equal. Use the explicit matrices for differential designs.
+The `freqs` list exposes post-heterogeneity and pre-sequencing frequencies, and
+the `errors$phenotype_misclass` list records the phenotype transformation and
+its observed-group denominators.
 
 Different sequencing mechanisms can create observed differences even under a
 biological null. Power and MSSN are nominal asymptotic results using the
@@ -488,6 +513,7 @@ coverage-distribution modeling is deferred.
 | Sequencing analysis | Deterministic genotype calls | Raw-read latent-state likelihood |
 | Case/control observation error | Common or differential sequencing | Not applicable |
 | Locus heterogeneity | Optional canonical mixture | Not implemented |
+| Phenotype misclassification | Optional prevalence-weighted mixture | Not implemented |
 | Simulation | None | None |
 
 Deferred capabilities include variable/BGE coverage, simulation validation,

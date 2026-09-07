@@ -20,7 +20,10 @@ cc_ngs_power(
   case_coverage = coverage,
   ctrl_coverage = coverage,
   case_seq_error = seq_error,
-  ctrl_seq_error = seq_error
+  ctrl_seq_error = seq_error,
+  pheno_misclass = FALSE,
+  theta = 0,
+  phi = 0
 )
 }
 \arguments{
@@ -63,11 +66,21 @@ Each defaults to \code{coverage}; an explicit value overrides it.}
 \item{case_seq_error, ctrl_seq_error}{Case/control per-read error probabilities.
 Each defaults to \code{seq_error}; an explicit value overrides it.
 Effective depths and errors obey the common parameter constraints.}
+
+\item{pheno_misclass}{Logical. If \code{TRUE}, apply the ordinary PAWEH
+case-control phenotype-misclassification model before sequencing.}
+
+\item{theta}{Numeric in \eqn{[0,1)}. Probability that a truly affected
+individual is classified as a control.}
+
+\item{phi}{Numeric in \eqn{[0,1)}. Probability that a truly unaffected
+individual is classified as a case.}
 }
 \value{
 Invisibly, an object of class \code{"cc_ngs_power"} containing the
-design inputs, trend scores, NCP and power, model information, true and
-called genotype frequencies, and the true-to-called transition matrix.
+design inputs, trend scores, NCP and power, model information, staged and
+called genotype frequencies, phenotype-error metadata, and the
+true-to-called transition matrix.
 The \code{sequencing} list records the four effective group parameters and
 \code{case_transition_matrix}/\code{ctrl_transition_matrix}. Legacy
 \code{coverage}/\code{seq_error} retain supplied common inputs (or NULL);
@@ -77,10 +90,11 @@ are equal. Use the two explicit matrices for differential designs.
 \description{
 Computes prospective asymptotic power for a model-based case-control
 sequencing design. The calculation constructs true case and control
-genotype probabilities, applies a fixed-depth symmetric sequencing-error
-model with deterministic maximum-likelihood genotype calls, and evaluates
-the Ahn/Chapman-Nam Cochran-Armitage trend-test noncentrality parameter on
-the resulting called-genotype probabilities.
+genotype probabilities, applies optional locus and phenotype modifiers,
+observes each group through its fixed-depth symmetric sequencing-error model
+with deterministic maximum-likelihood genotype calls, and evaluates the
+Ahn/Chapman-Nam Cochran-Armitage trend-test noncentrality parameter on the
+resulting called-genotype probabilities.
 }
 \details{
 Trend scores are selected from \code{MOI}: \code{"M"} uses
@@ -92,13 +106,21 @@ chi-square distribution with the calculated NCP.
 Locus heterogeneity uses the same parameterization as ordinary PAWEH
 case-control design:
 \deqn{g_{case,H} = \pi g_{case} + (1-\pi)g_{control},}
-with the control distribution unchanged. This biological mixture is applied
-to true genotype probabilities before sequencing observation. Separate
-row-true, column-called matrices are constructed using each group's effective
-depth and error, then applied as \code{t(M_case) \%*\% g_case} and
-\code{t(M_ctrl) \%*\% g_control}. Only equal mechanisms permit commuting the
-mixture and sequencing. At \eqn{\pi=0}, equal mechanisms give zero NCP
-and power equal to \code{alpha}.
+with the control distribution unchanged. The full observation order is:
+baseline genotype model, optional locus heterogeneity, optional phenotype
+misclassification, group-specific sequencing, then the trend-test NCP.
+Phenotype misclassification uses the same prevalence-weighted transformation
+as \code{\link{cc_power}}, with
+\code{theta = Pr(affected -> control)} and
+\code{phi = Pr(unaffected -> case)}. The resulting observed-case and
+observed-control distributions enter sequencing. Separate row-true,
+column-called matrices are then constructed using each observed group's
+effective depth and error, and applied as \code{t(M_case) \%*\% g_case} and
+\code{t(M_ctrl) \%*\% g_control}. Phenotype and differential sequencing errors may
+be active simultaneously. Only equal sequencing mechanisms permit commuting
+a shared biological mixture and sequencing. At \eqn{\pi=0}, equal mechanisms
+with no phenotype-induced difference give zero NCP and power equal to
+\code{alpha}.
 
 Differential sequencing mechanisms can create observed case/control
 differences even under a biological null. Results remain nominal asymptotic

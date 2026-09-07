@@ -22,6 +22,44 @@
   invisible(components)
 }
 
+# Shared phenotype-misclassification transformation for case-control designs.
+# Here theta = Pr(affected -> control) and
+# phi = Pr(unaffected -> case). Public callers validate theta, phi, and prev.
+.cc_apply_pheno_misclass <- function(g_aff, g_unaff, prev, theta, phi) {
+  check_genotype_freqs <- function(g, name) {
+    if (!is.numeric(g) || length(g) != 3)
+      stop(name, " must be a numeric vector of length 3: c(g0, g1, g2).")
+    if (any(!is.finite(g)))
+      stop(name, " contains non-finite values.")
+    if (any(g < 0))
+      stop(name, " cannot contain negative genotype frequencies.")
+    if (abs(sum(g) - 1) > 1e-6)
+      stop(name, " must sum to 1.")
+    invisible(TRUE)
+  }
+
+  check_genotype_freqs(g_aff, "g_aff")
+  check_genotype_freqs(g_unaff, "g_unaff")
+
+  case_denom <- (1 - theta) * prev + phi * (1 - prev)
+  ctrl_denom <- theta * prev + (1 - phi) * (1 - prev)
+
+  if (case_denom <= 0 || ctrl_denom <= 0)
+    stop("Observed case/control denominators must be positive.")
+
+  g_case_obs <- (g_aff * (1 - theta) * prev +
+                   g_unaff * phi * (1 - prev)) / case_denom
+  g_ctrl_obs <- (g_aff * theta * prev +
+                   g_unaff * (1 - phi) * (1 - prev)) / ctrl_denom
+
+  list(
+    g_case_obs = as.numeric(g_case_obs / sum(g_case_obs)),
+    g_ctrl_obs = as.numeric(g_ctrl_obs / sum(g_ctrl_obs)),
+    case_denom = case_denom,
+    ctrl_denom = ctrl_denom
+  )
+}
+
 .cc_mssn_test_results <- function(g_case, g_ctrl, k, w,
                                   lambda_star_g, lambda_star_t,
                                   validate = TRUE) {
@@ -419,30 +457,6 @@ cc_mssn <- function(
     )
   }
 
-  cc_apply_pheno_misclass <- function(g_aff, g_unaff, prev, theta, phi) {
-    check_genotype_freqs(g_aff, "g_aff")
-    check_genotype_freqs(g_unaff, "g_unaff")
-
-    case_denom <- (1 - theta) * prev + phi * (1 - prev)
-    ctrl_denom <- theta * prev + (1 - phi) * (1 - prev)
-
-    if (case_denom <= 0 || ctrl_denom <= 0)
-      stop("Observed case/control denominators must be positive.")
-
-    g_case_obs <- (g_aff * (1 - theta) * prev + g_unaff * phi * (1 - prev)) /
-      case_denom
-
-    g_ctrl_obs <- (g_aff * theta * prev + g_unaff * (1 - phi) * (1 - prev)) /
-      ctrl_denom
-
-    list(
-      g_case_obs = as.numeric(g_case_obs / sum(g_case_obs)),
-      g_ctrl_obs = as.numeric(g_ctrl_obs / sum(g_ctrl_obs)),
-      case_denom = case_denom,
-      ctrl_denom = ctrl_denom
-    )
-  }
-
   cc_misclass_matrix_1p <- function(e) {
     if (!is.numeric(e) || length(e) != 1 || e < 0 || e > 0.5)
       stop("e must be a single number in [0, 0.5].")
@@ -615,7 +629,7 @@ cc_mssn <- function(
 
   # ---- apply phenotype misclassification as optional modifier ----
   if (isTRUE(pheno_misclass)) {
-    pheno <- cc_apply_pheno_misclass(
+    pheno <- .cc_apply_pheno_misclass(
       g_aff = g1_true,
       g_unaff = g0_true,
       prev = prev,
@@ -1153,30 +1167,6 @@ cc_power <- function(
     )
   }
 
-  cc_apply_pheno_misclass <- function(g_aff, g_unaff, prev, theta, phi) {
-    check_genotype_freqs(g_aff, "g_aff")
-    check_genotype_freqs(g_unaff, "g_unaff")
-
-    case_denom <- (1 - theta) * prev + phi * (1 - prev)
-    ctrl_denom <- theta * prev + (1 - phi) * (1 - prev)
-
-    if (case_denom <= 0 || ctrl_denom <= 0)
-      stop("Observed case/control denominators must be positive.")
-
-    g_case_obs <- (g_aff * (1 - theta) * prev + g_unaff * phi * (1 - prev)) /
-      case_denom
-
-    g_ctrl_obs <- (g_aff * theta * prev + g_unaff * (1 - phi) * (1 - prev)) /
-      ctrl_denom
-
-    list(
-      g_case_obs = as.numeric(g_case_obs / sum(g_case_obs)),
-      g_ctrl_obs = as.numeric(g_ctrl_obs / sum(g_ctrl_obs)),
-      case_denom = case_denom,
-      ctrl_denom = ctrl_denom
-    )
-  }
-
   cc_misclass_matrix_1p <- function(e) {
     if (!is.numeric(e) || length(e) != 1 || e < 0 || e > 0.5)
       stop("e must be a single number in [0, 0.5].")
@@ -1349,7 +1339,7 @@ cc_power <- function(
 
   # ---- apply phenotype misclassification as optional modifier ----
   if (isTRUE(pheno_misclass)) {
-    pheno <- cc_apply_pheno_misclass(
+    pheno <- .cc_apply_pheno_misclass(
       g_aff = g1_true,
       g_unaff = g0_true,
       prev = prev,

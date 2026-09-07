@@ -20,7 +20,10 @@ cc_ngs_mssn(
   case_coverage = coverage,
   ctrl_coverage = coverage,
   case_seq_error = seq_error,
-  ctrl_seq_error = seq_error
+  ctrl_seq_error = seq_error,
+  pheno_misclass = FALSE,
+  theta = 0,
+  phi = 0
 )
 }
 \arguments{
@@ -62,6 +65,15 @@ Each defaults to \code{coverage}; an explicit value overrides it.}
 \item{case_seq_error, ctrl_seq_error}{Case/control per-read error probabilities.
 Each defaults to \code{seq_error}; an explicit value overrides it.
 Effective depths and errors obey the common parameter constraints.}
+
+\item{pheno_misclass}{Logical. If \code{TRUE}, apply the ordinary PAWEH
+case-control phenotype-misclassification model before sequencing.}
+
+\item{theta}{Numeric in \eqn{[0,1)}. Probability that a truly affected
+individual is classified as a control.}
+
+\item{phi}{Numeric in \eqn{[0,1)}. Probability that a truly unaffected
+individual is classified as a case.}
 }
 \value{
 Invisibly, an object of class \code{"cc_ngs_mssn"} containing the
@@ -72,21 +84,26 @@ for sequencing metadata and legacy-field conventions.
 }
 \description{
 Computes the minimum sample size necessary (MSSN) for a model-based
-case-control sequencing trend design. It uses the same fixed-depth,
-symmetric sequencing-error model and deterministic maximum-likelihood
-genotype calls as \code{\link{cc_ngs_power}}.
+case-control sequencing trend design. It uses the same phenotype modifier,
+group-specific fixed-depth symmetric sequencing-error models, and
+deterministic maximum-likelihood genotype calls as
+\code{\link{cc_ngs_power}}.
 }
 \details{
 Locus heterogeneity is applied to true case genotype probabilities as
 \eqn{g_{case,H}=\pi g_{case}+(1-\pi)g_{control}}, using the same
-parameterization as ordinary PAWEH case-control design. Sequencing
-observation follows this mixture, using separate case/control transition
-matrices as described in \code{\link{cc_ngs_power}}. When \eqn{\pi=0}
-and mechanisms are equal, no finite MSSN exists for target power greater
-than \code{alpha}. Differential mechanisms may create an observed contrast
-even under a biological null. MSSN is a nominal asymptotic calculation using
-the existing chi-square critical value, without separate null-distribution
-or Type I error recalibration.
+parameterization as ordinary PAWEH case-control design. The optional
+prevalence-weighted phenotype transformation from \code{\link{cc_mssn}}
+follows locus heterogeneity and precedes sequencing. Case sequencing settings
+apply to individuals observed as cases after phenotype classification, and
+control settings apply to individuals observed as controls. See
+\code{\link{cc_ngs_power}} for the complete order and matrix convention.
+When \eqn{\pi=0} and sequencing mechanisms are equal, no finite MSSN exists
+for target power greater than \code{alpha} if the observed contrast is zero.
+Differential mechanisms may create an observed contrast even under a
+biological null. MSSN is a nominal asymptotic calculation using the existing
+chi-square critical value, without separate null-distribution or Type I error
+recalibration.
 
 The function numerically inverts the one-degree-of-freedom noncentral
 chi-square distribution only to obtain the target NCP. It then solves the
