@@ -780,6 +780,51 @@
     .paweh_console_rule()
     return(invisible(x))
   }
+  if ("heterogeneity" %in% names(x$scenarios)) {
+    base <- x$scenarios$sequencing_only
+    heterogeneous <- x$scenarios$heterogeneity
+    hbridge <- heterogeneous$ordinary_tdt_bridge
+    if ("phenotype_misclassification" %in% names(x$scenarios)) {
+      .paweh_console_section("Independent Sensitivity Scenarios")
+      .paweh_console_parameter(
+        "Interpretation", "Modifiers are evaluated separately"
+      )
+    }
+    .paweh_console_section("Sequencing only")
+    .paweh_console_parameter("Noncentrality parameter (NCP)",
+                             base$lambda, 6L)
+    .paweh_console_parameter("Power", base$power, 6L)
+    if ("phenotype_misclassification" %in% names(x$scenarios)) {
+      phenotype <- x$scenarios$phenotype_misclassification
+      pbridge <- phenotype$ordinary_tdt_bridge
+      .paweh_console_section("Phenotype misclassification")
+      .paweh_console_parameter(
+        "Phenotype adjustment", "ordinary-TDT NCP attenuation bridge"
+      )
+      .paweh_console_parameter("Prevalence", pbridge$prev, 5L)
+      .paweh_console_parameter("Unaffected as affected (pi01)",
+                               pbridge$pi01, 5L)
+      .paweh_console_parameter("Attenuation factor",
+                               pbridge$attenuation_factor, 8L)
+      .paweh_console_parameter("Adjusted NCP", phenotype$lambda, 6L)
+      .paweh_console_parameter("Adjusted power", phenotype$power, 6L)
+    }
+    .paweh_console_section("Locus heterogeneity")
+    .paweh_console_parameter(
+      "Heterogeneity adjustment", "ordinary-TDT NCP attenuation bridge"
+    )
+    .paweh_console_parameter("Prevalence", hbridge$prev, 5L)
+    .paweh_console_parameter("Heterogeneous trio fraction (heter_rate)",
+                             hbridge$heter_rate, 5L)
+    .paweh_console_parameter("Linked/homogeneous fraction (pi)",
+                             hbridge$effective_pi, 5L)
+    .paweh_console_parameter("Attenuation factor",
+                             hbridge$attenuation_factor, 8L)
+    .paweh_console_parameter("Adjusted NCP", heterogeneous$lambda, 6L)
+    .paweh_console_parameter("Adjusted power", heterogeneous$power, 6L)
+    .paweh_console_rule()
+    return(invisible(x))
+  }
   .paweh_console_section("Information and Power")
   .paweh_console_parameter("Efficient information per trio",
                            x$efficient_information, 8L)
@@ -821,6 +866,63 @@
                              adjusted$achieved_lambda, 6L)
     .paweh_console_parameter("Adjusted achieved power",
                              adjusted$achieved_power, 6L)
+    .paweh_print_tdt_ngs_model(x)
+    .paweh_print_tdt_ngs_sequencing(x)
+    .paweh_console_rule()
+    return(invisible(x))
+  }
+  if ("heterogeneity" %in% names(x$scenarios)) {
+    base <- x$scenarios$sequencing_only
+    heterogeneous <- x$scenarios$heterogeneity
+    hbridge <- heterogeneous$ordinary_tdt_bridge
+    if ("phenotype_misclassification" %in% names(x$scenarios)) {
+      .paweh_console_section("Independent Sensitivity Scenarios")
+      .paweh_console_parameter(
+        "Interpretation", "Modifiers are evaluated separately"
+      )
+    }
+    .paweh_console_section("Sequencing only")
+    .paweh_console_parameter("Continuous trio requirement",
+                             base$N_trios_continuous, 3L)
+    .paweh_console_parameter("Required complete trios", base$MSSN_trios,
+                             integer = TRUE)
+    .paweh_console_parameter("Achieved power", base$achieved_power, 6L)
+    if ("phenotype_misclassification" %in% names(x$scenarios)) {
+      phenotype <- x$scenarios$phenotype_misclassification
+      pbridge <- phenotype$ordinary_tdt_bridge
+      .paweh_console_section("Phenotype misclassification")
+      .paweh_console_parameter(
+        "Phenotype adjustment", "ordinary-TDT NCP attenuation bridge"
+      )
+      .paweh_console_parameter("Prevalence", pbridge$prev, 5L)
+      .paweh_console_parameter("Unaffected as affected (pi01)",
+                               pbridge$pi01, 5L)
+      .paweh_console_parameter("Attenuation factor",
+                               pbridge$attenuation_factor, 8L)
+      .paweh_console_parameter("Adjusted required complete trios",
+                               phenotype$MSSN_trios, integer = TRUE)
+      .paweh_console_parameter("Adjusted achieved power",
+                               phenotype$achieved_power, 6L)
+    }
+    .paweh_console_section("Locus heterogeneity")
+    .paweh_console_parameter(
+      "Heterogeneity adjustment", "ordinary-TDT NCP attenuation bridge"
+    )
+    .paweh_console_parameter("Prevalence", hbridge$prev, 5L)
+    .paweh_console_parameter("Heterogeneous trio fraction (heter_rate)",
+                             hbridge$heter_rate, 5L)
+    .paweh_console_parameter("Linked/homogeneous fraction (pi)",
+                             hbridge$effective_pi, 5L)
+    .paweh_console_parameter("Attenuation factor",
+                             hbridge$attenuation_factor, 8L)
+    .paweh_console_parameter("Adjusted continuous trio requirement",
+                             heterogeneous$N_trios_continuous, 3L)
+    .paweh_console_parameter("Adjusted required complete trios",
+                             heterogeneous$MSSN_trios, integer = TRUE)
+    .paweh_console_parameter("Adjusted achieved NCP",
+                             heterogeneous$achieved_lambda, 6L)
+    .paweh_console_parameter("Adjusted achieved power",
+                             heterogeneous$achieved_power, 6L)
     .paweh_print_tdt_ngs_model(x)
     .paweh_print_tdt_ngs_sequencing(x)
     .paweh_console_rule()

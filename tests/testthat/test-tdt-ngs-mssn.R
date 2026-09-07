@@ -388,7 +388,8 @@ test_that("MSSN source retains the intended analytic raw-read scope", {
     c(
       "power", "pd", "R1", "coverage", "seq_error", "alpha", "verbose",
       "father_coverage", "mother_coverage", "child_coverage",
-      "epsilon0", "epsilon1", "pheno_misclass", "prev", "pi01"
+      "epsilon0", "epsilon1", "pheno_misclass", "prev", "pi01",
+      "locus_het", "heter_rate"
     )
   )
 })

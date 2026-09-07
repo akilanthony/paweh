@@ -29,8 +29,8 @@ rather than a ggplot object.}
 \item{...}{Fixed arguments passed to \code{cc_ngs_mssn()} or
 \code{tdt_ngs_mssn()}. For case-control designs,
 \code{locus_het = TRUE} permits a vector of \code{pi} values. TDT1-NGS
-does not accept
-heterogeneity arguments.}
+accepts a fixed \code{locus_het} and \code{heter_rate} through
+\code{...}; its public convention is \code{heter_rate = 1 - pi}.}
 }
 \value{
 A ggplot object with exact results in \code{plot$data}, or a data
@@ -56,8 +56,7 @@ calculation errors propagate unchanged.
 
 Coverage is fixed and equal for the relevant study members. These plots do
 not model variable/BGE coverage distributions, cost optimization, or
-sample-specific depth. They use no simulation. Locus heterogeneity is
-currently available only for case-control designs.
+sample-specific depth. They use no simulation.
 }
 \examples{
 plot_ngs_mssn(

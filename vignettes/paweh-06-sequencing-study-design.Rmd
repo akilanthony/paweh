@@ -51,7 +51,7 @@ not hard-call the three genotypes. These are not interchangeable methods.
 | Association kernel | Ahn/Chapman--Nam trend NCP | Kim efficient-information NCP |
 | Public power function | `cc_ngs_power()` | `tdt_ngs_power()` |
 | Public MSSN function | `cc_ngs_mssn()` | `tdt_ngs_mssn()` |
-| Locus heterogeneity | Available | Not currently implemented |
+| Locus heterogeneity | Available | Ordinary-TDT NCP attenuation sensitivity |
 | Phenotype misclassification | Available | Ordinary-TDT NCP attenuation sensitivity |
 
 Both designs use fixed coverage. CC-NGS permits separate case/control depths
@@ -202,7 +202,28 @@ tdt_pheno$scenarios$phenotype_misclassification$ordinary_tdt_bridge
 
 The phenotype scenario scales the per-trio coefficient before MSSN inversion.
 It is an ordinary-TDT attenuation bridge, not a phenotype-aware raw-read
-likelihood, TDTae, locus-heterogeneity model, or simulation.
+likelihood, TDTae, or simulation.
+
+Locus heterogeneity is a second independent sensitivity scenario. Its public
+parameter is the heterogeneous trio fraction `heter_rate`; the linked or
+homogeneous fraction in the ordinary TDT equations is
+$\pi=1-\text{heter_rate}$. The bridge applies
+$r_{het}=c_{heterogeneity}/c_{noerror}$ to the same sequencing-only NCP.
+
+```{r tdt-ngs-locus-heterogeneity}
+tdt_het <- tdt_ngs_power(
+  N = 5000, pd = 0.325, R1 = 1.2,
+  coverage = 12, seq_error = 0.005,
+  locus_het = TRUE, prev = 0.01, heter_rate = 0.25,
+  alpha = 5e-8, verbose = FALSE
+)
+tdt_het$scenarios$heterogeneity$ordinary_tdt_bridge
+```
+
+When both modifiers are requested, `scenarios` contains `sequencing_only`,
+`phenotype_misclassification`, and `heterogeneity` in that order. The two
+modifier scenarios each start from `sequencing_only`; PAWEH does not multiply
+their attenuation factors or report a combined modifier result.
 
 `coverage` remains shorthand for one equal fixed depth. The optional
 `father_coverage`, `mother_coverage`, and `child_coverage` arguments override
@@ -600,13 +621,13 @@ coverage-distribution modeling is deferred.
 | Public read error | Symmetric | Common directional pair |
 | Sequencing analysis | Deterministic genotype calls | Raw-read latent-state likelihood |
 | Case/control observation error | Common or differential sequencing | Not applicable |
-| Locus heterogeneity | Optional canonical mixture | Not implemented |
+| Locus heterogeneity | Optional canonical mixture | Optional ordinary-TDT NCP attenuation bridge |
 | Phenotype misclassification | Optional prevalence-weighted mixture | Optional ordinary-TDT NCP attenuation bridge |
 | Genotype misclassification | Optional 1p, 2p, 3p, or differential 3p | Not implemented |
 | Simulation | None | None |
 
 Deferred capabilities include variable/BGE coverage, simulation validation,
-cost-depth optimization, TDT sequencing heterogeneity, and a sequencing Shiny
+cost-depth optimization, TDT genotype misclassification, and a sequencing Shiny
 module. The existing dashboard covers the non-sequencing study-design modules.
 
 # A practical design workflow

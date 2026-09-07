@@ -91,6 +91,28 @@
   invisible(TRUE)
 }
 
+.tdt_ngs_validate_heterogeneity_bridge <- function(locus_het, prev,
+                                                    heter_rate) {
+  if (!is.logical(locus_het) || length(locus_het) != 1L || is.na(locus_het)) {
+    stop("locus_het must be TRUE or FALSE.")
+  }
+  if (!is.numeric(heter_rate) || length(heter_rate) != 1L ||
+      !is.finite(heter_rate) || heter_rate < 0 || heter_rate > 1) {
+    stop("heter_rate must be a single finite number in [0, 1].")
+  }
+  if (!isTRUE(locus_het) && heter_rate != 0) {
+    stop("heter_rate must be 0 unless locus_het = TRUE.")
+  }
+  if (isTRUE(locus_het) &&
+      (is.null(prev) || !is.numeric(prev) || length(prev) != 1L ||
+       !is.finite(prev) || prev <= 0 || prev >= 1)) {
+    stop(
+      "When locus_het = TRUE, prev must be a single finite number in (0, 1)."
+    )
+  }
+  invisible(TRUE)
+}
+
 .tdt_ngs_ncp_per_trio <- function(gT, gNT) {
   value <- 2 * (gT - gNT)^2 / (gT + gNT)
   if (!is.finite(value) || value < 0) {
@@ -165,6 +187,70 @@
   )
 }
 
+.tdt_ngs_heterogeneity_bridge <- function(pd, R1, prev, heter_rate) {
+  effective_pi <- 1 - heter_rate
+  bridge_args <- list(
+    N_star = 1, pd = pd, prev = prev, R1 = R1, R2 = R1^2,
+    delta_prime = 1, theta1 = pd, verbose = FALSE
+  )
+  noerror <- do.call(
+    tdt_expected_transmission_counts,
+    c(bridge_args, list(pi = 1))
+  )
+  heterogeneous <- do.call(
+    tdt_expected_transmission_counts,
+    c(bridge_args, list(pi = effective_pi))
+  )
+  gT0 <- noerror$ET_star / 2
+  gNT0 <- noerror$ENT_star / 2
+  gT1 <- heterogeneous$ET_star / 2
+  gNT1 <- heterogeneous$ENT_star / 2
+  c0 <- .tdt_ngs_ncp_per_trio(gT0, gNT0)
+  c1 <- .tdt_ngs_ncp_per_trio(gT1, gNT1)
+  tolerance <- 1e-14 * max(1, abs(c0), abs(c1))
+  if (c0 <= tolerance) {
+    if (c1 > tolerance) {
+      stop(
+        "Internal heterogeneity-bridge inconsistency: ordinary-TDT ",
+        "heterogeneity NCP is positive while its no-error baseline is zero."
+      )
+    }
+    attenuation <- 1
+    status <- "zero_baseline_effect_identity"
+  } else {
+    attenuation <- if (heter_rate == 0) 1 else c1 / c0
+    status <- if (heter_rate == 0) "identity_heter_rate_zero" else "estimated"
+  }
+  if (!is.finite(attenuation) || attenuation < 0) {
+    stop(
+      "The ordinary-TDT heterogeneity attenuation factor must be finite ",
+      "and nonnegative."
+    )
+  }
+
+  list(
+    modifier = "locus_heterogeneity",
+    prev = prev,
+    heter_rate = heter_rate,
+    effective_pi = effective_pi,
+    pd = pd,
+    R1 = R1,
+    R2 = R1^2,
+    delta_prime = 1,
+    theta1 = pd,
+    gT_noerror = gT0,
+    gNT_noerror = gNT0,
+    ncp_per_trio_noerror = c0,
+    gT_heterogeneity = gT1,
+    gNT_heterogeneity = gNT1,
+    ncp_per_trio_heterogeneity = c1,
+    attenuation_factor = as.numeric(attenuation),
+    status = status,
+    method = "ordinary_TDT_NCP_attenuation_bridge",
+    raw_read_likelihood_modified = FALSE
+  )
+}
+
 .tdt_ngs_power_scenario <- function(label, modifier, N, alpha,
                                     ncp_per_trio, base_ncp_per_trio,
                                     lambda = N * ncp_per_trio,
@@ -205,9 +291,13 @@
                                    attenuation_factor, lambda_target,
                                    sequencing, efficient_information, delta,
                                    ordinary_tdt_bridge = NULL,
-                                   model_info = NULL) {
+                                   model_info = NULL,
+                                   zero_signal_message = paste(
+                                     "No finite MSSN exists because R1 = 1",
+                                     "implies zero transmission effect."
+                                   )) {
   if (ncp_per_trio == 0 && lambda_target > 0) {
-    stop("No finite MSSN exists because R1 = 1 implies zero transmission effect.")
+    stop(zero_signal_message)
   }
   N_continuous <- if (lambda_target == 0) 0 else lambda_target / ncp_per_trio
   if (!is.finite(N_continuous) || N_continuous < 0) {
@@ -284,12 +374,18 @@
 #'   observed as the reference allele. Defaults to \code{seq_error}.
 #' @param pheno_misclass Logical scalar. If \code{TRUE}, add a phenotype-
 #'   misclassification sensitivity scenario using the ordinary-TDT NCP bridge.
-#' @param prev Disease prevalence in \eqn{(0,1)}. Required only when
-#'   \code{pheno_misclass = TRUE}; it is used by the ordinary-TDT bridge and
-#'   does not alter the raw-read likelihood.
+#' @param prev Disease prevalence in \eqn{(0,1)}. Required when either
+#'   phenotype misclassification or locus heterogeneity is requested. It is
+#'   used only by the ordinary-TDT bridges and does not alter the raw-read
+#'   likelihood.
 #' @param pi01 Probability that an unaffected individual is misclassified or
 #'   ascertained as affected, in \eqn{[0,1)}. It must be zero unless
 #'   \code{pheno_misclass = TRUE}.
+#' @param locus_het Logical scalar. If \code{TRUE}, add an independent locus-
+#'   heterogeneity sensitivity scenario using the ordinary-TDT NCP bridge.
+#' @param heter_rate Heterogeneous trio fraction in \eqn{[0,1]}. The ordinary-
+#'   TDT linked/homogeneous fraction is \eqn{\pi=1-}\code{heter_rate}. It must
+#'   be zero unless \code{locus_het = TRUE}.
 #' @param alpha A single finite significance level in \eqn{(0,1)}. Defaults to
 #'   0.05.
 #' @param verbose Logical scalar. If \code{TRUE}, print a concise result
@@ -322,6 +418,17 @@
 #' \eqn{\lambda_{pheno}=\lambda_{NGS}r_{pheno}}. Kim's raw-read likelihood,
 #' information matrix, and efficient information remain unchanged.
 #'
+#' Locus heterogeneity uses the analogous independent bridge
+#' \deqn{r_{het}=c_{heterogeneity}/c_{noerror},\qquad
+#' \lambda_{het}=\lambda_{NGS}r_{het}.}
+#' The ordinary-TDT expected counts are evaluated at one trio using
+#' \eqn{\pi=1} for the homogeneous reference and
+#' \eqn{\pi=1-}\code{heter_rate} for the requested sensitivity scenario.
+#' It uses the same fixed \eqn{R_2}, \eqn{\delta'}, and \eqn{\theta_1}
+#' assumptions as the phenotype bridge. If both modifiers are requested, they
+#' are reported separately against the same sequencing-only baseline; their
+#' factors are never multiplied and no combined result is calculated.
+#'
 #' The existing directional read model is
 #' \deqn{q_G=\epsilon_0 + (1-\epsilon_0-\epsilon_1)G/2,}
 #' for genotype \eqn{G\in\{0,1,2\}}. Thus \eqn{q_0=\epsilon_0},
@@ -337,8 +444,8 @@
 #' generalized inverse.
 #'
 #' This prospective calculation performs no simulation or EM fitting. It does
-#' not implement TDT2-NGS, locus heterogeneity, conventional genotype
-#' misclassification/TDTae, or multi-locus testing.
+#' not implement TDT2-NGS, conventional genotype misclassification/TDTae, a
+#' joint modifier likelihood, or multi-locus testing.
 #' Coverage is fixed for each member rather than random or sample-specific.
 #'
 #' @return Invisibly, an object of class \code{"tdt_ngs_power"} containing the
@@ -347,10 +454,11 @@
 #'   diagnostics, effective member-specific coverage and directional-error
 #'   metadata, model metadata, and a \code{scenarios} list that always contains
 #'   \code{sequencing_only} and, when requested,
-#'   \code{phenotype_misclassification}. The phenotype scenario records the
-#'   ordinary-TDT bridge inputs, coefficients, attenuation factor, and confirms
-#'   that the raw-read likelihood was not modified. Legacy \code{coverage} and
-#'   \code{seq_error} fields retain the supplied common shorthand values.
+#'   \code{phenotype_misclassification} and \code{heterogeneity}. Modifier
+#'   scenarios record their ordinary-TDT bridge inputs, coefficients,
+#'   attenuation factor, and confirmation that the raw-read likelihood was not
+#'   modified. Legacy \code{coverage} and \code{seq_error} fields retain the
+#'   supplied common shorthand values.
 #'
 #' @references
 #' Kim, W. (2015). Transmission disequilibrium tests based on read counts for
@@ -363,6 +471,11 @@
 #' trios. \emph{Human Heredity}, 67(4), 287--292.
 #' \doi{10.1159/000194981}.
 #'
+#' Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+#' (2009). Transmission disequilibrium test power and sample size in the
+#' presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+#' and Molecular Biology}, 8, Article 44. \doi{10.2202/1544-6115.1501}.
+#'
 #' Gordon, D., Finch, S. J., & Kim, W. (2020).
 #' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
 #' Account for Mixtures in Association Studies}. Springer.
@@ -372,6 +485,11 @@
 #' tdt_ngs_power(
 #'   N = 5000, pd = 0.325, R1 = 1.2,
 #'   coverage = 12, seq_error = 0.005,
+#'   alpha = 5e-8, verbose = FALSE
+#' )
+#' tdt_ngs_power(
+#'   N = 5000, pd = 0.325, R1 = 1.2, coverage = 12, seq_error = 0.005,
+#'   locus_het = TRUE, prev = 0.01, heter_rate = 0.25,
 #'   alpha = 5e-8, verbose = FALSE
 #' )
 #' tdt_ngs_power(
@@ -397,7 +515,9 @@ tdt_ngs_power <- function(
     epsilon1 = seq_error,
     pheno_misclass = FALSE,
     prev = NULL,
-    pi01 = 0
+    pi01 = 0,
+    locus_het = FALSE,
+    heter_rate = 0
 ) {
   if (!is.numeric(N) || length(N) != 1L || !is.finite(N) ||
       N < 1 || N != floor(N)) {
@@ -430,6 +550,7 @@ tdt_ngs_power <- function(
     stop("verbose must be TRUE or FALSE.")
   }
   .tdt_ngs_validate_pheno_bridge(pheno_misclass, prev, pi01)
+  .tdt_ngs_validate_heterogeneity_bridge(locus_het, prev, heter_rate)
 
   fit <- .tdt_ngs_ncp(
     N = N,
@@ -496,10 +617,40 @@ tdt_ngs_power <- function(
       model_info = phenotype_model_info
     )
   }
-  compatibility_scenario <- if (isTRUE(pheno_misclass)) {
+  if (isTRUE(locus_het)) {
+    bridge <- .tdt_ngs_heterogeneity_bridge(pd, R1, prev, heter_rate)
+    heterogeneity_model_info <- c(base_model_info, list(
+      heterogeneity_adjustment = "ordinary_TDT_NCP_attenuation_bridge",
+      raw_read_likelihood_modified = FALSE,
+      bridge_R2 = R1^2,
+      bridge_delta_prime = 1,
+      bridge_theta1 = pd,
+      bridge_heter_rate = heter_rate,
+      bridge_pi = 1 - heter_rate
+    ))
+    scenarios$heterogeneity <- .tdt_ngs_power_scenario(
+      label = "Locus heterogeneity",
+      modifier = "heterogeneity",
+      N = N, alpha = alpha,
+      ncp_per_trio = base_ncp_per_trio * bridge$attenuation_factor,
+      base_ncp_per_trio = base_ncp_per_trio,
+      lambda = fit$lambda * bridge$attenuation_factor,
+      base_lambda = fit$lambda,
+      attenuation_factor = bridge$attenuation_factor,
+      sequencing = sequencing,
+      efficient_information = fit$efficient_information,
+      delta = fit$delta,
+      ordinary_tdt_bridge = bridge,
+      model_info = heterogeneity_model_info
+    )
+  }
+  active_modifiers <- sum(c(isTRUE(pheno_misclass), isTRUE(locus_het)))
+  compatibility_scenario <- if (active_modifiers != 1L) {
+    "sequencing_only"
+  } else if (isTRUE(pheno_misclass)) {
     "phenotype_misclassification"
   } else {
-    "sequencing_only"
+    "heterogeneity"
   }
   selected <- scenarios[[compatibility_scenario]]
 
@@ -603,12 +754,18 @@ print.tdt_ngs_power <- function(x, ...) {
 #'   observed as the reference allele. Defaults to \code{seq_error}.
 #' @param pheno_misclass Logical scalar. If \code{TRUE}, add a phenotype-
 #'   misclassification sensitivity scenario using the ordinary-TDT NCP bridge.
-#' @param prev Disease prevalence in \eqn{(0,1)}. Required only when
-#'   \code{pheno_misclass = TRUE}; it is used by the ordinary-TDT bridge and
-#'   does not alter the raw-read likelihood.
+#' @param prev Disease prevalence in \eqn{(0,1)}. Required when either
+#'   phenotype misclassification or locus heterogeneity is requested. It is
+#'   used only by the ordinary-TDT bridges and does not alter the raw-read
+#'   likelihood.
 #' @param pi01 Probability that an unaffected individual is misclassified or
 #'   ascertained as affected, in \eqn{[0,1)}. It must be zero unless
 #'   \code{pheno_misclass = TRUE}.
+#' @param locus_het Logical scalar. If \code{TRUE}, add an independent locus-
+#'   heterogeneity sensitivity scenario using the ordinary-TDT NCP bridge.
+#' @param heter_rate Heterogeneous trio fraction in \eqn{[0,1]}. The ordinary-
+#'   TDT linked/homogeneous fraction is \eqn{\pi=1-}\code{heter_rate}. It must
+#'   be zero unless \code{locus_het = TRUE}.
 #' @param alpha A single finite significance level in \eqn{(0,1)}. Defaults to
 #'   0.05.
 #' @param verbose Logical scalar. If \code{TRUE}, print a concise result
@@ -632,7 +789,14 @@ print.tdt_ngs_power <- function(x, ...) {
 #'   \frac{\lambda_*}{\log(R_1)^2 I_{eff}r_{pheno}}.}
 #' The bridge fixes \eqn{R_2=R_1^2}, \eqn{\delta'=1}, and
 #' \eqn{\theta_1=p_d}. It does not modify Kim's likelihood or information
-#' matrix and is not a TDTae, locus-heterogeneity, or simulation model.
+#' matrix and is not a TDTae or simulation model.
+#'
+#' For locus heterogeneity, \eqn{r_{het}} is the ratio of the ordinary-TDT
+#' heterogeneous and homogeneous per-trio NCP coefficients, with
+#' \eqn{\pi=1-}\code{heter_rate}. The adjusted coefficient is
+#' \eqn{\log(R_1)^2 I_{eff}r_{het}} before inversion. Phenotype and
+#' heterogeneity requests remain separate scenarios; no product of their
+#' attenuation factors is used.
 #'
 #' If target \code{power} is no greater than \code{alpha}, the target NCP is
 #' zero and the minimum supported design is one trio. If \code{R1 = 1} and
@@ -652,7 +816,7 @@ print.tdt_ngs_power <- function(x, ...) {
 #'   per-trio NCP coefficient, multiplicative-model parameters, efficient
 #'   information, the 11 by 11 information matrix, numerical diagnostics,
 #'   effective sequencing-design metadata, model metadata, and scenario-level
-#'   base and phenotype-adjusted coefficients and sample sizes. Legacy
+#'   base and independently adjusted coefficients and sample sizes. Legacy
 #'   \code{coverage} and \code{seq_error} fields retain supplied shorthand.
 #'
 #' @references
@@ -666,6 +830,11 @@ print.tdt_ngs_power <- function(x, ...) {
 #' trios. \emph{Human Heredity}, 67(4), 287--292.
 #' \doi{10.1159/000194981}.
 #'
+#' Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+#' (2009). Transmission disequilibrium test power and sample size in the
+#' presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+#' and Molecular Biology}, 8, Article 44. \doi{10.2202/1544-6115.1501}.
+#'
 #' Gordon, D., Finch, S. J., & Kim, W. (2020).
 #' \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
 #' Account for Mixtures in Association Studies}. Springer.
@@ -677,6 +846,11 @@ print.tdt_ngs_power <- function(x, ...) {
 #' tdt_ngs_mssn(
 #'   power = 0.80, pd = 0.325, R1 = 1.2,
 #'   coverage = 12, seq_error = 0.005,
+#'   alpha = 5e-8, verbose = FALSE
+#' )
+#' tdt_ngs_mssn(
+#'   power = 0.80, pd = 0.325, R1 = 1.2, coverage = 12, seq_error = 0.005,
+#'   locus_het = TRUE, prev = 0.01, heter_rate = 0.25,
 #'   alpha = 5e-8, verbose = FALSE
 #' )
 #' tdt_ngs_mssn(
@@ -702,7 +876,9 @@ tdt_ngs_mssn <- function(
     epsilon1 = seq_error,
     pheno_misclass = FALSE,
     prev = NULL,
-    pi01 = 0
+    pi01 = 0,
+    locus_het = FALSE,
+    heter_rate = 0
 ) {
   if (!is.numeric(power) || length(power) != 1L || !is.finite(power) ||
       power <= 0 || power >= 1) {
@@ -735,6 +911,7 @@ tdt_ngs_mssn <- function(
     stop("verbose must be TRUE or FALSE.")
   }
   .tdt_ngs_validate_pheno_bridge(pheno_misclass, prev, pi01)
+  .tdt_ngs_validate_heterogeneity_bridge(locus_het, prev, heter_rate)
 
   information <- .tdt_ngs_information(
     pd = pd,
@@ -811,10 +988,43 @@ tdt_ngs_mssn <- function(
       model_info = phenotype_model_info
     )
   }
-  compatibility_scenario <- if (isTRUE(pheno_misclass)) {
+  if (isTRUE(locus_het)) {
+    bridge <- .tdt_ngs_heterogeneity_bridge(pd, R1, prev, heter_rate)
+    heterogeneity_model_info <- c(base_model_info, list(
+      heterogeneity_adjustment = "ordinary_TDT_NCP_attenuation_bridge",
+      raw_read_likelihood_modified = FALSE,
+      bridge_R2 = R1^2,
+      bridge_delta_prime = 1,
+      bridge_theta1 = pd,
+      bridge_heter_rate = heter_rate,
+      bridge_pi = 1 - heter_rate
+    ))
+    scenarios$heterogeneity <- .tdt_ngs_mssn_scenario(
+      label = "Locus heterogeneity",
+      modifier = "heterogeneity",
+      power = power, alpha = alpha,
+      ncp_per_trio = coefficient * bridge$attenuation_factor,
+      base_ncp_per_trio = coefficient,
+      attenuation_factor = bridge$attenuation_factor,
+      lambda_target = lambda_target,
+      sequencing = sequencing,
+      efficient_information = efficient_information,
+      delta = delta,
+      ordinary_tdt_bridge = bridge,
+      model_info = heterogeneity_model_info,
+      zero_signal_message = paste(
+        "No finite MSSN exists because the heterogeneity scenario has",
+        "zero per-trio NCP."
+      )
+    )
+  }
+  active_modifiers <- sum(c(isTRUE(pheno_misclass), isTRUE(locus_het)))
+  compatibility_scenario <- if (active_modifiers != 1L) {
+    "sequencing_only"
+  } else if (isTRUE(pheno_misclass)) {
     "phenotype_misclassification"
   } else {
-    "sequencing_only"
+    "heterogeneity"
   }
   selected <- scenarios[[compatibility_scenario]]
 

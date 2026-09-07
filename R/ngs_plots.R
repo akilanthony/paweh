@@ -58,11 +58,10 @@
 }
 
 .plot_ngs_reject_tdt_heterogeneity <- function(args) {
-  unsupported <- intersect(c("locus_het", "pi"), names(args))
+  unsupported <- intersect("pi", names(args))
   if (length(unsupported) > 0L) {
     stop(
-      "TDT1-NGS plotting does not support locus heterogeneity; remove ",
-      paste(unsupported, collapse = " and "), "."
+      "TDT1-NGS uses heter_rate = 1 - pi; remove pi and supply heter_rate."
     )
   }
   invisible(TRUE)
@@ -158,7 +157,8 @@
 #' @param ... Fixed arguments passed to \code{cc_ngs_power()} or
 #'   \code{tdt_ngs_power()}. For case-control designs,
 #'   \code{locus_het = TRUE} permits a vector of \code{pi} values. TDT1-NGS
-#'   does not accept \code{locus_het} or \code{pi}.
+#'   accepts a fixed \code{locus_het} and \code{heter_rate} through
+#'   \code{...}; its public convention is \code{heter_rate = 1 - pi}.
 #'
 #' @details
 #' Case-control output retains coverage, sequencing error, locus-homogeneity
@@ -169,8 +169,7 @@
 #' Coverage is fixed and equal for the relevant study members. These plots do
 #' not model variable/BGE coverage distributions, cost optimization, or
 #' sample-specific depth. They introduce no simulation and delegate all
-#' statistical calculations to public PAWEH sequencing design APIs. Locus
-#' heterogeneity is currently available only for case-control designs.
+#' statistical calculations to public PAWEH sequencing design APIs.
 #'
 #' @return A ggplot object with exact results in \code{plot$data}, or a data
 #'   frame when \code{return_data = TRUE}.
@@ -300,8 +299,8 @@ plot_ngs_power <- function(
 #' @param ... Fixed arguments passed to \code{cc_ngs_mssn()} or
 #'   \code{tdt_ngs_mssn()}. For case-control designs,
 #'   \code{locus_het = TRUE} permits a vector of \code{pi} values. TDT1-NGS
-#'   does not accept
-#'   heterogeneity arguments.
+#'   accepts a fixed \code{locus_het} and \code{heter_rate} through
+#'   \code{...}; its public convention is \code{heter_rate = 1 - pi}.
 #'
 #' @details
 #' The primary case-control y-axis is required cases; returned plot data also
@@ -318,8 +317,7 @@ plot_ngs_power <- function(
 #'
 #' Coverage is fixed and equal for the relevant study members. These plots do
 #' not model variable/BGE coverage distributions, cost optimization, or
-#' sample-specific depth. They use no simulation. Locus heterogeneity is
-#' currently available only for case-control designs.
+#' sample-specific depth. They use no simulation.
 #'
 #' @return A ggplot object with exact results in \code{plot$data}, or a data
 #'   frame when \code{return_data = TRUE}.

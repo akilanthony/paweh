@@ -144,7 +144,7 @@ test_that("TDT-NGS MSSN plot data exactly delegate to the public API", {
   }
 })
 
-test_that("sequencing plots validate grids and reject TDT heterogeneity", {
+test_that("sequencing plots validate grids and reject TDT pi convention", {
   expect_error(plot_ngs_power("tdt", 1, 0.005), "not identifiable")
   expect_error(plot_ngs_power("cc", c(2, 2.5), 0.005), "finite integers")
   expect_error(plot_ngs_power("cc", 2, c(-0.01, 0.01)), "\\[0, 0.5\\)")
@@ -155,7 +155,7 @@ test_that("sequencing plots validate grids and reject TDT heterogeneity", {
       "tdt", 2, 0.005, N = 500, pd = 0.325, R1 = 1.2,
       alpha = 0.05, pi = 1
     ),
-    "does not support locus heterogeneity"
+    "uses heter_rate = 1 - pi"
   )
   expect_false("pi" %in% names(formals(plot_ngs_power)))
   expect_false("locus_het" %in% names(formals(plot_ngs_mssn)))

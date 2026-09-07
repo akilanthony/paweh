@@ -19,7 +19,9 @@ tdt_ngs_mssn(
   epsilon1 = seq_error,
   pheno_misclass = FALSE,
   prev = NULL,
-  pi01 = 0
+  pi01 = 0,
+  locus_het = FALSE,
+  heter_rate = 0
 )
 }
 \arguments{
@@ -60,13 +62,21 @@ observed as the reference allele. Defaults to \code{seq_error}.}
 \item{pheno_misclass}{Logical scalar. If \code{TRUE}, add a phenotype-
 misclassification sensitivity scenario using the ordinary-TDT NCP bridge.}
 
-\item{prev}{Disease prevalence in \eqn{(0,1)}. Required only when
-\code{pheno_misclass = TRUE}; it is used by the ordinary-TDT bridge and
-does not alter the raw-read likelihood.}
+\item{prev}{Disease prevalence in \eqn{(0,1)}. Required when either
+phenotype misclassification or locus heterogeneity is requested. It is
+used only by the ordinary-TDT bridges and does not alter the raw-read
+likelihood.}
 
 \item{pi01}{Probability that an unaffected individual is misclassified or
 ascertained as affected, in \eqn{[0,1)}. It must be zero unless
 \code{pheno_misclass = TRUE}.}
+
+\item{locus_het}{Logical scalar. If \code{TRUE}, add an independent locus-
+heterogeneity sensitivity scenario using the ordinary-TDT NCP bridge.}
+
+\item{heter_rate}{Heterogeneous trio fraction in \eqn{[0,1]}. The ordinary-
+TDT linked/homogeneous fraction is \eqn{\pi=1-}\code{heter_rate}. It must
+be zero unless \code{locus_het = TRUE}.}
 }
 \value{
 Invisibly, an object of class \code{"tdt_ngs_mssn"} containing the
@@ -74,7 +84,7 @@ target, continuous and integer trio requirements, achieved power and NCP,
 per-trio NCP coefficient, multiplicative-model parameters, efficient
 information, the 11 by 11 information matrix, numerical diagnostics,
 effective sequencing-design metadata, model metadata, and scenario-level
-base and phenotype-adjusted coefficients and sample sizes. Legacy
+base and independently adjusted coefficients and sample sizes. Legacy
 \code{coverage} and \code{seq_error} fields retain supplied shorthand.
 }
 \description{
@@ -100,7 +110,14 @@ per-trio coefficient before inversion:
   \frac{\lambda_*}{\log(R_1)^2 I_{eff}r_{pheno}}.}
 The bridge fixes \eqn{R_2=R_1^2}, \eqn{\delta'=1}, and
 \eqn{\theta_1=p_d}. It does not modify Kim's likelihood or information
-matrix and is not a TDTae, locus-heterogeneity, or simulation model.
+matrix and is not a TDTae or simulation model.
+
+For locus heterogeneity, \eqn{r_{het}} is the ratio of the ordinary-TDT
+heterogeneous and homogeneous per-trio NCP coefficients, with
+\eqn{\pi=1-}\code{heter_rate}. The adjusted coefficient is
+\eqn{\log(R_1)^2 I_{eff}r_{het}} before inversion. Phenotype and
+heterogeneity requests remain separate scenarios; no product of their
+attenuation factors is used.
 
 If target \code{power} is no greater than \code{alpha}, the target NCP is
 zero and the minimum supported design is one trio. If \code{R1 = 1} and
@@ -123,6 +140,11 @@ tdt_ngs_mssn(
 )
 tdt_ngs_mssn(
   power = 0.80, pd = 0.325, R1 = 1.2, coverage = 12, seq_error = 0.005,
+  locus_het = TRUE, prev = 0.01, heter_rate = 0.25,
+  alpha = 5e-8, verbose = FALSE
+)
+tdt_ngs_mssn(
+  power = 0.80, pd = 0.325, R1 = 1.2, coverage = 12, seq_error = 0.005,
   pheno_misclass = TRUE, prev = 0.01, pi01 = 0.05,
   alpha = 5e-8, verbose = FALSE
 )
@@ -138,6 +160,11 @@ a case: Effects of phenotype misclassification on power and sample size
 requirements for the transmission disequilibrium test with affected child
 trios. \emph{Human Heredity}, 67(4), 287--292.
 \doi{10.1159/000194981}.
+
+Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+(2009). Transmission disequilibrium test power and sample size in the
+presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+and Molecular Biology}, 8, Article 44. \doi{10.2202/1544-6115.1501}.
 
 Gordon, D., Finch, S. J., & Kim, W. (2020).
 \emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and

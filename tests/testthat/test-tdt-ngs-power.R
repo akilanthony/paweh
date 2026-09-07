@@ -293,7 +293,8 @@ test_that("public scope contains no hard-call or ordinary-TDT substitution", {
     c(
       "N", "pd", "R1", "coverage", "seq_error", "alpha", "verbose",
       "father_coverage", "mother_coverage", "child_coverage",
-      "epsilon0", "epsilon1", "pheno_misclass", "prev", "pi01"
+      "epsilon0", "epsilon1", "pheno_misclass", "prev", "pi01",
+      "locus_het", "heter_rate"
     )
   )
 })
