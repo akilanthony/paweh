@@ -76,3 +76,20 @@ lrtae_ncp(
   n_both_validated = 100
 )
 }
+\references{
+Ji, F., Yang, Y., Haynes, C., Finch, S. J., & Gordon, D. (2005).
+Computing asymptotic power and sample size for case-control genetic
+association studies in the presence of phenotype and/or genotype
+misclassification errors. \emph{Statistical Applications in Genetics and
+Molecular Biology}, 4(1), Article 37.
+\doi{10.2202/1544-6115.1184}
+
+Barral, S., Haynes, C., Stone, M., & Gordon, D. (2006). LRTae: improving
+statistical power for genetic association with case/control data when
+phenotype and/or genotype misclassification errors are present.
+\emph{BMC Genetics}, 7, 24. \doi{10.1186/1471-2156-7-24}
+
+Gordon, D., Finch, S. J., & Kim, W. (2020). \emph{Heterogeneity in
+Statistical Genetics: How to Assess, Address, and Account for Mixtures in
+Association Studies}. Springer. \doi{10.1007/978-3-030-61121-7}
+}

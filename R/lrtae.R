@@ -28,6 +28,22 @@
 #'   validated.
 #'
 #' @return A single nonnegative numeric value: the LRTae NCP.
+#' @references
+#' Ji, F., Yang, Y., Haynes, C., Finch, S. J., & Gordon, D. (2005).
+#' Computing asymptotic power and sample size for case-control genetic
+#' association studies in the presence of phenotype and/or genotype
+#' misclassification errors. \emph{Statistical Applications in Genetics and
+#' Molecular Biology}, 4(1), Article 37.
+#' \doi{10.2202/1544-6115.1184}
+#'
+#' Barral, S., Haynes, C., Stone, M., & Gordon, D. (2006). LRTae: improving
+#' statistical power for genetic association with case/control data when
+#' phenotype and/or genotype misclassification errors are present.
+#' \emph{BMC Genetics}, 7, 24. \doi{10.1186/1471-2156-7-24}
+#'
+#' Gordon, D., Finch, S. J., & Kim, W. (2020). \emph{Heterogeneity in
+#' Statistical Genetics: How to Assess, Address, and Account for Mixtures in
+#' Association Studies}. Springer. \doi{10.1007/978-3-030-61121-7}
 #' @export
 #'
 #' @examples
@@ -415,6 +431,9 @@ lrtae_ncp <- function(
   genotype_nuisance_columns <- k:(2L * k - 2L)
   sampling_column <- 2L * k - 1L
 
+  # Full order: (p_control[1:k], p_case[1:k], q_control, q_case).
+  # Free order: (psi[1:(k-1)], p_case[1:(k-1)], q_control), where
+  # psi = p_control - p_case; the omitted categories enforce unit sums.
   transformation[psi_columns, psi_columns] <- diag(k_minus_one)
   transformation[psi_columns, genotype_nuisance_columns] <- diag(k_minus_one)
   transformation[k, psi_columns] <- -1

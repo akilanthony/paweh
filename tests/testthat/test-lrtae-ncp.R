@@ -23,6 +23,132 @@ lrtae_reference_arguments <- function() {
   )
 }
 
+lrtae_historical_generating_arguments <- function() {
+  list(
+    true_control_genotype_frequencies = c(
+      0.5645454545454546, 0.3739393939393939, 0.061515151515151516
+    ),
+    true_case_genotype_frequencies = c(0.36, 0.48, 0.16),
+    true_sampling_proportions = c(0.5, 0.5),
+    phenotype_misclassification_matrix = matrix(
+      c(0.98, 0.02,
+        0.04, 0.96),
+      nrow = 2,
+      byrow = TRUE
+    ),
+    genotype_misclassification_matrix = matrix(
+      c(0.965, 0.025, 0.010,
+        0.025, 0.950, 0.025,
+        0.010, 0.025, 0.965),
+      nrow = 3,
+      byrow = TRUE
+    ),
+    n_fallible = 248,
+    n_pheno_validated = 135,
+    n_geno_validated = 72,
+    n_both_validated = 45
+  )
+}
+
+lrtae_historical_probability_fixture <- function() {
+  list(
+    p = rbind(
+      c(0.5802, 0.2166, 0.2032),
+      c(0.081, 0.076, 0.843)
+    ),
+    q = c(0.6561, 0.3439),
+    pi_matrix = rbind(c(92 / 94, 2 / 94), c(3 / 86, 83 / 86)),
+    xi_matrix = rbind(
+      c(42 / 46, 2 / 46, 2 / 46),
+      c(3 / 55, 51 / 55, 1 / 55),
+      c(0, 1 / 16, 15 / 16)
+    )
+  )
+}
+
+test_that("historical workbook probability arrays are reproduced completely", {
+  fixture <- lrtae_historical_probability_fixture()
+
+  expected_p3 <- structure(c(
+    0.340172494468085, 0.000887220273003033, 0.00739505422756707,
+    0.0245464275530839, 0.00758659724564797, 4.97309936575053e-05,
+    0.000164926027079304, 0.00137589082452431, 0, 0, 0, 0,
+    0.016198690212766, 4.22485844287159e-05, 0.000352145439407956,
+    0.00116887750252781, 0.128972153176015, 0.00084542689217759,
+    0.00280374246034816, 0.0233901440169133, 0.00815518340425532,
+    0.000632066206395349, 0.000177286595744681, 0.0174871650436047,
+    0.016198690212766, 4.22485844287159e-05, 0.000352145439407956,
+    0.00116887750252781, 0.00252886574854932, 1.65769978858351e-05,
+    5.49753423597679e-05, 0.000458630274841438, 0.12232775106383,
+    0.00948099309593023, 0.00265929893617021, 0.26230747565407
+  ), dim = c(2L, 2L, 3L, 3L))
+  expected_p1 <- structure(c(
+    0.347759091713733, 0.000936951266660538, 0.00755998025464637,
+    0.0259223183776082, 0.153326026793037, 0.00151974168300165,
+    0.0033331744955008, 0.0420461865630458, 0.141055307025145,
+    0.00953981867824478, 0.00306641971793794, 0.263934983431439
+  ), dim = c(2L, 2L, 3L))
+  expected_p2 <- structure(c(
+    0.341059714741088, 0.031941481780651, 0.00763632823930547,
+    0.00154081685160362, 0, 0, 0.0162409387971947,
+    0.00152102294193576, 0.129817580068193, 0.0261938864772615,
+    0.00878724961065067, 0.0176644516393493, 0.0162409387971947,
+    0.00152102294193576, 0.00254544274643516, 0.000513605617201206,
+    0.13180874415976, 0.26496677459024
+  ), dim = c(2L, 3L, 3L))
+  expected_p0 <- structure(c(
+    0.348696042980394, 0.0334822986322546, 0.154845768476038,
+    0.0453793610585466, 0.15059512570339, 0.267001403149377
+  ), dim = c(2L, 3L))
+
+  # Construct P3 directly from the workbook's defining joint probability.
+  observed_p3 <- array(0, dim = c(2L, 2L, 3L, 3L))
+  for (true_pheno in 1:2) {
+    for (observed_pheno in 1:2) {
+      for (true_geno in 1:3) {
+        for (observed_geno in 1:3) {
+          observed_p3[true_pheno, observed_pheno, true_geno, observed_geno] <-
+            fixture$q[true_pheno] * fixture$p[true_pheno, true_geno] *
+            fixture$pi_matrix[true_pheno, observed_pheno] *
+            fixture$xi_matrix[true_geno, observed_geno]
+        }
+      }
+    }
+  }
+  observed <- .lrtae_sampling_probabilities(
+    fixture$p, fixture$q, fixture$pi_matrix, fixture$xi_matrix
+  )
+
+  expect_length(observed_p3, 36L)
+  expect_length(observed$p1, 12L)
+  expect_length(observed$p2, 18L)
+  expect_length(observed$p0, 6L)
+  expect_equal(observed_p3, expected_p3, tolerance = 5e-15)
+  expect_equal(observed$p1, expected_p1, tolerance = 5e-15)
+  expect_equal(observed$p2, expected_p2, tolerance = 5e-15)
+  expect_equal(observed$p0, expected_p0, tolerance = 5e-15)
+})
+
+test_that("historical orientation is true by observed for both error matrices", {
+  fixture <- lrtae_historical_probability_fixture()
+  observed <- .lrtae_sampling_probabilities(
+    fixture$p, fixture$q, fixture$pi_matrix, fixture$xi_matrix
+  )
+
+  expected_p1_113 <- fixture$q[1] * fixture$pi_matrix[1, 1] *
+    sum(fixture$p[1, ] * fixture$xi_matrix[, 3])
+  expected_p2_121 <- fixture$xi_matrix[2, 1] *
+    sum(fixture$q * fixture$p[, 2] * fixture$pi_matrix[, 1])
+  transposed <- .lrtae_sampling_probabilities(
+    fixture$p, fixture$q, t(fixture$pi_matrix), t(fixture$xi_matrix)
+  )
+
+  expect_equal(observed$p1[1, 1, 3], expected_p1_113, tolerance = 1e-15)
+  expect_equal(observed$p2[1, 2, 1], expected_p2_121, tolerance = 1e-15)
+  expect_gt(abs(observed$p1[1, 1, 3] - transposed$p1[1, 1, 3]), 0.01)
+  expect_gt(abs(observed$p2[1, 2, 1] - transposed$p2[1, 2, 1]), 0.001)
+})
+
 test_that("professor-supplied corrected LRTae example is reproduced", {
   reference_ncp <- 29.173050672171374
   observed_ncp <- do.call(lrtae_ncp, lrtae_reference_arguments())
@@ -51,8 +177,8 @@ test_that("the LRTae NCP scales linearly with every sampling-tier count", {
   expect_equal(do.call(lrtae_ncp, arguments), 2 * baseline, tolerance = 1e-11)
 })
 
-test_that("corrected information agrees with an independent score calculation", {
-  arguments <- lrtae_reference_arguments()
+test_that("historical information agrees with an independent score calculation", {
+  arguments <- lrtae_historical_generating_arguments()
   p <- rbind(
     arguments$true_control_genotype_frequencies,
     arguments$true_case_genotype_frequencies

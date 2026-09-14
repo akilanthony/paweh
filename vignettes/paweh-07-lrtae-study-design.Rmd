@@ -1,0 +1,284 @@
+---
+title: "LRTae power and sample-size design"
+author: "paweh package authors"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{7. LRTae Power and Sample-Size Design}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.6)
+library(paweh)
+```
+
+# What is LRTae?
+
+LRTae is a likelihood-ratio framework for case-control genetic association
+studies in which phenotype classification, genotype classification, or both
+may be measured with error. A subset of participants can receive more accurate
+or gold-standard measurements. These validation data inform the error process
+and contribute information about the association.
+
+The basic problem is easy to state:
+
+> true phenotype and genotype -> fallible measured phenotype and genotype ->
+> potentially distorted apparent association
+
+Validation provides a second path:
+
+> gold-standard measurements on a subset -> information about
+> misclassification -> improved efficient information for the association
+> test
+
+`paweh` implements the **prospective design** calculations `lrtae_ncp()`,
+`lrtae_power()`, and `lrtae_mssn()`. They calculate expected operating
+characteristics before data collection. The package does not implement the
+observed-data iterative likelihood fitting or association test from the
+historical LRTae spreadsheet and software.
+
+# Four validation tiers
+
+Each planned participant belongs to one mutually exclusive measurement tier.
+
+| Tier | Phenotype | Genotype | Fixed-design argument | MSSN allocation argument |
+|---|---|---|---|---|
+| Fallible only | Fallible | Fallible | `n_fallible` | `prop_fallible` |
+| Phenotype validated | Gold standard | Fallible | `n_pheno_validated` | `prop_pheno_validated` |
+| Genotype validated | Fallible | Gold standard | `n_geno_validated` | `prop_geno_validated` |
+| Both validated | Gold standard | Gold standard | `n_both_validated` | `prop_both_validated` |
+
+The four fixed counts sum to the total sample size. The four MSSN proportions
+must be nonnegative and sum to one.
+
+> **Matrix orientation is important:** for both misclassification matrices,
+> rows are **true** categories and columns are **observed** categories.
+
+# A reproducible prospective design
+
+Consider a research team planning a case-control association study. Routine
+phenotype ascertainment is imperfect, routine genotyping has a small
+classification error, and gold-standard clinical adjudication and confirmatory
+genotyping are too expensive for every participant.
+
+The following deterministic inputs come from a historical LRTae development
+workbook. They are used here as a reproducible worked design, not as observed
+patient data and not as a realized NCP benchmark.
+
+```{r historical-inputs}
+p_control <- c(0.5645454545, 0.3739393939, 0.0615151515)
+p_case <- c(0.36, 0.48, 0.16)
+q <- c(0.5, 0.5)
+
+phenotype_error <- matrix(
+  c(0.98, 0.02,
+    0.04, 0.96),
+  nrow = 2,
+  byrow = TRUE
+)
+genotype_error <- matrix(
+  c(0.965, 0.025, 0.010,
+    0.025, 0.950, 0.025,
+    0.010, 0.025, 0.965),
+  nrow = 3,
+  byrow = TRUE
+)
+
+model_inputs <- list(
+  true_control_genotype_frequencies = p_control,
+  true_case_genotype_frequencies = p_case,
+  true_sampling_proportions = q,
+  phenotype_misclassification_matrix = phenotype_error,
+  genotype_misclassification_matrix = genotype_error
+)
+tier_counts <- list(
+  n_fallible = 248,
+  n_pheno_validated = 135,
+  n_geno_validated = 72,
+  n_both_validated = 45
+)
+```
+
+The sampling proportions are in control/case order. The genotype-frequency
+vectors use the same three-category order as the rows and columns of
+`genotype_error`.
+
+# Computing the NCP
+
+```{r historical-ncp}
+historical_ncp <- do.call(lrtae_ncp, c(model_inputs, tier_counts))
+historical_ncp
+```
+
+The noncentrality parameter (NCP) summarizes the expected separation between
+the alternative and null distributions. Larger values imply greater expected
+ability to detect association, holding the reference distribution fixed.
+
+Technically, the implementation evaluates
+
+\[
+\lambda = \Delta^\mathsf{T} I_{\mathrm{eff}} \Delta,
+\]
+
+where \(\Delta\) contrasts the free control and case genotype frequencies and
+\(I_{\mathrm{eff}}\) is their efficient information after nuisance parameters
+are eliminated by a Schur complement. This is an expected-information design
+quantity; it is not the likelihood-ratio statistic from one simulated or
+observed data set.
+
+# Computing power
+
+```{r historical-power}
+historical_power <- do.call(
+  lrtae_power,
+  c(model_inputs, tier_counts, list(alpha = 0.05))
+)
+historical_power
+```
+
+For three genotype categories, the test has `3 - 1 = 2` degrees of freedom.
+The returned object records power, NCP, degrees of freedom, significance level,
+critical value, all four tier counts, and total sample size.
+
+# Computing minimum sample size
+
+The workbook allocation corresponds to proportions 248/500, 135/500, 72/500,
+and 45/500. The same planned allocation can be used to ask how many total
+participants are required for 80% power.
+
+```{r historical-mssn}
+historical_mssn <- do.call(
+  lrtae_mssn,
+  c(
+    model_inputs,
+    list(
+      target_power = 0.80,
+      alpha = 0.05,
+      prop_fallible = 248 / 500,
+      prop_pheno_validated = 135 / 500,
+      prop_geno_validated = 72 / 500,
+      prop_both_validated = 45 / 500
+    )
+  )
+)
+historical_mssn
+```
+
+`MSSN_total` is the minimum integer total under this allocation rule. The
+Hamilton largest-remainder rule assigns integer tier counts that sum exactly
+to the selected total, so the achieved proportions can differ slightly from
+the requested proportions. The returned achieved power is therefore normally
+just above, rather than exactly equal to, the target.
+
+# Why validation allocation matters
+
+Here four designs have the same total sample size (`N = 220`) and identical
+biological and error assumptions. Only the allocation across validation tiers
+changes. The low-validation design retains a small number in every validation
+tier; complete absence of validation can leave the error model unidentified
+and its information matrix singular.
+
+```{r validation-comparison}
+allocations <- data.frame(
+  design = c(
+    "Low validation", "Phenotype focused", "Genotype focused", "Balanced"
+  ),
+  n_fallible = c(198, 154, 154, 110),
+  n_pheno_validated = c(9, 44, 11, 33),
+  n_geno_validated = c(9, 11, 44, 33),
+  n_both_validated = c(4, 11, 11, 44),
+  stringsAsFactors = FALSE
+)
+
+design_results <- lapply(seq_len(nrow(allocations)), function(index) {
+  counts <- as.list(allocations[index, 2:5])
+  do.call(lrtae_power, c(model_inputs, counts, list(alpha = 0.05)))
+})
+allocations$N_total <- rowSums(allocations[2:5])
+allocations$NCP <- vapply(design_results, function(x) x$ncp, numeric(1))
+allocations$Power <- vapply(design_results, function(x) x$power, numeric(1))
+allocations
+```
+
+```{r validation-figure, fig.cap="Prospective LRTae power for four validation allocations with the same total sample size and error assumptions."}
+barplot(
+  allocations$Power,
+  names.arg = allocations$design,
+  las = 2,
+  ylim = c(0, 1),
+  ylab = "Prospective power",
+  col = "#3B7EA1"
+)
+abline(h = 0.80, lty = 2, col = "#A33A2B")
+```
+
+Validation is therefore not merely a data-cleaning exercise: it contributes
+statistical information. The comparison does not establish that one allocation
+is universally optimal. Phenotype and genotype validation can trade off
+differently under other frequencies, error matrices, costs, or effect sizes.
+
+# Reading the misclassification matrices
+
+For the phenotype matrix,
+
+\[
+\begin{pmatrix}
+0.98 & 0.02 \\
+0.04 & 0.96
+\end{pmatrix},
+\]
+
+98% of true controls are observed as controls and 2% as cases; 4% of true
+cases are observed as controls and 96% as cases. Again, **true categories are
+rows and observed categories are columns**.
+
+The genotype matrix is read the same way. For example, a participant in the
+first true genotype category is observed in categories one, two, and three
+with probabilities 0.965, 0.025, and 0.010. Each row must sum to one, and its
+category order must match both genotype-frequency vectors.
+
+# When to use these functions
+
+The current LRTae functions are appropriate when:
+
+- a case-control genetic association study is being planned;
+- expected true control and case genotype distributions are available;
+- phenotype or genotype measurement may be imperfect;
+- validation subsamples are planned; and
+- the investigator wants an NCP, power, or minimum total sample size.
+
+Important limitations are:
+
+- these are prospective calculations, not observed-data association fitting;
+- error matrices are treated as known design assumptions;
+- validity depends on the assumed error model;
+- validation allocation affects both information and identifiability;
+- this implementation is not LTTae; and
+- it is not a sequencing/read-level error model.
+
+# References
+
+Barral S, Haynes C, Stone M, Gordon D. LRTae: improving statistical power for
+genetic association with case/control data when phenotype and/or genotype
+misclassification errors are present. *BMC Genetics*. 2006;7:24.
+<https://doi.org/10.1186/1471-2156-7-24>.
+
+Ji F, Yang Y, Haynes C, Finch SJ, Gordon D. Computing asymptotic power and
+sample size for case-control genetic association studies in the presence of
+phenotype and/or genotype misclassification errors. *Statistical Applications
+in Genetics and Molecular Biology*. 2005;4(1):Article 37.
+<https://doi.org/10.2202/1544-6115.1184>.
+
+Gordon D, Finch SJ, Kim W. *Heterogeneity in Statistical Genetics: How to
+Assess, Address, and Account for Mixtures in Association Studies*. Springer;
+2020. <https://doi.org/10.1007/978-3-030-61121-7>.
+
+# Session information
+
+```{r session-info}
+sessionInfo()
+```

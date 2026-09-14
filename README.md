@@ -61,7 +61,7 @@ documentation when diagnostic components are required.
 The complete documentation is available at
 [https://akilanthony.github.io/paweh/](https://akilanthony.github.io/paweh/).
 
-Six articles provide the main entry points:
+Seven articles provide the main entry points:
 
 - [Getting Started](https://akilanthony.github.io/paweh/articles/paweh-01-getting-started.html)
 - [Case-Control Study Design](https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html)
@@ -69,6 +69,7 @@ Six articles provide the main entry points:
 - [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html)
 - [Interactive Dashboard](https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html)
 - [Sequencing-Based Genetic Study Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html)
+- [LRTae Power and Sample-Size Design](https://akilanthony.github.io/paweh/articles/paweh-07-lrtae-study-design.html)
 
 Function-level reference documentation is also available from the
 [pkgdown reference index](https://akilanthony.github.io/paweh/reference/).
@@ -183,6 +184,7 @@ are outside the current implementation.
 | Multivariate quantitative traits | `qtl_multivariate_power_full()`, `qtl_multivariate_mssn_full()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
 | Case-control NGS | `cc_ngs_power()`, `cc_ngs_mssn()` | [Sequencing-Based Genetic Study Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html) |
 | TDT1-NGS | `tdt_ngs_power()`, `tdt_ngs_mssn()` | [Sequencing-Based Genetic Study Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html) |
+| Error-aware case-control / LRTae | `lrtae_ncp()`, `lrtae_power()`, `lrtae_mssn()` | [LRTae Power and Sample-Size Design](https://akilanthony.github.io/paweh/articles/paweh-07-lrtae-study-design.html) |
 
 ## Published-example validation
 
