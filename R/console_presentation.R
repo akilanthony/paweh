@@ -430,6 +430,27 @@
     .paweh_console_parameter("Expected non-transmitted probability (gNT*)",
                              x$gNT_star$heterogeneity, 6L)
   }
+  if (identical(p$effect, "genotype_misclassification")) {
+    .paweh_console_rule()
+    .paweh_console_section("Genotype Misclassification")
+    .paweh_console_parameter(
+      "Genotype error rate", p$genotype_misclassification_rate, 4L
+    )
+    .paweh_console_parameter(
+      "NCP", x$lambda$genotype_misclassification, 6L
+    )
+    .paweh_console_parameter(
+      "Power", x$power$genotype_misclassification, 6L
+    )
+    .paweh_console_parameter(
+      "Retained Mendelian-consistent probability",
+      x$genotype_misclassification$retained_trio_probability, 6L
+    )
+    .paweh_console_parameter(
+      "Actual null rejection rate",
+      x$genotype_misclassification$actual_alpha, 6L
+    )
+  }
   .paweh_console_rule()
 }
 
@@ -519,6 +540,31 @@
                              x$gT_star$heterogeneity, 6L)
     .paweh_console_parameter("Expected non-transmitted probability (gNT*)",
                              x$gNT_star$heterogeneity, 6L)
+  }
+  if (identical(p$effect, "genotype_misclassification")) {
+    .paweh_console_rule()
+    .paweh_console_section("Genotype Misclassification")
+    .paweh_console_parameter(
+      "Genotype error rate", p$genotype_misclassification_rate, 4L
+    )
+    .paweh_console_parameter(
+      "Continuous trio requirement",
+      x$N$genotype_misclassification, 3L
+    )
+    .paweh_console_parameter(
+      "Required complete trios",
+      ceiling(x$N$genotype_misclassification), integer = TRUE
+    )
+    .paweh_console_parameter(
+      "MSSN increase",
+      .paweh_console_percent_or_undefined(
+        x$percent_increase$genotype_misclassification
+      )
+    )
+    .paweh_console_parameter(
+      "Retained Mendelian-consistent probability",
+      x$genotype_misclassification$retained_trio_probability, 6L
+    )
   }
   .paweh_console_rule()
 }

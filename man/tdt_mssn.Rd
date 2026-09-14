@@ -18,7 +18,10 @@ tdt_mssn(
   ET = NULL,
   ENT = NULL,
   n_trios = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  effect = c("none", "phenotype_misclassification", "locus_heterogeneity",
+    "genotype_misclassification"),
+  genotype_misclassification_rate = NULL
 )
 }
 \arguments{
@@ -73,6 +76,16 @@ required number of trios).}
 \item{verbose}{Logical. If \code{TRUE} (default), prints a formatted
 summary of the no-error required number of trios and any requested
 modifier-specific required counts and percentage increases.}
+
+\item{effect}{Character. Optional explicit effect selector: \code{"none"},
+\code{"phenotype_misclassification"}, \code{"locus_heterogeneity"}, or
+\code{"genotype_misclassification"}. The default is no effect. Calls that
+omit this argument retain the historical separate-sensitivity behavior of
+\code{misclass_rate} and \code{heter_rate}.}
+
+\item{genotype_misclassification_rate}{Numeric in \eqn{[0,0.5]}. The Chapter
+5 adjacent-genotype TDT error parameter \eqn{e}, required only when
+\code{effect = "genotype_misclassification"}.}
 }
 \value{
 An object of class \code{"tdt_mssn"}, containing:
@@ -95,9 +108,9 @@ misclassification, heterogeneity, and model-free count-scale information.}
 }
 \description{
 Computes the minimum number of affected trios required to achieve a
-specified power for the transmission disequilibrium test (TDT) under three
-scenarios: (i) no error, (ii) phenotype misclassification only, and (iii)
-locus heterogeneity only. \code{input_mode} lets the transmission
+specified power for the transmission disequilibrium test (TDT) with no
+effect or one selected effect: phenotype misclassification, locus
+heterogeneity, or genotype misclassification. \code{input_mode} lets the transmission
 probabilities come either from a genetic model
 (\code{"model_based"}, the default) or directly from user-supplied
 expected transmission and non-transmission counts (\code{"model_free"}).
@@ -123,6 +136,16 @@ The misclassification and heterogeneity scenarios then use the same
 closed-form identities as \code{\link{tdt_power}} (see its
 Details for the formulas and the \code{pd}-solving fallback), applied to
 this no-error \eqn{g_T}/\eqn{g_{NT}} pair.
+
+For \code{effect = "genotype_misclassification"}, the Chapter 5
+single-parameter adjacent-genotype TDT transition model,
+Mendelian-inconsistency filtering, and
+Eqs. 5.16--5.22 are the same as in \code{\link{tdt_power}}. The adjusted NCP
+is linear in the number of affected trios, so the existing target-NCP is
+divided by the adjusted per-trio NCP. This model-based branch cannot be
+combined with phenotype misclassification or locus heterogeneity. TDTae and
+sequencing/NGS genotype error are not implemented, and the result uses the
+package's existing nominal asymptotic TDT convention.
 }
 \examples{
 # Model-based input
@@ -131,6 +154,15 @@ tdt_mssn(
   pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
   verbose = FALSE
 )$N$no_error
+
+# Chapter 5 single-parameter adjacent-genotype TDT error
+tdt_mssn(
+  target_power = 0.80,
+  pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+  effect = "genotype_misclassification",
+  genotype_misclassification_rate = 0.01,
+  verbose = FALSE
+)$N$genotype_misclassification
 
 # model_free: supply expected transmissions/non-transmissions directly
 tdt_mssn(
