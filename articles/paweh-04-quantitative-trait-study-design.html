@@ -4,126 +4,164 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quantitative-trait genetic association study design • paweh</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Quantitative-trait genetic association study design">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Quantitative-trait genetic association study design">
+<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
 </head>
-<body>
-    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
+<body data-spy="scroll" data-target="#toc">
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <div class="container template-article">
+      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <span class="navbar-brand">
+        <a class="navbar-link" href="../index.html">paweh</a>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
+      </span>
+    </div>
 
-    <a class="navbar-brand me-2" href="../index.html">paweh</a>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+<li>
+  <a href="../reference/index.html">Reference</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.0</small>
-
-
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Getting Started</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-01-getting-started.html">Getting started with paweh</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Case-Control Study Design</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-02-case-control-study-design.html">Case-control genetic association study design</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>TDT Study Design</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-03-tdt-study-design.html">Transmission disequilibrium test study design</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Quantitative-Trait Study Design</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative-trait genetic association study design</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Interactive Dashboard</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Sequencing-Based Genetic Study Design</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a></li>
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="../articles/paweh-01-getting-started.html">Getting started with paweh</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-02-case-control-study-design.html">Case-control genetic association study design</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-03-tdt-study-design.html">Transmission disequilibrium test study design</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative-trait genetic association study design</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-07-lrtae-study-design.html">LRTae power and sample-size design</a>
+    </li>
   </ul>
 </li>
       </ul>
-<ul class="navbar-nav">
-<li class="nav-item"><form class="form-inline" role="search">
- <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
-</form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/akilanthony/paweh/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/akilanthony/paweh/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
       </ul>
 </div>
-
-
+<!--/.nav-collapse -->
   </div>
-</nav><div class="container template-article">
+<!--/.container -->
+</div>
+<!--/.navbar -->
 
 
 
-
-<div class="row">
-  <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Quantitative-trait genetic association study design</h1>
+      </header><div class="row">
+  <div class="col-md-9 contents">
+    <div class="page-header toc-ignore">
+      <h1 data-toc-skip>Quantitative-trait genetic association study
+design</h1>
                         <h4 data-toc-skip class="author">paweh package
 authors</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/akilanthony/paweh/blob/develop/vignettes/paweh-04-quantitative-trait-study-design.Rmd" class="external-link"><code>vignettes/paweh-04-quantitative-trait-study-design.Rmd</code></a></small>
-      <div class="d-none name"><code>paweh-04-quantitative-trait-study-design.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/akilanthony/paweh/blob/HEAD/vignettes/paweh-04-quantitative-trait-study-design.Rmd" class="external-link"><code>vignettes/paweh-04-quantitative-trait-study-design.Rmd</code></a></small>
+      <div class="hidden name"><code>paweh-04-quantitative-trait-study-design.Rmd</code></div>
+
     </div>
 
     
     
 <div class="section level2">
-<h2 id="from-binary-outcomes-to-quantitative-traits">From binary outcomes to quantitative traits<a class="anchor" aria-label="anchor" href="#from-binary-outcomes-to-quantitative-traits"></a>
+<h2 id="quantitative-trait-study-design-in-paweh">Quantitative-trait study design in PAWEH<a class="anchor" aria-label="anchor" href="#quantitative-trait-study-design-in-paweh"></a>
 </h2>
 <p>For a quantitative trait, genotype can shift the phenotype
-distribution rather than only changing disease probability.
-<code>paweh</code> uses a classical, Falconer-style parameterization as
-formulated for this study-design framework: QTL variance controls the
-genetic contribution, <code>tau</code> controls dominance relative to
-additivity, <code>pd</code> controls genotype frequencies, and residual
-variation determines overlap among genotype-specific normal
-distributions.</p>
-<p>These assumptions define prospective operating characteristics. They
-do not fit a QTL model to observed subject-level data.</p>
+distribution rather than simply changing a binary disease probability.
+<code>paweh</code> uses a Falconer-style model to calculate prospective
+operating characteristics for association-study design. Its core inputs
+are:</p>
+<ul>
+<li>
+<code>qtl_var</code>: the proportion of trait variance attributable
+to the modeled QTL;</li>
+<li>
+<code>tau</code>: dominance relative to additivity;</li>
+<li>
+<code>pd</code>: the frequency of the modeled allele; and</li>
+<li>residual variance or covariance: the remaining phenotype variation
+and, for multiple traits, how those traits co-vary.</li>
+</ul>
+<p>These functions plan studies under a specified model. They do not
+estimate QTL effects from individual-level phenotype and genotype
+observations.</p>
 </div>
 <div class="section level2">
-<h2 id="visual-intuition-first-genotype-specific-distributions">Visual intuition first: genotype-specific distributions<a class="anchor" aria-label="anchor" href="#visual-intuition-first-genotype-specific-distributions"></a>
+<h2 id="genotype-specific-trait-distributions">Genotype-specific trait distributions<a class="anchor" aria-label="anchor" href="#genotype-specific-trait-distributions"></a>
 </h2>
-<p>The separation and overlap of the three distributions explain why
-effect size and sample size matter before a formal power calculation is
-performed.</p>
+<p>The three genotype groups can have different expected trait
+distributions, but residual variation makes those distributions overlap.
+Greater separation of the genotype means generally creates a stronger
+potential association signal.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_genotype_distribution.html">plot_qtl_genotype_distribution</a></span><span class="op">(</span></span>
-<span>  qtl_var <span class="op">=</span> <span class="fl">0.25</span>, tau <span class="op">=</span> <span class="fl">0.25</span>, pd <span class="op">=</span> <span class="fl">0.25</span>,</span>
-<span>  type <span class="op">=</span> <span class="st">"density"</span>, scale <span class="op">=</span> <span class="st">"density"</span></span>
+<span>  qtl_var <span class="op">=</span> <span class="fl">0.25</span>,</span>
+<span>  tau <span class="op">=</span> <span class="fl">0.25</span>,</span>
+<span>  pd <span class="op">=</span> <span class="fl">0.25</span>,</span>
+<span>  type <span class="op">=</span> <span class="st">"binned"</span>,</span>
+<span>  scale <span class="op">=</span> <span class="st">"density"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="paweh-04-quantitative-trait-study-design_files/figure-html/genotype-distributions-1.png" class="r-plt" alt="Genotype-specific quantitative-trait densities. Larger QTL variance separates genotype means relative to residual variation." width="672"><p class="caption">
-Genotype-specific quantitative-trait densities. Larger QTL variance
-separates genotype means relative to residual variation.
+<img src="paweh-04-quantitative-trait-study-design_files/figure-html/genotype-distributions-1.png" class="r-plt" alt="Deterministic genotype-specific quantitative-trait distributions under the Falconer model." width="672"><p class="caption">
+Deterministic genotype-specific quantitative-trait distributions under
+the Falconer model.
 </p>
 </div>
-<p>The x-axis is the quantitative trait. Heavy overlap implies weak
-genotype discrimination, while greater separation produces a stronger
-genotype- associated signal. Conditional normality and a common residual
-variance are part of this design model.</p>
+<p>Vertical lines identify the genotype-specific means.
+<code>type = "binned"</code> is a deterministic histogram-style
+representation: each bar is calculated from the difference between
+analytic Normal CDF values at its bin boundaries. No random observations
+are simulated.</p>
 </div>
 <div class="section level2">
-<h2 id="full-continuous-trait-design-genotype-group-anova">Full continuous-trait design: genotype-group ANOVA<a class="anchor" aria-label="anchor" href="#full-continuous-trait-design-genotype-group-anova"></a>
+<h2 id="continuous-trait-anova-design">Continuous-trait ANOVA design<a class="anchor" aria-label="anchor" href="#continuous-trait-anova-design"></a>
 </h2>
 <p>When every recruited subject is measured on the continuous trait, a
-one-way ANOVA can compare the three genotype groups.</p>
+one-way ANOVA can compare the three genotype groups. The following
+example calculates power at a fixed sample size and the minimum total
+sample size (MSSN) for 80% power.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">anova_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qtl_anova_power.html">qtl_anova_power</a></span><span class="op">(</span></span>
 <span>  N <span class="op">=</span> <span class="fl">996</span>, alpha <span class="op">=</span> <span class="fl">0.0001</span>,</span>
@@ -146,12 +184,16 @@ one-way ANOVA can compare the three genotype groups.</p>
 <span><span class="co">#&gt; 1    Power at N = 996   0.8000478</span></span>
 <span><span class="co">#&gt; 2    Required total N 996.0000000</span></span>
 <span><span class="co">#&gt; 3 Power at required N   0.8000478</span></span></code></pre></div>
-<p>The power curve below asks whether more total measurements compensate
-for a small QTL contribution.</p>
+<p>One power curve summarizes how the design changes as more
+participants are measured.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_anova_power.html">plot_qtl_anova_power</a></span><span class="op">(</span></span>
-<span>  x_var <span class="op">=</span> <span class="st">"N"</span>, x_values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">300</span>, <span class="fl">1200</span>, by <span class="op">=</span> <span class="fl">150</span><span class="op">)</span>,</span>
-<span>  alpha <span class="op">=</span> <span class="fl">0.0001</span>, qtl_var <span class="op">=</span> <span class="fl">0.025</span>, tau <span class="op">=</span> <span class="fl">0.5</span>, pd <span class="op">=</span> <span class="fl">0.15</span></span>
+<span>  x_var <span class="op">=</span> <span class="st">"N"</span>,</span>
+<span>  x_values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">300</span>, <span class="fl">1200</span>, by <span class="op">=</span> <span class="fl">150</span><span class="op">)</span>,</span>
+<span>  alpha <span class="op">=</span> <span class="fl">0.0001</span>,</span>
+<span>  qtl_var <span class="op">=</span> <span class="fl">0.025</span>,</span>
+<span>  tau <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  pd <span class="op">=</span> <span class="fl">0.15</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="paweh-04-quantitative-trait-study-design_files/figure-html/anova-plot-1.png" class="r-plt" alt="One-way genotype-group ANOVA power as total sample size increases." width="672"><p class="caption">
@@ -162,17 +204,17 @@ One-way genotype-group ANOVA power as total sample size increases.
 <div class="section level2">
 <h2 id="extreme-phenotype-sampling">Extreme-phenotype sampling<a class="anchor" aria-label="anchor" href="#extreme-phenotype-sampling"></a>
 </h2>
-<p>Li et al. (2019) provide a <strong>Motivating published
-application</strong> for sampling extreme quantitative phenotypes. Their
-applications included methadone dose and yearling weight; the latter
-used 486 Hanwoo steers and 35,968 SNPs. Their exact statistical
-procedure is not <code>paweh</code>’s threshold-selected genotype
-chi-square framework. The study is cited to motivate the design problem,
-not as a reproduction.</p>
-<p>In the <code>paweh</code> single-trait threshold design, upper-tail
-subjects form selected cases, lower-tail subjects form selected
-controls, and the middle is not selected. Upper and lower events are
-distinct tails, not complements.</p>
+<p>Instead of recruiting across the full phenotype distribution,
+investigators may select subjects from its extremes. In
+<code>paweh</code>’s single-trait threshold design, upper-tail
+individuals become selected cases, lower-tail individuals become
+selected controls, and individuals in the middle are not selected. Upper
+and lower events are distinct tails rather than complements.</p>
+<p>Li et al. (2019) provide a <strong>motivating published
+application</strong> of extreme quantitative-phenotype sampling. Their
+procedure is not the threshold-selected genotype chi-square method
+implemented by <code>paweh</code>, so this is motivation rather than a
+numerical reproduction.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">threshold_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qtl_falconer_threshold_parameters.html">qtl_falconer_threshold_parameters</a></span><span class="op">(</span></span>
 <span>  qtl_var <span class="op">=</span> <span class="fl">0.025</span>, tau <span class="op">=</span> <span class="fl">0.5</span>, pd <span class="op">=</span> <span class="fl">0.15</span>,</span>
@@ -219,59 +261,59 @@ distinct tails, not complements.</p>
 <span><span class="co">#&gt; 5                       Required selected controls  126.0000000</span></span>
 <span><span class="co">#&gt; 6    Expected source population screened for cases 2513.7381119</span></span>
 <span><span class="co">#&gt; 7 Expected source population screened for controls 2526.1897442</span></span></code></pre></div>
-<p>MSSN is the selected study sample. The source population that must be
-screened to find enough tail subjects can be much larger and is a
-separate operational quantity.</p>
-<div class="section level3">
-<h3 id="how-selection-stringency-changes-required-sample-size">How selection stringency changes required sample size<a class="anchor" aria-label="anchor" href="#how-selection-stringency-changes-required-sample-size"></a>
-</h3>
+<p>The selected study MSSN and the expected source population screened
+are different quantities. Screening burden can be much larger because
+only a fraction of the source population falls into either selected
+tail.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_threshold_chisq_mssn.html">plot_qtl_threshold_chisq_mssn</a></span><span class="op">(</span></span>
-<span>  x_var <span class="op">=</span> <span class="st">"x_upper"</span>, x_values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2.5</span>, <span class="fl">5</span>, <span class="fl">7.5</span>, <span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span>,</span>
+<span>  x_var <span class="op">=</span> <span class="st">"x_upper"</span>,</span>
+<span>  x_values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2.5</span>, <span class="fl">5</span>, <span class="fl">7.5</span>, <span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span>,</span>
 <span>  sample_size <span class="op">=</span> <span class="st">"case"</span>,</span>
-<span>  power <span class="op">=</span> <span class="fl">0.80</span>, alpha <span class="op">=</span> <span class="fl">0.0001</span>,</span>
-<span>  qtl_var <span class="op">=</span> <span class="fl">0.025</span>, tau <span class="op">=</span> <span class="fl">0.5</span>, pd <span class="op">=</span> <span class="fl">0.15</span>,</span>
-<span>  x_lower <span class="op">=</span> <span class="fl">5</span>, k <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  power <span class="op">=</span> <span class="fl">0.80</span>,</span>
+<span>  alpha <span class="op">=</span> <span class="fl">0.0001</span>,</span>
+<span>  qtl_var <span class="op">=</span> <span class="fl">0.025</span>,</span>
+<span>  tau <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  pd <span class="op">=</span> <span class="fl">0.15</span>,</span>
+<span>  x_lower <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  k <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  title <span class="op">=</span> <span class="st">"Required cases vs upper-tail selection"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="paweh-04-quantitative-trait-study-design_files/figure-html/threshold-plot-1.png" class="r-plt" alt="Required selected cases as the upper-tail sampling percentage changes, with the lower tail fixed at 5%." width="672"><p class="caption">
-Required selected cases as the upper-tail sampling percentage changes,
+<img src="paweh-04-quantitative-trait-study-design_files/figure-html/threshold-plot-1.png" class="r-plt" alt="Required selected cases as upper-tail sampling becomes less extreme, with the lower tail fixed at 5%." width="672"><p class="caption">
+Required selected cases as upper-tail sampling becomes less extreme,
 with the lower tail fixed at 5%.
 </p>
 </div>
-<p>Making selection more extreme changes genotype enrichment and the
-number of selected subjects required. It also changes screening burden,
-which should be examined alongside statistical MSSN when planning
-recruitment.</p>
-</div>
+<p>Selection stringency changes genotype enrichment, selected-sample
+MSSN, and the operational burden of finding eligible participants.</p>
 </div>
 <div class="section level2">
-<h2 id="why-analyze-multiple-traits-jointly">Why analyze multiple traits jointly?<a class="anchor" aria-label="anchor" href="#why-analyze-multiple-traits-jointly"></a>
+<h2 id="multiple-quantitative-traits">Multiple quantitative traits<a class="anchor" aria-label="anchor" href="#multiple-quantitative-traits"></a>
 </h2>
-<p>Yang et al. (2010) jointly analyzed serum uric acid and gout in the
-Framingham Heart Study by combining univariate association tests. This
-is a <strong>Motivating published application</strong>: correlated or
-biologically related phenotypes can carry complementary genetic
-information. Their method is not the Pillai framework implemented by
-<code>paweh</code>, so no numerical reproduction is claimed.</p>
-<p>For a <code>paweh</code> multivariate design, <code>qtl_var</code>
-and <code>tau</code> become phenotype-specific vectors, <code>pd</code>
-is shared, and <code>cor_matrix</code> describes phenotype correlation.
-<code>test = "pillai"</code> uses a multivariate continuous-trait
-design; <code>test = "threshold_chisq"</code> uses jointly selected
-phenotype tails.</p>
+<p>Multiple correlated or biologically related phenotypes may carry
+complementary information about the same locus. Yang et al. (2010)
+provide a <strong>motivating published application</strong> of joint
+phenotype analysis, but their method is not the Pillai framework
+implemented by <code>paweh</code> and is not reproduced here.</p>
+<p>For multivariate <code>paweh</code> designs, <code>qtl_var</code> and
+<code>tau</code> become phenotype-specific vectors, <code>pd</code>
+remains shared, and <code>cor_matrix</code> describes phenotype
+correlation. Use <code>test = "pillai"</code> for a continuous
+multivariate design or <code>test = "threshold_chisq"</code> for jointly
+threshold-selected phenotypes.</p>
 </div>
 <div class="section level2">
 <h2 id="published-example-reproduction-gordon-et-al--2017">Published-example reproduction: Gordon et al. (2017)<a class="anchor" aria-label="anchor" href="#published-example-reproduction-gordon-et-al--2017"></a>
 </h2>
-<p>The published pleiotropic example has allele frequency 0.05, QTL
+<p>The published pleiotropic example uses allele frequency 0.05, QTL
 variances 0.10 and 0.05, dominance ratios 0 and 0.50, independent
 phenotypes, target power 0.80, and genome-wide
 <code>alpha = 5e-8</code>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gordon_mv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qtl_multivariate_mssn_full.html">qtl_multivariate_mssn_full</a></span><span class="op">(</span></span>
-<span>  power <span class="op">=</span> <span class="fl">0.80</span>, alpha <span class="op">=</span> <span class="fl">5e-8</span>,</span>
+<span>  power <span class="op">=</span> <span class="fl">0.80</span>,</span>
+<span>  alpha <span class="op">=</span> <span class="fl">5e-8</span>,</span>
 <span>  qtl_var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
 <span>  tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.50</span><span class="op">)</span>,</span>
 <span>  pd <span class="op">=</span> <span class="fl">0.05</span>,</span>
@@ -280,23 +322,29 @@ phenotypes, target power 0.80, and genome-wide
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="va">gordon_mv</span><span class="op">$</span><span class="va">N</span> <span class="op">==</span> <span class="fl">326L</span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  quantity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Published integer MSSN"</span>, <span class="st">"paweh integer MSSN"</span>, <span class="st">"Historical fractional MSSN"</span><span class="op">)</span>,</span>
+<span>  quantity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Published integer MSSN"</span>,</span>
+<span>    <span class="st">"paweh integer MSSN"</span>,</span>
+<span>    <span class="st">"Historical fractional MSSN"</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">326</span>, <span class="va">gordon_mv</span><span class="op">$</span><span class="va">N</span>, <span class="va">gordon_mv</span><span class="op">$</span><span class="va">historical_fractional_mssn</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;                     quantity    value</span></span>
 <span><span class="co">#&gt; 1     Published integer MSSN 326.0000</span></span>
 <span><span class="co">#&gt; 2         paweh integer MSSN 326.0000</span></span>
 <span><span class="co">#&gt; 3 Historical fractional MSSN 325.5057</span></span></code></pre></div>
-<p>This is an exact integer <strong>Published-example
-reproduction</strong>: the paper and <code>paweh</code> both require 326
-total individuals. The continuous historical root is 325.5057, which is
-ceiled for recruitment.</p>
-<p>The inverse calculation verifies power at that integer design using
-the same published parameters:</p>
+<p>The published result and <code>paweh</code> both require 326
+participants. The historical continuous root is approximately 325.5057;
+recruitment requires an integer, so the result is rounded upward.</p>
+<p>The inverse calculation evaluates power at the returned integer
+design using the same model.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gordon_mv_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qtl_multivariate_power_full.html">qtl_multivariate_power_full</a></span><span class="op">(</span></span>
-<span>  N <span class="op">=</span> <span class="va">gordon_mv</span><span class="op">$</span><span class="va">N</span>, alpha <span class="op">=</span> <span class="fl">5e-8</span>,</span>
+<span>  N <span class="op">=</span> <span class="va">gordon_mv</span><span class="op">$</span><span class="va">N</span>,</span>
+<span>  alpha <span class="op">=</span> <span class="fl">5e-8</span>,</span>
 <span>  qtl_var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
 <span>  tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.50</span><span class="op">)</span>,</span>
 <span>  pd <span class="op">=</span> <span class="fl">0.05</span>,</span>
@@ -304,94 +352,59 @@ the same published parameters:</p>
 <span>  test <span class="op">=</span> <span class="st">"pillai"</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">gordon_mv_power</span><span class="op">$</span><span class="va">power</span></span>
 <span><span class="co">#&gt; [1] 0.8014862</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="visualizing-the-same-validated-multivariate-model">Visualizing the same validated multivariate model<a class="anchor" aria-label="anchor" href="#visualizing-the-same-validated-multivariate-model"></a>
+<h2 id="three-genotype-specific-multivariate-distributions">Three genotype-specific multivariate distributions<a class="anchor" aria-label="anchor" href="#three-genotype-specific-multivariate-distributions"></a>
 </h2>
-<p>The next contour uses the exact Gordon parameter vector rather than a
-visually convenient replacement. It shows the marginal two-phenotype
-distribution underlying the MSSN calculation: the three
-genotype-conditional densities are weighted by their Hardy–Weinberg
-frequencies and summed. Consequently, three genotypes do not imply three
-visible mixture modes. In this example the increaser allele is rare and
-the conditional distributions overlap, so the common genotype dominates
-the marginal surface.</p>
+<p>The same Gordon parameters define one conditional bivariate phenotype
+distribution for each genotype,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo>∣</mo><mi>G</mi><mo>=</mo><mi>g</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(y_1,y_2\mid G=g)</annotation></semantics></math>.
+The filled regions below show the 50%, 80%, and 95% nested conditional
+probability regions. The darkest inner region contains the first 50%,
+the middle band extends coverage to 80%, and the lightest outer band
+extends coverage to 95%.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_multivariate_contour.html">plot_qtl_multivariate_contour</a></span><span class="op">(</span></span>
 <span>  qtl_var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
 <span>  tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.50</span><span class="op">)</span>,</span>
 <span>  pd <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  cor_matrix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>,</span>
-<span>  surface <span class="op">=</span> <span class="st">"density"</span>,</span>
-<span>  grid_n <span class="op">=</span> <span class="fl">60</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="paweh-04-quantitative-trait-study-design_files/figure-html/gordon-contour-1.png" class="r-plt" alt="Bivariate mixture density for the exact Gordon et al. Pillai MSSN example." width="672"><p class="caption">
-Bivariate mixture density for the exact Gordon et al. Pillai MSSN
-example.
-</p>
-</div>
-<p>To inspect the model components themselves, use
-<code>surface = "genotype_density"</code>. These curves are conditional
-on genotype: they are not frequency weighted, and each bivariate-normal
-density integrates to one. The rare genotype therefore remains visible
-even though it contributes little mass to the Gordon mixture.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_multivariate_contour.html">plot_qtl_multivariate_contour</a></span><span class="op">(</span></span>
-<span>  qtl_var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
-<span>  tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.50</span><span class="op">)</span>,</span>
-<span>  pd <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  cor_matrix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>  surface <span class="op">=</span> <span class="st">"genotype_density"</span>,</span>
-<span>  grid_n <span class="op">=</span> <span class="fl">60</span></span>
+<span>  component_probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.50</span>, <span class="fl">0.80</span>, <span class="fl">0.95</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="paweh-04-quantitative-trait-study-design_files/figure-html/gordon-genotype-contours-1.png" class="r-plt" alt="Separate genotype-conditional densities for the exact Gordon et al. model parameters." width="672"><p class="caption">
-Separate genotype-conditional densities for the exact Gordon et
-al. model parameters.
+<img src="paweh-04-quantitative-trait-study-design_files/figure-html/gordon-genotype-components-1.png" class="r-plt" alt="Genotype-specific bivariate phenotype distributions for the Gordon et al. model. Nested regions represent 50%, 80%, and 95% conditional probability regions." width="672"><p class="caption">
+Genotype-specific bivariate phenotype distributions for the Gordon et
+al. model. Nested regions represent 50%, 80%, and 95% conditional
+probability regions.
 </p>
 </div>
-<p>An interactive 3D view can display the same three conditional
-distributions as separate translucent surfaces. The following parameters
-are deliberately more separated than the published Gordon example so
-that the three hills and their mean locations are easy to inspect; this
-is an illustration, not a literature reproduction.</p>
-<p>The guarded example is left unevaluated in the installed vignette to
-avoid embedding a multi-megabyte interactive widget; run it in an
-interactive R session to rotate and inspect the surfaces.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"plotly"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="../reference/plot_qtl_multivariate_surface3d.html">plot_qtl_multivariate_surface3d</a></span><span class="op">(</span></span>
-<span>    qtl_var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">0.92</span><span class="op">)</span>,</span>
-<span>    tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.50</span><span class="op">)</span>,</span>
-<span>    pd <span class="op">=</span> <span class="fl">0.50</span>,</span>
-<span>    cor_matrix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.15</span>, <span class="fl">0.15</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">2</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    surface <span class="op">=</span> <span class="st">"genotype_density"</span>,</span>
-<span>    grid_n <span class="op">=</span> <span class="fl">35</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<p>Both visualization interfaces are restricted to two phenotypes. The
-documented statistical backend can support more traits, but a contour
-plane or 3D surface over phenotype space requires exactly two.</p>
+<p>These components are deliberately <strong>not</strong> multiplied by
+Hardy–Weinberg genotype frequencies. Each conditional distribution
+remains fully visible, including the rare genotype. This view explains
+the three distributions in the model, analogous to a flat projection of
+three density hills. By contrast, <code>surface = "density"</code>
+displays the true genotype-frequency-weighted population mixture.</p>
 </div>
 <div class="section level2">
-<h2 id="multivariate-threshold-selection-uses-and-logic">Multivariate threshold selection uses AND logic<a class="anchor" aria-label="anchor" href="#multivariate-threshold-selection-uses-and-logic"></a>
+<h2 id="joint-multivariate-threshold-selection">Joint multivariate threshold selection<a class="anchor" aria-label="anchor" href="#joint-multivariate-threshold-selection"></a>
 </h2>
-<p>For <code>test = "threshold_chisq"</code>, affected subjects satisfy
-every upper-tail condition and unaffected subjects satisfy every
-lower-tail condition:</p>
+<p>For <code>test = "threshold_chisq"</code>, affected subjects must
+satisfy both upper-tail conditions, and unaffected subjects must satisfy
+both lower-tail conditions:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">affected</mtext><mo>:</mo><msub><mi>Y</mi><mn>1</mn></msub><mo>≥</mo><msub><mi>T</mi><mrow><mi>U</mi><mn>1</mn></mrow></msub><mspace width="0.278em"></mspace><mrow><mi>𝐀</mi><mi>𝐍</mi><mi>𝐃</mi></mrow><mspace width="0.278em"></mspace><msub><mi>Y</mi><mn>2</mn></msub><mo>≥</mo><msub><mi>T</mi><mrow><mi>U</mi><mn>2</mn></mrow></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \text{affected}: Y_1 \ge T_{U1} \;\mathbf{AND}\; Y_2 \ge T_{U2},
-</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">unaffected</mtext><mo>:</mo><msub><mi>Y</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>T</mi><mrow><mi>L</mi><mn>1</mn></mrow></msub><mspace width="0.278em"></mspace><mrow><mi>𝐀</mi><mi>𝐍</mi><mi>𝐃</mi></mrow><mspace width="0.278em"></mspace><msub><mi>Y</mi><mn>2</mn></msub><mo>≤</mo><msub><mi>T</mi><mrow><mi>L</mi><mn>2</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">unaffected</mtext><mo>:</mo><msub><mi>Y</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>T</mi><mrow><mi>L</mi><mn>1</mn></mrow></msub><mspace width="0.278em"></mspace><mrow><mi>𝐀</mi><mi>𝐍</mi><mi>𝐃</mi></mrow><mspace width="0.278em"></mspace><msub><mi>Y</mi><mn>2</mn></msub><mo>≤</mo><msub><mi>T</mi><mrow><mi>L</mi><mn>2</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \text{unaffected}: Y_1 \le T_{L1} \;\mathbf{AND}\; Y_2 \le T_{L2}.
 </annotation></semantics></math></p>
-<p>All mixed or middle combinations are unselected. The figure keeps the
-Gordon model parameters and adds 10% joint-tail thresholds solely to
-demonstrate the selection geometry; it is not part of the published
-reproduction.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<p>The next plot overlays that selection geometry on the three
+conditional component distributions. The 10% thresholds illustrate the
+design and are not part of the published Gordon reproduction.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_multivariate_contour.html">plot_qtl_multivariate_contour</a></span><span class="op">(</span></span>
 <span>  qtl_var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
 <span>  tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.50</span><span class="op">)</span>,</span>
@@ -399,37 +412,46 @@ reproduction.</p>
 <span>  cor_matrix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>  x_upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>,</span>
 <span>  x_lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>,</span>
-<span>  surface <span class="op">=</span> <span class="st">"density"</span>,</span>
+<span>  surface <span class="op">=</span> <span class="st">"genotype_density"</span>,</span>
+<span>  component_probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.50</span>, <span class="fl">0.80</span>, <span class="fl">0.95</span><span class="op">)</span>,</span>
 <span>  show_thresholds <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  grid_n <span class="op">=</span> <span class="fl">60</span></span>
+<span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2.75</span>, <span class="fl">4.50</span><span class="op">)</span>,</span>
+<span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2.75</span>, <span class="fl">3.50</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="paweh-04-quantitative-trait-study-design_files/figure-html/multivariate-threshold-contour-1.png" class="r-plt" alt="Joint upper-right affected and lower-left unaffected regions. Selection uses AND, not OR, logic." width="672"><p class="caption">
-Joint upper-right affected and lower-left unaffected regions. Selection
-uses AND, not OR, logic.
+<img src="paweh-04-quantitative-trait-study-design_files/figure-html/multivariate-threshold-components-1.png" class="r-plt" alt="Genotype-specific bivariate distributions with joint upper-tail affected and lower-tail unaffected selection regions." width="720"><p class="caption">
+Genotype-specific bivariate distributions with joint upper-tail affected
+and lower-tail unaffected selection regions.
 </p>
 </div>
+<p>Subjects in mixed or middle regions are unselected. This figure
+combines the unweighted genotype-specific phenotype distributions with
+selection geometry; it is not a genotype-frequency-weighted population
+mixture.</p>
 </div>
 <div class="section level2">
-<h2 id="numerical-integration-and-scope">Numerical integration and scope<a class="anchor" aria-label="anchor" href="#numerical-integration-and-scope"></a>
+<h2 id="scope-and-limitations">Scope and limitations<a class="anchor" aria-label="anchor" href="#scope-and-limitations"></a>
 </h2>
-<p>For joint threshold probabilities, <code>paweh</code> uses
-deterministic <code><a href="https://rdrr.io/pkg/mvtnorm/man/algorithms.html" class="external-link">mvtnorm::Miwa()</a></code> integration through 20
-dimensions. Higher-dimensional calculations use locally seeded
-Genz–Bretz integration, restore the caller’s random-number state, and
-retain integration error and status information. This modern numerical
-implementation is not forced to agree with coarse historical Riemann-sum
-approximations.</p>
-<p>Current scope limits are important:</p>
+<p>Joint multivariate tail probabilities use deterministic Miwa
+integration through 20 dimensions and locally seeded Genz–Bretz
+integration above 20. The latter restores the caller’s random-number
+state and retains integration status information.</p>
+<p>Important scope boundaries are:</p>
 <ul>
-<li>genotype-specific phenotype distributions are normal under the
-model;</li>
-<li>residual variance and covariance assumptions determine overlap;</li>
-<li>the middle of threshold designs is excluded;</li>
+<li>calculations are prospective study-design calculations, not model
+fitting;</li>
+<li>genotype-specific phenotypes follow the modeled normal
+assumptions;</li>
+<li>residual variance and covariance determine distributional
+overlap;</li>
+<li>single-trait threshold designs exclude the middle of the
+distribution;</li>
 <li>multivariate threshold selection uses joint AND semantics;</li>
-<li>a multivariate trend test is not implemented;</li>
-<li>contour and 3D visualizations require exactly two phenotypes, even
-where the statistical backend supports more.</li>
+<li>subjects in mixed or middle multivariate regions are
+unselected;</li>
+<li>a multivariate trend test is not implemented; and</li>
+<li>plots visualize the design model rather than observed
+participant-level data.</li>
 </ul>
 </div>
 <div class="section level2">
@@ -454,24 +476,21 @@ association studies by combining univariate association tests.
 <div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
-<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
-<span><span class="co">#&gt; Running under: Ubuntu 24.04.4 LTS</span></span>
+<span><span class="co">#&gt; Platform: aarch64-apple-darwin23</span></span>
+<span><span class="co">#&gt; Running under: macOS Tahoe 26.6.2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matrix products: default</span></span>
-<span><span class="co">#&gt; BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
-<span><span class="co">#&gt; LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0</span></span>
+<span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRblas.0.dylib </span></span>
+<span><span class="co">#&gt; LAPACK: /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; locale:</span></span>
-<span><span class="co">#&gt;  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
-<span><span class="co">#&gt;  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
-<span><span class="co">#&gt;  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
-<span><span class="co">#&gt; [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
+<span><span class="co">#&gt; [1] C.UTF-8/C.UTF-8/C.UTF-8/C/C.UTF-8/C.UTF-8</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; time zone: UTC</span></span>
-<span><span class="co">#&gt; tzcode source: system (glibc)</span></span>
+<span><span class="co">#&gt; time zone: America/New_York</span></span>
+<span><span class="co">#&gt; tzcode source: internal</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attached base packages:</span></span>
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
@@ -482,11 +501,11 @@ association studies by combining univariate association tests.
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;  [1] gtable_0.3.6        jsonlite_2.0.0      dplyr_1.2.1        </span></span>
 <span><span class="co">#&gt;  [4] compiler_4.6.1      BiocManager_1.30.27 tidyselect_1.2.1   </span></span>
-<span><span class="co">#&gt;  [7] jquerylib_0.1.4     systemfonts_1.3.2   scales_1.4.0       </span></span>
-<span><span class="co">#&gt; [10] textshaping_1.0.5   yaml_2.3.12         fastmap_1.2.0      </span></span>
-<span><span class="co">#&gt; [13] ggplot2_4.0.3       R6_2.6.1            labeling_0.4.3     </span></span>
-<span><span class="co">#&gt; [16] generics_0.1.4      isoband_0.3.0       knitr_1.51         </span></span>
-<span><span class="co">#&gt; [19] htmlwidgets_1.6.4   tibble_3.3.1        bookdown_0.48      </span></span>
+<span><span class="co">#&gt;  [7] dichromat_2.0-1     jquerylib_0.1.4     systemfonts_1.3.2  </span></span>
+<span><span class="co">#&gt; [10] scales_1.4.0        textshaping_1.0.5   yaml_2.3.12        </span></span>
+<span><span class="co">#&gt; [13] fastmap_1.2.0       ggplot2_4.0.3       R6_2.6.1           </span></span>
+<span><span class="co">#&gt; [16] labeling_0.4.3      generics_0.1.4      knitr_1.51         </span></span>
+<span><span class="co">#&gt; [19] htmlwidgets_1.6.4   tibble_3.3.1        bookdown_0.47      </span></span>
 <span><span class="co">#&gt; [22] desc_1.4.3          bslib_0.12.0        pillar_1.11.1      </span></span>
 <span><span class="co">#&gt; [25] RColorBrewer_1.1-3  rlang_1.3.0         cachem_1.1.0       </span></span>
 <span><span class="co">#&gt; [28] xfun_0.60           fs_2.1.0            sass_0.4.10        </span></span>
@@ -498,22 +517,29 @@ association studies by combining univariate association tests.
 <span><span class="co">#&gt; [46] rmarkdown_2.31      pkgconfig_2.0.3     tools_4.6.1        </span></span>
 <span><span class="co">#&gt; [49] htmltools_0.5.9</span></span></code></pre></div>
 </div>
-  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
-    </nav></aside>
+  </div>
+
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+
+      </div>
+
 </div>
 
 
 
-    <footer><div class="pkgdown-footer-left">
-  <p>Developed by Akil Anthony.</p>
+      <footer><div class="copyright">
+  <p></p>
+<p>Developed by Akil Anthony.</p>
 </div>
 
-<div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+<div class="pkgdown">
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
-    </footer>
+      </footer>
 </div>
+
 
 
 

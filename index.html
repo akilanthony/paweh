@@ -4,71 +4,95 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Power and Sample Size Analysis for Genetic Studies with Heterogeneity and Misclassification • paweh</title>
-<script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
-<link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Power and Sample Size Analysis for Genetic Studies with Heterogeneity and Misclassification">
-<meta name="description" content="Provides prospective power and minimum sample size necessary (MSSN) calculations for genetic and genomic association study design. Supported designs include case-control studies, transmission disequilibrium tests with affected-child trios, and single- and multivariate quantitative-trait studies. The package emphasizes selected departures from idealized assumptions, including locus heterogeneity and supported forms of genotype and phenotype misclassification. These factors can materially affect power and sample-size requirements but can be difficult to incorporate analytically. Published statistical-genetics methods are implemented in a reproducible, primarily parameter- and model-based framework with static visualizations and an optional Shiny dashboard for interactive exploration. The software supports prospective study planning; it does not perform downstream association testing.">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
+<script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
+<script src="pkgdown.js"></script><meta property="og:title" content="Power and Sample Size Analysis for Genetic Studies with Heterogeneity and Misclassification">
 <meta property="og:description" content="Provides prospective power and minimum sample size necessary (MSSN) calculations for genetic and genomic association study design. Supported designs include case-control studies, transmission disequilibrium tests with affected-child trios, and single- and multivariate quantitative-trait studies. The package emphasizes selected departures from idealized assumptions, including locus heterogeneity and supported forms of genotype and phenotype misclassification. These factors can materially affect power and sample-size requirements but can be difficult to incorporate analytically. Published statistical-genetics methods are implemented in a reproducible, primarily parameter- and model-based framework with static visualizations and an optional Shiny dashboard for interactive exploration. The software supports prospective study planning; it does not perform downstream association testing.">
+<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
 </head>
-<body>
-    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
+<body data-spy="scroll" data-target="#toc">
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <div class="container template-home">
+      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <span class="navbar-brand">
+        <a class="navbar-link" href="index.html">paweh</a>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
+      </span>
+    </div>
 
-    <a class="navbar-brand me-2" href="index.html">paweh</a>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+<li>
+  <a href="reference/index.html">Reference</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.0</small>
-
-
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Getting Started</h6></li>
-    <li><a class="dropdown-item" href="articles/paweh-01-getting-started.html">Getting started with paweh</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Case-Control Study Design</h6></li>
-    <li><a class="dropdown-item" href="articles/paweh-02-case-control-study-design.html">Case-control genetic association study design</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>TDT Study Design</h6></li>
-    <li><a class="dropdown-item" href="articles/paweh-03-tdt-study-design.html">Transmission disequilibrium test study design</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Quantitative-Trait Study Design</h6></li>
-    <li><a class="dropdown-item" href="articles/paweh-04-quantitative-trait-study-design.html">Quantitative-trait genetic association study design</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Interactive Dashboard</h6></li>
-    <li><a class="dropdown-item" href="articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Sequencing-Based Genetic Study Design</h6></li>
-    <li><a class="dropdown-item" href="articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a></li>
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="articles/paweh-01-getting-started.html">Getting started with paweh</a>
+    </li>
+    <li>
+      <a href="articles/paweh-02-case-control-study-design.html">Case-control genetic association study design</a>
+    </li>
+    <li>
+      <a href="articles/paweh-03-tdt-study-design.html">Transmission disequilibrium test study design</a>
+    </li>
+    <li>
+      <a href="articles/paweh-04-quantitative-trait-study-design.html">Quantitative-trait genetic association study design</a>
+    </li>
+    <li>
+      <a href="articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a>
+    </li>
+    <li>
+      <a href="articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a>
+    </li>
+    <li>
+      <a href="articles/paweh-07-lrtae-study-design.html">LRTae power and sample-size design</a>
+    </li>
   </ul>
 </li>
       </ul>
-<ul class="navbar-nav">
-<li class="nav-item"><form class="form-inline" role="search">
- <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
-</form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/akilanthony/paweh/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/akilanthony/paweh/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
       </ul>
 </div>
-
-
+<!--/.nav-collapse -->
   </div>
-</nav><div class="container template-home">
-<div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
+<!--/.container -->
+</div>
+<!--/.navbar -->
+
+
+
+      </header><div class="row">
+  <div class="contents col-md-9">
+<div class="section level1">
 <div class="page-header"><h1 id="paweh">paweh<a class="anchor" aria-label="anchor" href="#paweh"></a>
 </h1></div>
 <p><code>paweh</code> is statistical-genetics study-design software for prospective power and minimum sample size necessary (MSSN) calculations. Given a proposed sample size, it calculates power; given a target power, it calculates the sample size needed under the specified design assumptions. Its calculations are primarily parameter and model based and are intended for planning before data collection or genotyping, not for downstream association testing.</p>
@@ -94,17 +118,18 @@
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
-<p>The complete documentation is available at <a href="https://akilanthony.github.io/paweh/">https://akilanthony.github.io/paweh/</a>.</p>
-<p>Six articles provide the main entry points:</p>
+<p>The complete documentation is available at <a href="https://akilanthony.github.io/paweh/" class="external-link">https://akilanthony.github.io/paweh/</a>.</p>
+<p>Seven articles provide the main entry points:</p>
 <ul>
-<li><a href="https://akilanthony.github.io/paweh/articles/paweh-01-getting-started.html">Getting Started</a></li>
-<li><a href="https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html">Case-Control Study Design</a></li>
-<li><a href="https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.html">TDT Study Design</a></li>
-<li><a href="https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html">Quantitative-Trait Study Design</a></li>
-<li><a href="https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html">Interactive Dashboard</a></li>
-<li><a href="https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design</a></li>
+<li><a href="https://akilanthony.github.io/paweh/articles/paweh-01-getting-started.html" class="external-link">Getting Started</a></li>
+<li><a href="https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html" class="external-link">Case-Control Study Design</a></li>
+<li><a href="https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.html" class="external-link">TDT Study Design</a></li>
+<li><a href="https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html" class="external-link">Quantitative-Trait Study Design</a></li>
+<li><a href="https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html" class="external-link">Interactive Dashboard</a></li>
+<li><a href="https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html" class="external-link">Sequencing-Based Genetic Study Design</a></li>
+<li><a href="https://akilanthony.github.io/paweh/articles/paweh-07-lrtae-study-design.html" class="external-link">LRTae Power and Sample-Size Design</a></li>
 </ul>
-<p>Function-level reference documentation is also available from the <a href="https://akilanthony.github.io/paweh/reference/">pkgdown reference index</a>.</p>
+<p>Function-level reference documentation is also available from the <a href="https://akilanthony.github.io/paweh/reference/" class="external-link">pkgdown reference index</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -115,7 +140,7 @@
 <span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"akilanthony/paweh"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"akilanthony/paweh"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="interactive-dashboard">Interactive dashboard<a class="anchor" aria-label="anchor" href="#interactive-dashboard"></a>
@@ -131,7 +156,7 @@
 <code class="sourceCode R"><span><span class="va">app</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/paweh_app.html">paweh_app</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/runApp.html" class="external-link">runApp</a></span><span class="op">(</span><span class="va">app</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="reference/paweh_app.html">paweh_app()</a></code> returns a Shiny application object and does not launch a browser or server on its own.</p>
-<p>See the <a href="https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html">Interactive Dashboard</a> vignette for a guided walkthrough of all three study-design workspaces.</p>
+<p>See the <a href="https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html" class="external-link">Interactive Dashboard</a> vignette for a guided walkthrough of all three study-design workspaces.</p>
 </div>
 <div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
@@ -198,49 +223,56 @@
 <td>
 <code><a href="reference/cc_power.html">cc_power()</a></code>, <code><a href="reference/cc_mssn.html">cc_mssn()</a></code>
 </td>
-<td><a href="https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html">Case-Control Study Design</a></td>
+<td><a href="https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html" class="external-link">Case-Control Study Design</a></td>
 </tr>
 <tr>
 <td>Affected-child trios / TDT</td>
 <td>
 <code><a href="reference/tdt_power.html">tdt_power()</a></code>, <code><a href="reference/tdt_mssn.html">tdt_mssn()</a></code>
 </td>
-<td><a href="https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.html">TDT Study Design</a></td>
+<td><a href="https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.html" class="external-link">TDT Study Design</a></td>
 </tr>
 <tr>
 <td>Continuous quantitative trait</td>
 <td>
 <code><a href="reference/qtl_anova_power.html">qtl_anova_power()</a></code>, <code><a href="reference/qtl_anova_mssn.html">qtl_anova_mssn()</a></code>
 </td>
-<td><a href="https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html">Quantitative-Trait Study Design</a></td>
+<td><a href="https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html" class="external-link">Quantitative-Trait Study Design</a></td>
 </tr>
 <tr>
 <td>Extreme quantitative trait</td>
 <td>
 <code><a href="reference/qtl_threshold_chisq_power.html">qtl_threshold_chisq_power()</a></code>, <code><a href="reference/qtl_threshold_chisq_mssn.html">qtl_threshold_chisq_mssn()</a></code>
 </td>
-<td><a href="https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html">Quantitative-Trait Study Design</a></td>
+<td><a href="https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html" class="external-link">Quantitative-Trait Study Design</a></td>
 </tr>
 <tr>
 <td>Multivariate quantitative traits</td>
 <td>
 <code><a href="reference/qtl_multivariate_power_full.html">qtl_multivariate_power_full()</a></code>, <code><a href="reference/qtl_multivariate_mssn_full.html">qtl_multivariate_mssn_full()</a></code>
 </td>
-<td><a href="https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html">Quantitative-Trait Study Design</a></td>
+<td><a href="https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html" class="external-link">Quantitative-Trait Study Design</a></td>
 </tr>
 <tr>
 <td>Case-control NGS</td>
 <td>
 <code><a href="reference/cc_ngs_power.html">cc_ngs_power()</a></code>, <code><a href="reference/cc_ngs_mssn.html">cc_ngs_mssn()</a></code>
 </td>
-<td><a href="https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design</a></td>
+<td><a href="https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html" class="external-link">Sequencing-Based Genetic Study Design</a></td>
 </tr>
 <tr>
 <td>TDT1-NGS</td>
 <td>
 <code><a href="reference/tdt_ngs_power.html">tdt_ngs_power()</a></code>, <code><a href="reference/tdt_ngs_mssn.html">tdt_ngs_mssn()</a></code>
 </td>
-<td><a href="https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design</a></td>
+<td><a href="https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html" class="external-link">Sequencing-Based Genetic Study Design</a></td>
+</tr>
+<tr>
+<td>Error-aware case-control / LRTae</td>
+<td>
+<code><a href="reference/lrtae_ncp.html">lrtae_ncp()</a></code>, <code><a href="reference/lrtae_power.html">lrtae_power()</a></code>, <code><a href="reference/lrtae_mssn.html">lrtae_mssn()</a></code>
+</td>
+<td><a href="https://akilanthony.github.io/paweh/articles/paweh-07-lrtae-study-design.html" class="external-link">LRTae Power and Sample-Size Design</a></td>
 </tr>
 </tbody>
 </table>
@@ -266,7 +298,10 @@
 <p><code>paweh</code> is available under the MIT License.</p>
 </div>
 </div>
-  </main><aside class="col-md-3"><div class="links">
+  </div>
+
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/akilanthony/paweh/" class="external-link">Browse source code</a></li>
@@ -277,8 +312,9 @@
 <div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="LICENSE.html">Full license</a></li>
-<li><small><a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></small></li>
+<li>
+<a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a>
+</li>
 </ul>
 </div>
 
@@ -299,20 +335,23 @@
 
 
 
-  </aside>
+  </div>
 </div>
 
 
-    <footer><div class="pkgdown-footer-left">
-  <p>Developed by Akil Anthony.</p>
+      <footer><div class="copyright">
+  <p></p>
+<p>Developed by Akil Anthony.</p>
 </div>
 
-<div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+<div class="pkgdown">
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
-    </footer>
+      </footer>
 </div>
+
 
 
 

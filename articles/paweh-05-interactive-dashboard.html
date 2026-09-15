@@ -4,81 +4,103 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Interactive Study Design with the paweh Dashboard • paweh</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Interactive Study Design with the paweh Dashboard">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Interactive Study Design with the paweh Dashboard">
+<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
 </head>
-<body>
-    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
+<body data-spy="scroll" data-target="#toc">
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <div class="container template-article">
+      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <span class="navbar-brand">
+        <a class="navbar-link" href="../index.html">paweh</a>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
+      </span>
+    </div>
 
-    <a class="navbar-brand me-2" href="../index.html">paweh</a>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+<li>
+  <a href="../reference/index.html">Reference</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.0</small>
-
-
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Getting Started</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-01-getting-started.html">Getting started with paweh</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Case-Control Study Design</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-02-case-control-study-design.html">Case-control genetic association study design</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>TDT Study Design</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-03-tdt-study-design.html">Transmission disequilibrium test study design</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Quantitative-Trait Study Design</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative-trait genetic association study design</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Interactive Dashboard</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Sequencing-Based Genetic Study Design</h6></li>
-    <li><a class="dropdown-item" href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a></li>
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="../articles/paweh-01-getting-started.html">Getting started with paweh</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-02-case-control-study-design.html">Case-control genetic association study design</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-03-tdt-study-design.html">Transmission disequilibrium test study design</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative-trait genetic association study design</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a>
+    </li>
+    <li>
+      <a href="../articles/paweh-07-lrtae-study-design.html">LRTae power and sample-size design</a>
+    </li>
   </ul>
 </li>
       </ul>
-<ul class="navbar-nav">
-<li class="nav-item"><form class="form-inline" role="search">
- <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
-</form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/akilanthony/paweh/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/akilanthony/paweh/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
       </ul>
 </div>
-
-
+<!--/.nav-collapse -->
   </div>
-</nav><div class="container template-article">
+<!--/.container -->
+</div>
+<!--/.navbar -->
 
 
 
-
-<div class="row">
-  <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Interactive Study Design with the paweh Dashboard</h1>
+      </header><div class="row">
+  <div class="col-md-9 contents">
+    <div class="page-header toc-ignore">
+      <h1 data-toc-skip>Interactive Study Design with the paweh
+Dashboard</h1>
                         <h4 data-toc-skip class="author">paweh package
 authors</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/akilanthony/paweh/blob/develop/vignettes/paweh-05-interactive-dashboard.Rmd" class="external-link"><code>vignettes/paweh-05-interactive-dashboard.Rmd</code></a></small>
-      <div class="d-none name"><code>paweh-05-interactive-dashboard.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/akilanthony/paweh/blob/HEAD/vignettes/paweh-05-interactive-dashboard.Rmd" class="external-link"><code>vignettes/paweh-05-interactive-dashboard.Rmd</code></a></small>
+      <div class="hidden name"><code>paweh-05-interactive-dashboard.Rmd</code></div>
+
     </div>
 
     
@@ -114,36 +136,29 @@ The paweh dashboard organizes study design by study family, with a
 dedicated workspace for each supported design.
 </p>
 </div>
-<p>A typical workflow is:</p>
+<p>A typical workflow begins the same way in each workspace:</p>
 <ol style="list-style-type: decimal">
 <li>Choose a study family.</li>
 <li>Select <strong>Estimate power</strong> or <strong>Minimum sample
 size</strong>.</li>
 <li>Enter the model assumptions.</li>
 <li>Select <strong>Calculate study design</strong>.</li>
-<li>Review <strong>Results</strong>.</li>
-<li>Explore <strong>Sensitivity</strong>.</li>
-<li>Inspect <strong>Visualize</strong>.</li>
-<li>Review <strong>Methods</strong>, advanced details, and the
-reproducible R call.</li>
 </ol>
+<p>The Case-Control and TDT / Family workspaces then provide
+<strong>Results</strong>, <strong>Sensitivity</strong>,
+<strong>Visualize</strong>, and <strong>Methods</strong> tabs, plus
+advanced details and a reproducible R call. The Quantitative Trait
+workspace is intentionally simpler: its <strong>Output</strong> card
+displays the verbose output from the corresponding canonical QTL
+function.</p>
 <blockquote>
 <p><strong>Frozen calculated design.</strong> Selecting
-<strong>Calculate study design</strong> freezes the current inputs. If
-an input is edited afterward, the dashboard reports “Inputs have
-changed. Recalculate to update results.” Results, Sensitivity,
-Visualize, Methods, Advanced calculation details, and Reproduce in R
-continue to describe the last calculated design. Select
-<strong>Calculate study design</strong> again to update them. This
-prevents an edited input from silently changing only part of the
-displayed analysis.</p>
+<strong>Calculate study design</strong> evaluates the current inputs.
+Editing an input afterward does not partially update the previous
+result. The Case-Control and TDT / Family workspaces ask the user to
+recalculate to update their panels; the Quantitative Trait workspace
+reports “Inputs have changed. Recalculate to update output.”</p>
 </blockquote>
-<p>Across workspaces, <strong>Results</strong> summarizes the requested
-design quantity, <strong>Sensitivity</strong> varies one assumption
-while holding the frozen design fixed, <strong>Visualize</strong>
-displays study-specific plots, and <strong>Methods</strong> summarizes
-the procedure and assumptions. Advanced calculation details provide
-additional returned quantities for technical review.</p>
 </div>
 <div class="section level2">
 <h2 id="case-control-workflow">Case-Control workflow<a class="anchor" aria-label="anchor" href="#case-control-workflow"></a>
@@ -221,6 +236,20 @@ the baseline/no-error design, (2) the phenotype-misclassification
 scenario, and (3) the locus-heterogeneity scenario. It does
 <strong>not</strong> interpret them as one joint combined TDT model.</p>
 </blockquote>
+<p>For a genetic-model input, <strong>Advanced assumptions</strong> also
+offers the exact control <strong>Genotype misclassification (Chapter
+5)</strong>. Selecting it reveals <strong>Genotype misclassification
+rate (%)</strong>, which accepts a percentage from 0 to 50; the
+interface converts that value to the package-scale proportion supplied
+as <code>genotype_misclassification_rate</code>. This model is
+unavailable for direct transmission quantities and must be used
+separately from phenotype misclassification and locus heterogeneity. The
+interface reports a clear error if those constraints are violated.</p>
+<p>The Results and advanced-details panels report the no-error and
+Chapter 5 genotype-misclassification quantities returned by
+<code><a href="../reference/tdt_power.html">tdt_power()</a></code> or <code><a href="../reference/tdt_mssn.html">tdt_mssn()</a></code>, including retained
+and Mendelian-inconsistent trio probabilities. Sensitivity and advanced
+surface plots are not provided for this genotype-error branch.</p>
 <div class="figure">
 <img src="images/shiny-tdt-both-modifiers.png" class="r-plt" alt="TDT dashboard displaying baseline, phenotype-misclassification, and locus-heterogeneity power scenarios separately." width="100%"><p class="caption">
 The TDT Results tab keeps the baseline, phenotype-misclassification, and
@@ -247,111 +276,101 @@ while retaining the last calculated model-based design.
 <div class="section level2">
 <h2 id="quantitative-trait-workflow">Quantitative Trait workflow<a class="anchor" aria-label="anchor" href="#quantitative-trait-workflow"></a>
 </h2>
-<p>The Quantitative Trait workspace supports three related designs:
-analysis of a full continuous trait, sampling from extreme phenotype
-tails, and joint analysis of multiple correlated quantitative traits.
-Across these modes, core inputs include modeled-allele frequency,
-variance explained by the QTL, dominance, significance level, and either
-sample size or target power. The <a href="paweh-04-quantitative-trait-study-design.html">Quantitative-Trait
-Study Design</a> vignette explains the statistical theory.</p>
+<p>The Quantitative Trait workspace is a thin input interface over the
+public QTL functions. Its workflow is deliberately direct:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">inputs</mtext><mo>→</mo><mtext mathvariant="normal">Calculate study design</mtext><mo>→</mo><mtext mathvariant="normal">canonical verbose PAWEH output</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\text{inputs} \longrightarrow \text{Calculate study design}
+\longrightarrow \text{canonical verbose PAWEH output}.
+</annotation></semantics></math></p>
+<p>Choose <strong>Estimate power</strong> or <strong>Minimum sample
+size</strong>, enter the model inputs, and select <strong>Calculate
+study design</strong>. The single <strong>Output</strong> card then
+shows the verbose console presentation generated by the corresponding
+canonical function. There are no QTL Results, Sensitivity, Visualize,
+Methods, advanced decomposition, or 2-D/3-D Plotly panels in the current
+dashboard.</p>
+<p>The workspace exposes three designs:</p>
+<ul>
+<li>
+<strong>Full continuous trait</strong> calls
+<code><a href="../reference/qtl_anova_power.html">qtl_anova_power()</a></code> or <code><a href="../reference/qtl_anova_mssn.html">qtl_anova_mssn()</a></code>.</li>
+<li>
+<strong>Extreme phenotype sampling</strong> calls
+<code><a href="../reference/qtl_threshold_chisq_power.html">qtl_threshold_chisq_power()</a></code> or
+<code><a href="../reference/qtl_threshold_chisq_mssn.html">qtl_threshold_chisq_mssn()</a></code>.</li>
+<li>
+<strong>Multiple quantitative traits</strong> calls
+<code><a href="../reference/qtl_multivariate_power_full.html">qtl_multivariate_power_full()</a></code> or
+<code><a href="../reference/qtl_multivariate_mssn_full.html">qtl_multivariate_mssn_full()</a></code>, using either the Pillai
+continuous-trait test or joint threshold-selected genotype chi-square
+test.</li>
+</ul>
+<p>Common controls include objective-specific sample size or target
+power, significance level, and modeled-allele frequency. The continuous
+design adds QTL variance, dominance, and genotype-count options. The
+extreme design adds upper- and lower-tail percentages and their
+selected-sample ratio. The multivariate design accepts two to four
+phenotype-specific QTL variances and dominance values, pairwise
+phenotype correlations, and joint-tail inputs when the threshold test is
+selected.</p>
+<p>If inputs change after a calculation, the previous verbose output
+remains visible with the notice <strong>Inputs have changed. Recalculate
+to update output.</strong> The <a href="paweh-04-quantitative-trait-study-design.html">Quantitative-Trait
+Study Design</a> vignette provides the statistical interpretation and
+approved model visualizations outside the dashboard.</p>
 <div class="section level3">
 <h3 id="full-continuous-trait">Full continuous trait<a class="anchor" aria-label="anchor" href="#full-continuous-trait"></a>
 </h3>
 <p>This design analyzes the measured quantitative phenotype directly.
-Results report expected power or minimum total sample size. Visualize
-shows the genotype-conditional phenotype distributions, making their
-relative locations and overlap visible without deriving the Falconer
-equations.</p>
-<div class="figure">
-<img src="images/shiny-qtl-continuous.png" class="r-plt" alt="Continuous quantitative-trait dashboard showing three genotype-specific phenotype-density curves." width="100%"><p class="caption">
-The continuous-trait visualization shows the population-weighted
-genotype-specific phenotype densities returned by the canonical Falconer
-pathway.
-</p>
-</div>
+Enter total sample size for power or target power for MSSN, QTL variance
+explained, dominance, allele frequency, and the optional genotype-count
+settings. The Output card presents the canonical ANOVA result.</p>
 </div>
 <div class="section level3">
 <h3 id="extreme-phenotype-sampling">Extreme phenotype sampling<a class="anchor" aria-label="anchor" href="#extreme-phenotype-sampling"></a>
 </h3>
 <p>This design analyzes individuals selected from the lower and upper
-phenotype tails. Enter the population-tail proportions and selected
-sample size; the dashboard reports the corresponding phenotype
-thresholds and selected-group ratio. The distinction is important:
-<strong>the user specifies population-tail proportions, and the model
-determines the corresponding phenotype thresholds</strong>. The plot
-separates the lower selected tail, unselected middle, and upper selected
-tail.</p>
-<div class="figure">
-<img src="images/shiny-qtl-extreme.png" class="r-plt" alt="Extreme phenotype dashboard showing lower and upper selected regions around an unselected middle region." width="100%"><p class="caption">
-The extreme-phenotype visualization distinguishes the two selected tails
-from the unselected middle and marks the model-determined phenotype
-thresholds.
-</p>
-</div>
+phenotype tails. The user enters population-tail percentages and an
+upper-tail selected sample for power, or target power for MSSN. The
+model determines the phenotype thresholds, and the Output card reports
+the canonical threshold-design result.</p>
 </div>
 <div class="section level3">
 <h3 id="multiple-quantitative-traits">Multiple quantitative traits<a class="anchor" aria-label="anchor" href="#multiple-quantitative-traits"></a>
 </h3>
-<p>The statistical calculations support two to four traits, with
-trait-specific variance explained, trait-specific dominance, and
-phenotype correlations. The workspace offers a joint continuous-trait
-test (Pillai’s trace MANOVA) and a joint extreme-selection test
-(multivariate threshold genotype chi-square).</p>
-<p>In <strong>Genotype distributions</strong>, each contour or surface
-represents the joint phenotype distribution conditional on genotype.
-<strong>Overall population</strong> instead shows one
-genotype-frequency-weighted mixture density. Three genotype groups do
-not necessarily produce three distinct peaks in that overall mixture.
-Selection regions are shown only when they apply to the chosen
-analysis.</p>
-<div class="figure">
-<img src="images/shiny-qtl-multivariate-2d.png" class="r-plt" alt="Two-dimensional multivariate quantitative-trait contour plot showing genotype-conditional densities." width="100%"><p class="caption">
-The two-dimensional genotype-distribution view compares
-genotype-conditional contours for the selected trait pair.
-</p>
-</div>
-<p>For three- or four-trait designs, the statistical calculation uses
-every trait in the design. The two-dimensional and 3D visualizations
-display a selected pair at a time; use the trait-pair selector to choose
-which two traits appear.</p>
-<p>The optional 3D Plotly view is generated only on request. Its
-horizontal axes are the selected phenotype traits, and surface height is
-density. In the genotype-distribution view, separate surfaces are
-conditional on genotype; in the overall-population view, one surface
-represents the weighted mixture. Rotate with click and drag, and zoom or
-inspect the surface interactively.</p>
-<div class="figure">
-<img src="images/shiny-qtl-multivariate-3d.png" class="r-plt" alt="Three-dimensional multivariate genotype-conditional density visualization for two selected quantitative traits." width="100%"><p class="caption">
-The on-demand 3D genotype-distribution view presents separate
-genotype-conditional density surfaces for the selected phenotype pair.
-</p>
-</div>
+<p>The calculation supports two to four traits, with trait-specific
+variance explained and dominance values plus pairwise phenotype
+correlations. Choose a Pillai continuous-trait test or joint
+extreme-selection test. For the latter, enter upper and lower
+percentages for every trait and the lower-to-upper selected-sample
+ratio. All selected traits enter the canonical calculation; the current
+QTL workspace does not add a separate plot.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="advanced-calculation-details-and-methods">Advanced calculation details and Methods<a class="anchor" aria-label="anchor" href="#advanced-calculation-details-and-methods"></a>
+<h2 id="detailed-panels-in-case-control-and-tdt">Detailed panels in Case-Control and TDT<a class="anchor" aria-label="anchor" href="#detailed-panels-in-case-control-and-tdt"></a>
 </h2>
-<p><strong>Advanced calculation details</strong> exposes deeper
-quantities returned by the same canonical calculation used for the
-primary result. Depending on the workflow, these can include genotype
-frequencies, genotype-specific probabilities, expected transmission
-quantities, noncentrality parameters, degrees of freedom, genotype
-means, residual variance, covariance matrices, selection probabilities,
+<p>In the Case-Control and TDT / Family workspaces, <strong>Advanced
+calculation details</strong> exposes deeper quantities returned by the
+same canonical calculation used for the primary result. Depending on the
+workflow, these can include genotype probabilities, expected
+transmission quantities, noncentrality parameters, degrees of freedom,
 and fractional minimum sample size. Not every field appears for every
-model. These details are intended mainly for expert review, validation,
-and transparency.</p>
+model.</p>
 <p><strong>Methods</strong> summarizes the statistical procedure and
 assumptions for the frozen design. It complements Advanced calculation
 details: Methods explains what procedure is being used, while Advanced
-calculation details shows quantities produced by that calculation.</p>
+calculation details shows quantities produced by that calculation. These
+panels are not part of the current Quantitative Trait workspace.</p>
 </div>
 <div class="section level2">
-<h2 id="reproduce-in-r">Reproduce in R<a class="anchor" aria-label="anchor" href="#reproduce-in-r"></a>
+<h2 id="reproduce-calculations-in-r">Reproduce calculations in R<a class="anchor" aria-label="anchor" href="#reproduce-calculations-in-r"></a>
 </h2>
-<p>Every calculated design includes a <strong>Reproduce in R</strong>
-block generated from the frozen inputs. It uses the same canonical
-public function and arguments as the dashboard calculation. For example,
-a model-based TDT design may produce:</p>
+<p>The Case-Control and TDT / Family advanced details include a
+<strong>Reproduce in R</strong> block generated from the frozen inputs.
+It uses the same canonical public function and arguments as the
+dashboard calculation. For example, a model-based TDT design may
+produce:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/tdt_power.html">tdt_power</a></span><span class="op">(</span></span>
 <span>  N <span class="op">=</span> <span class="fl">600</span>,</span>
@@ -364,8 +383,10 @@ a model-based TDT design may produce:</p>
 <span>  delta_prime <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>Copy this code into a script to preserve the design in a reproducible
-analysis or to extend it programmatically.</p>
+<p>Copy this code into a script to preserve or extend the design. For
+QTL, use the canonical function identified above with the same inputs
+entered in the GUI; the dashboard itself displays that function’s
+verbose output rather than a separate generated call block.</p>
 </div>
 <div class="section level2">
 <h2 id="frequently-asked-questions">Frequently asked questions<a class="anchor" aria-label="anchor" href="#frequently-asked-questions"></a>
@@ -380,30 +401,35 @@ dashboard displays a note when the scale is tightly zoomed.</p>
 <p><strong>Why can minimum sample size be <code>Inf</code>?</strong></p>
 <p>For a model with no detectable contrast or effect, no finite sample
 size can reach the requested power.</p>
-<p><strong>Why are TDT misclassification and heterogeneity shown
+<p><strong>Why are TDT error and heterogeneity mechanisms shown
 separately?</strong></p>
-<p>They are separate sensitivity scenarios in the current TDT
-implementation and are not combined into a joint adjusted model.</p>
-<p><strong>Why can I calculate three or four traits but see only two in
-the plot?</strong></p>
-<p>The statistical model uses all selected traits, while the 2D and 3D
-visualizations display two selected traits at a time.</p>
-<p><strong>Why does a 3D plot not appear immediately?</strong></p>
-<p>3D widgets are generated on demand to keep dashboard startup
+<p>Phenotype misclassification and locus heterogeneity are separate
+sensitivity scenarios rather than one combined model. Chapter 5 genotype
+misclassification is also modeled separately and cannot be combined with
+either of them.</p>
+<p><strong>Why does the QTL workspace show only console-style
+output?</strong></p>
+<p>It is intentionally a thin GUI over the canonical QTL functions. The
+dedicated QTL vignette and plotting functions provide model
+visualizations.</p>
+<p><strong>Why does the TDT 3D plot not appear immediately?</strong></p>
+<p>The TDT Plotly surface is generated on demand to keep startup
 responsive.</p>
 <p><strong>What is the difference between Advanced calculation details
-and Methods?</strong></p>
+and Methods in the Case-Control and TDT workspaces?</strong></p>
 <p>Advanced details shows model and calculation quantities; Methods
 summarizes the statistical procedure and assumptions.</p>
 </div>
 <div class="section level2">
 <h2 id="dashboard-and-programmatic-workflows">Dashboard and programmatic workflows<a class="anchor" aria-label="anchor" href="#dashboard-and-programmatic-workflows"></a>
 </h2>
-<p>Use the dashboard for interactive exploration, study planning,
-sensitivity inspection, and visualization. Use the canonical R functions
-for scripted workflows, reproducible pipelines, simulations, batch
-analyses, and analysis code accompanying manuscripts or supplements.
-Both interfaces use the same statistical backend.</p>
+<p>Use the Case-Control and TDT / Family workspaces for interactive
+study planning, sensitivity inspection, and visualization. Use the
+Quantitative Trait workspace as a compact input front end to canonical
+verbose output. Use the public R functions for scripted workflows,
+reproducible pipelines, batch analyses, and code accompanying
+manuscripts or supplements. Every workspace delegates its calculations
+to the same statistical backend as those functions.</p>
 </div>
 <div class="section level2">
 <h2 id="further-reading">Further reading<a class="anchor" aria-label="anchor" href="#further-reading"></a>
@@ -425,21 +451,18 @@ Study Design</a></li>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
-<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
-<span><span class="co">#&gt; Running under: Ubuntu 24.04.4 LTS</span></span>
+<span><span class="co">#&gt; Platform: aarch64-apple-darwin23</span></span>
+<span><span class="co">#&gt; Running under: macOS Tahoe 26.6.2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matrix products: default</span></span>
-<span><span class="co">#&gt; BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
-<span><span class="co">#&gt; LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0</span></span>
+<span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRblas.0.dylib </span></span>
+<span><span class="co">#&gt; LAPACK: /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; locale:</span></span>
-<span><span class="co">#&gt;  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
-<span><span class="co">#&gt;  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
-<span><span class="co">#&gt;  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
-<span><span class="co">#&gt; [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
+<span><span class="co">#&gt; [1] C.UTF-8/C.UTF-8/C.UTF-8/C/C.UTF-8/C.UTF-8</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; time zone: UTC</span></span>
-<span><span class="co">#&gt; tzcode source: system (glibc)</span></span>
+<span><span class="co">#&gt; time zone: America/New_York</span></span>
+<span><span class="co">#&gt; tzcode source: internal</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attached base packages:</span></span>
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
@@ -450,37 +473,44 @@ Study Design</a></li>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;  [1] gtable_0.3.6        jsonlite_2.0.0      dplyr_1.2.1        </span></span>
 <span><span class="co">#&gt;  [4] compiler_4.6.1      BiocManager_1.30.27 tidyselect_1.2.1   </span></span>
-<span><span class="co">#&gt;  [7] jquerylib_0.1.4     systemfonts_1.3.2   scales_1.4.0       </span></span>
-<span><span class="co">#&gt; [10] textshaping_1.0.5   yaml_2.3.12         fastmap_1.2.0      </span></span>
-<span><span class="co">#&gt; [13] ggplot2_4.0.3       R6_2.6.1            generics_0.1.4     </span></span>
-<span><span class="co">#&gt; [16] knitr_1.51          htmlwidgets_1.6.4   tibble_3.3.1       </span></span>
-<span><span class="co">#&gt; [19] bookdown_0.48       desc_1.4.3          bslib_0.12.0       </span></span>
-<span><span class="co">#&gt; [22] pillar_1.11.1       RColorBrewer_1.1-3  rlang_1.3.0        </span></span>
-<span><span class="co">#&gt; [25] cachem_1.1.0        xfun_0.60           fs_2.1.0           </span></span>
-<span><span class="co">#&gt; [28] sass_0.4.10         S7_0.2.2            otel_0.2.0         </span></span>
-<span><span class="co">#&gt; [31] cli_3.6.6           pkgdown_2.2.1       magrittr_2.0.5     </span></span>
-<span><span class="co">#&gt; [34] digest_0.6.39       grid_4.6.1          mvtnorm_1.4-2      </span></span>
-<span><span class="co">#&gt; [37] lifecycle_1.0.5     vctrs_0.7.3         evaluate_1.0.5     </span></span>
-<span><span class="co">#&gt; [40] glue_1.8.1          farver_2.1.2        ragg_1.5.2         </span></span>
-<span><span class="co">#&gt; [43] rmarkdown_2.31      pkgconfig_2.0.3     tools_4.6.1        </span></span>
-<span><span class="co">#&gt; [46] htmltools_0.5.9</span></span></code></pre></div>
+<span><span class="co">#&gt;  [7] dichromat_2.0-1     jquerylib_0.1.4     systemfonts_1.3.2  </span></span>
+<span><span class="co">#&gt; [10] scales_1.4.0        textshaping_1.0.5   yaml_2.3.12        </span></span>
+<span><span class="co">#&gt; [13] fastmap_1.2.0       ggplot2_4.0.3       R6_2.6.1           </span></span>
+<span><span class="co">#&gt; [16] generics_0.1.4      knitr_1.51          htmlwidgets_1.6.4  </span></span>
+<span><span class="co">#&gt; [19] tibble_3.3.1        bookdown_0.47       desc_1.4.3         </span></span>
+<span><span class="co">#&gt; [22] bslib_0.12.0        pillar_1.11.1       RColorBrewer_1.1-3 </span></span>
+<span><span class="co">#&gt; [25] rlang_1.3.0         cachem_1.1.0        xfun_0.60          </span></span>
+<span><span class="co">#&gt; [28] fs_2.1.0            sass_0.4.10         S7_0.2.2           </span></span>
+<span><span class="co">#&gt; [31] otel_0.2.0          cli_3.6.6           pkgdown_2.2.1      </span></span>
+<span><span class="co">#&gt; [34] magrittr_2.0.5      digest_0.6.39       grid_4.6.1         </span></span>
+<span><span class="co">#&gt; [37] mvtnorm_1.4-2       lifecycle_1.0.5     vctrs_0.7.3        </span></span>
+<span><span class="co">#&gt; [40] evaluate_1.0.5      glue_1.8.1          farver_2.1.2       </span></span>
+<span><span class="co">#&gt; [43] ragg_1.5.2          rmarkdown_2.31      pkgconfig_2.0.3    </span></span>
+<span><span class="co">#&gt; [46] tools_4.6.1         htmltools_0.5.9</span></span></code></pre></div>
 </div>
-  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
-    </nav></aside>
-</div>
+  </div>
 
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
+      </div>
 
-    <footer><div class="pkgdown-footer-left">
-  <p>Developed by Akil Anthony.</p>
 </div>
 
-<div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+
+
+      <footer><div class="copyright">
+  <p></p>
+<p>Developed by Akil Anthony.</p>
 </div>
 
-    </footer>
+<div class="pkgdown">
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
+
+      </footer>
+</div>
+
 
 
 

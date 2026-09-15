@@ -8,7 +8,5 @@ articles:
   paweh-04-quantitative-trait-study-design: paweh-04-quantitative-trait-study-design.html
   paweh-05-interactive-dashboard: paweh-05-interactive-dashboard.html
   paweh-06-sequencing-study-design: paweh-06-sequencing-study-design.html
-last_built: 2026-09-01T12:49Z
-urls:
-  reference: https://akilanthony.github.io/paweh/reference
-  article: https://akilanthony.github.io/paweh/articles
+  paweh-07-lrtae-study-design: paweh-07-lrtae-study-design.html
+last_built: 2026-09-15T17:00Z
