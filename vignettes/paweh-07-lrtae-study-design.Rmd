@@ -204,16 +204,20 @@ allocations$Power <- vapply(design_results, function(x) x$power, numeric(1))
 allocations
 ```
 
-```{r validation-figure, fig.cap="Prospective LRTae power for four validation allocations with the same total sample size and error assumptions."}
+```{r validation-figure, fig.width=7, fig.height=4.2, fig.cap="Prospective LRTae power for four validation allocations with the same total sample size and error assumptions."}
+old_par <- par(mar = c(4.3, 8.2, 1.0, 1.0))
 barplot(
   allocations$Power,
   names.arg = allocations$design,
-  las = 2,
-  ylim = c(0, 1),
-  ylab = "Prospective power",
-  col = "#3B7EA1"
+  horiz = TRUE,
+  xlim = c(0, 1),
+  xlab = "Prospective power",
+  las = 1,
+  col = "#355C7D",
+  border = NA
 )
-abline(h = 0.80, lty = 2, col = "#A33A2B")
+abline(v = 0.80, lty = 2, col = "#7A4F5B")
+par(old_par)
 ```
 
 Validation is therefore not merely a data-cleaning exercise: it contributes
