@@ -6,11 +6,101 @@ test_that("TDT UI exposes the complete production workflow", {
   expect_match(html, "Advanced assumptions", fixed = TRUE)
   expect_match(html, "Phenotype misclassification", fixed = TRUE)
   expect_match(html, "Locus heterogeneity", fixed = TRUE)
+  expect_match(html, "Genotype misclassification (Chapter 5)", fixed = TRUE)
+  expect_match(html, "Genotype misclassification rate (%)", fixed = TRUE)
+  expect_match(html, "adjacent-genotype error rate e", fixed = TRUE)
+  expect_match(html, "data-display-if=", fixed = TRUE)
+  expect_match(html, "tdt-input_mode", fixed = TRUE)
+  expect_match(html, "model_based", fixed = TRUE)
   expect_match(html, "Sensitivity", fixed = TRUE)
   expect_match(html, "Visualize", fixed = TRUE)
   expect_match(html, "Methods", fixed = TRUE)
   expect_match(html, "<details class=\"paweh-sidebar-section\">", fixed = TRUE)
   expect_false(grepl("<details[^>]* open", html))
+})
+
+test_that("TDT Shiny genotype error reproduces canonical power and MSSN", {
+  for (objective in c("power", "mssn")) {
+    values <- paweh:::.paweh_tdt_defaults()
+    values$objective <- objective
+    values$genotype_misclassification <- TRUE
+    values$genotype_misclassification_rate <- 1
+    calculation <- paweh:::.paweh_tdt_calculate(
+      paweh:::.paweh_tdt_snapshot(values)
+    )
+    args <- list(
+      input_mode = "model_based", pd = .3, prev = .05,
+      R1 = 1.5, R2 = 2.25, alpha = .05, delta_prime = 1,
+      misclass_rate = 0, heter_rate = 0,
+      effect = "genotype_misclassification",
+      genotype_misclassification_rate = .01,
+      verbose = FALSE
+    )
+    if (objective == "power") {
+      direct <- do.call(tdt_power, c(list(N = 600), args))
+      expect_equal(
+        calculation$result$power$genotype_misclassification,
+        direct$power$genotype_misclassification
+      )
+      expect_equal(
+        calculation$result$lambda$genotype_misclassification,
+        direct$lambda$genotype_misclassification
+      )
+    } else {
+      direct <- do.call(tdt_mssn, c(list(target_power = .8), args))
+      expect_equal(
+        calculation$result$N$genotype_misclassification,
+        direct$N$genotype_misclassification
+      )
+    }
+    expect_identical(
+      calculation$snapshot$backend_args$genotype_misclassification_rate,
+      .01
+    )
+    expect_identical(
+      paweh:::.paweh_tdt_scenarios(calculation),
+      c("no_error", "genotype_misclassification")
+    )
+    html <- paste(
+      as.character(paweh:::.paweh_tdt_results_ui(calculation)),
+      collapse = "\n"
+    )
+    expect_match(html, "Genotype misclassification", fixed = TRUE)
+    expect_match(html, "1.0%", fixed = TRUE)
+    expect_match(html, "Retained trio probability", fixed = TRUE)
+  }
+})
+
+test_that("TDT Shiny keeps Chapter 5 genotype error separate and model-based", {
+  values <- paweh:::.paweh_tdt_defaults()
+  values$genotype_misclassification <- TRUE
+  values$genotype_misclassification_rate <- 1
+
+  values$misclassification <- TRUE
+  expect_error(
+    paweh:::.paweh_tdt_snapshot(values),
+    "Turn off phenotype misclassification and locus heterogeneity"
+  )
+  values$misclassification <- FALSE
+  values$heterogeneity <- TRUE
+  expect_error(
+    paweh:::.paweh_tdt_snapshot(values),
+    "Turn off phenotype misclassification and locus heterogeneity"
+  )
+  values$heterogeneity <- FALSE
+  values$input_mode <- "model_free"
+  expect_error(
+    paweh:::.paweh_tdt_snapshot(values),
+    "only for model-based TDT designs"
+  )
+
+  values <- paweh:::.paweh_tdt_defaults()
+  expect_false("effect" %in% names(
+    paweh:::.paweh_tdt_snapshot(values)$backend_args
+  ))
+  expect_false("genotype_misclassification_rate" %in% names(
+    paweh:::.paweh_tdt_snapshot(values)$backend_args
+  ))
 })
 
 test_that("objective and input controls are mode-specific", {

@@ -73,7 +73,10 @@ test_that("QTL release matrix renders and reproduces canonical results", {
     values <- modifyList(paweh:::.paweh_qtl_defaults(), designs[[name]])
     calculation <- paweh:::.paweh_qtl_calculate(paweh:::.paweh_qtl_snapshot(values))
     fun <- get(paweh:::.paweh_qtl_function(calculation$snapshot), envir = asNamespace("paweh"))
-    reproduced <- do.call(fun, paweh:::.paweh_qtl_repro_args(calculation))
+    reproduced <- do.call(
+      fun,
+      paweh:::.paweh_qtl_call_args(calculation$snapshot, verbose = FALSE)
+    )
     if (values$objective == "power") {
       expect_equal(reproduced$power, calculation$result$power, info = name)
     } else if (values$subtype == "continuous" ||
@@ -82,12 +85,7 @@ test_that("QTL release matrix renders and reproduces canonical results", {
     } else {
       expect_equal(reproduced$N_total, calculation$result$N_total, info = name)
     }
-    expect_error(paweh:::.paweh_qtl_results_ui(calculation), NA, info = name)
-    expect_error(paweh:::.paweh_qtl_advanced_ui(calculation), NA, info = name)
-    expect_error(paweh:::.paweh_qtl_methods_ui(calculation), NA, info = name)
-    expect_match(
-      paweh:::.paweh_call_text(paweh:::.paweh_qtl_repro_call(calculation)),
-      paweh:::.paweh_qtl_function(calculation$snapshot), fixed = TRUE
-    )
+    expect_true(nzchar(calculation$verbose_output), info = name)
+    expect_match(calculation$verbose_output, "Falconer", fixed = TRUE)
   }
 })

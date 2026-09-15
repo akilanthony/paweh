@@ -33,7 +33,7 @@ test_that("dashboard shell exposes study and workspace navigation", {
   expect_match(html, "Extreme phenotype sampling", fixed = TRUE)
   expect_match(html, "Multiple quantitative traits", fixed = TRUE)
 
-  for (label in c("Results", "Sensitivity", "Visualize", "Methods")) {
+  for (label in c("Results", "Sensitivity", "Visualize", "Methods", "Output")) {
     expect_match(html, label, fixed = TRUE)
   }
 })
@@ -79,10 +79,11 @@ test_that("plot outputs are created only after their required state exists", {
     expect_match(paste(as.character(output$visualize_intro), collapse = "\n"), "study-specific visualizations", fixed = TRUE)
   })
   shiny::testServer(qtl_server, {
-    expect_null(output$sensitivity_plot_container)
-    expect_null(output$visualization_plot_container)
-    expect_match(paste(as.character(output$sensitivity_controls), collapse = "\n"), "before exploring sensitivity", fixed = TRUE)
-    expect_match(paste(as.character(output$visualize_intro), collapse = "\n"), "study-specific visualizations", fixed = TRUE)
+    expect_match(
+      output$verbose_output,
+      "Choose a workflow and select Calculate study design.",
+      fixed = TRUE
+    )
   })
 })
 

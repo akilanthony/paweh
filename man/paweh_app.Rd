@@ -11,11 +11,12 @@ A Shiny application object inheriting from \code{shiny.appobj}.
 }
 \description{
 Creates the modular \code{bslib} dashboard for \code{paweh} study design. The
-Case-Control, TDT / Family, and Quantitative Trait workspaces provide
-canonical power, minimum-sample-size, sensitivity, and study-specific visual
-results. The concise results are complemented by collapsed calculation
-details and reproducible canonical R calls. Dashboard calculations delegate
-to the same canonical package functions as the programmatic R interface.
+Case-Control and TDT / Family workspaces provide canonical power,
+minimum-sample-size, sensitivity, and study-specific visual results. The
+Quantitative Trait workspace collects the canonical function inputs and
+displays that function's verbose console output. Dashboard calculations
+delegate to the same canonical package functions as the programmatic R
+interface.
 }
 \details{
 \code{paweh_app()} returns the application object without launching it. This makes
