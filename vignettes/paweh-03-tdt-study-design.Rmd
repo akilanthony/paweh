@@ -121,6 +121,78 @@ supplied `ET` and `ENT`. Applying heterogeneity additionally requires `pd`;
 applying phenotype misclassification requires `pd` and `prev`. Model-free
 inputs therefore relocate assumptions rather than eliminate them.
 
+# Chapter 5 genotype misclassification
+
+The public `effect` argument can select `"none"`,
+`"phenotype_misclassification"`, `"locus_heterogeneity"`, or
+`"genotype_misclassification"`. The last option implements the Chapter 5
+model-based TDT genotype-error model through the scalar argument
+`genotype_misclassification_rate`.
+
+For adjacent-genotype error rate (e), with (0 \le e \le 0.5), the
+transition matrix from true to observed genotype is
+
+\[
+M(e) =
+\begin{bmatrix}
+1-e & e & 0 \\
+e & 1-2e & e \\
+0 & e & 1-e
+\end{bmatrix}.
+\]
+
+Thus a true genotype 0 can be observed as 0 or 1, a true genotype 1 can be
+observed as 0, 1, or 2, and a true genotype 2 can be observed as 1 or 2.
+Direct errors between genotypes 0 and 2 are not allowed.
+
+The calculation begins with the true Mendelian trio distribution, applies the
+transition model to the observed trio genotypes, and removes observed
+Mendelian-inconsistent states. It renormalizes the retained consistent states,
+calculates their expected transmitted and non-transmitted counts, and uses the
+resulting TDT non-centrality parameter for prospective power or MSSN.
+
+```{r genotype-misclassification}
+genotype_error_power <- tdt_power(
+  N = 600, input_mode = "model_based",
+  pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+  alpha = 0.05, delta_prime = 1,
+  effect = "genotype_misclassification",
+  genotype_misclassification_rate = 0.01,
+  verbose = FALSE
+)
+
+genotype_error_mssn <- tdt_mssn(
+  target_power = 0.80, input_mode = "model_based",
+  pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+  alpha = 0.05, delta_prime = 1,
+  effect = "genotype_misclassification",
+  genotype_misclassification_rate = 0.01,
+  verbose = FALSE
+)
+
+genotype_error_mssn_values <- c(
+  genotype_error_mssn$N$no_error,
+  genotype_error_mssn$N$genotype_misclassification
+)
+
+data.frame(
+  scenario = c("No genotype error", "1% adjacent-genotype error"),
+  power_at_600 = c(
+    genotype_error_power$power$no_error,
+    genotype_error_power$power$genotype_misclassification
+  ),
+  fractional_mssn = genotype_error_mssn_values,
+  recruitment_trios = ceiling(genotype_error_mssn_values)
+)
+```
+
+In this example, genotype error reduces power at 600 trios and increases the
+recruitment target for 80% power. This branch is available only with
+`input_mode = "model_based"` and uses one scalar adjacent-genotype error rate;
+it does not accept a custom transition matrix. It cannot be combined with
+phenotype misclassification or locus heterogeneity. It is neither TDTae nor
+the sequencing/NGS genotype-error implementation.
+
 # Published-example reproduction: Buyske et al. (2009)
 
 Buyske et al. examined phenotype misclassification in affected-child trios.
@@ -259,6 +331,10 @@ from homogeneity require substantially more families.
   maximum **positive** LD. Negative LD requires another allele-frequency-
   dependent normalization and is not implemented.
 - `misclass_rate` and `heter_rate` describe distinct reported scenarios.
+- Chapter 5 genotype misclassification is model-based, uses one scalar
+  adjacent-genotype error rate, and cannot be combined with the other error
+  mechanisms.
+- TDTae and sequencing/NGS genotype error are outside this implementation.
 - Model-free `ET` and `ENT` are treated as supplied expected counts.
 - MSSN is measured in trios.
 - Curves and surfaces vary fixed assumptions; they are not uncertainty bands.
