@@ -106,14 +106,33 @@
     )
   }
 
-  p <- p +
-    ggplot2::geom_line(linewidth = 1.05, lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_point(size = 2.2, alpha = 0.9, na.rm = TRUE)
+  if (multiple) {
+    groups <- levels(plot_dat$series)
+    colors <- stats::setNames(
+      rep(.paweh_fill_values(), length.out = length(groups)), groups
+    )
+    linetypes <- stats::setNames(.paweh_linetype_values(length(groups)), groups)
+    p <- p +
+      ggplot2::geom_line(linewidth = 1, lineend = "round", na.rm = TRUE) +
+      ggplot2::geom_point(size = 2.6, alpha = 0.9, na.rm = TRUE) +
+      ggplot2::scale_color_manual(values = colors, drop = FALSE) +
+      ggplot2::scale_linetype_manual(values = linetypes, drop = FALSE)
+  } else {
+    line_color <- unname(.paweh_color_values()["navy"])
+    p <- p +
+      ggplot2::geom_line(
+        linewidth = 1, lineend = "round", color = line_color, na.rm = TRUE
+      ) +
+      ggplot2::geom_point(
+        size = 2.6, color = line_color, alpha = 0.9, na.rm = TRUE
+      )
+  }
   if (!is.null(target_power)) {
     p <- p + ggplot2::geom_hline(
       yintercept = target_power,
       linetype = "dashed",
-      color = "grey40"
+      color = unname(.paweh_color_values()["reference"]),
+      linewidth = 0.65
     )
   }
 
@@ -133,7 +152,7 @@
       color = "Design",
       linetype = "Design"
     ) +
-    .plot_paweh_theme()
+    .paweh_plot_theme()
 }
 
 #' Plot Power Sensitivity for Sequencing Designs
@@ -273,9 +292,9 @@ plot_ngs_power <- function(
     y = "power",
     y_label = "Power",
     title = if (design == "cc") {
-      "Case-control sequencing power vs coverage"
+      "Case-control power vs sequencing coverage"
     } else {
-      "TDT1-NGS power vs coverage"
+      "TDT1-NGS power vs sequencing coverage"
     },
     target_power = target_power
   )
@@ -425,9 +444,9 @@ plot_ngs_mssn <- function(
     y = if (design == "cc") "MSSN_case" else "MSSN_trios",
     y_label = if (design == "cc") "Required cases" else "Required trios",
     title = if (design == "cc") {
-      "Case-control sequencing MSSN vs coverage"
+      "Required cases vs sequencing coverage"
     } else {
-      "TDT1-NGS MSSN vs coverage"
+      "Required trios vs sequencing coverage"
     }
   )
 }

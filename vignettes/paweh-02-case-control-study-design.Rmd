@@ -196,7 +196,7 @@ plot_cc_power(
   N_case = 250, alpha = 0.01, k = 1,
   g1 = g_edwards_affected, g0 = g_edwards_unaffected,
   prev = 0.05, pheno_misclass = TRUE, theta = 0,
-  title = "Power vs misclassification (prevalence 0.05)"
+  title = "Power vs phenotype misclassification (prevalence 0.05)"
 )
 ```
 
@@ -207,7 +207,7 @@ plot_cc_power(
   N_case = 250, alpha = 0.01, k = 1,
   g1 = g_edwards_affected, g0 = g_edwards_unaffected,
   prev = 0.01, pheno_misclass = TRUE, theta = 0,
-  title = "Power vs misclassification (prevalence 0.01)"
+  title = "Power vs phenotype misclassification (prevalence 0.01)"
 )
 ```
 

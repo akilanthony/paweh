@@ -251,20 +251,6 @@
   dat
 }
 
-.plot_paweh_theme <- function(base_size = 12) {
-  ggplot2::theme_minimal(base_size = base_size) +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(face = "bold", size = base_size + 2, margin = ggplot2::margin(b = 6)),
-      plot.subtitle = ggplot2::element_text(size = base_size, margin = ggplot2::margin(b = 10)),
-      axis.title = ggplot2::element_text(face = "bold"),
-      panel.grid.minor = ggplot2::element_blank(),
-      panel.grid.major.x = ggplot2::element_blank(),
-      legend.title = ggplot2::element_text(face = "bold"),
-      legend.position = "right"
-    )
-}
-
-
 .plot_apply_cc_x <- function(args, x_var, x) {
   # Special user-friendly aliases and multipliers first.
   if (x_var == "locus_het_rate") {
@@ -440,32 +426,51 @@
 
 .plot_make_line <- function(dat, x_label, y_label, title, subtitle = NULL) {
   .plot_require_ggplot2()
+  line_color <- unname(.paweh_color_values()["navy"])
   ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y)) +
-    ggplot2::geom_line(linewidth = 1.05, lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_point(size = 2.2, alpha = 0.9, na.rm = TRUE) +
+    ggplot2::geom_line(
+      linewidth = 1, lineend = "round", color = line_color, na.rm = TRUE
+    ) +
+    ggplot2::geom_point(
+      size = 2.6, color = line_color, alpha = 0.9, na.rm = TRUE
+    ) +
     ggplot2::labs(
       title = title,
       subtitle = subtitle,
       x = x_label,
       y = y_label
     ) +
-    .plot_paweh_theme()
+    .paweh_plot_theme()
 }
 
 .plot_make_line_grouped <- function(dat, x_label, y_label, title, group_label, subtitle = NULL) {
   .plot_require_ggplot2()
   dat <- .plot_pretty_data(dat)
-  ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y, color = .data$group, group = .data$group)) +
-    ggplot2::geom_line(linewidth = 1.05, lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_point(size = 2.2, alpha = 0.9, na.rm = TRUE) +
+  groups <- unique(as.character(dat$group))
+  colors <- stats::setNames(
+    rep(.paweh_fill_values(), length.out = length(groups)), groups
+  )
+  linetypes <- stats::setNames(.paweh_linetype_values(length(groups)), groups)
+  ggplot2::ggplot(
+    dat,
+    ggplot2::aes(
+      x = .data$x, y = .data$y, color = .data$group,
+      linetype = .data$group, group = .data$group
+    )
+  ) +
+    ggplot2::geom_line(linewidth = 1, lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_point(size = 2.6, alpha = 0.9, na.rm = TRUE) +
+    ggplot2::scale_color_manual(values = colors, drop = FALSE) +
+    ggplot2::scale_linetype_manual(values = linetypes, drop = FALSE) +
     ggplot2::labs(
       title = title,
       subtitle = subtitle,
       x = x_label,
       y = y_label,
-      color = group_label
+      color = group_label,
+      linetype = group_label
     ) +
-    .plot_paweh_theme()
+    .paweh_plot_theme()
 }
 
 #' Plot Case-Control Power
