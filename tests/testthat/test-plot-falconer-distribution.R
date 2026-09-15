@@ -41,13 +41,69 @@ test_that("single-trait plots return customizable ggplot objects", {
     0.5, 0, 0.25, type = "histogram", scale = "frequency",
     n = 500, seed = 42, show_means = FALSE
   )
+  binned_plot <- plot_qtl_genotype_distribution(
+    0.5, 0, 0.25, type = "binned"
+  )
 
   expect_s3_class(density_plot, "ggplot")
   expect_s3_class(histogram_plot, "ggplot")
+  expect_s3_class(binned_plot, "ggplot")
   expect_s3_class(density_plot + ggplot2::labs(subtitle = "custom"), "ggplot")
   expect_false(any(vapply(
     histogram_plot$layers, function(x) inherits(x$geom, "GeomVline"), logical(1)
   )))
+})
+
+test_that("binned mode uses deterministic analytic Normal probabilities", {
+  args <- list(
+    qtl_var = 0.25, tau = 0.25, pd = 0.25,
+    type = "binned", bins = 30L, return_data = TRUE
+  )
+  set.seed(731)
+  before <- .Random.seed
+  dat <- do.call(plot_qtl_genotype_distribution, args)
+  after <- .Random.seed
+  repeated <- do.call(plot_qtl_genotype_distribution, args)
+  model <- attr(dat, "falconer_model")
+
+  expect_identical(after, before)
+  expect_equal(repeated, dat)
+  expect_equal(nrow(dat), 3 * 30L)
+  expect_true(all(is.finite(dat$bin_probability)))
+  expect_true(all(dat$bin_probability >= 0))
+
+  for (j in 1:3) {
+    component <- dat[dat$genotype == paste("Genotype", j - 1L), ]
+    direct <- stats::pnorm(
+      component$bin_upper, mean = model$mu[j], sd = model$residual_sd
+    ) - stats::pnorm(
+      component$bin_lower, mean = model$mu[j], sd = model$residual_sd
+    )
+    expect_equal(component$bin_probability, direct, tolerance = 1e-15)
+    expect_equal(sum(component$bin_probability), 1, tolerance = 4e-5)
+    expect_equal(
+      sum(component$weighted_bin_probability), unname(model$pi[j]),
+      tolerance = 4e-5
+    )
+    expect_equal(
+      component$value,
+      component$bin_probability / component$bin_width,
+      tolerance = 1e-15
+    )
+  }
+})
+
+test_that("frequency-scaled binned mode weights analytic heights", {
+  dat <- plot_qtl_genotype_distribution(
+    0.25, 0.25, 0.25, type = "binned", scale = "frequency",
+    bins = 24L, return_data = TRUE
+  )
+
+  expect_equal(
+    dat$value,
+    dat$weighted_bin_probability / dat$bin_width,
+    tolerance = 1e-15
+  )
 })
 
 test_that("density mode is analytic and does not alter RNG state", {
@@ -92,5 +148,9 @@ test_that("single-trait visualization inputs are validated", {
   expect_error(
     plot_qtl_genotype_distribution(0.5, 0, 0.25, type = "histogram", seed = -1),
     "seed"
+  )
+  expect_error(
+    plot_qtl_genotype_distribution(0.5, 0, 0.25, type = "binned", bins = 1.5),
+    "bins"
   )
 })

@@ -33,6 +33,57 @@
   pmin(1, pmax(0, exp(log_probability)))
 }
 
+#' Validate one optional two-dimensional plotting range.
+#'
+#' @noRd
+.falconer_mv_plot_limit <- function(x, name) {
+  if (is.null(x)) return(NULL)
+  if (!is.numeric(x) || length(x) != 2L || any(!is.finite(x)) || x[1L] >= x[2L]) {
+    stop(name, " must be a finite numeric vector of length 2 with lower < upper.",
+         call. = FALSE)
+  }
+  unname(x)
+}
+
+#' Construct analytic probability-content ellipses for bivariate components.
+#'
+#' @noRd
+.falconer_mv_probability_ellipses <- function(model, component_probs,
+                                               points_per_ellipse = 181L) {
+  decomposition <- eigen(model$residual_covariance_matrix, symmetric = TRUE)
+  covariance_root <- decomposition$vectors %*%
+    diag(sqrt(decomposition$values), nrow = 2L)
+  theta <- seq(0, 2 * pi, length.out = points_per_ellipse)
+  unit_circle <- rbind(cos(theta), sin(theta))
+  genotype_labels <- paste("Genotype", 0:2)
+  band_lower <- c(0, component_probs[-length(component_probs)])
+  band_labels <- sprintf(
+    "%g-%g%%", 100 * band_lower, 100 * component_probs
+  )
+
+  out <- do.call(rbind, lapply(seq_along(genotype_labels), function(j) {
+    do.call(rbind, lapply(seq_along(component_probs), function(k) {
+      probability <- component_probs[k]
+      coordinates <- model$mean_matrix[, j] +
+        sqrt(stats::qchisq(probability, df = 2L)) *
+        (covariance_root %*% unit_circle)
+      data.frame(
+        phenotype_1 = coordinates[1L, ],
+        phenotype_2 = coordinates[2L, ],
+        genotype = genotype_labels[j],
+        component_probability = probability,
+        band_lower_probability = band_lower[k],
+        component_band = band_labels[k],
+        ellipse_group = paste(j, format(probability, digits = 15), sep = ":")
+      )
+    }))
+  }))
+  rownames(out) <- NULL
+  out$genotype <- factor(out$genotype, levels = genotype_labels)
+  out$component_band <- factor(out$component_band, levels = band_labels)
+  out
+}
+
 #' Plot Two-Phenotype Falconer Density or CDF Contours
 #'
 #' Visualizes three genotype-specific bivariate normal distributions for exactly
@@ -60,6 +111,15 @@
 #'   density and CDF modes retain their existing one-row-per-grid-point form.
 #'   Genotype-density mode returns long-form data with one row per grid point
 #'   and genotype.
+#' @param xlim,ylim Optional finite increasing length-two vectors controlling
+#'   the displayed phenotype ranges. They affect only the plotting grid and
+#'   visible threshold geometry, not model parameters, thresholds, mixture
+#'   weights, or other statistical calculations.
+#' @param component_probs Numeric enclosed-probability levels for the analytic
+#'   bivariate-normal probability regions drawn when
+#'   `surface = "genotype_density"`.
+#'   Values must be unique and strictly between zero and one. The default draws
+#'   nested 0--50%, 50--80%, and 80--95% conditional probability bands.
 #'
 #' @details
 #' In density mode, each grid value is the marginal, genotype-weighted mixture
@@ -68,11 +128,15 @@
 #' `sum(pi[j] * P(Y1 <= y1, Y2 <= y2 | G = j))`. Density and CDF surfaces
 #' therefore represent different mathematical quantities.
 #'
-#' Genotype-density mode displays each conditional density `f[j](y1, y2)`
-#' separately and does not multiply by genotype frequency. Each conditional
-#' density integrates to one, including for rare genotypes. Three genotype
-#' components do not imply that their weighted mixture has three distinct
-#' modes.
+#' Genotype-density mode displays each conditional distribution
+#' `f[j](y1, y2)` separately and does not multiply by genotype frequency. Each
+#' conditional distribution integrates to one, including for rare genotypes.
+#' Its default display uses filled nested 0--50%, 50--80%, and 80--95%
+#' probability regions, with the center visually strongest and the outer band
+#' lightest. Region boundaries are analytic probability-content ellipses
+#' satisfying the corresponding bivariate-normal Mahalanobis-distance equation;
+#' they are not arbitrary raw-density contour breaks. Three genotype components
+#' do not imply that their weighted mixture has three distinct modes.
 #'
 #' When thresholds are supplied, affected subjects occupy only the joint
 #' upper-right region `Y1 >= TU1 AND Y2 >= TU2`. Unaffected subjects occupy
@@ -114,13 +178,26 @@ plot_qtl_multivariate_contour <- function(
     show_labels = TRUE,
     grid_n = 150L,
     title = NULL,
-    return_data = FALSE
+    return_data = FALSE,
+    xlim = NULL,
+    ylim = NULL,
+    component_probs = c(0.50, 0.80, 0.95)
 ) {
   surface <- match.arg(surface)
   .falconer_check_flag(show_thresholds, "show_thresholds")
   .falconer_check_flag(show_means, "show_means")
   .falconer_check_flag(show_labels, "show_labels")
   .falconer_check_flag(return_data, "return_data")
+  xlim <- .falconer_mv_plot_limit(xlim, "xlim")
+  ylim <- .falconer_mv_plot_limit(ylim, "ylim")
+  if (!is.numeric(component_probs) || length(component_probs) < 1L ||
+      any(!is.finite(component_probs)) ||
+      any(component_probs <= 0 | component_probs >= 1) ||
+      anyDuplicated(component_probs)) {
+    stop("component_probs must contain unique finite numeric values strictly between 0 and 1.",
+         call. = FALSE)
+  }
+  component_probs <- sort(unname(component_probs))
   if (length(qtl_var) != 2L || length(tau) != 2L) {
     stop("plot_qtl_multivariate_contour() requires exactly two phenotypes.", call. = FALSE)
   }
@@ -145,6 +222,14 @@ plot_qtl_multivariate_contour <- function(
   if (!is.null(threshold)) {
     axis_min <- pmin(axis_min, threshold$lower_threshold - 0.5 * axis_sd)
     axis_max <- pmax(axis_max, threshold$upper_threshold + 0.5 * axis_sd)
+  }
+  if (!is.null(xlim)) {
+    axis_min[1L] <- xlim[1L]
+    axis_max[1L] <- xlim[2L]
+  }
+  if (!is.null(ylim)) {
+    axis_min[2L] <- ylim[1L]
+    axis_max[2L] <- ylim[2L]
   }
   grid <- expand.grid(
     phenotype_1 = seq(axis_min[1L], axis_max[1L], length.out = as.integer(grid_n)),
@@ -193,28 +278,45 @@ plot_qtl_multivariate_contour <- function(
     attr(plot_grid, "falconer_model") <- model
     attr(plot_grid, "thresholds") <- threshold
     attr(plot_grid, "component_values") <- component
+    ellipse_data <- .falconer_mv_probability_ellipses(model, component_probs)
+    attr(plot_grid, "ellipse_data") <- ellipse_data
+    attr(plot_grid, "component_probs") <- component_probs
   }
   if (isTRUE(return_data)) return(plot_grid)
 
   if (identical(surface, "genotype_density")) {
     palette <- unname(.paweh_qtl_genotype_colors())
     p <- ggplot2::ggplot(
-      plot_grid,
+      ellipse_data,
       ggplot2::aes(
         x = .data$phenotype_1, y = .data$phenotype_2,
-        z = .data$conditional_density,
+        group = .data$ellipse_group,
         colour = .data$genotype, linetype = .data$genotype
       )
-    ) +
-      ggplot2::geom_contour(bins = 9L, linewidth = 0.72) +
+    )
+    fill_alpha <- seq(0.46, 0.18, length.out = length(component_probs))
+    for (k in rev(seq_along(component_probs))) {
+      region_data <- ellipse_data[
+        ellipse_data$component_probability == component_probs[k],
+        , drop = FALSE
+      ]
+      p <- p + ggplot2::geom_polygon(
+        data = region_data,
+        ggplot2::aes(fill = .data$genotype),
+        alpha = fill_alpha[k], colour = NA
+      )
+    }
+    p <- p +
+      ggplot2::geom_path(linewidth = 0.52, alpha = 0.82) +
+      ggplot2::scale_fill_manual(values = palette, drop = FALSE) +
       ggplot2::scale_colour_manual(values = palette, drop = FALSE) +
       ggplot2::scale_linetype_manual(
         values = c("solid", "dashed", "dotdash"), drop = FALSE
       ) +
       ggplot2::labs(
-        colour = "Genotype", linetype = "Genotype",
+        fill = "Genotype", colour = "Genotype", linetype = "Genotype",
         title = if (is.null(title)) {
-          "Bivariate Falconer genotype-conditional densities"
+          "Bivariate Falconer genotype-conditional distributions"
         } else title
       )
   } else {
@@ -222,9 +324,12 @@ plot_qtl_multivariate_contour <- function(
       plot_grid,
       ggplot2::aes(x = .data$phenotype_1, y = .data$phenotype_2, z = .data$value)
     ) +
-      ggplot2::geom_contour_filled(bins = 14L) +
-      ggplot2::scale_fill_manual(
-        values = grDevices::colorRampPalette(c("#E8ECEF", "#8FA1AF", "#355C7D", "#3F4850"))(14)
+      ggplot2::geom_contour_filled(
+        ggplot2::aes(fill = ggplot2::after_stat(.data$level_mid)), bins = 14L
+      ) +
+      ggplot2::scale_fill_gradientn(
+        colours = c("#E8ECEF", "#8FA1AF", "#355C7D", "#3F4850"),
+        guide = ggplot2::guide_colorbar()
       ) +
       ggplot2::labs(
         fill = if (identical(surface, "density")) "Mixture density" else "Mixture CDF",
@@ -234,51 +339,93 @@ plot_qtl_multivariate_contour <- function(
       )
   }
   p <- p +
-    ggplot2::coord_equal(expand = FALSE) +
+    ggplot2::coord_equal(
+      xlim = c(axis_min[1L], axis_max[1L]),
+      ylim = c(axis_min[2L], axis_max[2L]),
+      expand = FALSE
+    ) +
     ggplot2::labs(x = "Phenotype 1 value", y = "Phenotype 2 value") +
     .paweh_plot_theme() +
-    ggplot2::theme(panel.grid = ggplot2::element_blank(), legend.position = "top")
+    ggplot2::theme(
+      panel.grid = ggplot2::element_blank(),
+      legend.position = if (identical(surface, "genotype_density")) "top" else "right"
+    )
 
   if (isTRUE(show_thresholds) && !is.null(threshold)) {
     tu <- threshold$upper_threshold
     tl <- threshold$lower_threshold
     regions <- data.frame(
       region = c("Affected", "Unaffected"),
-      xmin = c(tu[1L], axis_min[1L]), xmax = c(axis_max[1L], tl[1L]),
-      ymin = c(tu[2L], axis_min[2L]), ymax = c(axis_max[2L], tl[2L])
+      xmin = c(max(tu[1L], axis_min[1L]), axis_min[1L]),
+      xmax = c(axis_max[1L], min(tl[1L], axis_max[1L])),
+      ymin = c(max(tu[2L], axis_min[2L]), axis_min[2L]),
+      ymax = c(axis_max[2L], min(tl[2L], axis_max[2L]))
     )
-    p <- p +
-      ggplot2::geom_rect(
-        data = regions,
-        ggplot2::aes(xmin = .data$xmin, xmax = .data$xmax,
-                     ymin = .data$ymin, ymax = .data$ymax),
-        inherit.aes = FALSE, fill = c("#A8844F", "#355C7D"),
-        alpha = 0.10, colour = NA
-      ) +
-      ggplot2::annotate(
-        "segment", x = tu[1L], xend = axis_max[1L],
-        y = tu[2L], yend = tu[2L], linewidth = 0.65
-      ) +
-      ggplot2::annotate(
-        "segment", x = tu[1L], xend = tu[1L],
-        y = tu[2L], yend = axis_max[2L], linewidth = 0.65
-      ) +
-      ggplot2::annotate(
-        "segment", x = axis_min[1L], xend = tl[1L],
-        y = tl[2L], yend = tl[2L], linewidth = 0.65
-      ) +
-      ggplot2::annotate(
-        "segment", x = tl[1L], xend = tl[1L],
-        y = axis_min[2L], yend = tl[2L], linewidth = 0.65
+    regions <- regions[
+      regions$xmin < regions$xmax & regions$ymin < regions$ymax,
+      , drop = FALSE
+    ]
+    region_colours <- c(Affected = "#A8844F", Unaffected = "#355C7D")
+    if (nrow(regions) > 0L) {
+      p <- p +
+        ggplot2::geom_rect(
+          data = regions,
+          ggplot2::aes(xmin = .data$xmin, xmax = .data$xmax,
+                       ymin = .data$ymin, ymax = .data$ymax),
+          inherit.aes = FALSE, fill = unname(region_colours[regions$region]),
+          alpha = 0.10, colour = NA
+        )
+    }
+    segments <- list()
+    if (tu[2L] >= axis_min[2L] && tu[2L] <= axis_max[2L] &&
+        max(tu[1L], axis_min[1L]) < axis_max[1L]) {
+      segments[[length(segments) + 1L]] <- data.frame(
+        x = max(tu[1L], axis_min[1L]), xend = axis_max[1L],
+        y = tu[2L], yend = tu[2L]
       )
+    }
+    if (tu[1L] >= axis_min[1L] && tu[1L] <= axis_max[1L] &&
+        max(tu[2L], axis_min[2L]) < axis_max[2L]) {
+      segments[[length(segments) + 1L]] <- data.frame(
+        x = tu[1L], xend = tu[1L],
+        y = max(tu[2L], axis_min[2L]), yend = axis_max[2L]
+      )
+    }
+    if (tl[2L] >= axis_min[2L] && tl[2L] <= axis_max[2L] &&
+        axis_min[1L] < min(tl[1L], axis_max[1L])) {
+      segments[[length(segments) + 1L]] <- data.frame(
+        x = axis_min[1L], xend = min(tl[1L], axis_max[1L]),
+        y = tl[2L], yend = tl[2L]
+      )
+    }
+    if (tl[1L] >= axis_min[1L] && tl[1L] <= axis_max[1L] &&
+        axis_min[2L] < min(tl[2L], axis_max[2L])) {
+      segments[[length(segments) + 1L]] <- data.frame(
+        x = tl[1L], xend = tl[1L],
+        y = axis_min[2L], yend = min(tl[2L], axis_max[2L])
+      )
+    }
+    threshold_segments <- if (length(segments) > 0L) {
+      do.call(rbind, segments)
+    } else {
+      data.frame(x = numeric(), xend = numeric(), y = numeric(), yend = numeric())
+    }
+    if (nrow(threshold_segments) > 0L) {
+      p <- p + ggplot2::geom_segment(
+        data = threshold_segments,
+        ggplot2::aes(
+          x = .data$x, xend = .data$xend, y = .data$y, yend = .data$yend
+        ),
+        inherit.aes = FALSE, linewidth = 0.65
+      )
+    }
     attr(p, "selection_regions") <- regions
-    if (isTRUE(show_labels)) {
+    attr(p, "threshold_segments") <- threshold_segments
+    if (isTRUE(show_labels) && nrow(regions) > 0L) {
       labels <- data.frame(
-        label = c("Affected", "Unaffected"),
-        x = c(tu[1L] + 0.62 * (axis_max[1L] - tu[1L]),
-              axis_min[1L] + 0.38 * (tl[1L] - axis_min[1L])),
-        y = c(tu[2L] + 0.82 * (axis_max[2L] - tu[2L]),
-              axis_min[2L] + 0.18 * (tl[2L] - axis_min[2L]))
+        label = regions$region,
+        x = (regions$xmin + regions$xmax) / 2,
+        y = (regions$ymin + regions$ymax) / 2
       )
       p <- p + ggplot2::geom_label(
         data = labels,
@@ -286,6 +433,7 @@ plot_qtl_multivariate_contour <- function(
         inherit.aes = FALSE, size = 3.5, linewidth = 0.2,
         fill = "white", alpha = 0.88
       )
+      attr(p, "selection_labels") <- labels
     }
   }
 
@@ -323,5 +471,9 @@ plot_qtl_multivariate_contour <- function(
   attr(p, "falconer_model") <- model
   attr(p, "thresholds") <- threshold
   attr(p, "plot_data") <- plot_grid
+  if (identical(surface, "genotype_density")) {
+    attr(p, "ellipse_data") <- ellipse_data
+    attr(p, "component_probs") <- component_probs
+  }
   p
 }

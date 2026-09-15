@@ -16,39 +16,49 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height
 library(paweh)
 ```
 
-# From binary outcomes to quantitative traits
+# Quantitative-trait study design in PAWEH
 
-For a quantitative trait, genotype can shift the phenotype distribution
-rather than only changing disease probability. `paweh` uses a classical,
-Falconer-style parameterization as formulated for this study-design framework:
-QTL variance controls the genetic contribution, `tau` controls dominance
-relative to additivity, `pd` controls genotype frequencies, and residual
-variation determines overlap among genotype-specific normal distributions.
+For a quantitative trait, genotype can shift the phenotype distribution rather
+than simply changing a binary disease probability. `paweh` uses a
+Falconer-style model to calculate prospective operating characteristics for
+association-study design. Its core inputs are:
 
-These assumptions define prospective operating characteristics. They do not
-fit a QTL model to observed subject-level data.
+- `qtl_var`: the proportion of trait variance attributable to the modeled QTL;
+- `tau`: dominance relative to additivity;
+- `pd`: the frequency of the modeled allele; and
+- residual variance or covariance: the remaining phenotype variation and, for
+  multiple traits, how those traits co-vary.
 
-# Visual intuition first: genotype-specific distributions
+These functions plan studies under a specified model. They do not estimate QTL
+effects from individual-level phenotype and genotype observations.
 
-The separation and overlap of the three distributions explain why effect size
-and sample size matter before a formal power calculation is performed.
+# Genotype-specific trait distributions
 
-```{r genotype-distributions, fig.cap="Genotype-specific quantitative-trait densities. Larger QTL variance separates genotype means relative to residual variation."}
+The three genotype groups can have different expected trait distributions, but
+residual variation makes those distributions overlap. Greater separation of
+the genotype means generally creates a stronger potential association signal.
+
+```{r genotype-distributions, fig.cap="Deterministic genotype-specific quantitative-trait distributions under the Falconer model."}
 plot_qtl_genotype_distribution(
-  qtl_var = 0.25, tau = 0.25, pd = 0.25,
-  type = "density", scale = "density"
+  qtl_var = 0.25,
+  tau = 0.25,
+  pd = 0.25,
+  type = "binned",
+  scale = "density"
 )
 ```
 
-The x-axis is the quantitative trait. Heavy overlap implies weak genotype
-discrimination, while greater separation produces a stronger genotype-
-associated signal. Conditional normality and a common residual variance are
-part of this design model.
+Vertical lines identify the genotype-specific means. `type = "binned"` is a
+deterministic histogram-style representation: each bar is calculated from the
+difference between analytic Normal CDF values at its bin boundaries. No random
+observations are simulated.
 
-# Full continuous-trait design: genotype-group ANOVA
+# Continuous-trait ANOVA design
 
 When every recruited subject is measured on the continuous trait, a one-way
-ANOVA can compare the three genotype groups.
+ANOVA can compare the three genotype groups. The following example calculates
+power at a fixed sample size and the minimum total sample size (MSSN) for 80%
+power.
 
 ```{r anova-design}
 anova_power <- qtl_anova_power(
@@ -70,28 +80,32 @@ data.frame(
 )
 ```
 
-The power curve below asks whether more total measurements compensate for a
-small QTL contribution.
+One power curve summarizes how the design changes as more participants are
+measured.
 
 ```{r anova-plot, fig.cap="One-way genotype-group ANOVA power as total sample size increases."}
 plot_qtl_anova_power(
-  x_var = "N", x_values = seq(300, 1200, by = 150),
-  alpha = 0.0001, qtl_var = 0.025, tau = 0.5, pd = 0.15
+  x_var = "N",
+  x_values = seq(300, 1200, by = 150),
+  alpha = 0.0001,
+  qtl_var = 0.025,
+  tau = 0.5,
+  pd = 0.15
 )
 ```
 
 # Extreme-phenotype sampling
 
-Li et al. (2019) provide a **Motivating published application** for sampling
-extreme quantitative phenotypes. Their applications included methadone dose
-and yearling weight; the latter used 486 Hanwoo steers and 35,968 SNPs.
-Their exact statistical procedure is not `paweh`'s threshold-selected genotype
-chi-square framework. The study is cited to motivate the design problem, not
-as a reproduction.
+Instead of recruiting across the full phenotype distribution, investigators
+may select subjects from its extremes. In `paweh`'s single-trait threshold
+design, upper-tail individuals become selected cases, lower-tail individuals
+become selected controls, and individuals in the middle are not selected.
+Upper and lower events are distinct tails rather than complements.
 
-In the `paweh` single-trait threshold design, upper-tail subjects form selected
-cases, lower-tail subjects form selected controls, and the middle is not
-selected. Upper and lower events are distinct tails, not complements.
+Li et al. (2019) provide a **motivating published application** of extreme
+quantitative-phenotype sampling. Their procedure is not the threshold-selected
+genotype chi-square method implemented by `paweh`, so this is motivation rather
+than a numerical reproduction.
 
 ```{r threshold-parameters}
 threshold_model <- qtl_falconer_threshold_parameters(
@@ -133,50 +147,51 @@ data.frame(
 )
 ```
 
-MSSN is the selected study sample. The source population that must be screened
-to find enough tail subjects can be much larger and is a separate operational
-quantity.
+The selected study MSSN and the expected source population screened are
+different quantities. Screening burden can be much larger because only a
+fraction of the source population falls into either selected tail.
 
-## How selection stringency changes required sample size
-
-```{r threshold-plot, fig.cap="Required selected cases as the upper-tail sampling percentage changes, with the lower tail fixed at 5%."}
+```{r threshold-plot, fig.cap="Required selected cases as upper-tail sampling becomes less extreme, with the lower tail fixed at 5%."}
 plot_qtl_threshold_chisq_mssn(
-  x_var = "x_upper", x_values = c(2.5, 5, 7.5, 10, 15),
+  x_var = "x_upper",
+  x_values = c(2.5, 5, 7.5, 10, 15),
   sample_size = "case",
-  power = 0.80, alpha = 0.0001,
-  qtl_var = 0.025, tau = 0.5, pd = 0.15,
-  x_lower = 5, k = 1,
+  power = 0.80,
+  alpha = 0.0001,
+  qtl_var = 0.025,
+  tau = 0.5,
+  pd = 0.15,
+  x_lower = 5,
+  k = 1,
   title = "Required cases vs upper-tail selection"
 )
 ```
 
-Making selection more extreme changes genotype enrichment and the number of
-selected subjects required. It also changes screening burden, which should be
-examined alongside statistical MSSN when planning recruitment.
+Selection stringency changes genotype enrichment, selected-sample MSSN, and
+the operational burden of finding eligible participants.
 
-# Why analyze multiple traits jointly?
+# Multiple quantitative traits
 
-Yang et al. (2010) jointly analyzed serum uric acid and gout in the Framingham
-Heart Study by combining univariate association tests. This is a
-**Motivating published application**: correlated or biologically related
-phenotypes can carry complementary genetic information. Their method is not
-the Pillai framework implemented by `paweh`, so no numerical reproduction is
-claimed.
+Multiple correlated or biologically related phenotypes may carry complementary
+information about the same locus. Yang et al. (2010) provide a **motivating
+published application** of joint phenotype analysis, but their method is not
+the Pillai framework implemented by `paweh` and is not reproduced here.
 
-For a `paweh` multivariate design, `qtl_var` and `tau` become phenotype-specific
-vectors, `pd` is shared, and `cor_matrix` describes phenotype correlation.
-`test = "pillai"` uses a multivariate continuous-trait design;
-`test = "threshold_chisq"` uses jointly selected phenotype tails.
+For multivariate `paweh` designs, `qtl_var` and `tau` become
+phenotype-specific vectors, `pd` remains shared, and `cor_matrix` describes
+phenotype correlation. Use `test = "pillai"` for a continuous multivariate
+design or `test = "threshold_chisq"` for jointly threshold-selected phenotypes.
 
 # Published-example reproduction: Gordon et al. (2017)
 
-The published pleiotropic example has allele frequency 0.05, QTL variances
+The published pleiotropic example uses allele frequency 0.05, QTL variances
 0.10 and 0.05, dominance ratios 0 and 0.50, independent phenotypes, target
 power 0.80, and genome-wide `alpha = 5e-8`.
 
 ```{r gordon-multivariate-reproduction}
 gordon_mv <- qtl_multivariate_mssn_full(
-  power = 0.80, alpha = 5e-8,
+  power = 0.80,
+  alpha = 5e-8,
   qtl_var = c(0.10, 0.05),
   tau = c(0, 0.50),
   pd = 0.05,
@@ -185,22 +200,29 @@ gordon_mv <- qtl_multivariate_mssn_full(
   verbose = FALSE
 )
 
+stopifnot(gordon_mv$N == 326L)
+
 data.frame(
-  quantity = c("Published integer MSSN", "paweh integer MSSN", "Historical fractional MSSN"),
+  quantity = c(
+    "Published integer MSSN",
+    "paweh integer MSSN",
+    "Historical fractional MSSN"
+  ),
   value = c(326, gordon_mv$N, gordon_mv$historical_fractional_mssn)
 )
 ```
 
-This is an exact integer **Published-example reproduction**: the paper and
-`paweh` both require 326 total individuals. The continuous historical root is
-325.5057, which is ceiled for recruitment.
+The published result and `paweh` both require 326 participants. The historical
+continuous root is approximately 325.5057; recruitment requires an integer, so
+the result is rounded upward.
 
-The inverse calculation verifies power at that integer design using the same
-published parameters:
+The inverse calculation evaluates power at the returned integer design using
+the same model.
 
 ```{r gordon-multivariate-power}
 gordon_mv_power <- qtl_multivariate_power_full(
-  N = gordon_mv$N, alpha = 5e-8,
+  N = gordon_mv$N,
+  alpha = 5e-8,
   qtl_var = c(0.10, 0.05),
   tau = c(0, 0.50),
   pd = 0.05,
@@ -208,91 +230,54 @@ gordon_mv_power <- qtl_multivariate_power_full(
   test = "pillai",
   verbose = FALSE
 )
+
 gordon_mv_power$power
 ```
 
-# Visualizing the same validated multivariate model
+# Three genotype-specific multivariate distributions
 
-The next contour uses the exact Gordon parameter vector rather than a visually
-convenient replacement. It shows the marginal two-phenotype distribution
-underlying the MSSN calculation: the three genotype-conditional densities are
-weighted by their Hardy--Weinberg frequencies and summed. Consequently, three
-genotypes do not imply three visible mixture modes. In this example the
-increaser allele is rare and the conditional distributions overlap, so the
-common genotype dominates the marginal surface.
+The same Gordon parameters define one conditional bivariate phenotype
+distribution for each genotype, \(f(y_1,y_2\mid G=g)\). The filled regions below
+show the 50%, 80%, and 95% nested conditional probability regions. The darkest
+inner region contains the first 50%, the middle band extends coverage to 80%,
+and the lightest outer band extends coverage to 95%.
 
-```{r gordon-contour, fig.cap="Bivariate mixture density for the exact Gordon et al. Pillai MSSN example."}
-plot_qtl_multivariate_contour(
-  qtl_var = c(0.10, 0.05),
-  tau = c(0, 0.50),
-  pd = 0.05,
-  cor_matrix = diag(2),
-  surface = "density",
-  grid_n = 60
-)
-```
-
-To inspect the model components themselves, use
-`surface = "genotype_density"`. These curves are conditional on genotype:
-they are not frequency weighted, and each bivariate-normal density integrates
-to one. The rare genotype therefore remains visible even though it contributes
-little mass to the Gordon mixture.
-
-```{r gordon-genotype-contours, fig.cap="Separate genotype-conditional densities for the exact Gordon et al. model parameters."}
+```{r gordon-genotype-components, fig.width=7, fig.height=5.5, fig.cap="Genotype-specific bivariate phenotype distributions for the Gordon et al. model. Nested regions represent 50%, 80%, and 95% conditional probability regions."}
 plot_qtl_multivariate_contour(
   qtl_var = c(0.10, 0.05),
   tau = c(0, 0.50),
   pd = 0.05,
   cor_matrix = diag(2),
   surface = "genotype_density",
-  grid_n = 60
+  component_probs = c(0.50, 0.80, 0.95)
 )
 ```
 
-An interactive 3D view can display the same three conditional distributions as
-separate translucent surfaces. The following parameters are deliberately more
-separated than the published Gordon example so that the three hills and their
-mean locations are easy to inspect; this is an illustration, not a literature
-reproduction.
+These components are deliberately **not** multiplied by Hardy--Weinberg
+genotype frequencies. Each conditional distribution remains fully visible,
+including the rare genotype. This view explains the three distributions in the
+model, analogous to a flat projection of three density hills. By contrast,
+`surface = "density"` displays the true genotype-frequency-weighted population
+mixture.
 
-The guarded example is left unevaluated in the installed vignette to avoid
-embedding a multi-megabyte interactive widget; run it in an interactive R
-session to rotate and inspect the surfaces.
+# Joint multivariate threshold selection
 
-```{r separated-genotype-surfaces, eval=FALSE}
-if (requireNamespace("plotly", quietly = TRUE)) {
-  plot_qtl_multivariate_surface3d(
-    qtl_var = c(0.95, 0.92),
-    tau = c(0, 0.50),
-    pd = 0.50,
-    cor_matrix = matrix(c(1, 0.15, 0.15, 1), 2, byrow = TRUE),
-    surface = "genotype_density",
-    grid_n = 35
-  )
-}
-```
-
-Both visualization interfaces are restricted to two phenotypes. The documented
-statistical backend can support more traits, but a contour plane or 3D surface
-over phenotype space requires exactly two.
-
-# Multivariate threshold selection uses AND logic
-
-For `test = "threshold_chisq"`, affected subjects satisfy every upper-tail
-condition and unaffected subjects satisfy every lower-tail condition:
+For `test = "threshold_chisq"`, affected subjects must satisfy both upper-tail
+conditions, and unaffected subjects must satisfy both lower-tail conditions:
 
 \[
 \text{affected}: Y_1 \ge T_{U1} \;\mathbf{AND}\; Y_2 \ge T_{U2},
 \]
+
 \[
 \text{unaffected}: Y_1 \le T_{L1} \;\mathbf{AND}\; Y_2 \le T_{L2}.
 \]
 
-All mixed or middle combinations are unselected. The figure keeps the Gordon
-model parameters and adds 10% joint-tail thresholds solely to demonstrate the
-selection geometry; it is not part of the published reproduction.
+The next plot overlays that selection geometry on the three conditional
+component distributions. The 10% thresholds illustrate the design and are not
+part of the published Gordon reproduction.
 
-```{r multivariate-threshold-contour, fig.cap="Joint upper-right affected and lower-left unaffected regions. Selection uses AND, not OR, logic."}
+```{r multivariate-threshold-components, fig.width=7.5, fig.height=6, fig.cap="Genotype-specific bivariate distributions with joint upper-tail affected and lower-tail unaffected selection regions."}
 plot_qtl_multivariate_contour(
   qtl_var = c(0.10, 0.05),
   tau = c(0, 0.50),
@@ -300,30 +285,35 @@ plot_qtl_multivariate_contour(
   cor_matrix = diag(2),
   x_upper = c(10, 10),
   x_lower = c(10, 10),
-  surface = "density",
+  surface = "genotype_density",
+  component_probs = c(0.50, 0.80, 0.95),
   show_thresholds = TRUE,
-  grid_n = 60
+  xlim = c(-2.75, 4.50),
+  ylim = c(-2.75, 3.50)
 )
 ```
 
-# Numerical integration and scope
+Subjects in mixed or middle regions are unselected. This figure combines the
+unweighted genotype-specific phenotype distributions with selection geometry;
+it is not a genotype-frequency-weighted population mixture.
 
-For joint threshold probabilities, `paweh` uses deterministic
-`mvtnorm::Miwa()` integration through 20 dimensions. Higher-dimensional
-calculations use locally seeded Genz--Bretz integration, restore the caller's
-random-number state, and retain integration error and status information.
-This modern numerical implementation is not forced to agree with coarse
-historical Riemann-sum approximations.
+# Scope and limitations
 
-Current scope limits are important:
+Joint multivariate tail probabilities use deterministic Miwa integration
+through 20 dimensions and locally seeded Genz--Bretz integration above 20.
+The latter restores the caller's random-number state and retains integration
+status information.
 
-- genotype-specific phenotype distributions are normal under the model;
-- residual variance and covariance assumptions determine overlap;
-- the middle of threshold designs is excluded;
+Important scope boundaries are:
+
+- calculations are prospective study-design calculations, not model fitting;
+- genotype-specific phenotypes follow the modeled normal assumptions;
+- residual variance and covariance determine distributional overlap;
+- single-trait threshold designs exclude the middle of the distribution;
 - multivariate threshold selection uses joint AND semantics;
-- a multivariate trend test is not implemented;
-- contour and 3D visualizations require exactly two phenotypes, even where the
-  statistical backend supports more.
+- subjects in mixed or middle multivariate regions are unselected;
+- a multivariate trend test is not implemented; and
+- plots visualize the design model rather than observed participant-level data.
 
 # References
 

@@ -17,7 +17,10 @@ plot_qtl_multivariate_contour(
   show_labels = TRUE,
   grid_n = 150L,
   title = NULL,
-  return_data = FALSE
+  return_data = FALSE,
+  xlim = NULL,
+  ylim = NULL,
+  component_probs = c(0.5, 0.8, 0.95)
 )
 }
 \arguments{
@@ -51,6 +54,17 @@ validated model and threshold details are retained as attributes. Mixture
 density and CDF modes retain their existing one-row-per-grid-point form.
 Genotype-density mode returns long-form data with one row per grid point
 and genotype.}
+
+\item{xlim, ylim}{Optional finite increasing length-two vectors controlling
+the displayed phenotype ranges. They affect only the plotting grid and
+visible threshold geometry, not model parameters, thresholds, mixture
+weights, or other statistical calculations.}
+
+\item{component_probs}{Numeric enclosed-probability levels for the analytic
+bivariate-normal probability regions drawn when
+\code{surface = "genotype_density"}.
+Values must be unique and strictly between zero and one. The default draws
+nested 0--50\%, 50--80\%, and 80--95\% conditional probability bands.}
 }
 \value{
 A \code{ggplot} object, or plotting data when \code{return_data = TRUE}.
@@ -73,11 +87,15 @@ density. In CDF mode, it is the lower-tail mixture probability
 \verb{sum(pi[j] * P(Y1 <= y1, Y2 <= y2 | G = j))}. Density and CDF surfaces
 therefore represent different mathematical quantities.
 
-Genotype-density mode displays each conditional density \code{f[j](y1, y2)}
-separately and does not multiply by genotype frequency. Each conditional
-density integrates to one, including for rare genotypes. Three genotype
-components do not imply that their weighted mixture has three distinct
-modes.
+Genotype-density mode displays each conditional distribution
+\code{f[j](y1, y2)} separately and does not multiply by genotype frequency. Each
+conditional distribution integrates to one, including for rare genotypes.
+Its default display uses filled nested 0--50\%, 50--80\%, and 80--95\%
+probability regions, with the center visually strongest and the outer band
+lightest. Region boundaries are analytic probability-content ellipses
+satisfying the corresponding bivariate-normal Mahalanobis-distance equation;
+they are not arbitrary raw-density contour breaks. Three genotype components
+do not imply that their weighted mixture has three distinct modes.
 
 When thresholds are supplied, affected subjects occupy only the joint
 upper-right region \verb{Y1 >= TU1 AND Y2 >= TU2}. Unaffected subjects occupy

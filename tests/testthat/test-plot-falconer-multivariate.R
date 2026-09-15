@@ -59,6 +59,83 @@ test_that("genotype-density data are unweighted conditional distributions", {
   }
 })
 
+test_that("genotype-density rendering uses filled analytic probability regions", {
+  set.seed(452)
+  before <- .Random.seed
+  p <- do.call(plot_qtl_multivariate_contour, c(
+    mv_plot_args[1:4],
+    list(surface = "genotype_density", grid_n = 35)
+  ))
+  after <- .Random.seed
+  ellipses <- attr(p, "ellipse_data")
+  model <- attr(p, "falconer_model")
+
+  expect_identical(after, before)
+  expect_equal(attr(p, "component_probs"), c(0.50, 0.80, 0.95))
+  expect_identical(levels(ellipses$genotype), paste("Genotype", 0:2))
+  expect_equal(as.numeric(table(ellipses$genotype)), rep(3 * 181L, 3))
+  expect_equal(length(unique(ellipses$ellipse_group)), 9L)
+  expect_identical(
+    levels(ellipses$component_band), c("0-50%", "50-80%", "80-95%")
+  )
+  expect_equal(
+    as.numeric(table(ellipses$genotype, ellipses$component_band)),
+    rep(181L, 9L)
+  )
+  expect_equal(
+    sum(vapply(p$layers, function(x) inherits(x$geom, "GeomPolygon"), logical(1))),
+    3L
+  )
+
+  inverse_covariance <- solve(model$residual_covariance_matrix)
+  for (j in 1:3) {
+    for (probability in c(0.50, 0.80, 0.95)) {
+      ring <- ellipses[
+        ellipses$genotype == paste("Genotype", j - 1L) &
+          ellipses$component_probability == probability,
+      ]
+      centered <- sweep(
+        as.matrix(ring[c("phenotype_1", "phenotype_2")]),
+        2L, model$mean_matrix[, j]
+      )
+      distance_squared <- rowSums((centered %*% inverse_covariance) * centered)
+      expect_equal(
+        unname(distance_squared),
+        rep(stats::qchisq(probability, df = 2), nrow(ring)),
+        tolerance = 1e-10
+      )
+    }
+  }
+})
+
+test_that("probability ellipses remain unweighted for rare genotypes", {
+  dat <- plot_qtl_multivariate_contour(
+    qtl_var = c(0.10, 0.05), tau = c(0, 0.5), pd = 0.01,
+    cor_matrix = matrix(c(1, 0.4, 0.4, 1), 2, byrow = TRUE),
+    surface = "genotype_density", grid_n = 30, return_data = TRUE,
+    component_probs = c(0.95, 0.50, 0.80)
+  )
+  ellipses <- attr(dat, "ellipse_data")
+  model <- attr(dat, "falconer_model")
+
+  expect_equal(attr(dat, "component_probs"), c(0.50, 0.80, 0.95))
+  expect_equal(unname(model$genotype_frequencies), c(0.9801, 0.0198, 0.0001))
+  for (probability in c(0.50, 0.80, 0.95)) {
+    rings <- lapply(paste("Genotype", 0:2), function(genotype) {
+      ring <- ellipses[
+        ellipses$genotype == genotype &
+          ellipses$component_probability == probability,
+      ]
+      center <- colMeans(ring[c("phenotype_1", "phenotype_2")])
+      unname(sweep(
+        as.matrix(ring[c("phenotype_1", "phenotype_2")]), 2L, center
+      ))
+    })
+    expect_equal(rings[[1L]], rings[[2L]], tolerance = 1e-12)
+    expect_equal(rings[[2L]], rings[[3L]], tolerance = 1e-12)
+  }
+})
+
 test_that("conditional densities locate genotype means with correct axes", {
   dat <- do.call(plot_qtl_multivariate_contour, c(
     mv_plot_args[1:4],
@@ -141,6 +218,40 @@ test_that("genotype-density mode retains joint threshold classifications", {
   expect_false(any(dat$affected & dat$unaffected))
 })
 
+test_that("thresholds overlay unweighted filled genotype components", {
+  p <- plot_qtl_multivariate_contour(
+    qtl_var = c(0.10, 0.05), tau = c(0, 0.5), pd = 0.05,
+    cor_matrix = diag(2), x_upper = c(10, 10), x_lower = c(10, 10),
+    surface = "genotype_density", component_probs = c(0.50, 0.80, 0.95),
+    show_thresholds = TRUE, grid_n = 35
+  )
+  dat <- attr(p, "plot_data")
+  model <- attr(p, "falconer_model")
+  threshold <- attr(p, "thresholds")
+  direct_threshold <- paweh:::.falconer_mv_threshold_components(
+    model, c(10, 10), c(10, 10)
+  )
+
+  expect_equal(threshold, direct_threshold)
+  expect_equal(threshold$upper_threshold, rep(stats::qnorm(0.9), 2))
+  expect_equal(threshold$lower_threshold, rep(stats::qnorm(0.1), 2))
+  expect_equal(nrow(attr(p, "selection_regions")), 2L)
+  expect_equal(nrow(attr(p, "selection_labels")), 2L)
+  expect_equal(nrow(attr(p, "threshold_segments")), 4L)
+  expect_equal(length(unique(attr(p, "ellipse_data")$ellipse_group)), 9L)
+
+  for (j in 1:3) {
+    component <- dat[dat$genotype == paste("Genotype", j - 1L), ]
+    direct_density <- mvtnorm::dmvnorm(
+      cbind(component$phenotype_1, component$phenotype_2),
+      mean = model$mean_matrix[, j],
+      sigma = model$residual_covariance_matrix
+    )
+    expect_equal(component$conditional_density, direct_density)
+    expect_equal(component$value, direct_density)
+  }
+})
+
 test_that("multivariate CDF is bounded and agrees with direct probabilities", {
   dat <- do.call(plot_qtl_multivariate_contour, c(
     mv_plot_args, list(surface = "cdf", grid_n = 18, return_data = TRUE)
@@ -180,6 +291,67 @@ test_that("Chapter 6.2 thresholds and joint-AND regions are explicit", {
   ))
   expect_false(any(dat$affected & dat$unaffected))
   expect_true(any(dat$selection == "Not selected"))
+})
+
+test_that("display limits control the grid without changing model mathematics", {
+  limited <- do.call(plot_qtl_multivariate_contour, c(
+    mv_plot_args,
+    list(
+      surface = "density", grid_n = 41, return_data = TRUE,
+      xlim = c(-2.5, 2.5), ylim = c(-2.25, 2.75)
+    )
+  ))
+  default <- do.call(plot_qtl_multivariate_contour, c(
+    mv_plot_args,
+    list(surface = "density", grid_n = 41, return_data = TRUE)
+  ))
+  limited_model <- attr(limited, "falconer_model")
+
+  expect_equal(range(limited$phenotype_1), c(-2.5, 2.5))
+  expect_equal(range(limited$phenotype_2), c(-2.25, 2.75))
+  expect_equal(limited_model$mean_matrix, attr(default, "falconer_model")$mean_matrix)
+  expect_equal(
+    limited_model$residual_covariance_matrix,
+    attr(default, "falconer_model")$residual_covariance_matrix
+  )
+  expect_equal(attr(limited, "thresholds"), attr(default, "thresholds"))
+  expect_equal(
+    limited$value,
+    as.numeric(attr(limited, "component_values") %*%
+      limited_model$genotype_frequencies)
+  )
+
+  i <- which.min(limited$phenotype_1^2 + limited$phenotype_2^2)
+  direct <- sum(vapply(1:3, function(j) {
+    limited_model$genotype_frequencies[j] * mvtnorm::dmvnorm(
+      c(limited$phenotype_1[i], limited$phenotype_2[i]),
+      mean = limited_model$mean_matrix[, j],
+      sigma = limited_model$residual_covariance_matrix
+    )
+  }, numeric(1)))
+  expect_equal(limited$value[i], direct)
+})
+
+test_that("threshold geometry uses visible user-supplied limits", {
+  p <- do.call(plot_qtl_multivariate_contour, c(
+    mv_plot_args,
+    list(
+      surface = "density", grid_n = 30,
+      xlim = c(-2.5, 2.5), ylim = c(-2.5, 2.5)
+    )
+  ))
+  regions <- attr(p, "selection_regions")
+  labels <- attr(p, "selection_labels")
+  built <- ggplot2::ggplot_build(p)
+
+  expect_equal(unname(built$layout$panel_params[[1]]$x.range), c(-2.5, 2.5))
+  expect_equal(unname(built$layout$panel_params[[1]]$y.range), c(-2.5, 2.5))
+  expect_equal(regions$xmin[regions$region == "Unaffected"], -2.5)
+  expect_equal(regions$ymin[regions$region == "Unaffected"], -2.5)
+  expect_equal(regions$xmax[regions$region == "Affected"], 2.5)
+  expect_equal(regions$ymax[regions$region == "Affected"], 2.5)
+  expect_true(all(labels$x > -2.5 & labels$x < 2.5))
+  expect_true(all(labels$y > -2.5 & labels$y < 2.5))
 })
 
 test_that("multivariate contour modes return customizable plots", {
@@ -234,6 +406,30 @@ test_that("multivariate contour inputs are validated", {
   expect_error(
     do.call(plot_qtl_multivariate_contour, c(mv_plot_args, list(grid_n = 5))),
     "at least 10"
+  )
+  expect_error(
+    do.call(plot_qtl_multivariate_contour, c(
+      mv_plot_args[1:4], list(xlim = c(1, -1))
+    )),
+    "xlim"
+  )
+  expect_error(
+    do.call(plot_qtl_multivariate_contour, c(
+      mv_plot_args[1:4], list(ylim = c(0, Inf))
+    )),
+    "ylim"
+  )
+  expect_error(
+    do.call(plot_qtl_multivariate_contour, c(
+      mv_plot_args[1:4], list(component_probs = c(0.5, 0.5))
+    )),
+    "component_probs"
+  )
+  expect_error(
+    do.call(plot_qtl_multivariate_contour, c(
+      mv_plot_args[1:4], list(component_probs = c(0, 0.8))
+    )),
+    "component_probs"
   )
 })
 

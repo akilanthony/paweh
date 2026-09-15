@@ -31,8 +31,10 @@
 #' @param qtl_var QTL variance in `(0, 1)`.
 #' @param tau Dominance-to-additivity ratio.
 #' @param pd Increaser-allele frequency in `(0, 1)`.
-#' @param type Either `"density"` for theoretical normal curves or
-#'   `"histogram"` for a simulated population.
+#' @param type One of `"density"` for theoretical normal curves,
+#'   `"histogram"` for a simulated population, or `"binned"` for a
+#'   deterministic histogram-style display calculated from Normal CDF
+#'   differences.
 #' @param scale Either `"density"` or `"frequency"`. For theoretical curves,
 #'   frequency scaling weights each density by its Hardy--Weinberg genotype
 #'   frequency. For histograms, it selects normalized densities or counts.
@@ -45,6 +47,9 @@
 #' @param return_data Logical; return the plotting data frame instead of the
 #'   ggplot object. The Falconer model is retained in its `falconer_model`
 #'   attribute.
+#' @param bins Positive integer number of equal-width bins used when
+#'   `type = "binned"`. This does not affect the existing density or simulated
+#'   histogram modes.
 #'
 #' @details
 #' Conditional on genotype `j`, the plotted trait follows a normal
@@ -53,13 +58,18 @@
 #' frequencies `(1 - pd)^2`, `2 * pd * (1 - pd)`, and `pd^2`. Genotypes may
 #' also be interpreted as `bb`, `Bb`, and `BB`, respectively.
 #'
-#' Density mode is analytic and performs no simulation. Histogram mode first
-#' samples genotypes from their Hardy--Weinberg frequencies and then samples
-#' trait values from the corresponding conditional normal distributions.
+#' Density and binned modes are analytic and perform no simulation. In binned
+#' mode, each conditional bin probability is the difference between Normal CDF
+#' values at the upper and lower bin boundaries. Histogram mode first samples
+#' genotypes from their Hardy--Weinberg frequencies and then samples trait
+#' values from the corresponding conditional normal distributions.
 #' The x-axis is the quantitative-trait value. In analytic density mode, the
 #' y-axis is genotype-specific density when `scale = "density"` and
-#' population-weighted density when `scale = "frequency"`. In histogram mode,
-#' the y-axis is normalized density or bin count for those respective scales.
+#' population-weighted density when `scale = "frequency"`. Binned mode uses
+#' conditional bin probability divided by bin width, with an additional
+#' genotype-frequency multiplier under `scale = "frequency"`. In simulated
+#' histogram mode, the y-axis is normalized density or bin count for those
+#' respective scales.
 #'
 #' @return A \code{ggplot} object, or a plotting data frame when
 #'   `return_data = TRUE`.
@@ -83,14 +93,15 @@ plot_qtl_genotype_distribution <- function(
     qtl_var,
     tau,
     pd,
-    type = c("density", "histogram"),
+    type = c("density", "histogram", "binned"),
     scale = c("density", "frequency"),
     n = 3000,
     seed = NULL,
     show_means = TRUE,
     verbose = FALSE,
     title = NULL,
-    return_data = FALSE
+    return_data = FALSE,
+    bins = 30L
 ) {
   type <- match.arg(type)
   scale <- match.arg(scale)
@@ -123,7 +134,7 @@ plot_qtl_genotype_distribution <- function(
       )
     }))
     dat$genotype <- factor(dat$genotype, levels = genotype_labels)
-  } else {
+  } else if (identical(type, "histogram")) {
     if (!is.numeric(n) || length(n) != 1L || !is.finite(n) ||
         n != floor(n) || n < 1) {
       stop("n must be a positive integer in histogram mode.", call. = FALSE)
@@ -141,6 +152,42 @@ plot_qtl_genotype_distribution <- function(
       )
     })
     dat <- simulated
+  } else {
+    if (!is.numeric(bins) || length(bins) != 1L || !is.finite(bins) ||
+        bins != floor(bins) || bins < 1L) {
+      stop("bins must be a positive integer in binned mode.", call. = FALSE)
+    }
+    support <- c(
+      min(means) - 4 * residual_sd,
+      max(means) + 4 * residual_sd
+    )
+    breaks <- seq(support[1L], support[2L], length.out = as.integer(bins) + 1L)
+    bin_width <- diff(breaks)
+    dat <- do.call(rbind, lapply(seq_along(genotype_labels), function(j) {
+      bin_probability <- stats::pnorm(
+        breaks[-1L], mean = means[j], sd = residual_sd
+      ) - stats::pnorm(
+        breaks[-length(breaks)], mean = means[j], sd = residual_sd
+      )
+      weighted_bin_probability <- weights[j] * bin_probability
+      data.frame(
+        trait_value = (breaks[-1L] + breaks[-length(breaks)]) / 2,
+        bin_lower = breaks[-length(breaks)],
+        bin_upper = breaks[-1L],
+        bin_width = bin_width,
+        bin_probability = bin_probability,
+        weighted_bin_probability = weighted_bin_probability,
+        value = if (identical(scale, "frequency")) {
+          weighted_bin_probability / bin_width
+        } else {
+          bin_probability / bin_width
+        },
+        genotype_frequency = weights[j],
+        theoretical_mean = means[j],
+        genotype = genotype_labels[j]
+      )
+    }))
+    dat$genotype <- factor(dat$genotype, levels = genotype_labels)
   }
 
   attr(dat, "falconer_model") <- model
@@ -164,7 +211,7 @@ plot_qtl_genotype_distribution <- function(
       ggplot2::scale_colour_manual(values = palette, drop = FALSE) +
       ggplot2::scale_linetype_manual(values = c("solid", "dashed", "dotdash"), drop = FALSE) +
       ggplot2::labs(colour = "Genotype", linetype = "Genotype")
-  } else {
+  } else if (identical(type, "histogram")) {
     y_label <- if (identical(scale, "density")) "Density" else "Frequency"
     y_mapping <- if (identical(scale, "density")) {
       ggplot2::aes(y = ggplot2::after_stat(.data$density))
@@ -176,6 +223,25 @@ plot_qtl_genotype_distribution <- function(
       ggplot2::geom_histogram(
         mapping = y_mapping, bins = 45L, position = "identity",
         alpha = 0.48, colour = "white", linewidth = 0.15
+      ) +
+      ggplot2::scale_fill_manual(values = palette, drop = FALSE) +
+      ggplot2::labs(fill = "Genotype")
+  } else {
+    y_label <- if (identical(scale, "density")) {
+      "Conditional histogram density"
+    } else {
+      "Population-weighted histogram density"
+    }
+    p <- ggplot2::ggplot(
+      dat,
+      ggplot2::aes(
+        x = .data$trait_value, y = .data$value,
+        width = .data$bin_width, fill = .data$genotype
+      )
+    ) +
+      ggplot2::geom_col(
+        position = "identity", alpha = 0.48,
+        colour = "white", linewidth = 0.15
       ) +
       ggplot2::scale_fill_manual(values = palette, drop = FALSE) +
       ggplot2::labs(fill = "Genotype")
