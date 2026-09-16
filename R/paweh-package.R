@@ -13,9 +13,12 @@
 #' designs with affected-child trios; and [qtl_anova_power()],
 #' [qtl_anova_mssn()], [qtl_threshold_chisq_power()],
 #' [qtl_threshold_chisq_mssn()], [qtl_multivariate_power_full()], and
-#' [qtl_multivariate_mssn_full()] for quantitative-trait designs. Calculations
-#' are primarily parameter and model based and support prospective planning, not
-#' downstream association testing.
+#' [qtl_multivariate_mssn_full()] for quantitative-trait designs. Sequencing
+#' study-design interfaces include [cc_ngs_power()], [cc_ngs_mssn()],
+#' [tdt_ngs_power()], and [tdt_ngs_mssn()]. Error-aware case-control designs
+#' with validation data use [lrtae_ncp()], [lrtae_power()], and [lrtae_mssn()].
+#' Calculations are primarily parameter and model based and support prospective
+#' planning, not downstream association testing or sequencing-file processing.
 #'
 #' @section Visualization and interactive exploration:
 #' High-level plotting functions include [plot_cc_power()], [plot_cc_mssn()],
@@ -29,7 +32,9 @@
 #' available in `vignette("paweh-02-case-control-study-design")`,
 #' `vignette("paweh-03-tdt-study-design")`, and
 #' `vignette("paweh-04-quantitative-trait-study-design")`. The dashboard user
-#' guide is `vignette("paweh-05-interactive-dashboard")`.
+#' guide is `vignette("paweh-05-interactive-dashboard")`; sequencing and LRTae
+#' guidance is in `vignette("paweh-06-sequencing-study-design")` and
+#' `vignette("paweh-07-lrtae-study-design")`, respectively.
 #'
 #' @name paweh-package
 #' @aliases paweh

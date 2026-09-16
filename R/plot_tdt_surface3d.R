@@ -191,7 +191,7 @@ plot_tdt_surface3d <- function(
     KEEP.OUT.ATTRS = FALSE,
     stringsAsFactors = FALSE
   )
-  names(surface_data)[1:2] <- c(x, y)
+  names(surface_data)[seq_len(2L)] <- c(x, y)
 
   raw_values <- numeric(nrow(surface_data))
   backend_warnings <- character(0)

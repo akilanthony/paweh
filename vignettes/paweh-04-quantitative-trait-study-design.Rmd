@@ -234,32 +234,6 @@ gordon_mv_power <- qtl_multivariate_power_full(
 gordon_mv_power$power
 ```
 
-# Three genotype-specific multivariate distributions
-
-The same Gordon parameters define one conditional bivariate phenotype
-distribution for each genotype, \(f(y_1,y_2\mid G=g)\). The filled regions below
-show the 50%, 80%, and 95% nested conditional probability regions. The darkest
-inner region contains the first 50%, the middle band extends coverage to 80%,
-and the lightest outer band extends coverage to 95%.
-
-```{r gordon-genotype-components, fig.width=7, fig.height=5.5, fig.cap="Genotype-specific bivariate phenotype distributions for the Gordon et al. model. Nested regions represent 50%, 80%, and 95% conditional probability regions."}
-plot_qtl_multivariate_contour(
-  qtl_var = c(0.10, 0.05),
-  tau = c(0, 0.50),
-  pd = 0.05,
-  cor_matrix = diag(2),
-  surface = "genotype_density",
-  component_probs = c(0.50, 0.80, 0.95)
-)
-```
-
-These components are deliberately **not** multiplied by Hardy--Weinberg
-genotype frequencies. Each conditional distribution remains fully visible,
-including the rare genotype. This view explains the three distributions in the
-model, analogous to a flat projection of three density hills. By contrast,
-`surface = "density"` displays the true genotype-frequency-weighted population
-mixture.
-
 # Joint multivariate threshold selection
 
 For `test = "threshold_chisq"`, affected subjects must satisfy both upper-tail
@@ -273,29 +247,10 @@ conditions, and unaffected subjects must satisfy both lower-tail conditions:
 \text{unaffected}: Y_1 \le T_{L1} \;\mathbf{AND}\; Y_2 \le T_{L2}.
 \]
 
-The next plot overlays that selection geometry on the three conditional
-component distributions. The 10% thresholds illustrate the design and are not
-part of the published Gordon reproduction.
-
-```{r multivariate-threshold-components, fig.width=7.5, fig.height=6, fig.cap="Genotype-specific bivariate distributions with joint upper-tail affected and lower-tail unaffected selection regions."}
-plot_qtl_multivariate_contour(
-  qtl_var = c(0.10, 0.05),
-  tau = c(0, 0.50),
-  pd = 0.05,
-  cor_matrix = diag(2),
-  x_upper = c(10, 10),
-  x_lower = c(10, 10),
-  surface = "genotype_density",
-  component_probs = c(0.50, 0.80, 0.95),
-  show_thresholds = TRUE,
-  xlim = c(-2.75, 4.50),
-  ylim = c(-2.75, 3.50)
-)
-```
-
-Subjects in mixed or middle regions are unselected. This figure combines the
-unweighted genotype-specific phenotype distributions with selection geometry;
-it is not a genotype-frequency-weighted population mixture.
+Subjects in mixed or middle regions are unselected. For example,
+`x_upper = c(10, 10)` and `x_lower = c(10, 10)` define joint upper- and
+lower-tail selection at 10% for each phenotype. These thresholds illustrate
+the design and are not part of the published Gordon reproduction.
 
 # Scope and limitations
 

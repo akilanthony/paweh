@@ -133,6 +133,18 @@ test_that("histogram simulation is reproducible and locally seeded", {
   )
   observed <- prop.table(table(large$genotype))
   expect_equal(as.numeric(observed), c(0.5625, 0.375, 0.0625), tolerance = 0.01)
+
+  withr::with_preserve_seed({
+    if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+      rm(".Random.seed", envir = .GlobalEnv)
+    }
+    expect_false(exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
+    plot_qtl_genotype_distribution(
+      0.5, 0, 0.25, type = "histogram", n = 100,
+      seed = 99, return_data = TRUE
+    )
+    expect_false(exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
+  })
 })
 
 test_that("single-trait visualization inputs are validated", {

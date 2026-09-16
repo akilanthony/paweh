@@ -1,10 +1,21 @@
 Package: paweh
 Title: Power and Sample Size Analysis for Genetic Studies with Heterogeneity and Misclassification
 Version: 0.99.0
-Authors@R: 
-    person(given = "Akil", family = "Anthony", email = "akilanthony19@gmail.com",
+Authors@R:
+    c(
+      person(
+        given = "Akil",
+        family = "Anthony",
+        email = "akilanthony19@gmail.com",
         role = c("aut", "cre"),
-        comment = c(ORCID = "0009-0008-8813-8560"))
+        comment = c(ORCID = "0009-0008-8813-8560")
+      ),
+      person(
+        given = "Derek",
+        family = "Gordon",
+        role = "aut"
+      )
+    )
 Description: Provides prospective power and minimum sample size necessary
     (MSSN) calculations for genetic and genomic association study design.
     Supported designs include case-control studies, transmission disequilibrium
@@ -36,6 +47,7 @@ Imports:
     ggplot2,
     mvtnorm,
     rlang,
-    shiny
+    shiny,
+    withr
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.1.0

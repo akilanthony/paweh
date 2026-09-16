@@ -51,7 +51,7 @@
   )
 
   data.frame(
-    state = 1:15,
+    state = seq_len(15L),
     father = c(2, 1, 2, 1, 2, 0, 2, 1, 1, 1, 0, 1, 0, 1, 0),
     mother = c(2, 2, 1, 2, 1, 2, 0, 1, 1, 1, 1, 0, 1, 0, 0),
     child = c(2, 1, 1, 2, 2, 1, 1, 0, 1, 2, 0, 0, 1, 1, 0),
@@ -194,10 +194,10 @@
 .tdt_ngs_mating_score_matrix <- function(mu) {
   .tdt_ngs_validate_mating_freqs(mu)
   states <- .tdt_ngs_trio_states()
-  free_names <- names(mu)[1:8]
+  free_names <- names(mu)[seq_len(8L)]
   score <- matrix(
     0, nrow = 15, ncol = 8,
-    dimnames = list(paste0("state_", 1:15), free_names)
+    dimnames = list(paste0("state_", seq_len(15L)), free_names)
   )
   for (j in seq_along(free_names)) {
     score[states$mating == free_names[[j]], j] <- 1 / mu[[j]]

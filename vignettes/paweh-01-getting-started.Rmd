@@ -61,7 +61,7 @@ starter_power$tests$genotypes$power
 The corresponding `cc_mssn()` calculation reverses the design question by
 replacing `N_case` with a target `power`.
 
-# Three study-design families
+# Five study-design families
 
 ## Case-control association
 
@@ -81,6 +81,20 @@ phenotype-misclassification, and locus-heterogeneity scenarios.
 For continuous traits, `paweh` supports one-way genotype-group ANOVA,
 threshold-selected genotype chi-square designs, and multivariate designs
 using Pillai MANOVA or joint threshold selection.
+
+## Sequencing-based designs
+
+For fixed-depth sequencing studies, `cc_ngs_power()` and `cc_ngs_mssn()`
+support case-control designs, while `tdt_ngs_power()` and `tdt_ngs_mssn()`
+support TDT1-NGS designs. `ngs_genotype_error_matrix()` constructs the
+sequencing-to-called-genotype transition matrix used by supported workflows;
+these functions do not process FASTQ, BAM, or VCF files.
+
+## LRTae validation/error-aware designs
+
+`lrtae_ncp()`, `lrtae_power()`, and `lrtae_mssn()` provide prospective
+error-aware case-control design calculations with validation data. They do not
+fit an observed-data likelihood, and LTTae is not implemented.
 
 # Model-based and model-free inputs
 
@@ -110,14 +124,18 @@ quantities.
 | Continuous single-trait QTL | `qtl_anova_power()`, `qtl_anova_mssn()` | Quantitative-Trait Study Design |
 | Extreme-trait QTL | `qtl_threshold_chisq_power()`, `qtl_threshold_chisq_mssn()` | Quantitative-Trait Study Design |
 | Multivariate quantitative traits | `qtl_multivariate_power_full()`, `qtl_multivariate_mssn_full()` | Quantitative-Trait Study Design |
+| Sequencing case-control | `cc_ngs_power()`, `cc_ngs_mssn()` | Sequencing Study Design |
+| Sequencing TDT | `tdt_ngs_power()`, `tdt_ngs_mssn()` | Sequencing Study Design |
+| Error-aware case-control / LRTae | `lrtae_ncp()`, `lrtae_power()`, `lrtae_mssn()` | LRTae Power and Sample-Size Design |
 
 # Why Bioconductor?
 
-`paweh` is being prepared for Bioconductor because it addresses prospective
-design questions in genetic association research. These calculations can
-complement downstream genomic analysis by examining operating characteristics
-before data generation or collection. The package does not currently claim
-sequencing-file, genomic-range, or `SummarizedExperiment` integration.
+`paweh` is being prepared for Bioconductor because it provides prospective
+study-design infrastructure for genetic and genomic association research,
+including sequencing-based designs. These calculations complement downstream
+genomic analysis by examining operating characteristics before data generation
+or collection. The package does not currently claim sequencing-file,
+genomic-range, or `SummarizedExperiment` integration.
 
 # Published validation philosophy
 

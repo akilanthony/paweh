@@ -595,7 +595,7 @@ plot_cc_power <- function(
 
   if (isTRUE(return_data)) {
     out_dat <- .plot_pretty_data(plot_dat)
-    names(out_dat)[1:3] <- c(x_var, "test", "power")
+    names(out_dat)[seq_len(3L)] <- c(x_var, "test", "power")
     if (!x_var %in% c("pi", "locus_het_rate")) {
       out_dat$lambda <- NULL
     }
@@ -754,7 +754,7 @@ plot_cc_mssn <- function(
 
   if (isTRUE(return_data)) {
     out_dat <- .plot_pretty_data(plot_dat)
-    names(out_dat)[1:3] <- c(x_var, "test", paste0("MSSN_", sample_size))
+    names(out_dat)[seq_len(3L)] <- c(x_var, "test", paste0("MSSN_", sample_size))
     if (!x_var %in% c("pi", "locus_het_rate")) {
       out_dat$finite_mssn <- NULL
       out_dat$status <- NULL

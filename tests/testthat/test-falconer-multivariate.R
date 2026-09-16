@@ -92,6 +92,22 @@ test_that("joint thresholds and deterministic MVN penetrances reproduce the exam
   expect_lt(max(abs(unname(th$penetrances$unaffected) - c(0.037275, 0.024555, 0.017930))), 5e-4)
 })
 
+test_that("high-dimensional Genz-Bretz integration is reproducible and local", {
+  args <- list(
+    lower = rep(-Inf, 21L), upper = rep(0.5, 21L),
+    mean = numeric(21L), Sigma = diag(21L)
+  )
+  set.seed(4401)
+  before <- .Random.seed
+  one <- do.call(paweh:::.falconer_mv_rectangle_probability, args)
+  expect_identical(.Random.seed, before)
+  two <- do.call(paweh:::.falconer_mv_rectangle_probability, args)
+
+  expect_identical(two, one)
+  expect_identical(one$algorithm, "GenzBretz")
+  expect_equal(one$probability, 0.000431658962105711, tolerance = 1e-12)
+})
+
 test_that("independent direct mvtnorm calculation confirms bivariate penetrances", {
   model <- do.call(paweh:::.falconer_mv_parameters, mv_example)
   direct_affected <- vapply(1:3, function(j) {

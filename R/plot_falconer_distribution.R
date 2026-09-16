@@ -9,16 +9,7 @@
       seed != floor(seed) || seed < 0 || seed > .Machine$integer.max) {
     stop("seed must be NULL or a non-negative integer.", call. = FALSE)
   }
-  had_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-  if (had_seed) old_seed <- get(".Random.seed", envir = .GlobalEnv)
-  on.exit({
-    if (had_seed) assign(".Random.seed", old_seed, envir = .GlobalEnv)
-    else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
-      rm(".Random.seed", envir = .GlobalEnv)
-    }
-  }, add = TRUE)
-  set.seed(as.integer(seed))
-  force(code)
+  withr::with_seed(as.integer(seed), force(code))
 }
 
 #' Plot Falconer Genotype-Specific Quantitative-Trait Distributions
