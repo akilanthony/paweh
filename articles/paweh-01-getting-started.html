@@ -71,6 +71,9 @@
     </li>
   </ul>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
@@ -156,7 +159,7 @@ design question by replacing <code>N_case</code> with a target
 <code>power</code>.</p>
 </div>
 <div class="section level2">
-<h2 id="three-study-design-families">Three study-design families<a class="anchor" aria-label="anchor" href="#three-study-design-families"></a>
+<h2 id="five-study-design-families">Five study-design families<a class="anchor" aria-label="anchor" href="#five-study-design-families"></a>
 </h2>
 <div class="section level3">
 <h3 id="case-control-association">Case-control association<a class="anchor" aria-label="anchor" href="#case-control-association"></a>
@@ -182,6 +185,24 @@ phenotype-misclassification, and locus-heterogeneity scenarios.</p>
 genotype-group ANOVA, threshold-selected genotype chi-square designs,
 and multivariate designs using Pillai MANOVA or joint threshold
 selection.</p>
+</div>
+<div class="section level3">
+<h3 id="sequencing-based-designs">Sequencing-based designs<a class="anchor" aria-label="anchor" href="#sequencing-based-designs"></a>
+</h3>
+<p>For fixed-depth sequencing studies, <code><a href="../reference/cc_ngs_power.html">cc_ngs_power()</a></code> and
+<code><a href="../reference/cc_ngs_mssn.html">cc_ngs_mssn()</a></code> support case-control designs, while
+<code><a href="../reference/tdt_ngs_power.html">tdt_ngs_power()</a></code> and <code><a href="../reference/tdt_ngs_mssn.html">tdt_ngs_mssn()</a></code> support
+TDT1-NGS designs. <code><a href="../reference/ngs_genotype_error_matrix.html">ngs_genotype_error_matrix()</a></code> constructs
+the sequencing-to-called-genotype transition matrix used by supported
+workflows; these functions do not process FASTQ, BAM, or VCF files.</p>
+</div>
+<div class="section level3">
+<h3 id="lrtae-validationerror-aware-designs">LRTae validation/error-aware designs<a class="anchor" aria-label="anchor" href="#lrtae-validationerror-aware-designs"></a>
+</h3>
+<p><code><a href="../reference/lrtae_ncp.html">lrtae_ncp()</a></code>, <code><a href="../reference/lrtae_power.html">lrtae_power()</a></code>, and
+<code><a href="../reference/lrtae_mssn.html">lrtae_mssn()</a></code> provide prospective error-aware case-control
+design calculations with validation data. They do not fit an
+observed-data likelihood, and LTTae is not implemented.</p>
 </div>
 </div>
 <div class="section level2">
@@ -257,6 +278,28 @@ supplied conditional quantities.</p>
 </td>
 <td>Quantitative-Trait Study Design</td>
 </tr>
+<tr class="even">
+<td>Sequencing case-control</td>
+<td>
+<code><a href="../reference/cc_ngs_power.html">cc_ngs_power()</a></code>, <code><a href="../reference/cc_ngs_mssn.html">cc_ngs_mssn()</a></code>
+</td>
+<td>Sequencing Study Design</td>
+</tr>
+<tr class="odd">
+<td>Sequencing TDT</td>
+<td>
+<code><a href="../reference/tdt_ngs_power.html">tdt_ngs_power()</a></code>, <code><a href="../reference/tdt_ngs_mssn.html">tdt_ngs_mssn()</a></code>
+</td>
+<td>Sequencing Study Design</td>
+</tr>
+<tr class="even">
+<td>Error-aware case-control / LRTae</td>
+<td>
+<code><a href="../reference/lrtae_ncp.html">lrtae_ncp()</a></code>, <code><a href="../reference/lrtae_power.html">lrtae_power()</a></code>,
+<code><a href="../reference/lrtae_mssn.html">lrtae_mssn()</a></code>
+</td>
+<td>LRTae Power and Sample-Size Design</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -264,11 +307,12 @@ supplied conditional quantities.</p>
 <h2 id="why-bioconductor">Why Bioconductor?<a class="anchor" aria-label="anchor" href="#why-bioconductor"></a>
 </h2>
 <p><code>paweh</code> is being prepared for Bioconductor because it
-addresses prospective design questions in genetic association research.
-These calculations can complement downstream genomic analysis by
-examining operating characteristics before data generation or
-collection. The package does not currently claim sequencing-file,
-genomic-range, or <code>SummarizedExperiment</code> integration.</p>
+provides prospective study-design infrastructure for genetic and genomic
+association research, including sequencing-based designs. These
+calculations complement downstream genomic analysis by examining
+operating characteristics before data generation or collection. The
+package does not currently claim sequencing-file, genomic-range, or
+<code>SummarizedExperiment</code> integration.</p>
 </div>
 <div class="section level2">
 <h2 id="published-validation-philosophy">Published validation philosophy<a class="anchor" aria-label="anchor" href="#published-validation-philosophy"></a>
@@ -358,7 +402,7 @@ standard installation path will be:</p>
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Akil Anthony.</p>
+<p>Developed by Akil Anthony, Derek Gordon.</p>
 </div>
 
 <div class="pkgdown">
