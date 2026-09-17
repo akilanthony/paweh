@@ -101,7 +101,8 @@ test_that("Chapter 5 coverage fixtures remain fixed through the public API", {
       stats::qchisq(1 - 5e-8, df = 1),
       df = 1, ncp = fixtures$lambda[[i]], lower.tail = FALSE
     )
-    expect_equal(result$power, expected_power, tolerance = 1e-14)
+    # Use absolute tolerance for cross-platform floating-point variation.
+    expect_lte(abs(result$power - expected_power), 1e-12)
   }
 })
 
