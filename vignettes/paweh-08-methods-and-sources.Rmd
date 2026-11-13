@@ -1,0 +1,359 @@
+---
+title: "Methods and Sources: Statistical Foundations of paweh"
+author: "paweh package authors"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    number_sections: true
+    math_method: mathml
+vignette: >
+  %\VignetteIndexEntry{8. Methods and Sources}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<!-- The full display title and short, numbered installed index entry are intentional. -->
+
+<style type="text/css">
+/* Long exported names should wrap inside a narrow vignette column. */
+#TOC { max-width: calc(100% - 10px); box-sizing: border-box; }
+td code { white-space: normal; overflow-wrap: anywhere; }
+td { vertical-align: top; }
+</style>
+
+# How to use this reference
+
+If your question is “How many people do I recruit?”, start with the study
+design below. If it is “Has anyone obtained this number independently?”,
+go to the [published comparisons](#evidence). A formula, an R function and a
+published numerical result are three different things. For example, the
+same function that reproduces a published requirement of 326 people can also
+calculate a design for which there is no published numerical benchmark.
+
+[Getting started](paweh-01-getting-started.html) introduces power (the
+probability of rejecting the null hypothesis under a specified alternative),
+the significance level (the intended rejection probability under the null),
+and minimum sample size (MSSN). The functions here **plan** studies. An
+expected genotype count, transmission count or test statistic in a design
+is not an observed association in patient data.
+
+| What is sampled and measured? | Where to look |
+|:--|:--|
+| Unrelated cases and controls with called genotypes | [Case-control designs](#case-control); recruitment is cases **plus** their controls. |
+| An affected child and both parents, with called genotypes | [Transmission designs](#tdt); the unit is a complete trio. |
+| One or more continuous traits | [Quantitative traits](#qtl); distinguish people screened from people selected for genotyping. |
+| Sequence reads at specified depth | [Sequencing](#sequencing); cases and controls are called first, whereas the trio method uses read counts directly. |
+| Routine measurements plus reference assessments for a subset | [LRTae](#lrtae); the four validation groups together make up the total enrollment. |
+
+# A reading guide to the textbook
+
+All numbered book sections and equations below refer to Gordon, Finch and
+Kim, [*Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies*](https://doi.org/10.1007/978-3-030-61121-7)
+(2020). The book connects the methods; the papers in the last column identify
+their origins or, where indicated, a related comparison. Follow the linked
+tutorials for inputs and executable examples.
+
+| Chapter and sections | What to read for; package and primary sources |
+|:--|:--|
+| 1. Introduction to Heterogeneity in Statistical Genetics | §§1.4.1–1.4.2: obtain genotype frequencies directly or derive them from risk. §§1.6.1.1–1.6.1.3 introduce the tests; §1.6.1.4 gives design noncentrality parameters (NCPs): Eq. 1.22 for the genotype test, 1.24 for trend, 1.25 for affected-child transmissions. See [case-control](paweh-02-case-control-study-design.html) (`cc_power()`: Pearson; Cochran; Armitage) and [TDT](paweh-03-tdt-study-design.html) (`tdt_power()`: Spielman et al.; Deng and Chen). |
+| 2. Overview of Genomic Heterogeneity in Statistical Genetics | §2.3 gives call-error models; §2.5.2 explains differential error (Gordon et al. 2002; Moskvina et al.). §2.7.1.2, Eq. 2.16 gives the [case mixture](paweh-02-case-control-study-design.html) in `cc_mssn()`. §§2.6.1–2.6.2 describe read probabilities relevant to [sequencing](paweh-06-sequencing-study-design.html); they do not supply the package's case-control calling pipeline. |
+| 3. Phenotypic Heterogeneity | §§3.3.1–3.3.2 explain how prevalence and diagnostic error change the genotype distribution among recorded cases. See Edwards et al. and [case-control power](paweh-02-case-control-study-design.html). |
+| 4. Association Tests Allowing for Heterogeneity | §§4.2.1.1–4.2.1.4 give the validation tiers, observed-data likelihood, statistic and example (Gordon et al. 2004; Barral et al.). Compare Ji et al. for [prospective LRTae](paweh-07-lrtae-study-design.html), including `lrtae_ncp()`. §§4.4.2.1–4.4.2.4 develop Kim's [trio read likelihood](paweh-06-sequencing-study-design.html) used for `tdt_ngs_power()`; §4.4.1 describes a different case-control read test. |
+| 5. Designing Genetic Linkage and Association Studies that Maintain Desired Statistical Power in the Presence of Mixtures | For [case-control planning](paweh-02-case-control-study-design.html), §§5.2.1–5.2.2 treat non-differential call and diagnosis errors; §5.3.1 treats locus mixtures. For [trio planning](paweh-03-tdt-study-design.html), §5.2.5 treats genotype errors and null rejection, §5.2.6 phenotype errors (Buyske et al.), §5.3.3 unlinked families (Chen et al.). §5.4.4 covers [Kim's sequencing design](paweh-06-sequencing-study-design.html). §5.2.3 studies LRTae power empirically; it is not the derivation of Ji's analytical NCP. |
+| 6. Threshold-Selected Quantitative Trait Loci and Pleiotropy | §§6.1.1–6.1.3 develop genotype means and tail probabilities (Falconer and Mackay); §6.1.4 covers ANOVA. §§6.2.1–6.2.2 develop the multiple-trait model, §6.2.3 joint thresholds and §6.2.4 the multivariate test. See the [quantitative-trait tutorial](paweh-04-quantitative-trait-study-design.html) and `qtl_multivariate_mssn_full()`. Gordon et al. (2017), rather than the book's §6.2.4 example, supplies the 326-person comparison. |
+
+# Unrelated cases and controls {#case-control}
+
+The Pearson genotype test asks whether *any* of the three genotype proportions
+differ between groups (two degrees of freedom). The Cochran–Armitage trend
+test asks whether a specified genotype score differs on average (one degree
+of freedom). Scores of 0, 1 and 2 target an allele-dose trend; they can miss
+a strong heterozygote effect. `cc_power()` and `cc_mssn()` compare the
+expected groups at a specified control-to-case ratio. Both use large-sample
+approximations. The trend NCP scales the squared difference in mean scores by a
+pooled score variance; the sequencing design applies it to called genotypes.
+
+**Inputs.** With model-based inputs, population allele frequency,
+Hardy–Weinberg proportions (the genotype proportions expected under random
+pairing of alleles), prevalence and genotype relative risks determine the
+two rows. With model-free inputs, supply the three genotype frequencies
+among true cases and among true controls in the same allele order. “Model-free”
+dispenses with an inheritance model; it still assumes the proposed rows
+represent the planned study and that people are sampled independently.
+
+| Change to the design | What the comparison means |
+|:--|:--|
+| Genotype misclassification (Gordon et al. 2002; Ahn et al. 2007) | Apply a transition matrix to each true genotype distribution. In the Douglas–Skol–Boehnke model (Gordon, Table 1b), a homozygote becomes heterozygous with probability γ; a heterozygote becomes *either* homozygote with total probability η. Set `e1` = γ and `e2` = η/2 (older notation: δ and ε/2). With γ = η = 0.10, the heterozygote row is 0.05, 0.90, 0.05. A direct switch between opposite homozygotes is excluded. |
+| Differential genotype error (Moskvina et al. 2006) | Different matrices for cases and controls can make identical biological distributions look different. Rejection at a nominal cutoff may then be a false positive. The package scenario illustrates this mechanism; it does not calibrate a new cutoff or reproduce a particular Moskvina simulation. |
+| Phenotype misclassification (Edwards et al. 2005) | A false negative moves a true case to the recorded controls; a false positive moves a true control to the recorded cases. Weight both contributions by population prevalence before conditioning on the recorded label. A 1% false-positive rate can seriously dilute the case group of a rare disease. |
+| Locus heterogeneity (book §2.7.1.2) | Only fraction `pi` of cases has the associated distribution; the remainder has the control distribution. Controls stay fixed. This shifts both genotype and trend contrasts. It assumes a control-like background for the other cases; it does not estimate membership. |
+
+The [case-control tutorial](paweh-02-case-control-study-design.html) shows
+these as **separate** sensitivity scenarios. For the narrower interfaces,
+each pair below computes fixed-sample power or solves for sample size:
+
+| Calculation | Specialized exports |
+|:--|:--|
+| Genotype test, one error rate in every off-diagonal cell, including opposite homozygotes | `cc_chisq_power_genotype_misclassification_1p()`, `cc_chisq_mssn_genotype_misclassification_1p()` |
+| Two adjacent-call probabilities (Douglas–Skol–Boehnke) | `cc_chisq_power_genotype_misclassification_2p()`, `cc_chisq_mssn_genotype_misclassification_2p()` |
+| Three rates, allowing opposite homozygote calls | `cc_chisq_power_genotype_misclassification_3p()`, `cc_chisq_mssn_genotype_misclassification_3p()` |
+| Separate three-rate matrices by disease group | `cc_chisq_power_genotype_misclassification_differential_3p()`, `cc_chisq_mssn_genotype_misclassification_differential_3p()` |
+| Diagnosis error, supplied affected and unaffected genotype distributions | `cc_chisq_power_phenotype_misclassification()`, `cc_chisq_mssn_phenotype_misclassification()` |
+| Locus mixture, supplied associated and control distributions | `cc_chisq_power_locus_heterogeneity()`, `cc_chisq_mssn_locus_heterogeneity()`; `cc_trend_power_locus_heterogeneity()`, `cc_trend_mssn_locus_heterogeneity()` |
+
+The first four pairs construct the underlying groups from a genetic model.
+Use the canonical interfaces for a genotype-error comparison with supplied
+group frequencies. Gordon and Edwards provide numerical checks below; the
+one- and three-rate sensitivity analyses are not additional replications.
+
+# Affected children and their parents {#tdt}
+
+The transmission disequilibrium test (TDT; Spielman, McGinnis and Ewens)
+compares the two alleles that a heterozygous parent could transmit to an
+affected child. In prospective planning we need expected informative
+transmissions of the designated allele (ET) and expected informative
+non-transmissions (ENT). Neither counts all parents. For a planned set of
+independent trios, the affected-child NCP is
+\((ET-ENT)^2/(ET+ENT)\) (Deng and Chen; book §1.6.1.4, Eq. 1.25).
+A larger NCP moves the test statistic farther from its null distribution.
+
+| Task in the [TDT tutorial](paweh-03-tdt-study-design.html) | Interfaces and assumptions |
+|:--|:--|
+| Plan a clean or modified design | `tdt_power()`, `tdt_mssn()`. Derive counts from frequency, risks, prevalence and marker–disease association, or scale externally supplied ET and ENT from a **known number of trios**. Counts alone cannot identify genotype-call errors. |
+| Derive informative transmissions | `tdt_expected_transmission_probability()`, `tdt_expected_nontransmission_probability()`, `tdt_expected_transmission_counts()`. Scale per-parent probabilities across the two parents. The helpers default to `theta1 = pd`; in the underlying equations `theta1` is a recombination fraction. Set it to zero to match the canonical linked component. These defaults describe different designs. |
+| Convert counts or a genetic model to a design | `tdt_power_from_expected_counts()`, `tdt_power_from_model()`, `tdt_mssn_from_model()`. These expose the ordinary count/NCP steps; they are not new association tests. |
+| Allow diagnostic false positives | Buyske et al.; §5.2.6. Mix true affected-child families with families admitted by the screen. Prevalence determines the fraction of screen-positive children truly affected. `tdt_mssn_phenotype_misclassification_from_ncp()` starts with baseline NCP information. See the **relative**, not absolute, reproduction below. |
+| Allow locus heterogeneity | Chen et al.; §5.3.3. Mix linked families with an unlinked component with balanced expected transmission. Here `heter_rate` is the **unlinked** fraction. The comparison below uses 0% and 50%. |
+
+**Genotype errors are a different calculation.** In §5.2.5, especially
+§5.2.5.1, errors move calls by one allele copy. The model applies independent
+calls to all three family members, then conditions on calls consistent with
+Mendelian inheritance. Errors that pass that check can still bias
+transmission. The canonical model-based scenario extends the textbook's
+null calculation to planning under association. In the tutorial illustration with 1% error per adjacent call,
+the required number rises from 215 to 249 *retained* trios and the null
+rejection rate at 600 trios is about 5.75% at nominal 5%. Neither number
+is an empirical error correction. Use one modifier at a time; these functions
+do not fit the observed-data TDTae or jointly model all three mechanisms.
+
+# Quantitative traits and pleiotropy {#qtl}
+
+What if disease status is not observed because the outcome is continuous?
+A quantitative trait locus (QTL) shifts the distribution of a measurement.
+Pleiotropy means one locus can shift several traits. The
+[quantitative-trait tutorial](paweh-04-quantitative-trait-study-design.html)
+compares keeping each measurement with selecting only people in the extremes.
+
+| Design | Exports and statistical basis |
+|:--|:--|
+| Model the trait | `qtl_falconer_parameters()` derives genotype means and a common residual variance from the allele frequency, fraction of variance explained and dominance-to-additivity ratio. `qtl_falconer_threshold_parameters()` conditions genotype frequencies on eligibility for each tail. These are helpers for the Falconer model (Fisher; Falconer and Mackay; Lynch and Walsh; §§6.1.1–6.1.3). |
+| Keep all observations | `qtl_anova_power()`, `qtl_anova_mssn()`: a one-way ANOVA compares the three genotype means using a noncentral F distribution (Scheffé; §6.1.4). The calculation assumes independent observations, Hardy–Weinberg genotype frequencies and common within-genotype variance; sparse groups affect the approximation. |
+| Genotype extreme individuals | `qtl_threshold_chisq_power()`, `qtl_threshold_chisq_mssn()`: compare genotype frequencies in upper and lower tails using Pearson's test. Reference-normal cutoffs are applied to a **mixture** of genotype-specific normals: the realized population eligibility need not be the nominal tail fraction. Li et al. provide related extreme-sampling context. |
+| Measure several traits per person | `qtl_multivariate_power_full()`, `qtl_multivariate_mssn_full()`: choose continuous Pillai MANOVA (Pillai; Gordon et al. 2017) or the joint-threshold genotype comparison (§§6.2.1–6.2.4). Supply a positive-definite **within-genotype** correlation matrix in trait order, not marginal correlations across all genotypes. |
+
+Pillai's trace measures separation of the genotype-specific mean vectors
+relative to within-group variation; its design calculation uses the mean
+and covariance matrices. The threshold alternative selects people above
+**every** upper cutoff or below **every** lower cutoff. For each genotype,
+integrate its joint normal distribution over each corner, weight by genotype
+frequency, then compare genotypes between selected groups. Multiplying
+marginal tail probabilities is generally wrong for correlated traits.
+
+paweh uses a univariate normal probability for one trait, deterministic
+Miwa–Hayter–Kuriki integration for 2–20 traits and randomized Genz–Bretz
+integration with a fixed local seed above 20. Inspect integration diagnostics,
+especially for small joint probabilities. These choices implement the
+probability calculation; neither the integration settings nor the tutorial's
+joint-tail recruitment example is a published Pillai result.
+
+# Sequencing: genotype calls or raw reads? {#sequencing}
+
+The [sequencing tutorial](paweh-06-sequencing-study-design.html) compares
+two data models. In both, depth is a fixed number of reads, not a mean over
+a distribution of depths. A per-read error is not the probability of calling
+the wrong genotype.
+
+**Case-control NGS.** At depth \(v\) and symmetric per-read error \(e\),
+the alternate-read count is binomial with success probability \(e\), 0.5 or
+\(1-e\), given zero, one or two copies. `ngs_genotype_error_matrix()`
+assigns each possible count to its maximum-likelihood genotype, with a
+deterministic tie rule. Summing over counts gives a matrix with true
+genotypes in rows and called genotypes in columns.
+`cc_ngs_power()` and `cc_ngs_mssn()` transform each group's genotype
+frequencies by its matrix, then compare mean called-genotype scores using
+the Ahn/Chapman–Nam trend NCP. The **composition** is specific to paweh.
+Ahn et al. start with given call-error probabilities; they did not propose
+this sequencing caller. Nor is this the raw-read LTTae,NGS in book §4.4.1.
+
+Depth and base error may differ by case status. Diagnosis error or locus
+heterogeneity changes the distribution *before* sequencing; optional
+additional genotype error changes calls *after* sequencing. These are
+separate sensitivity scenarios. Even if the true groups are alike, different
+measurement processes can create a score contrast. More apparent power in
+that setting is not evidence for a biological effect.
+
+**Family TDT1-NGS.** `tdt_ngs_power()` and `tdt_ngs_mssn()` retain
+uncertain reads. Kim (2015), Appendix B, weights the read likelihood over
+15 ordered, Mendelian-consistent parental and child genotype configurations.
+The model uses independent trios, random mating and parental Hardy–Weinberg
+frequencies, conditionally binomial reads and multiplicative risk
+\(R_2=R_1^2\). The one-parameter NCP is
+\(N\{\log(R_1)\}^2 I_{\mathrm{eff}}\), with per-trio information evaluated under
+the null after allowing for nuisance parameters. Kim describes the benchmark effect as an odds ratio; paweh uses its
+numerical value as the one-copy risk in this model. The interface allows fixed
+depths by family role and directional base errors. A child with an ambiguous
+genotype still contributes through the possible family configurations.
+
+The optional false-positive diagnosis and unlinked-family scenarios multiply
+Kim's sequencing NCP by the ratio of modified to baseline **ordinary TDT**
+per-trio NCP coefficients (Buyske; Chen; §§5.2.6 and 5.3.3). These
+calculations use prevalence, maximal positive linkage disequilibrium
+(\(D'=1\)) and the bridge's \(\theta_1=p_d\) setting. Each modifier is compared
+with the sequencing-only design. The ratio is a package approximation:
+it does not refit the raw-read likelihood or recalculate its information
+with misclassified children or unlinked families.
+
+# Validation subsamples and LRTae {#lrtae}
+
+Suppose everyone has routine disease and genotype measurements, but only a
+subset receives a more reliable assessment. LRTae is the likelihood ratio
+test allowing for error. Gordon et al. (2004) developed the double-sampling
+test; Barral et al. (2006) describe fitting it to observed data. **Ji et
+al. (2005)** is the source for *prospective* asymptotic power and sample
+size. The [LRTae tutorial](paweh-07-lrtae-study-design.html) shows what can
+be planned without fitting a single observed patient record.
+
+| Function | What it uses and returns |
+|:--|:--|
+| `lrtae_ncp()` | Add expected information across four disjoint tiers: routine only, reference phenotype only, reference genotype only, both references. Remove the information shared with nuisance parameters (free case genotype frequencies and true control sampling share) by a Schur complement. The resulting quadratic form measures separation between the true case and control genotype distributions. |
+| `lrtae_power()` | Given tier counts, compare the corresponding noncentral chi-square distribution to the central cutoff (two degrees of freedom for three genotypes). The input concerns a proposed alternative, not an observed likelihood ratio. |
+| `lrtae_mssn()` | Given tier **shares**, find an integer total reaching target power. The Hamilton largest-remainder rule floors the four quotas and assigns remaining places in decreasing order of fractional remainder, breaking ties in tier order. This implements a specified allocation; it does not optimize the shares or cost. |
+
+Reference assessments are treated as truth. Routine error matrices are
+fixed planning inputs: a row conditions on a **true** state and sums to one
+over reported states. The genotype and phenotype errors combine independently
+given the true categories. If the information matrix is singular the design
+cannot identify the necessary contrasts. The package does not estimate
+error rates, fit the observed-data LRTae, or perform the distinct LTTae trend
+test (§4.2.2).
+
+# Plots, dashboard and related software
+
+The figures evaluate the underlying designs over a grid or display a model
+distribution. Their scientific sources are those of the corresponding rows
+above; a sensitivity curve is not another published statistical test.
+
+| Interface | What is drawn |
+|:--|:--|
+| `plot_cc_power()`, `plot_cc_mssn()` | Power or case recruitment as a case-control assumption changes. |
+| `plot_tdt_power()`, `plot_tdt_mssn()`, `plot_tdt_surface3d()` | Power or trio recruitment over one input or a two-input grid. |
+| `plot_tdt_power_phenotype_misclassification()`, `plot_tdt_mssn_phenotype_misclassification()`; `plot_tdt_power_locus_heterogeneity()`, `plot_tdt_mssn_locus_heterogeneity()` | Specialized views of the Buyske and Chen family sensitivities. |
+| `plot_qtl_genotype_distribution()`, `plot_qtl_anova_power()`, `plot_qtl_anova_mssn()` | Genotype-specific trait distributions and continuous-trait design curves. |
+| `plot_qtl_threshold_chisq_power()`, `plot_qtl_threshold_chisq_mssn()` | Power or recruitment among selected extremes. |
+| `plot_ngs_power()`, `plot_ngs_mssn()` | Sequencing sensitivity for the chosen case-control or trio design. |
+| `paweh_app()` | Opens the [interactive dashboard](paweh-05-interactive-dashboard.html). Read the unit and assumptions shown for the selected design; the app is an interface to calculations. |
+
+Other genetic study planners address related questions.
+USC's [Quanto](https://keck.usc.edu/biostatistics/software/) includes
+gene–environment and gene–gene interactions. Michigan's
+[CaTS](https://csg.sph.umich.edu/abecasis/CaTS/reference.html) describes
+one- and two-stage association designs; its
+[GAS Power Calculator](https://csg.sph.umich.edu/abecasis/gas_power_calculator/about.html)
+adapts CaTS for one-stage studies. These are software references, not the
+source of the equations above or independent checks of the outputs below.
+
+# What has been reproduced? {#evidence}
+
+The evidence attaches to a **particular output at particular inputs**.
+*Exact published reproduction* means agreement at the precision actually
+published; *approximate published reproduction* means close agreement with
+a stated difference. *Relative-effect reproduction* means that a ratio
+agrees while absolute results differ. A *published-method implementation*
+has a methodological source but no established match for the particular
+number. An *illustrative calculation* demonstrates a design without claiming
+a published numerical target. An *unresolved comparison* identifies what
+still needs independent evidence. Regression tests serve another purpose:
+they detect changes to a stored software result, even when its original
+source is uncertain.
+
+| Comparison and inputs | Source, package result and evidence |
+|:--|:--|
+| **Case-control genotype error** — Gordon et al. (2002), Fig. 1b; equal groups, 95% power, nominal 5% | Accurate calls: about 386 cases in the paper; continuous 386.0778, hence 387 whole cases in paweh (**approximate**). With γ = η = 10%: 477 cases in both (**exact**). Add an equal number of controls in each design. |
+| **Case-control phenotype error** — Edwards et al. (2005); 250 per group, nominal 1%, no false negatives | For (prevalence, false-positive rate) of (5%, 1%), (1%, 1%), (5%, 2%), (1%, 2%), the reported powers are 91%, 33%, 76%, 11%. paweh gives 91.35%, 33.20%, 76.34%, 10.98%: **exact at published whole-percent precision**. |
+| **Ordinary genotype error** — Ahn et al. (2007), p. 257; 1,000 per group at nominal 0.001 | Published trend/genotype powers about 0.88/0.81 (accurate calls) and 0.79/0.70 (5% adjacent transitions); calculated 0.8743/0.8061 and 0.7876/0.6992 (**approximate**). This checks the genotype-based calculation, not the upstream depth-to-call model. |
+| **Trio phenotype error** — Buyske et al. (2009), p. 291; 1% prevalence, 0% versus 5% false positives | Paper: 691 versus 27,118 trios. Package: 546 versus 21,401 whole trios. Recruitment rises about 39-fold in each (**relative effect**). The large absolute difference is **unresolved**; the corrected expressions in book §5.2.6 do not by themselves explain it. |
+| **Trio locus heterogeneity** — Chen et al. (2009), Fig. 2; none versus half unlinked | Paper: 3,430 versus 13,721 trios; package: 3,431 versus 13,723. **Approximate** (one and two trios higher). The cause has not been established; do not assume rounding explains it. |
+| **One quantitative trait** — book §§6.1.3–6.1.4; allele frequency 0.15, QTL variance 0.025, dominance ratio 0.5 | **Exact recruitment targets:** 996 for ANOVA on the tutorial's grid (rounded genotype counts 720, 254, 22; package power 0.80005); 126 per tail, 252 genotyped in total, for the threshold test (power 0.80167). These matches do not validate every printed intermediate quantity. |
+| **Two continuous traits** — Gordon et al. (2017), pp. 205–206; 80% power at nominal \(5\times10^{-8}\) | **Exact:** the paper reports 326 people. Package power crosses 0.80 between 325 (0.79847) and 326 (0.80149). The fractional root 325.5057 is a software value. At allele frequency 0.05 the expected two-copy group is only \(326(0.05)^2=0.815\) people; a realized study may have none. |
+| **Two selected traits** — tutorial's joint upper/lower tails | **Illustrative:** at 72 per group, power is 0.79606; at 73 it is 0.80563. This is a different design and parameter set from the 326-person reproduction. |
+| **TDT1-NGS** — Kim (2015), Table 3 scenarios: allele frequency 0.35, per-read error 0.025, nominal \(5\times10^{-8}\) | At depths 4×/25×, all six stored values agree: **654/416** trios (90%, one-copy risk 2), **716/456** (70%, 1.8), **733/466** (10%, 1.5). Only the first pair is **exact at the whole-trio precision reported in the published abstract**. The other four match software benchmarks; comparison to the original table cells is **unresolved**. |
+| **LRTae** — historical 500-person validation design | **Published-method implementation; illustrative numbers.** Tier counts 248/135/72/45 yield NCP 22.40827 and power 0.99250. With the same shares, nominal 5% and target 80%, 216 people (107/58/31/20) give 0.80219. No complete workbook or matching published prospective output was independently verified. |
+
+# Qualifications that matter for reuse
+
+- **A matching recruitment target does not settle a parameter discrepancy.**
+  Book §6.1.3 prints 0.5 as a dominance deviation and −0.0985 as the
+  zero-copy mean. Using 0.5 as the dominance-to-additivity *ratio* in
+  §6.1.1 gives additive effect 0.227982, deviation 0.113991 and mean
+  −0.097462. The univariate recruitment comparisons above still hold; the
+  origin of the printed differences is unknown.
+- **A similar observed example is not a prospective benchmark.** Book
+  §4.2.1.4, pp. 138–141, supports the LRTae genotype matrix, frequencies to
+  printed precision and tier counts, but uses 5% of true cases recorded as
+  controls rather than the tutorial's 4%. Its statistic 24.1626 comes from
+  fitting one dataset. Comparing it to the design NCP would answer the
+  wrong question.
+- **A test's nominal level is conditional on the measurement model.**
+  Differential call errors can produce a case-control contrast under the
+  biological null. Mendelian consistency does not remove all erroneous trio
+  calls. Rare genotypes, selected tails and rare informative transmissions
+  may also undermine large-sample approximations. Check the expected counts
+  and interpretation of rejection before using a recruitment target.
+- **Keep the denominator and units with every result.** Prevalence refers
+  to the population, not the fraction of cases recruited. For extreme
+  sampling, a quota of genotyped people is not the number screened. A
+  trio count is neither a participant count nor an informative-parent count.
+  None of the design calculations propagates arbitrary uncertainty in pilot
+  inputs; vary plausible input values before committing to a study size.
+
+# Methodological bibliography
+
+## General design and case-control tests
+
+- Gordon D, Finch SJ, Kim W (2020). [*Heterogeneity in Statistical Genetics: How to Assess, Address, and Account for Mixtures in Association Studies*](https://doi.org/10.1007/978-3-030-61121-7). Springer.
+- Pearson K (1900). [On the criterion that a given system of deviations from the probable in the case of a correlated system of variables is such that it can be reasonably supposed to have arisen from random sampling](https://doi.org/10.1080/14786440009463897). *Philosophical Magazine* 50:157–175.
+- Cochran WG (1954). [Some methods for strengthening the common χ² tests](https://doi.org/10.2307/3001616). *Biometrics* 10:417–451.
+- Armitage P (1955). [Tests for linear trends in proportions and frequencies](https://doi.org/10.2307/3001775). *Biometrics* 11:375–386.
+- Chapman DG, Nam JM (1968). [Asymptotic power of chi square tests for linear trends in proportions](https://doi.org/10.2307/2528037). *Biometrics* 24:315–327.
+- Douglas JA, Skol AD, Boehnke M (2002). [Probability of detection of genotyping errors and mutations as inheritance inconsistencies in nuclear-family data](https://doi.org/10.1086/338919). *American Journal of Human Genetics* 70:487–495.
+- Gordon D, Finch SJ, Nothnagel M, Ott J (2002). [Power and sample size calculations for case-control genetic association tests when errors are present: application to single nucleotide polymorphisms](https://doi.org/10.1159/000066696). *Human Heredity* 54:22–33.
+- Edwards BJ, Haynes C, Levenstien MA, Finch SJ, Gordon D (2005). [Power and sample size calculations in the presence of phenotype errors for case/control genetic association studies](https://doi.org/10.1186/1471-2156-6-18). *BMC Genetics* 6:18.
+- Moskvina V, Craddock N, Holmans P, Owen MJ, O'Donovan MC (2006). [Effects of differential genotyping error rate on the type I error probability of case-control studies](https://doi.org/10.1159/000092553). *Human Heredity* 61:55–64.
+- Ahn K, Haynes C, Kim W, St Fleur R, Gordon D, Finch SJ (2007). [The effects of SNP genotyping errors on the power of the Cochran-Armitage linear trend test for case/control association studies](https://doi.org/10.1111/j.1469-1809.2006.00318.x). *Annals of Human Genetics* 71:249–261.
+
+## Family designs and sequence reads
+
+- Spielman RS, McGinnis RE, Ewens WJ (1993). Transmission test for linkage disequilibrium: the insulin gene region and insulin-dependent diabetes mellitus (IDDM). *American Journal of Human Genetics* 52:506–516. PMID: 8447318; PMCID: PMC1682161.
+- Deng HW, Chen WM (2001). [The power of the transmission disequilibrium test (TDT) with both case–parent and control–parent trios](https://doi.org/10.1017/S001667230100533X). *Genetical Research* 78:289–302.
+- Buyske S, Yang G, Matise TC, Gordon D (2009). [When a case is not a case: effects of phenotype misclassification on power and sample size requirements for the transmission disequilibrium test with affected child trios](https://doi.org/10.1159/000194981). *Human Heredity* 67:287–292.
+- Chen C, Yang G, Buyske S, Matise T, Finch SJ, Gordon D (2009). [Transmission disequilibrium test power and sample size in the presence of locus heterogeneity](https://doi.org/10.2202/1544-6115.1501). *Statistical Applications in Genetics and Molecular Biology* 8:44.
+- Kim W (2015). [Transmission disequilibrium tests based on read counts for low-coverage next-generation sequence data](https://doi.org/10.1159/000434645). *Human Heredity* 80:36–49.
+
+## Quantitative traits and computation
+
+- Fisher RA (1918). [The correlation between relatives on the supposition of Mendelian inheritance](https://doi.org/10.1017/S0080456800012163). *Transactions of the Royal Society of Edinburgh* 52:399–433.
+- Falconer DS, Mackay TFC (1996). *Introduction to Quantitative Genetics*, 4th ed. Longman.
+- Lynch M, Walsh B (1998). *Genetics and Analysis of Quantitative Traits*. Sinauer Associates.
+- Scheffé H (1959). *The Analysis of Variance*. Wiley.
+- Pillai KCS (1955). [Some new test criteria in multivariate analysis](https://doi.org/10.1214/aoms/1177728599). *Annals of Mathematical Statistics* 26:117–121.
+- Gordon D, Londono D, Patel P, Kim W, Finch SJ, Heiman GA (2017 online; 2016 issue). [An analytic solution to the computation of power and sample size for genetic association studies under a pleiotropic mode of inheritance](https://doi.org/10.1159/000457135). *Human Heredity* 81:194–209.
+- Li Y, Levran O, Kim J, Zhang T, Chen X, Suo C (2019). [Extreme sampling design in genetic association mapping of quantitative trait loci using balanced and unbalanced case-control samples](https://doi.org/10.1038/s41598-019-51790-w). *Scientific Reports* 9:15504.
+- Miwa T, Hayter AJ, Kuriki S (2003). [The evaluation of general non-centred orthant probabilities](https://doi.org/10.1111/1467-9868.00382). *Journal of the Royal Statistical Society, Series B* 65:223–234.
+- Genz A, Bretz F (2009). [*Computation of Multivariate Normal and t Probabilities*](https://doi.org/10.1007/978-3-642-01689-9). Springer.
+
+## Validation-based association designs
+
+- Gordon D, Yang Y, Haynes C, Finch SJ, Mendell NR, Brown AM, Haroutunian V (2004). [Increasing power for tests of genetic association in the presence of phenotype and/or genotype error by use of double-sampling](https://doi.org/10.2202/1544-6115.1085). *Statistical Applications in Genetics and Molecular Biology* 3.
+- Ji F, Yang Y, Haynes C, Finch SJ, Gordon D (2005 volume; online 2006). [Computing asymptotic power and sample size for case-control genetic association studies in the presence of phenotype and/or genotype misclassification errors](https://doi.org/10.2202/1544-6115.1184). *Statistical Applications in Genetics and Molecular Biology* 4:37.
+- Barral S, Haynes C, Stone M, Gordon D (2006). [LRTae: improving statistical power for genetic association with case/control data when phenotype and/or genotype misclassification errors are present](https://doi.org/10.1186/1471-2156-7-24). *BMC Genetics* 7:24.
