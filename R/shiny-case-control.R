@@ -233,9 +233,14 @@
   a$theta <- a$phi <- 0
   a$geno_misclass <- "none"
   b <- .paweh_cc_call(s, a)
-  list(snapshot = s, adjusted = x, baseline = b, active = list(locus = isTRUE(x$locus_het$enabled) &&
-    x$locus_het$pi < 1, phenotype = isTRUE(x$errors$phenotype_misclass$enabled) && (x$errors$phenotype_misclass$theta >
-    0 || x$errors$phenotype_misclass$phi > 0), genotype = isTRUE(x$errors$genotype_misclass$enabled)))
+  list(
+    snapshot = s, adjusted = x, baseline = b,
+    active = list(
+      locus = "heterogeneity" %in% names(x$scenarios),
+      phenotype = "phenotype_misclassification" %in% names(x$scenarios),
+      genotype = "genotype_misclassification" %in% names(x$scenarios)
+    )
+  )
 }
 .paweh_cc_sig <- function(v) serialize(v, NULL)
 .paweh_cc_pct <- function(x, d = 1) .paweh_format_percent(x, d)
@@ -361,18 +366,26 @@
     if (calculation$active$genotype) .paweh_detail_section(
       "Observed genotype probabilities after misclassification",
       c(
-        lapply(seq_along(r$freqs$g_obs_case), function(i) .paweh_summary_row(
-          paste0("Cases | ", i - 1L, " alleles"), formatC(r$freqs$g_obs_case[[i]], format = "f", digits = 4)
+        lapply(seq_along(r$scenarios$genotype_misclassification$freqs$g_case), function(i) .paweh_summary_row(
+          paste0("Cases | ", i - 1L, " alleles"), formatC(r$scenarios$genotype_misclassification$freqs$g_case[[i]], format = "f", digits = 4)
         )),
-        lapply(seq_along(r$freqs$g_obs_ctrl), function(i) .paweh_summary_row(
-          paste0("Controls | ", i - 1L, " alleles"), formatC(r$freqs$g_obs_ctrl[[i]], format = "f", digits = 4)
+        lapply(seq_along(r$scenarios$genotype_misclassification$freqs$g_ctrl), function(i) .paweh_summary_row(
+          paste0("Controls | ", i - 1L, " alleles"), formatC(r$scenarios$genotype_misclassification$freqs$g_ctrl[[i]], format = "f", digits = 4)
         ))
       )
     ),
     if (length(modifier_rows)) .paweh_detail_section("Modifier details", modifier_rows),
-    .paweh_detail_section("Statistical result details", list(
-      .paweh_summary_row("Genotype chi-square", test_value(r$tests$genotypes)),
-      .paweh_summary_row("Trend test", test_value(r$tests$trend))
+    .paweh_detail_section("Statistical result details", unlist(
+      lapply(r$scenarios, function(scenario) list(
+        .paweh_summary_row(
+          paste(scenario$label, "| Genotype chi-square"),
+          test_value(scenario$tests$genotypes)
+        ),
+        .paweh_summary_row(
+          paste(scenario$label, "| Trend test"),
+          test_value(scenario$tests$trend)
+        )
+      )), recursive = FALSE
     )),
     .paweh_reproduce_ui(.paweh_cc_repro_call(calculation))
   )
@@ -398,8 +411,7 @@
       shiny::tags$thead(shiny::tags$tr(lapply(names(z), shiny::tags$th))), shiny::tags$tbody(rows)
     )))
   }
-  on <- any(unlist(c$active))
-  z <- .paweh_cc_result_data(c$adjusted, o)
+  z <- .paweh_cc_result_data(c$adjusted$scenarios$no_error, o)
   txt <- if (o == "power") {
     paste(
       "Power is", .paweh_cc_pct(z$Power[1]), "for the genotype test and", .paweh_cc_pct(z$Power[2]),
@@ -408,16 +420,14 @@
   } else {
     paste("The tests require", paste(.paweh_cc_count(z$Total), collapse = " and "), "total participants; plan for the prespecified analysis.")
   }
-  shiny::tagList(shiny::div(class = "paweh-model-specification", .paweh_cc_model_summary(c)), if (on) {
-    bslib::layout_column_wrap(width = "360px", card(c$baseline, "No-error design"), card(
-      c$adjusted,
-      "Adjusted design"
-    ))
-  } else {
-    card(c$adjusted, "No-error design")
-  }, shiny::div(
+  cards <- lapply(c$adjusted$scenarios, function(scenario) {
+    card(scenario, scenario$label)
+  })
+  shiny::tagList(shiny::div(class = "paweh-model-specification", .paweh_cc_model_summary(c)),
+    do.call(bslib::layout_column_wrap, c(list(width = "360px"), cards)), shiny::div(
     class = "paweh-interpretation", shiny::h4("Interpretation"),
-    shiny::p(txt)
+    shiny::p(if (length(cards) == 1L) txt else
+      "Each modifier is reported as an independent sensitivity scenario from the same no-error baseline.")
   ), .paweh_cc_advanced_ui(c))
 }
 .paweh_cc_specs <- function(c) {
@@ -479,12 +489,24 @@
       a[[sp$key]] <- x
     }
     r <- tryCatch(.paweh_cc_call(s, a), error = function(e) NULL)
+    scenario <- if (p == "pi") {
+      "heterogeneity"
+    } else if (p %in% c("theta", "phi")) {
+      "phenotype_misclassification"
+    } else if (p %in% c("e", "e1", "e2", "e01", "e02", "e03")) {
+      "genotype_misclassification"
+    } else if (!is.null(r)) {
+      r$compatibility_scenario
+    } else {
+      "no_error"
+    }
+    result <- if (!is.null(r)) r$scenarios[[scenario]] else NULL
     y <- if (is.null(r)) {
       c(NA, NA)
     } else if (s$objective == "power") {
-      c(r$tests$genotypes$power, r$tests$trend$power)
+      c(result$tests$genotypes$power, result$tests$trend$power)
     } else {
-      c(r$tests$genotypes$MSSN_total, r$tests$trend$MSSN_total)
+      c(result$tests$genotypes$MSSN_total, result$tests$trend$MSSN_total)
     }
     data.frame(x = x, Test = c("Genotype chi-square", "Trend"), y = y)
   }))
@@ -515,24 +537,15 @@
     ggplot2::theme(legend.position = "top")
 }
 .paweh_cc_freqs <- function(c) {
-  on <- any(unlist(c$active))
-  rs <- if (on) {
-    list(c$baseline, c$adjusted)
-  } else {
-    list(c$adjusted)
-  }
-  sc <- if (on) {
-    c("No-error design", "Adjusted design")
-  } else {
-    "No-error design"
-  }
+  rs <- c$adjusted$scenarios
+  sc <- vapply(rs, `[[`, character(1), "label")
   do.call(rbind, lapply(seq_along(rs), function(i) {
     rbind(data.frame(
-      Scenario = sc[i], Group = "Cases",
-      Genotype = factor(0:2), Probability = rs[[i]]$freqs$g_obs_case
+      Scenario = unname(sc[i]), Group = "Cases",
+      Genotype = factor(0:2), Probability = rs[[i]]$freqs$g_case
     ), data.frame(
-      Scenario = sc[i],
-      Group = "Controls", Genotype = factor(0:2), Probability = rs[[i]]$freqs$g_obs_ctrl
+      Scenario = unname(sc[i]),
+      Group = "Controls", Genotype = factor(0:2), Probability = rs[[i]]$freqs$g_ctrl
     ))
   }))
 }
@@ -569,7 +582,7 @@
       .paweh_summary_row("Active modifiers", if (length(active_labels)) paste(active_labels, collapse = "; ") else "None"),
       .paweh_summary_row("Canonical function", if (snapshot$objective == "power") "cc_power()" else "cc_mssn()")
     ),
-    shiny::p("Results, advanced details, plots, and sensitivity analyses use the frozen calculated design."),
+    shiny::p("Requested modifiers are independent sensitivity scenarios from the same no-error baseline. Results, details, plots, and sensitivity analyses use the frozen calculation."),
     shiny::a(
       href = "https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html",
       target = "_blank", rel = "noopener", "Read the Case-Control vignette"

@@ -20,9 +20,12 @@ designs; \code{\link[=tdt_power]{tdt_power()}} and \code{\link[=tdt_mssn]{tdt_ms
 designs with affected-child trios; and \code{\link[=qtl_anova_power]{qtl_anova_power()}},
 \code{\link[=qtl_anova_mssn]{qtl_anova_mssn()}}, \code{\link[=qtl_threshold_chisq_power]{qtl_threshold_chisq_power()}},
 \code{\link[=qtl_threshold_chisq_mssn]{qtl_threshold_chisq_mssn()}}, \code{\link[=qtl_multivariate_power_full]{qtl_multivariate_power_full()}}, and
-\code{\link[=qtl_multivariate_mssn_full]{qtl_multivariate_mssn_full()}} for quantitative-trait designs. Calculations
-are primarily parameter and model based and support prospective planning, not
-downstream association testing.
+\code{\link[=qtl_multivariate_mssn_full]{qtl_multivariate_mssn_full()}} for quantitative-trait designs. Sequencing
+study-design interfaces include \code{\link[=cc_ngs_power]{cc_ngs_power()}}, \code{\link[=cc_ngs_mssn]{cc_ngs_mssn()}},
+\code{\link[=tdt_ngs_power]{tdt_ngs_power()}}, and \code{\link[=tdt_ngs_mssn]{tdt_ngs_mssn()}}. Error-aware case-control designs
+with validation data use \code{\link[=lrtae_ncp]{lrtae_ncp()}}, \code{\link[=lrtae_power]{lrtae_power()}}, and \code{\link[=lrtae_mssn]{lrtae_mssn()}}.
+Calculations are primarily parameter and model based and support prospective
+planning, not downstream association testing or sequencing-file processing.
 }
 
 \section{Visualization and interactive exploration}{
@@ -40,7 +43,9 @@ Start with \code{vignette("paweh-01-getting-started")}. Study-specific guidance 
 available in \code{vignette("paweh-02-case-control-study-design")},
 \code{vignette("paweh-03-tdt-study-design")}, and
 \code{vignette("paweh-04-quantitative-trait-study-design")}. The dashboard user
-guide is \code{vignette("paweh-05-interactive-dashboard")}.
+guide is \code{vignette("paweh-05-interactive-dashboard")}; sequencing and LRTae
+guidance is in \code{vignette("paweh-06-sequencing-study-design")} and
+\code{vignette("paweh-07-lrtae-study-design")}, respectively.
 }
 
 \seealso{
@@ -58,6 +63,7 @@ Useful links:
 Authors:
 \itemize{
   \item Akil Anthony \email{akilanthony19@gmail.com} (\href{https://orcid.org/0009-0008-8813-8560}{ORCID})
+  \item Derek Gordon
 }
 
 }

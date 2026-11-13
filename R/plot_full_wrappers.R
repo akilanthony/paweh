@@ -251,20 +251,6 @@
   dat
 }
 
-.plot_paweh_theme <- function(base_size = 12) {
-  ggplot2::theme_minimal(base_size = base_size) +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(face = "bold", size = base_size + 2, margin = ggplot2::margin(b = 6)),
-      plot.subtitle = ggplot2::element_text(size = base_size, margin = ggplot2::margin(b = 10)),
-      axis.title = ggplot2::element_text(face = "bold"),
-      panel.grid.minor = ggplot2::element_blank(),
-      panel.grid.major.x = ggplot2::element_blank(),
-      legend.title = ggplot2::element_text(face = "bold"),
-      legend.position = "right"
-    )
-}
-
-
 .plot_apply_cc_x <- function(args, x_var, x) {
   # Special user-friendly aliases and multipliers first.
   if (x_var == "locus_het_rate") {
@@ -351,23 +337,48 @@
   args
 }
 
-.plot_cc_extract_power <- function(out, test) {
-  if (test == "genotypes") return(out$tests$genotypes$power)
-  if (test == "trend") return(out$tests$trend$power)
+.plot_cc_scenario_for_x <- function(out, x_var) {
+  scenario <- if (x_var %in% c(
+    "pi", "locus_het_rate"
+  )) {
+    "heterogeneity"
+  } else if (x_var %in% c(
+    "theta", "phi", "pheno_error_multiplier"
+  )) {
+    "phenotype_misclassification"
+  } else if (x_var %in% c(
+    "e", "e1", "e2", "e01", "e02", "e03",
+    "case_e01", "case_e02", "case_e03",
+    "ctrl_e01", "ctrl_e02", "ctrl_e03",
+    "geno_error_multiplier", "diff_multiplier"
+  )) {
+    "genotype_misclassification"
+  } else {
+    out$compatibility_scenario
+  }
+  if (!scenario %in% names(out$scenarios)) "no_error" else scenario
+}
+
+.plot_cc_extract_power <- function(out, test, scenario = out$compatibility_scenario) {
+  tests <- out$scenarios[[scenario]]$tests
+  if (test == "genotypes") return(tests$genotypes$power)
+  if (test == "trend") return(tests$trend$power)
   stop("Unknown test: ", test)
 }
 
-.plot_cc_extract_lambda <- function(out, test) {
-  if (test == "genotypes") return(out$tests$genotypes$lambda)
-  if (test == "trend") return(out$tests$trend$lambda)
+.plot_cc_extract_lambda <- function(out, test, scenario = out$compatibility_scenario) {
+  tests <- out$scenarios[[scenario]]$tests
+  if (test == "genotypes") return(tests$genotypes$lambda)
+  if (test == "trend") return(tests$trend$lambda)
   stop("Unknown test: ", test)
 }
 
-.plot_cc_extract_mssn <- function(out, test, sample_size) {
+.plot_cc_extract_mssn <- function(out, test, sample_size,
+                                  scenario = out$compatibility_scenario) {
   result <- switch(
     test,
-    genotypes = out$tests$genotypes,
-    trend = out$tests$trend,
+    genotypes = out$scenarios[[scenario]]$tests$genotypes,
+    trend = out$scenarios[[scenario]]$tests$trend,
     stop("Unknown test: ", test)
   )
   if (is.null(result)) stop("Requested test output is NULL.")
@@ -415,32 +426,51 @@
 
 .plot_make_line <- function(dat, x_label, y_label, title, subtitle = NULL) {
   .plot_require_ggplot2()
+  line_color <- unname(.paweh_color_values()["navy"])
   ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y)) +
-    ggplot2::geom_line(linewidth = 1.05, lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_point(size = 2.2, alpha = 0.9, na.rm = TRUE) +
+    ggplot2::geom_line(
+      linewidth = 1, lineend = "round", color = line_color, na.rm = TRUE
+    ) +
+    ggplot2::geom_point(
+      size = 2.6, color = line_color, alpha = 0.9, na.rm = TRUE
+    ) +
     ggplot2::labs(
       title = title,
       subtitle = subtitle,
       x = x_label,
       y = y_label
     ) +
-    .plot_paweh_theme()
+    .paweh_plot_theme()
 }
 
 .plot_make_line_grouped <- function(dat, x_label, y_label, title, group_label, subtitle = NULL) {
   .plot_require_ggplot2()
   dat <- .plot_pretty_data(dat)
-  ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y, color = .data$group, group = .data$group)) +
-    ggplot2::geom_line(linewidth = 1.05, lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_point(size = 2.2, alpha = 0.9, na.rm = TRUE) +
+  groups <- unique(as.character(dat$group))
+  colors <- stats::setNames(
+    rep(.paweh_fill_values(), length.out = length(groups)), groups
+  )
+  linetypes <- stats::setNames(.paweh_linetype_values(length(groups)), groups)
+  ggplot2::ggplot(
+    dat,
+    ggplot2::aes(
+      x = .data$x, y = .data$y, color = .data$group,
+      linetype = .data$group, group = .data$group
+    )
+  ) +
+    ggplot2::geom_line(linewidth = 1, lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_point(size = 2.6, alpha = 0.9, na.rm = TRUE) +
+    ggplot2::scale_color_manual(values = colors, drop = FALSE) +
+    ggplot2::scale_linetype_manual(values = linetypes, drop = FALSE) +
     ggplot2::labs(
       title = title,
       subtitle = subtitle,
       x = x_label,
       y = y_label,
-      color = group_label
+      color = group_label,
+      linetype = group_label
     ) +
-    .plot_paweh_theme()
+    .paweh_plot_theme()
 }
 
 #' Plot Case-Control Power
@@ -549,11 +579,12 @@ plot_cc_power <- function(
       args <- .plot_apply_cc_x(args0, x_var, x)
       args <- .plot_drop_helper_args(args)
       out <- do.call(cc_power, args)
+      scenario <- .plot_cc_scenario_for_x(out, x_var)
       data.frame(
         x = x,
         group = test_i,
-        y = .plot_cc_extract_power(out, test_i),
-        lambda = .plot_cc_extract_lambda(out, test_i),
+        y = .plot_cc_extract_power(out, test_i, scenario),
+        lambda = .plot_cc_extract_lambda(out, test_i, scenario),
         stringsAsFactors = FALSE
       )
     })
@@ -564,7 +595,7 @@ plot_cc_power <- function(
 
   if (isTRUE(return_data)) {
     out_dat <- .plot_pretty_data(plot_dat)
-    names(out_dat)[1:3] <- c(x_var, "test", "power")
+    names(out_dat)[seq_len(3L)] <- c(x_var, "test", "power")
     if (!x_var %in% c("pi", "locus_het_rate")) {
       out_dat$lambda <- NULL
     }
@@ -696,11 +727,18 @@ plot_cc_mssn <- function(
       args <- .plot_apply_cc_x(args0, x_var, x)
       args <- .plot_drop_helper_args(args)
       safe <- .plot_safe_mssn_call(cc_mssn, args)
+      scenario <- if (safe$finite_mssn) {
+        .plot_cc_scenario_for_x(safe$result, x_var)
+      } else {
+        NULL
+      }
       data.frame(
         x = x,
         group = test_i,
         y = if (safe$finite_mssn) {
-          .plot_cc_extract_mssn(safe$result, test_i, sample_size)
+          .plot_cc_extract_mssn(
+            safe$result, test_i, sample_size, scenario
+          )
         } else {
           NA_real_
         },
@@ -716,7 +754,7 @@ plot_cc_mssn <- function(
 
   if (isTRUE(return_data)) {
     out_dat <- .plot_pretty_data(plot_dat)
-    names(out_dat)[1:3] <- c(x_var, "test", paste0("MSSN_", sample_size))
+    names(out_dat)[seq_len(3L)] <- c(x_var, "test", paste0("MSSN_", sample_size))
     if (!x_var %in% c("pi", "locus_het_rate")) {
       out_dat$finite_mssn <- NULL
       out_dat$status <- NULL

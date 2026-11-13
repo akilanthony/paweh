@@ -26,8 +26,8 @@
 #' Family-Based (TDT) Power
 #'
 #' Computes power for the transmission disequilibrium test (TDT) at a fixed
-#' number of affected trios under three scenarios: (i) no error, (ii)
-#' phenotype misclassification only, and (iii) locus heterogeneity only.
+#' number of affected trios with no effect or one selected effect: phenotype
+#' misclassification, locus heterogeneity, or genotype misclassification.
 #' \code{input_mode} lets the transmission probabilities come either from a
 #' genetic model (\code{"model_based"}, the default) or directly from
 #' user-supplied expected transmission and non-transmission counts
@@ -67,6 +67,14 @@
 #'   be accumulated over the same \code{N} trios that power is computed for.
 #' @param verbose Logical. If \code{TRUE} (default), prints a formatted
 #'   summary of no-error power and any requested modifier-specific power.
+#' @param effect Character. Optional explicit effect selector: \code{"none"},
+#'   \code{"phenotype_misclassification"}, \code{"locus_heterogeneity"}, or
+#'   \code{"genotype_misclassification"}. The default is no effect. Calls that
+#'   omit this argument retain the historical separate-sensitivity behavior of
+#'   \code{misclass_rate} and \code{heter_rate}.
+#' @param genotype_misclassification_rate Numeric in \eqn{[0,0.5]}. The Chapter
+#'   5 adjacent-genotype TDT error parameter \eqn{e}, required only when
+#'   \code{effect = "genotype_misclassification"}.
 #'
 #' @details
 #' With \code{input_mode = "model_based"}, penetrances
@@ -116,6 +124,22 @@
 #' is used, with a message reporting the derived value. An error is raised if
 #' no such unique root exists -- supplying \code{pd} directly is preferred.
 #'
+#' The genotype-misclassification effect implements the Chapter 5
+#' single-parameter adjacent-genotype TDT model in Section 5.2.5:
+#' \eqn{\theta_{02}=\theta_{20}=0} and
+#' \eqn{\theta_{01}=\theta_{10}=\theta_{12}=\theta_{21}=e}. The independent
+#' member transitions are applied to the 15 true Mendelian-consistent trios,
+#' producing 27 observed configurations (Eqs. 5.18--5.20). Observed
+#' Mendelian-inconsistent trios are removed and the retained probabilities are
+#' renormalized (Eqs. 5.16--5.17); expected transmitted and non-transmitted
+#' counts and the NCP then follow Eqs. 5.22 and 5.21. This branch requires
+#' model-based input and cannot be combined with phenotype misclassification or
+#' locus heterogeneity. Only this Chapter 5 single-parameter adjacent-genotype
+#' TDT model is supported: TDTae and sequencing/NGS genotype error are not
+#' implemented.
+#' Power uses the package's existing nominal asymptotic chi-square threshold;
+#' conventional genotype error can inflate the ordinary TDT Type-I error.
+#'
 #' @return An object of class \code{"tdt_power"}, containing:
 #' \describe{
 #' \item{alpha, N, input_mode}{Significance level, affected-trio count, and
@@ -140,6 +164,14 @@
 #'   misclass_rate = 0.01, heter_rate = 0.10,
 #'   verbose = FALSE
 #' )$power$no_error
+#'
+#' # Chapter 5 single-parameter adjacent-genotype TDT error
+#' tdt_power(
+#'   N = 600, pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+#'   effect = "genotype_misclassification",
+#'   genotype_misclassification_rate = 0.01,
+#'   verbose = FALSE
+#' )$power$genotype_misclassification
 #'
 #' # model_free: supply expected transmissions/non-transmissions directly
 #' tdt_power(
@@ -189,15 +221,29 @@ tdt_power <- function(
     heter_rate   = 0,
     ET  = NULL,
     ENT = NULL,
-    verbose = TRUE
+    verbose = TRUE,
+    effect = c("none", "phenotype_misclassification",
+               "locus_heterogeneity", "genotype_misclassification"),
+    genotype_misclassification_rate = NULL
 ) {
+  effect_missing <- missing(effect)
   input_mode <- match.arg(input_mode)
+  effect <- match.arg(effect)
 
   ## ---- basic argument checks ----
   if (misclass_rate < 0 || misclass_rate >= 1)
     stop("misclass_rate must be in [0, 1).")
   if (heter_rate < 0 || heter_rate >= 1)
     stop("heter_rate must be in [0, 1).")
+
+  active_effect <- .tdt_validate_effect(
+    effect = effect,
+    effect_missing = effect_missing,
+    misclass_rate = misclass_rate,
+    heter_rate = heter_rate,
+    genotype_misclassification_rate = genotype_misclassification_rate,
+    input_mode = input_mode
+  )
 
   if (input_mode == "model_based") {
     if (is.null(pd) || is.null(prev) || is.null(R1) || is.null(R2))
@@ -420,6 +466,22 @@ tdt_power <- function(
     ENT_het    <- 2 * N * gNT_het
   }
 
+  genotype_result <- NULL
+  if (active_effect == "genotype_misclassification") {
+    genotype_result <- .tdt_genotype_error_model_counts(
+      pd = pd, prev = prev, R1 = R1, R2 = R2,
+      delta_prime = delta_prime,
+      e = genotype_misclassification_rate,
+      N = N
+    )
+    genotype_result$power <- stats::pchisq(
+      crit, df = 1, ncp = genotype_result$lambda, lower.tail = FALSE
+    )
+    genotype_result$null <- .tdt_genotype_error_null_diagnostic(
+      pd = pd, e = genotype_misclassification_rate, N = N, alpha = alpha
+    )
+  }
+
   ## ----- Losses -----
   power_loss_misc <- power_nomisc - power_misc
   power_loss_het  <- power_nomisc - power_het
@@ -471,9 +533,32 @@ tdt_power <- function(
       R2 = R2,
       delta_prime = delta_prime,
       misclass_rate = misclass_rate,
-      heter_rate = heter_rate
+      heter_rate = heter_rate,
+      effect = active_effect,
+      genotype_misclassification_rate = genotype_misclassification_rate
     )
   )
+
+  if (!is.null(genotype_result)) {
+    out$lambda$genotype_misclassification <- genotype_result$lambda
+    out$power$genotype_misclassification <- genotype_result$power
+    out$power_loss$genotype_misclassification <-
+      power_nomisc - genotype_result$power
+    out$gT_star$genotype_misclassification <- genotype_result$ET / (2 * N)
+    out$gNT_star$genotype_misclassification <- genotype_result$ENT / (2 * N)
+    out$ET$genotype_misclassification <- genotype_result$ET
+    out$ENT$genotype_misclassification <- genotype_result$ENT
+    out$genotype_misclassification <- list(
+      retained_trio_probability = genotype_result$retained_probability,
+      mendelian_inconsistent_probability =
+        genotype_result$mendelian_inconsistent_probability,
+      lambda_null = genotype_result$null$lambda_null,
+      actual_alpha = genotype_result$null$actual_alpha,
+      alpha_inflation_ratio = genotype_result$null$alpha_inflation_ratio,
+      log10_alpha_inflation_ratio =
+        genotype_result$null$log10_alpha_inflation_ratio
+    )
+  }
 
   class(out) <- "tdt_power"
   if (isTRUE(verbose)) {
@@ -486,9 +571,9 @@ tdt_power <- function(
 #' Family-Based (TDT) Minimum Sample Size Necessary
 #'
 #' Computes the minimum number of affected trios required to achieve a
-#' specified power for the transmission disequilibrium test (TDT) under three
-#' scenarios: (i) no error, (ii) phenotype misclassification only, and (iii)
-#' locus heterogeneity only. \code{input_mode} lets the transmission
+#' specified power for the transmission disequilibrium test (TDT) with no
+#' effect or one selected effect: phenotype misclassification, locus
+#' heterogeneity, or genotype misclassification. \code{input_mode} lets the transmission
 #' probabilities come either from a genetic model
 #' (\code{"model_based"}, the default) or directly from user-supplied
 #' expected transmission and non-transmission counts (\code{"model_free"}).
@@ -532,6 +617,14 @@ tdt_power <- function(
 #' @param verbose Logical. If \code{TRUE} (default), prints a formatted
 #'   summary of the no-error required number of trios and any requested
 #'   modifier-specific required counts and percentage increases.
+#' @param effect Character. Optional explicit effect selector: \code{"none"},
+#'   \code{"phenotype_misclassification"}, \code{"locus_heterogeneity"}, or
+#'   \code{"genotype_misclassification"}. The default is no effect. Calls that
+#'   omit this argument retain the historical separate-sensitivity behavior of
+#'   \code{misclass_rate} and \code{heter_rate}.
+#' @param genotype_misclassification_rate Numeric in \eqn{[0,0.5]}. The Chapter
+#'   5 adjacent-genotype TDT error parameter \eqn{e}, required only when
+#'   \code{effect = "genotype_misclassification"}.
 #'
 #' @details
 #' With \code{input_mode = "model_based"}, penetrances are derived from
@@ -554,6 +647,16 @@ tdt_power <- function(
 #' closed-form identities as \code{\link{tdt_power}} (see its
 #' Details for the formulas and the \code{pd}-solving fallback), applied to
 #' this no-error \eqn{g_T}/\eqn{g_{NT}} pair.
+#'
+#' For \code{effect = "genotype_misclassification"}, the Chapter 5
+#' single-parameter adjacent-genotype TDT transition model,
+#' Mendelian-inconsistency filtering, and
+#' Eqs. 5.16--5.22 are the same as in \code{\link{tdt_power}}. The adjusted NCP
+#' is linear in the number of affected trios, so the existing target-NCP is
+#' divided by the adjusted per-trio NCP. This model-based branch cannot be
+#' combined with phenotype misclassification or locus heterogeneity. TDTae and
+#' sequencing/NGS genotype error are not implemented, and the result uses the
+#' package's existing nominal asymptotic TDT convention.
 #'
 #' @return An object of class \code{"tdt_mssn"}, containing:
 #' \describe{
@@ -580,6 +683,15 @@ tdt_power <- function(
 #'   pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
 #'   verbose = FALSE
 #' )$N$no_error
+#'
+#' # Chapter 5 single-parameter adjacent-genotype TDT error
+#' tdt_mssn(
+#'   target_power = 0.80,
+#'   pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+#'   effect = "genotype_misclassification",
+#'   genotype_misclassification_rate = 0.01,
+#'   verbose = FALSE
+#' )$N$genotype_misclassification
 #'
 #' # model_free: supply expected transmissions/non-transmissions directly
 #' tdt_mssn(
@@ -629,15 +741,29 @@ tdt_mssn <- function(
     ET  = NULL,
     ENT = NULL,
     n_trios = NULL,
-    verbose = TRUE
+    verbose = TRUE,
+    effect = c("none", "phenotype_misclassification",
+               "locus_heterogeneity", "genotype_misclassification"),
+    genotype_misclassification_rate = NULL
 ) {
+  effect_missing <- missing(effect)
   input_mode <- match.arg(input_mode)
+  effect <- match.arg(effect)
 
   ## ---- basic argument checks ----
   if (misclass_rate < 0 || misclass_rate >= 1)
     stop("misclass_rate must be in [0, 1).")
   if (heter_rate < 0 || heter_rate >= 1)
     stop("heter_rate must be in [0, 1).")
+
+  active_effect <- .tdt_validate_effect(
+    effect = effect,
+    effect_missing = effect_missing,
+    misclass_rate = misclass_rate,
+    heter_rate = heter_rate,
+    genotype_misclassification_rate = genotype_misclassification_rate,
+    input_mode = input_mode
+  )
 
   if (input_mode == "model_based") {
     if (is.null(pd) || is.null(prev) || is.null(R1) || is.null(R2))
@@ -852,6 +978,24 @@ tdt_mssn <- function(
     N_het <- N_from_lambda(lambda_star, gT_het, gNT_het)
   }
 
+  genotype_result <- NULL
+  if (active_effect == "genotype_misclassification") {
+    genotype_result <- .tdt_genotype_error_model_counts(
+      pd = pd, prev = prev, R1 = R1, R2 = R2,
+      delta_prime = delta_prime,
+      e = genotype_misclassification_rate,
+      N = 1
+    )
+    genotype_slope <- genotype_result$lambda
+    N_genotype <- if (genotype_slope == 0) Inf else lambda_star / genotype_slope
+    gT_genotype <- genotype_result$ET / 2
+    gNT_genotype <- genotype_result$ENT / 2
+    lambda_genotype_fixed <- N_nomisc * genotype_slope
+    power_genotype_fixed <- stats::pchisq(
+      crit, df = 1, ncp = lambda_genotype_fixed, lower.tail = FALSE
+    )
+  }
+
   ## ===== Percent increase relative to no-error N =====
   perc_increase_misc <- percent_increase_from_baseline(N_misc, N_nomisc)
   perc_increase_het <- percent_increase_from_baseline(N_het, N_nomisc)
@@ -913,9 +1057,29 @@ tdt_mssn <- function(
       R2 = R2,
       delta_prime = delta_prime,
       misclass_rate = misclass_rate,
-      heter_rate = heter_rate
+      heter_rate = heter_rate,
+      effect = active_effect,
+      genotype_misclassification_rate = genotype_misclassification_rate
     )
   )
+
+  if (!is.null(genotype_result)) {
+    out$N$genotype_misclassification <- N_genotype
+    out$percent_increase$genotype_misclassification <-
+      percent_increase_from_baseline(N_genotype, N_nomisc)
+    out$power_at_N_no_error$genotype_misclassification <-
+      power_genotype_fixed
+    out$power_loss_at_N_no_error$genotype_misclassification <-
+      power_nomisc_fixed - power_genotype_fixed
+    out$gT_star$genotype_misclassification <- gT_genotype
+    out$gNT_star$genotype_misclassification <- gNT_genotype
+    out$genotype_misclassification <- list(
+      ncp_per_trio = genotype_slope,
+      retained_trio_probability = genotype_result$retained_probability,
+      mendelian_inconsistent_probability =
+        genotype_result$mendelian_inconsistent_probability
+    )
+  }
 
   class(out) <- "tdt_mssn"
   if (isTRUE(verbose)) {

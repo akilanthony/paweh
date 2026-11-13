@@ -4,7 +4,25 @@
 \alias{tdt_ngs_power}
 \title{Analytic Power for a TDT1-NGS Sequencing Study}
 \usage{
-tdt_ngs_power(N, pd, R1, coverage, seq_error, alpha = 0.05, verbose = TRUE)
+tdt_ngs_power(
+  N,
+  pd,
+  R1,
+  coverage = NULL,
+  seq_error = NULL,
+  alpha = 0.05,
+  verbose = TRUE,
+  father_coverage = coverage,
+  mother_coverage = coverage,
+  child_coverage = coverage,
+  epsilon0 = seq_error,
+  epsilon1 = seq_error,
+  pheno_misclass = FALSE,
+  prev = NULL,
+  pi01 = 0,
+  locus_het = FALSE,
+  heter_rate = 0
+)
 }
 \arguments{
 \item{N}{A single finite integer greater than or equal to 1. Number of
@@ -18,24 +36,62 @@ and 1. The null information is reflection-symmetric in \code{pd} and
 the multiplicative model. The homozygote relative risk is
 \eqn{R_2 = R_1^2}.}
 
-\item{coverage}{A single finite integer greater than or equal to 2. This is
-the equal fixed read depth for the father, mother, and affected child.}
+\item{coverage}{A single finite integer greater than or equal to 2. Common
+fixed-depth shorthand for the father, mother, and affected child. It may
+be omitted when all three member-specific depths are supplied.}
 
 \item{seq_error}{A single finite symmetric per-read sequencing-error
 probability in \eqn{[0,0.5)}. Internally, the directional error parameters
-are evaluated at \eqn{\epsilon_0 = \epsilon_1 =} \code{seq_error}.}
+default to \eqn{\epsilon_0 = \epsilon_1 =} \code{seq_error}. It may be
+omitted when both directional parameters are supplied.}
 
 \item{alpha}{A single finite significance level in \eqn{(0,1)}. Defaults to
 0.05.}
 
 \item{verbose}{Logical scalar. If \code{TRUE}, print a concise result
 summary.}
+
+\item{father_coverage, mother_coverage, child_coverage}{Optional fixed depths
+for each trio member. An explicitly supplied member depth overrides
+\code{coverage}; otherwise that member inherits \code{coverage}.}
+
+\item{epsilon0}{Directional probability that a reference-allele read is
+observed as the alternative allele. Defaults to \code{seq_error}.}
+
+\item{epsilon1}{Directional probability that an alternative-allele read is
+observed as the reference allele. Defaults to \code{seq_error}.}
+
+\item{pheno_misclass}{Logical scalar. If \code{TRUE}, add a phenotype-
+misclassification sensitivity scenario using the ordinary-TDT NCP bridge.}
+
+\item{prev}{Disease prevalence in \eqn{(0,1)}. Required when either
+phenotype misclassification or locus heterogeneity is requested. It is
+used only by the ordinary-TDT bridges and does not alter the raw-read
+likelihood.}
+
+\item{pi01}{Probability that an unaffected individual is misclassified or
+ascertained as affected, in \eqn{[0,1)}. It must be zero unless
+\code{pheno_misclass = TRUE}.}
+
+\item{locus_het}{Logical scalar. If \code{TRUE}, add an independent locus-
+heterogeneity sensitivity scenario using the ordinary-TDT NCP bridge.}
+
+\item{heter_rate}{Heterogeneous trio fraction in \eqn{[0,1]}. The ordinary-
+TDT linked/homogeneous fraction is \eqn{\pi=1-}\code{heter_rate}. It must
+be zero unless \code{locus_het = TRUE}.}
 }
 \value{
 Invisibly, an object of class \code{"tdt_ngs_power"} containing the
 design inputs, power and NCP, multiplicative-model parameters, efficient
 information, the 11 by 11 information matrix, compact numerical
-diagnostics, and model metadata.
+diagnostics, effective member-specific coverage and directional-error
+metadata, model metadata, and a \code{scenarios} list that always contains
+\code{sequencing_only} and, when requested,
+\code{phenotype_misclassification} and \code{heterogeneity}. Modifier
+scenarios record their ordinary-TDT bridge inputs, coefficients,
+attenuation factor, and confirmation that the raw-read likelihood was not
+modified. Legacy \code{coverage} and \code{seq_error} fields retain the
+supplied common shorthand values.
 }
 \description{
 Computes prospective analytic power for a single-variant TDT1-NGS study of
@@ -46,7 +102,8 @@ genotype calls.
 \details{
 TDT1-NGS is evaluated for one biallelic variant under Hardy-Weinberg
 parental genotype frequencies, random mating, a multiplicative disease
-model, equal fixed coverage, and symmetric public sequencing error. With
+model, fixed member-specific coverage, and common directional sequencing
+error. With
 \eqn{t = R_1/(1+R_1)}, the transmission parameter is
 \eqn{\delta = \log\{t/(1-t)\} = \log(R_1)} and \eqn{R_2 = R_1^2}.
 
@@ -58,6 +115,36 @@ latent Mendelian trio states. Power is the upper-tail probability beyond
 the central one-degree-of-freedom chi-square critical value under a
 noncentral chi-square distribution with NCP \eqn{\lambda}.
 
+When requested, phenotype misclassification is a sensitivity bridge rather
+than a phenotype-aware sequencing likelihood. Let
+\eqn{c=2(g_T-g_{NT})^2/(g_T+g_{NT})} be the ordinary-TDT per-trio NCP
+coefficient. The bridge computes
+\deqn{r_{pheno}=c_{pheno}/c_{noerror}}
+from the ordinary-TDT expected transmission and nontransmission
+probabilities, using the fixed assumptions \eqn{R_2=R_1^2},
+\eqn{\delta'=1}, and \eqn{\theta_1=p_d}. It then reports
+\eqn{\lambda_{pheno}=\lambda_{NGS}r_{pheno}}. Kim's raw-read likelihood,
+information matrix, and efficient information remain unchanged.
+
+Locus heterogeneity uses the analogous independent bridge
+\deqn{r_{het}=c_{heterogeneity}/c_{noerror},\qquad
+\lambda_{het}=\lambda_{NGS}r_{het}.}
+The ordinary-TDT expected counts are evaluated at one trio using
+\eqn{\pi=1} for the homogeneous reference and
+\eqn{\pi=1-}\code{heter_rate} for the requested sensitivity scenario.
+It uses the same fixed \eqn{R_2}, \eqn{\delta'}, and \eqn{\theta_1}
+assumptions as the phenotype bridge. If both modifiers are requested, they
+are reported separately against the same sequencing-only baseline; their
+factors are never multiplied and no combined result is calculated.
+
+The existing directional read model is
+\deqn{q_G=\epsilon_0 + (1-\epsilon_0-\epsilon_1)G/2,}
+for genotype \eqn{G\in\{0,1,2\}}. Thus \eqn{q_0=\epsilon_0},
+\eqn{q_2=1-\epsilon_1}, and
+\eqn{q_1=(1+\epsilon_0-\epsilon_1)/2}; the heterozygote probability is
+one-half in the symmetric case. The effective errors must be nonnegative
+and sum to less than one.
+
 Coverage 1 is unsupported under the full published nuisance model. Its
 eight observable read-count triples provide at most seven independent
 probability dimensions for an 11-parameter information model, so efficient
@@ -65,13 +152,24 @@ information is not identifiable without changing the model or using a
 generalized inverse.
 
 This prospective calculation performs no simulation or EM fitting. It does
-not implement TDT2-NGS, unequal member-specific coverage, locus
-heterogeneity, phenotype misclassification, or multi-locus testing.
+not implement TDT2-NGS, conventional genotype misclassification/TDTae, a
+joint modifier likelihood, or multi-locus testing.
+Coverage is fixed for each member rather than random or sample-specific.
 }
 \examples{
 tdt_ngs_power(
   N = 5000, pd = 0.325, R1 = 1.2,
   coverage = 12, seq_error = 0.005,
+  alpha = 5e-8, verbose = FALSE
+)
+tdt_ngs_power(
+  N = 5000, pd = 0.325, R1 = 1.2, coverage = 12, seq_error = 0.005,
+  locus_het = TRUE, prev = 0.01, heter_rate = 0.25,
+  alpha = 5e-8, verbose = FALSE
+)
+tdt_ngs_power(
+  N = 5000, pd = 0.325, R1 = 1.2, coverage = 12, seq_error = 0.005,
+  pheno_misclass = TRUE, prev = 0.01, pi01 = 0.05,
   alpha = 5e-8, verbose = FALSE
 )
 
@@ -80,4 +178,20 @@ tdt_ngs_power(
 Kim, W. (2015). Transmission disequilibrium tests based on read counts for
 low-coverage next-generation sequence data. \emph{Human Heredity}, 80(1),
 36--49. \doi{10.1159/000434645}.
+
+Buyske, S., Yang, G., Matise, T. C., & Gordon, D. (2009). When a case is not
+a case: Effects of phenotype misclassification on power and sample size
+requirements for the transmission disequilibrium test with affected child
+trios. \emph{Human Heredity}, 67(4), 287--292.
+\doi{10.1159/000194981}.
+
+Chen, C., Yang, G., Buyske, S., Matise, T., Finch, S. J., & Gordon, D.
+(2009). Transmission disequilibrium test power and sample size in the
+presence of locus heterogeneity. \emph{Statistical Applications in Genetics
+and Molecular Biology}, 8, Article 44. \doi{10.2202/1544-6115.1501}.
+
+Gordon, D., Finch, S. J., & Kim, W. (2020).
+\emph{Heterogeneity in Statistical Genetics: How to Assess, Address, and
+Account for Mixtures in Association Studies}. Springer.
+\doi{10.1007/978-3-030-61121-7}.
 }

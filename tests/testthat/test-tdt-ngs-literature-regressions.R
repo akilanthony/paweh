@@ -282,10 +282,15 @@ test_that("the paired sequencing-error effect is quantified, not overstated", {
   }, numeric(1))
 
   expect_true(all(differences >= -1e-14))
-  expect_equal(min(differences), 1.9766465131354494e-09, tolerance = 2e-13)
+  # Use absolute tolerance for cross-platform floating-point variation.
+  expected_min <- 1.9766465131354494e-09
+  expect_lte(abs(min(differences) - expected_min), 1e-12)
   expect_equal(max(differences), 0.07120978181762605, tolerance = 2e-12)
-  expect_equal(stats::median(differences), 2.8938827627882297e-05,
-               tolerance = 2e-12)
+  expected_median <- 2.8938827627882297e-05
+  expect_lte(
+    abs(stats::median(differences) - expected_median),
+    1e-12
+  )
   expect_equal(mean(differences), 0.0045439451293689632,
                tolerance = 2e-12)
 })

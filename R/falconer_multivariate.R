@@ -178,21 +178,17 @@
   } else {
     mvtnorm::GenzBretz(maxpts = 25000L * p, abseps = 1e-8, releps = 0)
   }
-  had_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-  if (had_seed) old_seed <- get(".Random.seed", envir = .GlobalEnv)
-  if (p > 20L) set.seed(271828L)
-  on.exit({
-    if (p > 20L) {
-      if (had_seed) assign(".Random.seed", old_seed, envir = .GlobalEnv)
-      else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
-        rm(".Random.seed", envir = .GlobalEnv)
-      }
-    }
-  }, add = TRUE)
-  value <- mvtnorm::pmvnorm(
-    lower = lower, upper = upper, mean = mean, sigma = Sigma,
-    algorithm = algorithm
-  )
+  evaluate_probability <- function() {
+    mvtnorm::pmvnorm(
+      lower = lower, upper = upper, mean = mean, sigma = Sigma,
+      algorithm = algorithm
+    )
+  }
+  value <- if (p <= 20L) {
+    evaluate_probability()
+  } else {
+    withr::with_seed(271828L, evaluate_probability())
+  }
   list(
     probability = as.numeric(value),
     error = if (is.null(attr(value, "error"))) NA_real_ else attr(value, "error"),
@@ -221,7 +217,7 @@
   }
 
   affected_details <- unaffected_details <- vector("list", 3L)
-  for (j in 1:3) {
+  for (j in seq_len(3L)) {
     affected_details[[j]] <- .falconer_mv_rectangle_probability(
       lower = upper_threshold, upper = rep(Inf, p),
       mean = model$mean_matrix[, j], Sigma = model$residual_covariance_matrix

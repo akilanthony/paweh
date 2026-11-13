@@ -7,7 +7,9 @@
     R1 = 1.5, R2 = 2.25, delta_prime = 1,
     ET = 140, ENT = 100, n_trios = 120,
     misclassification = FALSE, misclass_rate = 0,
-    heterogeneity = FALSE, heter_rate = 0
+    heterogeneity = FALSE, heter_rate = 0,
+    genotype_misclassification = FALSE,
+    genotype_misclassification_rate = 0
   )
 }
 
@@ -78,6 +80,25 @@
               class = "text-muted",
               "Proportion of affected trios whose disease is not attributable to the modeled locus."
             )
+          ),
+          shiny::conditionalPanel(
+            sprintf("input['%s'] == 'model_based'", ns("input_mode")),
+            shiny::checkboxInput(
+              ns("genotype_misclassification"),
+              "Genotype misclassification (Chapter 5)"
+            ),
+            shiny::conditionalPanel(
+              sprintf("input['%s']", ns("genotype_misclassification")),
+              shiny::numericInput(
+                ns("genotype_misclassification_rate"),
+                "Genotype misclassification rate (%)",
+                0, min = 0, max = 50, step = 0.1
+              ),
+              shiny::tags$small(
+                class = "text-muted",
+                "Chapter 5 single-parameter adjacent-genotype error rate e. Available for model-based TDT designs."
+              )
+            )
           )
         ),
         shiny::actionButton(
@@ -123,6 +144,27 @@
 .paweh_tdt_snapshot <- function(values) {
   if (!values$objective %in% c("power", "mssn")) stop("Choose a valid objective.", call. = FALSE)
   if (!values$input_mode %in% c("model_based", "model_free")) stop("Choose a valid input specification.", call. = FALSE)
+  genotype_active <- isTRUE(values$genotype_misclassification)
+  .paweh_tdt_num(
+    values$genotype_misclassification_rate,
+    "Genotype misclassification rate", 0, 50
+  )
+  if (genotype_active && values$input_mode != "model_based") {
+    stop(
+      "Genotype misclassification is available only for model-based TDT designs.",
+      call. = FALSE
+    )
+  }
+  if (genotype_active &&
+      (isTRUE(values$misclassification) || isTRUE(values$heterogeneity))) {
+    stop(
+      paste(
+        "Genotype misclassification is currently modeled separately.",
+        "Turn off phenotype misclassification and locus heterogeneity to use it."
+      ),
+      call. = FALSE
+    )
+  }
   .paweh_tdt_num(values$alpha, "Significance level", 0, 1, TRUE)
   if (values$objective == "power") {
     .paweh_tdt_num(values$N, "Number of affected-child trios", 0, Inf, TRUE)
@@ -169,6 +211,11 @@
   heter_rate <- if (isTRUE(values$heterogeneity)) values$heter_rate / 100 else 0
   if (misclass_rate >= 1 || heter_rate >= 1) stop("Misclassification and heterogeneity rates must be below 100%.", call. = FALSE)
   args <- c(args, list(misclass_rate = misclass_rate, heter_rate = heter_rate))
+  if (genotype_active) {
+    args$effect <- "genotype_misclassification"
+    args$genotype_misclassification_rate <-
+      values$genotype_misclassification_rate / 100
+  }
 
   list(
     objective = values$objective, input_mode = values$input_mode,
@@ -193,7 +240,9 @@
     snapshot = snapshot, result = result,
     active = list(
       misclassification = snapshot$backend_args$misclass_rate > 0,
-      heterogeneity = snapshot$backend_args$heter_rate > 0
+      heterogeneity = snapshot$backend_args$heter_rate > 0,
+      genotype_misclassification =
+        isTRUE(snapshot$display$genotype_misclassification)
     )
   )
 }
@@ -213,13 +262,17 @@
 .paweh_tdt_scenario_labels <- c(
   no_error = "No-error design",
   misclassification = "Phenotype misclassification",
-  heterogeneity = "Locus heterogeneity"
+  heterogeneity = "Locus heterogeneity",
+  genotype_misclassification = "Genotype misclassification"
 )
 .paweh_tdt_scenarios <- function(calculation) {
   c(
     "no_error",
     if (calculation$active$misclassification) "misclassification",
-    if (calculation$active$heterogeneity) "heterogeneity"
+    if (calculation$active$heterogeneity) "heterogeneity",
+    if (calculation$active$genotype_misclassification) {
+      "genotype_misclassification"
+    }
   )
 }
 .paweh_tdt_model_summary <- function(calculation) {
@@ -309,6 +362,39 @@
       "Locus heterogeneity details",
       list(.paweh_summary_row("Heterogeneous affected trios", .paweh_tdt_rate(result$model_parameters$heter_rate)))
     ),
+    if (calculation$active$genotype_misclassification) {
+      genotype <- result$genotype_misclassification
+      .paweh_detail_section(
+        "Genotype misclassification details",
+        list(
+          .paweh_summary_row(
+            "Adjacent-genotype error rate",
+            .paweh_tdt_rate(result$model_parameters$genotype_misclassification_rate)
+          ),
+          .paweh_summary_row(
+            "Retained trio probability",
+            .paweh_tdt_pct(genotype$retained_trio_probability, 2)
+          ),
+          .paweh_summary_row(
+            "Mendelian-inconsistent probability",
+            .paweh_tdt_pct(genotype$mendelian_inconsistent_probability, 2)
+          ),
+          if (!is.null(genotype$ncp_per_trio)) .paweh_summary_row(
+            "NCP per trio", formatC(genotype$ncp_per_trio, format = "f", digits = 6)
+          ),
+          if (!is.null(genotype$lambda_null)) .paweh_summary_row(
+            "Null NCP", formatC(genotype$lambda_null, format = "f", digits = 6)
+          ),
+          if (!is.null(genotype$actual_alpha)) .paweh_summary_row(
+            "Actual alpha", formatC(genotype$actual_alpha, format = "g", digits = 6)
+          ),
+          if (!is.null(genotype$alpha_inflation_ratio)) .paweh_summary_row(
+            "Alpha inflation ratio",
+            formatC(genotype$alpha_inflation_ratio, format = "g", digits = 6)
+          )
+        )
+      )
+    },
     if (s$objective == "mssn") .paweh_detail_section(
       "Statistical result details",
       list(.paweh_summary_row("Target-power non-centrality", formatC(result$lambda_star, format = "f", digits = 4)))
@@ -324,6 +410,11 @@
     .paweh_summary_row("Misclassification rate", .paweh_tdt_rate(snapshot$backend_args$misclass_rate))
   } else if (scenario == "heterogeneity") {
     .paweh_summary_row("Heterogeneity rate", .paweh_tdt_rate(snapshot$backend_args$heter_rate))
+  } else if (scenario == "genotype_misclassification") {
+    .paweh_summary_row(
+      "Genotype misclassification rate",
+      .paweh_tdt_rate(snapshot$backend_args$genotype_misclassification_rate)
+    )
   }
   if (snapshot$objective == "power") {
     body <- shiny::tagList(
@@ -380,9 +471,18 @@
       " affected-child trios are required to achieve ", .paweh_tdt_pct(result$target_power, 0), " power."
     )
     additions <- vapply(setdiff(scenarios, "no_error"), function(scenario) {
-      rate <- snapshot$backend_args[[if (scenario == "misclassification") "misclass_rate" else "heter_rate"]]
+      rate_key <- switch(scenario,
+        misclassification = "misclass_rate",
+        heterogeneity = "heter_rate",
+        genotype_misclassification = "genotype_misclassification_rate"
+      )
+      rate <- snapshot$backend_args[[rate_key]]
       paste0(" At a ", .paweh_tdt_rate(rate, 1), " ",
-        if (scenario == "misclassification") "phenotype misclassification" else "locus heterogeneity",
+        switch(scenario,
+          misclassification = "phenotype misclassification",
+          heterogeneity = "locus heterogeneity",
+          genotype_misclassification = "genotype misclassification"
+        ),
         " rate, the required sample size is ", .paweh_tdt_count(result$N[[scenario]], TRUE), " trios.")
     }, "")
   }
@@ -397,7 +497,8 @@
       width = "300px",
       lapply(scenarios, function(scenario) .paweh_tdt_result_card(calculation, scenario))
     ),
-    if (all(unlist(calculation$active))) shiny::div(
+    if (calculation$active$misclassification &&
+        calculation$active$heterogeneity) shiny::div(
       class = "paweh-caution",
       "Phenotype misclassification and locus heterogeneity are evaluated as separate sensitivity scenarios in the current TDT model."
     ),
@@ -542,7 +643,11 @@
   values <- snapshot$display
   modifiers <- c(
     if (calculation$active$misclassification) paste0("Misclassification ", .paweh_tdt_rate(snapshot$backend_args$misclass_rate)),
-    if (calculation$active$heterogeneity) paste0("Heterogeneity ", .paweh_tdt_rate(snapshot$backend_args$heter_rate))
+    if (calculation$active$heterogeneity) paste0("Heterogeneity ", .paweh_tdt_rate(snapshot$backend_args$heter_rate)),
+    if (calculation$active$genotype_misclassification) paste0(
+      "Genotype misclassification ",
+      .paweh_tdt_rate(snapshot$backend_args$genotype_misclassification_rate)
+    )
   )
   common <- list(
     .paweh_summary_row("Study type", "Affected-child trio / TDT"),
@@ -581,7 +686,8 @@
       .paweh_summary_row("Scenarios", paste(scenarios, collapse = "; ")),
       .paweh_summary_row("Canonical function", if (calculation$snapshot$objective == "power") "tdt_power()" else "tdt_mssn()")
     ),
-    if (all(unlist(calculation$active))) shiny::p(
+    if (calculation$active$misclassification &&
+        calculation$active$heterogeneity) shiny::p(
       class = "paweh-caution",
       "The current implementation evaluates phenotype misclassification and locus heterogeneity separately rather than as a joint combined model."
     ),
@@ -721,6 +827,12 @@
     } else .paweh_tdt_results_ui(state$calculation))
     output$sensitivity_controls <- shiny::renderUI({
       if (is.null(state$calculation)) return(.paweh_empty_ui("Sensitivity"))
+      if (state$calculation$active$genotype_misclassification) {
+        return(shiny::p(
+          class = "text-muted",
+          "Genotype-misclassification sensitivity plots are not included in this interface. The Results tab shows the selected Chapter 5 error scenario."
+        ))
+      }
       specs <- .paweh_tdt_specs(state$calculation)
       choices <- stats::setNames(names(specs), vapply(specs, `[[`, "", "label"))
       spec <- specs[[1L]]
@@ -745,6 +857,7 @@
       state$sensitivity <- .paweh_tdt_sensitivity(state$calculation, input$sensitivity_parameter, input$sensitivity_range)
     }, ignoreInit = TRUE)
     output$sensitivity_message <- shiny::renderUI(if (!is.null(state$calculation) && is.null(state$sensitivity)) {
+      if (state$calculation$active$genotype_misclassification) return(NULL)
       shiny::p(class = "text-muted", "Each point is a canonical calculation of the frozen design.")
     } else if (!is.null(state$sensitivity) && state$sensitivity$has_nonfinite) {
       shiny::div(class = "paweh-caution", "Some explored designs have infinite or undefined required sample size and are omitted from the line geometry.")
@@ -775,6 +888,12 @@
       if (is.null(state$calculation)) return(shiny::p(class = "text-muted", "Calculate a design first."))
       if (state$calculation$snapshot$input_mode != "model_based") {
         return(shiny::p(class = "text-muted", "Advanced surfaces are available for genetic-model designs only."))
+      }
+      if (state$calculation$active$genotype_misclassification) {
+        return(shiny::p(
+          class = "text-muted",
+          "Advanced genotype-misclassification surfaces are not included in this interface."
+        ))
       }
       if (!requireNamespace("plotly", quietly = TRUE)) {
         return(shiny::p(class = "text-muted", "Install the suggested plotly package to generate this optional visualization."))

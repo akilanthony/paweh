@@ -924,15 +924,16 @@ plot_tdt_power_phenotype_misclassification <- function(
     power = power_mis
   )
 
+  line_color <- unname(.paweh_color_values()["navy"])
   p <- ggplot2::ggplot(df_mis, ggplot2::aes(x = .data$misclass_rate, y = .data$power)) +
-    ggplot2::geom_line() +
-    ggplot2::geom_point() +
+    ggplot2::geom_line(linewidth = 1, lineend = "round", color = line_color) +
+    ggplot2::geom_point(size = 2.6, alpha = 0.9, color = line_color) +
     ggplot2::labs(
       x = "Misclassification rate (pi01)",
       y = "Power",
       title = title
     ) +
-    ggplot2::theme_bw()
+    .paweh_plot_theme()
 
   print(p)
   invisible(p)
@@ -1010,15 +1011,16 @@ plot_tdt_power_locus_heterogeneity <- function(
     power = power_het
   )
 
+  line_color <- unname(.paweh_color_values()["navy"])
   p <- ggplot2::ggplot(df_het, ggplot2::aes(x = .data$heter_rate, y = .data$power)) +
-    ggplot2::geom_line() +
-    ggplot2::geom_point() +
+    ggplot2::geom_line(linewidth = 1, lineend = "round", color = line_color) +
+    ggplot2::geom_point(size = 2.6, alpha = 0.9, color = line_color) +
     ggplot2::labs(
       x = "Heterogeneity rate (1 - pi)",
       y = "Power",
       title = title
     ) +
-    ggplot2::theme_bw()
+    .paweh_plot_theme()
 
   print(p)
   invisible(p)
@@ -1096,15 +1098,16 @@ plot_tdt_mssn_phenotype_misclassification <- function(
     N_required = N_mis
   )
 
+  line_color <- unname(.paweh_color_values()["navy"])
   p <- ggplot2::ggplot(df_mis, ggplot2::aes(x = .data$misclass_rate, y = .data$N_required)) +
-    ggplot2::geom_line() +
-    ggplot2::geom_point() +
+    ggplot2::geom_line(linewidth = 1, lineend = "round", color = line_color) +
+    ggplot2::geom_point(size = 2.6, alpha = 0.9, color = line_color) +
     ggplot2::labs(
       x = "Misclassification rate (pi01)",
       y = "Required number of trios",
       title = title
     ) +
-    ggplot2::theme_bw()
+    .paweh_plot_theme()
 
   print(p)
   invisible(p)
@@ -1183,15 +1186,16 @@ plot_tdt_mssn_locus_heterogeneity <- function(
     N_required = N_het
   )
 
+  line_color <- unname(.paweh_color_values()["navy"])
   p <- ggplot2::ggplot(df_het, ggplot2::aes(x = .data$heter_rate, y = .data$N_required)) +
-    ggplot2::geom_line() +
-    ggplot2::geom_point() +
+    ggplot2::geom_line(linewidth = 1, lineend = "round", color = line_color) +
+    ggplot2::geom_point(size = 2.6, alpha = 0.9, color = line_color) +
     ggplot2::labs(
       x = "Heterogeneity rate (1 - pi)",
       y = "Required number of trios",
       title = title
     ) +
-    ggplot2::theme_bw()
+    .paweh_plot_theme()
 
   print(p)
   invisible(p)

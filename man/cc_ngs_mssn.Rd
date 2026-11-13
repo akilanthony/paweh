@@ -10,13 +10,35 @@ cc_ngs_mssn(
   prev,
   pd,
   R2,
-  coverage,
-  seq_error,
+  coverage = NULL,
+  seq_error = NULL,
   MOI = c("M", "D", "Rec"),
   k = 1,
   verbose = TRUE,
   locus_het = FALSE,
-  pi = 1
+  pi = 1,
+  case_coverage = coverage,
+  ctrl_coverage = coverage,
+  case_seq_error = seq_error,
+  ctrl_seq_error = seq_error,
+  pheno_misclass = FALSE,
+  theta = 0,
+  phi = 0,
+  geno_misclass = c("none", "1p", "2p", "3p", "diff3p"),
+  e = 0,
+  e1 = 0,
+  e2 = 0,
+  e01 = 0,
+  e02 = 0,
+  e03 = 0,
+  case_e01 = 0,
+  case_e02 = 0,
+  case_e03 = 0,
+  ctrl_e01 = 0,
+  ctrl_e02 = 0,
+  ctrl_e03 = 0,
+  diff_source = c("explicit", "case", "ctrl"),
+  diff_multiplier = 1
 )
 }
 \arguments{
@@ -30,10 +52,12 @@ cc_ngs_mssn(
 
 \item{R2}{Numeric \eqn{> 0}. Homozygote relative risk.}
 
-\item{coverage}{Positive integer sequencing depth.}
+\item{coverage}{Common positive integer fixed sequencing depth. May be omitted
+when both group-specific depths are supplied.}
 
 \item{seq_error}{Symmetric per-read sequencing-error probability in
-\eqn{[0,0.5)}.}
+\eqn{[0,0.5)}. Common shorthand; may be omitted when both group-specific
+errors are supplied.}
 
 \item{MOI}{Character mode of inheritance: \code{"M"} for multiplicative,
 \code{"D"} for dominant, or \code{"Rec"} for recessive.}
@@ -49,29 +73,74 @@ case-control locus-heterogeneity mixture before sequencing observation.}
 \code{locus_het = TRUE}. One retains the original associated-case
 distribution; zero makes the case distribution equal to controls. When
 \code{locus_het = FALSE}, \code{pi} must remain at its default value of 1.}
+
+\item{case_coverage, ctrl_coverage}{Case/control fixed depths, respectively.
+Each defaults to \code{coverage}; an explicit value overrides it.}
+
+\item{case_seq_error, ctrl_seq_error}{Case/control per-read error probabilities.
+Each defaults to \code{seq_error}; an explicit value overrides it.
+Effective depths and errors obey the common parameter constraints.}
+
+\item{pheno_misclass}{Logical. If \code{TRUE}, apply the ordinary PAWEH
+case-control phenotype-misclassification model before sequencing.}
+
+\item{theta}{Numeric in \eqn{[0,1)}. Probability that a truly affected
+individual is classified as a control.}
+
+\item{phi}{Numeric in \eqn{[0,1)}. Probability that a truly unaffected
+individual is classified as a case.}
+
+\item{geno_misclass}{Character genotype-misclassification model:
+\code{"none"}, \code{"1p"}, \code{"2p"}, \code{"3p"}, or
+\code{"diff3p"}. The selected model is applied after sequencing calls.}
+
+\item{e}{Numeric in \eqn{[0,0.5]}. One-parameter symmetric error rate.}
+
+\item{e1, e2}{Numeric two-parameter homozygote-to-heterozygote and
+heterozygote-to-homozygote error rates.}
+
+\item{e01, e02, e03}{Numeric non-differential three-parameter error rates.}
+
+\item{case_e01, case_e02, case_e03}{Case-specific three-parameter error rates.}
+
+\item{ctrl_e01, ctrl_e02, ctrl_e03}{Control-specific three-parameter error
+rates.}
+
+\item{diff_source}{Character source for differential three-parameter errors:
+\code{"explicit"}, \code{"case"}, or \code{"ctrl"}.}
+
+\item{diff_multiplier}{Nonnegative multiplier used to derive the other
+group's rates when \code{diff_source} is \code{"case"} or \code{"ctrl"}.}
 }
 \value{
-Invisibly, an object of class \code{"cc_ngs_mssn"} containing the
-target and achieved power and NCP, continuous and integer sample sizes,
-model and sequencing inputs, true and called genotype frequencies, and
-the true-to-called transition matrix.
+Invisibly, an object of class \code{"cc_ngs_mssn"} containing a
+scenario-first \code{scenarios} list. Each scenario records target NCP,
+\code{D}/\code{Q}, continuous and integer sample sizes, achieved NCP and
+power, rounding metadata, staged frequencies, and sequencing/error
+matrices. Legacy fields follow the \code{compatibility_scenario}
+convention documented for \code{\link{cc_ngs_power}}.
 }
 \description{
 Computes the minimum sample size necessary (MSSN) for a model-based
-case-control sequencing trend design. It uses the same fixed-depth,
-symmetric sequencing-error model and deterministic maximum-likelihood
-genotype calls as \code{\link{cc_ngs_power}}.
+case-control sequencing trend design. It evaluates the same independent
+sequencing-only, phenotype, heterogeneity, and post-call genotype-error
+scenarios as \code{\link{cc_ngs_power}}.
 }
 \details{
-Locus heterogeneity is applied to true case genotype probabilities as
-\eqn{g_{case,H}=\pi g_{case}+(1-\pi)g_{control}}, using the same
-parameterization as ordinary PAWEH case-control design. Sequencing
-observation follows this mixture. Under the current nondifferential error
-model, applying the common transition matrix before or after forming the
-mixture is algebraically equivalent; this need not hold for future
-differential case/control sequencing error. When \eqn{\pi=0}, no finite
-MSSN exists for target power greater than \code{alpha} because the trend
-contrast is zero.
+Locus heterogeneity uses
+\eqn{g_{case,H}=\pi g_{case}+(1-\pi)g_{control}} in its independent branch.
+The prevalence-weighted phenotype transformation from
+\code{\link{cc_mssn}} is applied directly to the common biological baseline
+in its branch. Case and control sequencing settings are then applied to the
+corresponding pre-sequencing groups. Conventional genotype
+misclassification is applied after sequencing only in its own branch. See
+\code{\link{cc_ngs_power}} for the scenario paths and matrix convention.
+When \eqn{\pi=0} and sequencing mechanisms are equal, no finite MSSN exists
+for target power greater than \code{alpha} if the observed contrast is zero.
+Differential mechanisms may create an observed contrast even under a
+biological null. MSSN is a nominal asymptotic calculation using the existing
+chi-square critical value, without separate null-distribution or Type I error
+recalibration.
 
 The function numerically inverts the one-degree-of-freedom noncentral
 chi-square distribution only to obtain the target NCP. It then solves the

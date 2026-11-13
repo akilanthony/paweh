@@ -8,14 +8,15 @@ plot_qtl_genotype_distribution(
   qtl_var,
   tau,
   pd,
-  type = c("density", "histogram"),
+  type = c("density", "histogram", "binned"),
   scale = c("density", "frequency"),
   n = 3000,
   seed = NULL,
   show_means = TRUE,
   verbose = FALSE,
   title = NULL,
-  return_data = FALSE
+  return_data = FALSE,
+  bins = 30L
 )
 }
 \arguments{
@@ -25,8 +26,10 @@ plot_qtl_genotype_distribution(
 
 \item{pd}{Increaser-allele frequency in \verb{(0, 1)}.}
 
-\item{type}{Either \code{"density"} for theoretical normal curves or
-\code{"histogram"} for a simulated population.}
+\item{type}{One of \code{"density"} for theoretical normal curves,
+\code{"histogram"} for a simulated population, or \code{"binned"} for a
+deterministic histogram-style display calculated from Normal CDF
+differences.}
 
 \item{scale}{Either \code{"density"} or \code{"frequency"}. For theoretical curves,
 frequency scaling weights each density by its Hardy--Weinberg genotype
@@ -46,6 +49,10 @@ histogram simulation. The caller's random-number state is restored.}
 \item{return_data}{Logical; return the plotting data frame instead of the
 ggplot object. The Falconer model is retained in its \code{falconer_model}
 attribute.}
+
+\item{bins}{Positive integer number of equal-width bins used when
+\code{type = "binned"}. This does not affect the existing density or simulated
+histogram modes.}
 }
 \value{
 A \code{ggplot} object, or a plotting data frame when
@@ -64,13 +71,18 @@ variance \code{1 - qtl_var}. Genotypes 0, 1, and 2 have Hardy--Weinberg
 frequencies \code{(1 - pd)^2}, \code{2 * pd * (1 - pd)}, and \code{pd^2}. Genotypes may
 also be interpreted as \code{bb}, \code{Bb}, and \code{BB}, respectively.
 
-Density mode is analytic and performs no simulation. Histogram mode first
-samples genotypes from their Hardy--Weinberg frequencies and then samples
-trait values from the corresponding conditional normal distributions.
+Density and binned modes are analytic and perform no simulation. In binned
+mode, each conditional bin probability is the difference between Normal CDF
+values at the upper and lower bin boundaries. Histogram mode first samples
+genotypes from their Hardy--Weinberg frequencies and then samples trait
+values from the corresponding conditional normal distributions.
 The x-axis is the quantitative-trait value. In analytic density mode, the
 y-axis is genotype-specific density when \code{scale = "density"} and
-population-weighted density when \code{scale = "frequency"}. In histogram mode,
-the y-axis is normalized density or bin count for those respective scales.
+population-weighted density when \code{scale = "frequency"}. Binned mode uses
+conditional bin probability divided by bin width, with an additional
+genotype-frequency multiplier under \code{scale = "frequency"}. In simulated
+histogram mode, the y-axis is normalized density or bin count for those
+respective scales.
 }
 \examples{
 # A large QTL effect visibly separates the genotype distributions.

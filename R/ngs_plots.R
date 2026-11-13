@@ -58,11 +58,10 @@
 }
 
 .plot_ngs_reject_tdt_heterogeneity <- function(args) {
-  unsupported <- intersect(c("locus_het", "pi"), names(args))
+  unsupported <- intersect("pi", names(args))
   if (length(unsupported) > 0L) {
     stop(
-      "TDT1-NGS plotting does not support locus heterogeneity; remove ",
-      paste(unsupported, collapse = " and "), "."
+      "TDT1-NGS uses heter_rate = 1 - pi; remove pi and supply heter_rate."
     )
   }
   invisible(TRUE)
@@ -107,14 +106,33 @@
     )
   }
 
-  p <- p +
-    ggplot2::geom_line(linewidth = 1.05, lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_point(size = 2.2, alpha = 0.9, na.rm = TRUE)
+  if (multiple) {
+    groups <- levels(plot_dat$series)
+    colors <- stats::setNames(
+      rep(.paweh_fill_values(), length.out = length(groups)), groups
+    )
+    linetypes <- stats::setNames(.paweh_linetype_values(length(groups)), groups)
+    p <- p +
+      ggplot2::geom_line(linewidth = 1, lineend = "round", na.rm = TRUE) +
+      ggplot2::geom_point(size = 2.6, alpha = 0.9, na.rm = TRUE) +
+      ggplot2::scale_color_manual(values = colors, drop = FALSE) +
+      ggplot2::scale_linetype_manual(values = linetypes, drop = FALSE)
+  } else {
+    line_color <- unname(.paweh_color_values()["navy"])
+    p <- p +
+      ggplot2::geom_line(
+        linewidth = 1, lineend = "round", color = line_color, na.rm = TRUE
+      ) +
+      ggplot2::geom_point(
+        size = 2.6, color = line_color, alpha = 0.9, na.rm = TRUE
+      )
+  }
   if (!is.null(target_power)) {
     p <- p + ggplot2::geom_hline(
       yintercept = target_power,
       linetype = "dashed",
-      color = "grey40"
+      color = unname(.paweh_color_values()["reference"]),
+      linewidth = 0.65
     )
   }
 
@@ -134,7 +152,7 @@
       color = "Design",
       linetype = "Design"
     ) +
-    .plot_paweh_theme()
+    .paweh_plot_theme()
 }
 
 #' Plot Power Sensitivity for Sequencing Designs
@@ -158,7 +176,8 @@
 #' @param ... Fixed arguments passed to \code{cc_ngs_power()} or
 #'   \code{tdt_ngs_power()}. For case-control designs,
 #'   \code{locus_het = TRUE} permits a vector of \code{pi} values. TDT1-NGS
-#'   does not accept \code{locus_het} or \code{pi}.
+#'   accepts a fixed \code{locus_het} and \code{heter_rate} through
+#'   \code{...}; its public convention is \code{heter_rate = 1 - pi}.
 #'
 #' @details
 #' Case-control output retains coverage, sequencing error, locus-homogeneity
@@ -169,8 +188,7 @@
 #' Coverage is fixed and equal for the relevant study members. These plots do
 #' not model variable/BGE coverage distributions, cost optimization, or
 #' sample-specific depth. They introduce no simulation and delegate all
-#' statistical calculations to public PAWEH sequencing design APIs. Locus
-#' heterogeneity is currently available only for case-control designs.
+#' statistical calculations to public PAWEH sequencing design APIs.
 #'
 #' @return A ggplot object with exact results in \code{plot$data}, or a data
 #'   frame when \code{return_data = TRUE}.
@@ -224,14 +242,17 @@ plot_ngs_power <- function(
         verbose = FALSE
       ))
       out <- do.call(cc_ngs_power, call_args)
+      scenario <- if (isTRUE(settings$locus_het)) {
+        out$scenarios$heterogeneity
+      } else out$scenarios$sequencing_only
       data.frame(
         coverage = grid$coverage[i],
         seq_error = grid$seq_error[i],
         pi = grid$pi[i],
         N_case = out$N_case,
         N_ctrl = out$N_ctrl,
-        lambda = out$lambda,
-        power = out$power
+        lambda = scenario$lambda,
+        power = scenario$power
       )
     })
   } else {
@@ -271,9 +292,9 @@ plot_ngs_power <- function(
     y = "power",
     y_label = "Power",
     title = if (design == "cc") {
-      "Case-control sequencing power vs coverage"
+      "Case-control power vs sequencing coverage"
     } else {
-      "TDT1-NGS power vs coverage"
+      "TDT1-NGS power vs sequencing coverage"
     },
     target_power = target_power
   )
@@ -297,8 +318,8 @@ plot_ngs_power <- function(
 #' @param ... Fixed arguments passed to \code{cc_ngs_mssn()} or
 #'   \code{tdt_ngs_mssn()}. For case-control designs,
 #'   \code{locus_het = TRUE} permits a vector of \code{pi} values. TDT1-NGS
-#'   does not accept
-#'   heterogeneity arguments.
+#'   accepts a fixed \code{locus_het} and \code{heter_rate} through
+#'   \code{...}; its public convention is \code{heter_rate = 1 - pi}.
 #'
 #' @details
 #' The primary case-control y-axis is required cases; returned plot data also
@@ -315,8 +336,7 @@ plot_ngs_power <- function(
 #'
 #' Coverage is fixed and equal for the relevant study members. These plots do
 #' not model variable/BGE coverage distributions, cost optimization, or
-#' sample-specific depth. They use no simulation. Locus heterogeneity is
-#' currently available only for case-control designs.
+#' sample-specific depth. They use no simulation.
 #'
 #' @return A ggplot object with exact results in \code{plot$data}, or a data
 #'   frame when \code{return_data = TRUE}.
@@ -365,14 +385,19 @@ plot_ngs_mssn <- function(
       ))
       safe <- .plot_safe_mssn_call(cc_ngs_mssn, call_args)
       out <- safe$result
+      scenario <- if (safe$finite_mssn && isTRUE(settings$locus_het)) {
+        out$scenarios$heterogeneity
+      } else if (safe$finite_mssn) {
+        out$scenarios$sequencing_only
+      } else NULL
       data.frame(
         coverage = grid$coverage[i],
         seq_error = grid$seq_error[i],
         pi = grid$pi[i],
-        MSSN_case = if (safe$finite_mssn) out$MSSN_case else NA_real_,
-        MSSN_ctrl = if (safe$finite_mssn) out$MSSN_ctrl else NA_real_,
-        MSSN_total = if (safe$finite_mssn) out$MSSN_total else NA_real_,
-        achieved_power = if (safe$finite_mssn) out$achieved_power else NA_real_,
+        MSSN_case = if (safe$finite_mssn) scenario$MSSN_case else NA_real_,
+        MSSN_ctrl = if (safe$finite_mssn) scenario$MSSN_ctrl else NA_real_,
+        MSSN_total = if (safe$finite_mssn) scenario$MSSN_total else NA_real_,
+        achieved_power = if (safe$finite_mssn) scenario$achieved_power else NA_real_,
         finite_mssn = safe$finite_mssn,
         status = safe$status,
         stringsAsFactors = FALSE
@@ -419,9 +444,9 @@ plot_ngs_mssn <- function(
     y = if (design == "cc") "MSSN_case" else "MSSN_trios",
     y_label = if (design == "cc") "Required cases" else "Required trios",
     title = if (design == "cc") {
-      "Case-control sequencing MSSN vs coverage"
+      "Required cases vs sequencing coverage"
     } else {
-      "TDT1-NGS MSSN vs coverage"
+      "Required trios vs sequencing coverage"
     }
   )
 }

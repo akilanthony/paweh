@@ -85,12 +85,12 @@ test_that("case-control omitted modifiers equal explicit no-error modifiers", {
   expect_equal(mssn_default, mssn_zero)
 })
 
-test_that("case-control verbose output reports baseline then one adjusted design", {
+test_that("case-control verbose output reports independent scenarios", {
   base <- cc_design_args[names(cc_design_args) != "verbose"]
   for (fun in list(cc_power, cc_mssn)) {
     first <- if (identical(fun, cc_power)) list(N_case = 400) else list(power = 0.8)
     quiet_text <- capture_canonical_messages(do.call(fun, c(first, base, list(verbose = TRUE))))
-    expect_match(quiet_text, "No-Error Design", fixed = TRUE)
+    expect_match(quiet_text, "No error", fixed = TRUE)
     expect_false(grepl("Adjusted Design", quiet_text, fixed = TRUE))
 
     adjusted_text <- capture_canonical_messages(do.call(
@@ -103,15 +103,15 @@ test_that("case-control verbose output reports baseline then one adjusted design
         verbose = TRUE
       ))
     ))
-    expect_match(adjusted_text, "No-Error Design", fixed = TRUE)
-    expect_match(adjusted_text, "Adjusted Design", fixed = TRUE)
+    expect_match(adjusted_text, "No error", fixed = TRUE)
+    expect_false(grepl("Adjusted Design", adjusted_text, fixed = TRUE))
     expect_match(adjusted_text, "Locus heterogeneity", fixed = TRUE)
     expect_match(adjusted_text, "Phenotype misclassification", fixed = TRUE)
     expect_match(adjusted_text, "Genotype misclassification", fixed = TRUE)
   }
 })
 
-test_that("zero-valued genotype error models remain no-error designs", {
+test_that("zero-valued genotype error models remain explicit sensitivity scenarios", {
   base <- cc_design_args[names(cc_design_args) != "verbose"]
   zero_models <- list(
     `1p` = list(geno_misclass = "1p", e = 0),
@@ -138,14 +138,14 @@ test_that("zero-valued genotype error models remain no-error designs", {
       text <- capture_canonical_messages(
         do.call(fun, c(first, base, model, list(verbose = TRUE)))
       )
-      expect_match(text, "No-Error Design", fixed = TRUE)
+      expect_match(text, "No error", fixed = TRUE)
       expect_false(grepl("Adjusted Design", text, fixed = TRUE))
-      expect_false(grepl("Genotype misclassification", text, fixed = TRUE))
+      expect_match(text, "Genotype misclassification", fixed = TRUE)
     }
   }
 })
 
-test_that("nonzero effective genotype error triggers adjusted narration", {
+test_that("nonzero effective genotype error triggers scenario narration", {
   base <- cc_design_args[names(cc_design_args) != "verbose"]
   for (fun in list(cc_power, cc_mssn)) {
     first <- if (identical(fun, cc_power)) list(N_case = 400) else list(power = 0.8)
@@ -153,7 +153,7 @@ test_that("nonzero effective genotype error triggers adjusted narration", {
       fun,
       c(first, base, list(geno_misclass = "1p", e = 0.01, verbose = TRUE))
     ))
-    expect_match(text, "Adjusted Design", fixed = TRUE)
+    expect_false(grepl("Adjusted Design", text, fixed = TRUE))
     expect_match(text, "Genotype misclassification", fixed = TRUE)
   }
 })

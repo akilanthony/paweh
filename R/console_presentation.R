@@ -128,11 +128,9 @@
 
 .paweh_cc_modifier_flags <- function(x) {
   list(
-    locus = isTRUE(x$locus_het$enabled) && x$locus_het$pi < 1,
-    phenotype = isTRUE(x$errors$phenotype_misclass$enabled) &&
-      (x$errors$phenotype_misclass$theta > 0 ||
-         x$errors$phenotype_misclass$phi > 0),
-    genotype = isTRUE(x$errors$genotype_misclass$enabled)
+    locus = "heterogeneity" %in% names(x$scenarios),
+    phenotype = "phenotype_misclassification" %in% names(x$scenarios),
+    genotype = "genotype_misclassification" %in% names(x$scenarios)
   )
 }
 
@@ -222,40 +220,38 @@
 
 .paweh_print_cc_frequencies <- function(x, flags) {
   .paweh_console_section("Genotype Frequencies")
-  rows <- list(
-    list(label = "No-error cases", values = x$freqs$g_base_case),
-    list(label = "No-error controls", values = x$freqs$g_base_ctrl)
-  )
-  if (any(unlist(flags))) {
-    rows <- c(rows, list(
-      list(label = "Adjusted cases", values = x$freqs$g_obs_case),
-      list(label = "Adjusted controls", values = x$freqs$g_obs_ctrl)
-    ))
-  }
+  rows <- unlist(lapply(x$scenarios, function(scenario) {
+    list(
+      list(label = paste(scenario$label, "cases"),
+           values = scenario$freqs$g_case),
+      list(label = paste(scenario$label, "controls"),
+           values = scenario$freqs$g_ctrl)
+    )
+  }), recursive = FALSE)
   .paweh_console_genotype_table(rows)
-  .paweh_console_parameter(
-    "No-error risk-allele frequency (cases)",
-    x$freqs$g_base_case[2L] / 2 + x$freqs$g_base_case[3L], 5L
-  )
-  .paweh_console_parameter(
-    "No-error risk-allele frequency (controls)",
-    x$freqs$g_base_ctrl[2L] / 2 + x$freqs$g_base_ctrl[3L], 5L
-  )
-  if (any(unlist(flags))) {
+}
+
+.paweh_print_cc_power_scenario <- function(scenario, baseline_tests) {
+  .paweh_console_section(scenario$label)
+  tests <- scenario$tests
+  .paweh_console_parameter("Genotype-test NCP", tests$genotypes$lambda, 6L)
+  .paweh_console_parameter("Genotype-test power", tests$genotypes$power, 6L)
+  .paweh_console_parameter("Trend-test NCP", tests$trend$lambda, 6L)
+  .paweh_console_parameter("Trend-test power", tests$trend$power, 6L)
+  if (!identical(scenario$label, "No error")) {
     .paweh_console_parameter(
-      "Adjusted risk-allele frequency (cases)",
-      x$freqs$g_obs_case[2L] / 2 + x$freqs$g_obs_case[3L], 5L
+      "Genotype-test absolute power loss",
+      baseline_tests$genotypes$power - tests$genotypes$power, 6L
     )
     .paweh_console_parameter(
-      "Adjusted risk-allele frequency (controls)",
-      x$freqs$g_obs_ctrl[2L] / 2 + x$freqs$g_obs_ctrl[3L], 5L
+      "Trend-test absolute power loss",
+      baseline_tests$trend$power - tests$trend$power, 6L
     )
   }
 }
 
-.paweh_print_cc_power <- function(x, baseline_tests) {
+.paweh_print_cc_power <- function(x) {
   flags <- .paweh_cc_modifier_flags(x)
-  adjusted <- any(unlist(flags))
   .paweh_console_header("PAWEH Case-Control Study", "Power Analysis")
   .paweh_console_section("Study Design")
   .paweh_console_parameter("Cases", x$N_case, integer = TRUE)
@@ -265,27 +261,10 @@
   .paweh_console_parameter("Significance level (alpha)", x$alpha, 2L, TRUE)
   .paweh_print_cc_model(x)
   .paweh_print_cc_modifiers(x, flags)
-  .paweh_console_rule()
-  .paweh_console_section("No-Error Design")
-  .paweh_console_parameter("Genotype-test NCP", baseline_tests$genotypes$lambda, 6L)
-  .paweh_console_parameter("Genotype-test power", baseline_tests$genotypes$power, 6L)
-  .paweh_console_parameter("Trend-test NCP", baseline_tests$trend$lambda, 6L)
-  .paweh_console_parameter("Trend-test power", baseline_tests$trend$power, 6L)
-  if (adjusted) {
+  baseline_tests <- x$scenarios$no_error$tests
+  for (scenario in x$scenarios) {
     .paweh_console_rule()
-    .paweh_console_section("Adjusted Design")
-    .paweh_console_parameter("Genotype-test NCP", x$tests$genotypes$lambda, 6L)
-    .paweh_console_parameter("Genotype-test power", x$tests$genotypes$power, 6L)
-    .paweh_console_parameter(
-      "Genotype-test absolute power loss",
-      baseline_tests$genotypes$power - x$tests$genotypes$power, 6L
-    )
-    .paweh_console_parameter("Trend-test NCP", x$tests$trend$lambda, 6L)
-    .paweh_console_parameter("Trend-test power", x$tests$trend$power, 6L)
-    .paweh_console_parameter(
-      "Trend-test absolute power loss",
-      baseline_tests$trend$power - x$tests$trend$power, 6L
-    )
+    .paweh_print_cc_power_scenario(scenario, baseline_tests)
   }
   .paweh_console_rule()
   .paweh_print_cc_frequencies(x, flags)
@@ -316,9 +295,31 @@
                            integer = TRUE)
 }
 
-.paweh_print_cc_mssn <- function(x, baseline_tests) {
+.paweh_print_cc_mssn_scenario <- function(scenario, baseline_tests) {
+  .paweh_console_section(scenario$label)
+  tests <- scenario$tests
+  .paweh_print_cc_mssn_test("Genotype test", tests$genotypes)
+  .paweh_print_cc_mssn_test("Trend test", tests$trend)
+  if (!identical(scenario$label, "No error")) {
+    .paweh_console_parameter(
+      "Genotype-test MSSN inflation",
+      .paweh_console_inflation(
+        tests$genotypes$MSSN_total,
+        baseline_tests$genotypes$MSSN_total
+      )
+    )
+    .paweh_console_parameter(
+      "Trend-test MSSN inflation",
+      .paweh_console_inflation(
+        tests$trend$MSSN_total,
+        baseline_tests$trend$MSSN_total
+      )
+    )
+  }
+}
+
+.paweh_print_cc_mssn <- function(x) {
   flags <- .paweh_cc_modifier_flags(x)
-  adjusted <- any(unlist(flags))
   .paweh_console_header(
     "PAWEH Case-Control Study", "Minimum Sample Size Necessary"
   )
@@ -328,29 +329,10 @@
   .paweh_console_parameter("Control-to-case ratio", x$k, 3L)
   .paweh_print_cc_model(x)
   .paweh_print_cc_modifiers(x, flags)
-  .paweh_console_rule()
-  .paweh_console_section("No-Error Design")
-  .paweh_print_cc_mssn_test("Genotype test", baseline_tests$genotypes)
-  .paweh_print_cc_mssn_test("Trend test", baseline_tests$trend)
-  if (adjusted) {
+  baseline_tests <- x$scenarios$no_error$tests
+  for (scenario in x$scenarios) {
     .paweh_console_rule()
-    .paweh_console_section("Adjusted Design")
-    .paweh_print_cc_mssn_test("Genotype test", x$tests$genotypes)
-    .paweh_console_parameter(
-      "Genotype-test MSSN inflation",
-      .paweh_console_inflation(
-        x$tests$genotypes$MSSN_total,
-        baseline_tests$genotypes$MSSN_total
-      )
-    )
-    .paweh_print_cc_mssn_test("Trend test", x$tests$trend)
-    .paweh_console_parameter(
-      "Trend-test MSSN inflation",
-      .paweh_console_inflation(
-        x$tests$trend$MSSN_total,
-        baseline_tests$trend$MSSN_total
-      )
-    )
+    .paweh_print_cc_mssn_scenario(scenario, baseline_tests)
   }
   .paweh_console_rule()
   .paweh_print_cc_frequencies(x, flags)
@@ -448,6 +430,27 @@
     .paweh_console_parameter("Expected non-transmitted probability (gNT*)",
                              x$gNT_star$heterogeneity, 6L)
   }
+  if (identical(p$effect, "genotype_misclassification")) {
+    .paweh_console_rule()
+    .paweh_console_section("Genotype Misclassification")
+    .paweh_console_parameter(
+      "Genotype error rate", p$genotype_misclassification_rate, 4L
+    )
+    .paweh_console_parameter(
+      "NCP", x$lambda$genotype_misclassification, 6L
+    )
+    .paweh_console_parameter(
+      "Power", x$power$genotype_misclassification, 6L
+    )
+    .paweh_console_parameter(
+      "Retained Mendelian-consistent probability",
+      x$genotype_misclassification$retained_trio_probability, 6L
+    )
+    .paweh_console_parameter(
+      "Actual null rejection rate",
+      x$genotype_misclassification$actual_alpha, 6L
+    )
+  }
   .paweh_console_rule()
 }
 
@@ -538,6 +541,31 @@
     .paweh_console_parameter("Expected non-transmitted probability (gNT*)",
                              x$gNT_star$heterogeneity, 6L)
   }
+  if (identical(p$effect, "genotype_misclassification")) {
+    .paweh_console_rule()
+    .paweh_console_section("Genotype Misclassification")
+    .paweh_console_parameter(
+      "Genotype error rate", p$genotype_misclassification_rate, 4L
+    )
+    .paweh_console_parameter(
+      "Continuous trio requirement",
+      x$N$genotype_misclassification, 3L
+    )
+    .paweh_console_parameter(
+      "Required complete trios",
+      ceiling(x$N$genotype_misclassification), integer = TRUE
+    )
+    .paweh_console_parameter(
+      "MSSN increase",
+      .paweh_console_percent_or_undefined(
+        x$percent_increase$genotype_misclassification
+      )
+    )
+    .paweh_console_parameter(
+      "Retained Mendelian-consistent probability",
+      x$genotype_misclassification$retained_trio_probability, 6L
+    )
+  }
   .paweh_console_rule()
 }
 
@@ -556,12 +584,49 @@
     .paweh_console_parameter("Locus-homogeneity fraction (pi)",
                              x$locus_het$pi, 4L)
   }
+  pheno <- x$errors$phenotype_misclass
+  if (!is.null(pheno) && isTRUE(pheno$enabled)) {
+    .paweh_console_parameter("Phenotype misclassification", "Enabled")
+    .paweh_console_parameter("Affected classified as control (theta)",
+                             pheno$theta, 4L)
+    .paweh_console_parameter("Unaffected classified as case (phi)",
+                             pheno$phi, 4L)
+  }
+  genotype <- x$errors$genotype_misclass
+  if (!is.null(genotype) && isTRUE(genotype$enabled)) {
+    model <- switch(
+      genotype$model,
+      `1p_symmetric` = "1-parameter",
+      `2p_hom_het` = "2-parameter",
+      `3p_homhet_homhom` = "3-parameter",
+      `diff3p_homhet_homhom` = "Differential 3-parameter",
+      genotype$model
+    )
+    .paweh_console_parameter("Genotype misclassification", model)
+    if (identical(genotype$model, "diff3p_homhet_homhom")) {
+      .paweh_console_parameter("Differential error source",
+                               genotype$diff_source)
+    }
+  }
 }
 
 .paweh_print_cc_ngs_sequencing <- function(x) {
   .paweh_console_section("Sequencing Model")
-  .paweh_console_parameter("Fixed coverage", x$coverage, integer = TRUE)
-  .paweh_console_parameter("Per-read sequencing error", x$seq_error, 5L)
+  z <- x$sequencing
+  if (is.null(z)) {
+    z <- list(case_coverage = x$coverage, ctrl_coverage = x$coverage,
+              case_seq_error = x$seq_error, ctrl_seq_error = x$seq_error)
+  }
+  if (z$case_coverage == z$ctrl_coverage &&
+      z$case_seq_error == z$ctrl_seq_error) {
+    .paweh_console_parameter("Fixed coverage", z$case_coverage, integer = TRUE)
+    .paweh_console_parameter("Per-read sequencing error", z$case_seq_error, 5L)
+  } else {
+    .paweh_console_parameter("Case coverage", z$case_coverage, integer = TRUE)
+    .paweh_console_parameter("Control coverage", z$ctrl_coverage, integer = TRUE)
+    .paweh_console_parameter("Case sequencing error", z$case_seq_error, 5L)
+    .paweh_console_parameter("Control sequencing error", z$ctrl_seq_error, 5L)
+  }
   .paweh_console_parameter(
     "Genotype calling", "Deterministic maximum-likelihood calling"
   )
@@ -571,7 +636,12 @@
 }
 
 .paweh_print_cc_ngs_frequencies <- function(x) {
-  .paweh_console_section("True Genotype Frequencies")
+  pheno <- x$errors$phenotype_misclass
+  .paweh_console_section(if (!is.null(pheno) && isTRUE(pheno$enabled)) {
+    "Pre-Sequencing Observed-Group Genotype Frequencies"
+  } else {
+    "True Genotype Frequencies"
+  })
   .paweh_console_genotype_table(list(
     list(label = "Cases", values = x$freqs$case_true),
     list(label = "Controls", values = x$freqs$control_true)
@@ -579,12 +649,56 @@
   .paweh_console_rule()
   .paweh_console_section("Sequencing-Derived Genotype-Call Matrix")
   .paweh_console_transition_matrix(x$transition_matrix)
+  if (!is.null(x$sequencing) &&
+      !identical(x$sequencing$case_transition_matrix,
+                 x$sequencing$ctrl_transition_matrix)) {
+    .paweh_console_parameter("Matrix above", "Cases")
+    .paweh_console_section("Control Sequencing-Derived Genotype-Call Matrix")
+    .paweh_console_transition_matrix(x$sequencing$ctrl_transition_matrix)
+  }
   .paweh_console_rule()
-  .paweh_console_section("Called Genotype Frequencies")
+  genotype <- x$errors$genotype_misclass
+  .paweh_console_section(
+    if (!is.null(genotype) && isTRUE(genotype$enabled)) {
+      "Final Observed Genotype Frequencies"
+    } else {
+      "Called Genotype Frequencies"
+    }
+  )
   .paweh_console_genotype_table(list(
     list(label = "Cases", values = x$freqs$case_called),
     list(label = "Controls", values = x$freqs$control_called)
   ))
+}
+
+.paweh_print_cc_ngs_scenario_modifier <- function(x) {
+  if (isTRUE(x$locus_het$enabled)) {
+    .paweh_console_parameter("Locus-homogeneity fraction (pi)",
+                             x$locus_het$pi, 4L)
+  }
+  pheno <- x$errors$phenotype_misclass
+  if (isTRUE(pheno$enabled)) {
+    .paweh_console_parameter("Affected classified as control (theta)",
+                             pheno$theta, 4L)
+    .paweh_console_parameter("Unaffected classified as case (phi)",
+                             pheno$phi, 4L)
+  }
+  genotype <- x$errors$genotype_misclass
+  if (isTRUE(genotype$enabled)) {
+    model <- switch(
+      genotype$model,
+      `1p_symmetric` = "1-parameter",
+      `2p_hom_het` = "2-parameter",
+      `3p_homhet_homhom` = "3-parameter",
+      `diff3p_homhet_homhom` = "Differential 3-parameter",
+      genotype$model
+    )
+    .paweh_console_parameter("Genotype misclassification", model)
+    if (identical(genotype$model, "diff3p_homhet_homhom")) {
+      .paweh_console_parameter("Differential error source",
+                               genotype$diff_source)
+    }
+  }
 }
 
 .paweh_print_cc_ngs_power <- function(x) {
@@ -598,11 +712,17 @@
   .paweh_print_cc_ngs_model(x)
   .paweh_print_cc_ngs_sequencing(x)
   .paweh_console_rule()
-  .paweh_print_cc_ngs_frequencies(x)
-  .paweh_console_rule()
   .paweh_console_section("Power Result")
-  .paweh_console_parameter("Noncentrality parameter (NCP)", x$lambda, 6L)
-  .paweh_console_parameter("Power", x$power, 6L)
+  scenarios <- if (is.null(x$scenarios)) list(`Power Result` = x) else x$scenarios
+  for (scenario in scenarios) {
+    .paweh_console_section(scenario$label)
+    .paweh_print_cc_ngs_scenario_modifier(scenario)
+    .paweh_console_parameter("Noncentrality parameter (NCP)",
+                             scenario$lambda, 6L)
+    .paweh_console_parameter("Power", scenario$power, 6L)
+  }
+  .paweh_console_rule()
+  .paweh_print_cc_ngs_frequencies(x)
   .paweh_console_rule()
 }
 
@@ -617,17 +737,25 @@
   .paweh_print_cc_ngs_model(x)
   .paweh_print_cc_ngs_sequencing(x)
   .paweh_console_rule()
-  .paweh_print_cc_ngs_frequencies(x)
-  .paweh_console_rule()
   .paweh_console_section("Required Sample Size")
-  .paweh_console_parameter("Continuous case requirement",
-                           x$N_case_continuous, 3L)
-  .paweh_console_parameter("Required cases", x$MSSN_case, integer = TRUE)
-  .paweh_console_parameter("Required controls", x$MSSN_ctrl, integer = TRUE)
-  .paweh_console_parameter("Total MSSN", x$MSSN_total, integer = TRUE)
-  .paweh_console_parameter("Target NCP", x$lambda_target, 6L)
-  .paweh_console_parameter("Achieved NCP", x$achieved_lambda, 6L)
-  .paweh_console_parameter("Achieved power", x$achieved_power, 6L)
+  scenarios <- if (is.null(x$scenarios)) list(`Required Sample Size` = x) else x$scenarios
+  for (scenario in scenarios) {
+    .paweh_console_section(scenario$label)
+    .paweh_print_cc_ngs_scenario_modifier(scenario)
+    .paweh_console_parameter("Continuous case requirement",
+                             scenario$N_case_continuous, 3L)
+    .paweh_console_parameter("Required cases", scenario$MSSN_case,
+                             integer = TRUE)
+    .paweh_console_parameter("Required controls", scenario$MSSN_ctrl,
+                             integer = TRUE)
+    .paweh_console_parameter("Total MSSN", scenario$MSSN_total,
+                             integer = TRUE)
+    .paweh_console_parameter("Target NCP", scenario$lambda_target, 6L)
+    .paweh_console_parameter("Achieved NCP", scenario$achieved_lambda, 6L)
+    .paweh_console_parameter("Achieved power", scenario$achieved_power, 6L)
+  }
+  .paweh_console_rule()
+  .paweh_print_cc_ngs_frequencies(x)
   .paweh_console_rule()
 }
 
@@ -643,8 +771,27 @@
 
 .paweh_print_tdt_ngs_sequencing <- function(x) {
   .paweh_console_section("Sequencing Model")
-  .paweh_console_parameter("Equal fixed coverage", x$coverage, integer = TRUE)
-  .paweh_console_parameter("Per-read sequencing error", x$seq_error, 5L)
+  sequencing <- x$sequencing
+  if (is.null(sequencing) || isTRUE(sequencing$equal_coverage)) {
+    coverage <- if (is.null(sequencing)) x$coverage else x$father_coverage
+    .paweh_console_parameter("Equal fixed coverage", coverage, integer = TRUE)
+  } else {
+    .paweh_console_parameter("Father coverage", x$father_coverage,
+                             integer = TRUE)
+    .paweh_console_parameter("Mother coverage", x$mother_coverage,
+                             integer = TRUE)
+    .paweh_console_parameter("Child coverage", x$child_coverage,
+                             integer = TRUE)
+  }
+  if (is.null(sequencing) || isTRUE(sequencing$symmetric_error)) {
+    error <- if (is.null(sequencing)) x$seq_error else x$epsilon0
+    .paweh_console_parameter("Per-read sequencing error", error, 5L)
+  } else {
+    .paweh_console_parameter("Reference-to-alternative error (epsilon0)",
+                             x$epsilon0, 5L)
+    .paweh_console_parameter("Alternative-to-reference error (epsilon1)",
+                             x$epsilon1, 5L)
+  }
   .paweh_console_parameter("Analysis", "Raw-read TDT1-NGS likelihood")
 }
 
@@ -657,6 +804,73 @@
   .paweh_print_tdt_ngs_model(x)
   .paweh_print_tdt_ngs_sequencing(x)
   .paweh_console_rule()
+  if (identical(x$compatibility_scenario, "phenotype_misclassification")) {
+    bridge <- x$scenarios$phenotype_misclassification$ordinary_tdt_bridge
+    .paweh_console_section("Phenotype Adjustment")
+    .paweh_console_parameter(
+      "Method", "ordinary-TDT NCP attenuation bridge"
+    )
+    .paweh_console_parameter("Prevalence", bridge$prev, 5L)
+    .paweh_console_parameter("Unaffected as affected (pi01)", bridge$pi01, 5L)
+    .paweh_console_parameter("Attenuation factor", bridge$attenuation_factor, 8L)
+    .paweh_console_rule()
+    .paweh_console_section("Sequencing only")
+    .paweh_console_parameter(
+      "Noncentrality parameter (NCP)",
+      x$scenarios$sequencing_only$lambda, 6L
+    )
+    .paweh_console_parameter("Power", x$scenarios$sequencing_only$power, 6L)
+    .paweh_console_section("Phenotype misclassification")
+    .paweh_console_parameter("Adjusted NCP", x$lambda, 6L)
+    .paweh_console_parameter("Adjusted power", x$power, 6L)
+    .paweh_console_rule()
+    return(invisible(x))
+  }
+  if ("heterogeneity" %in% names(x$scenarios)) {
+    base <- x$scenarios$sequencing_only
+    heterogeneous <- x$scenarios$heterogeneity
+    hbridge <- heterogeneous$ordinary_tdt_bridge
+    if ("phenotype_misclassification" %in% names(x$scenarios)) {
+      .paweh_console_section("Independent Sensitivity Scenarios")
+      .paweh_console_parameter(
+        "Interpretation", "Modifiers are evaluated separately"
+      )
+    }
+    .paweh_console_section("Sequencing only")
+    .paweh_console_parameter("Noncentrality parameter (NCP)",
+                             base$lambda, 6L)
+    .paweh_console_parameter("Power", base$power, 6L)
+    if ("phenotype_misclassification" %in% names(x$scenarios)) {
+      phenotype <- x$scenarios$phenotype_misclassification
+      pbridge <- phenotype$ordinary_tdt_bridge
+      .paweh_console_section("Phenotype misclassification")
+      .paweh_console_parameter(
+        "Phenotype adjustment", "ordinary-TDT NCP attenuation bridge"
+      )
+      .paweh_console_parameter("Prevalence", pbridge$prev, 5L)
+      .paweh_console_parameter("Unaffected as affected (pi01)",
+                               pbridge$pi01, 5L)
+      .paweh_console_parameter("Attenuation factor",
+                               pbridge$attenuation_factor, 8L)
+      .paweh_console_parameter("Adjusted NCP", phenotype$lambda, 6L)
+      .paweh_console_parameter("Adjusted power", phenotype$power, 6L)
+    }
+    .paweh_console_section("Locus heterogeneity")
+    .paweh_console_parameter(
+      "Heterogeneity adjustment", "ordinary-TDT NCP attenuation bridge"
+    )
+    .paweh_console_parameter("Prevalence", hbridge$prev, 5L)
+    .paweh_console_parameter("Heterogeneous trio fraction (heter_rate)",
+                             hbridge$heter_rate, 5L)
+    .paweh_console_parameter("Linked/homogeneous fraction (pi)",
+                             hbridge$effective_pi, 5L)
+    .paweh_console_parameter("Attenuation factor",
+                             hbridge$attenuation_factor, 8L)
+    .paweh_console_parameter("Adjusted NCP", heterogeneous$lambda, 6L)
+    .paweh_console_parameter("Adjusted power", heterogeneous$power, 6L)
+    .paweh_console_rule()
+    return(invisible(x))
+  }
   .paweh_console_section("Information and Power")
   .paweh_console_parameter("Efficient information per trio",
                            x$efficient_information, 8L)
@@ -671,6 +885,95 @@
   .paweh_console_parameter("Target power", x$power_target, 3L)
   .paweh_console_parameter("Significance level (alpha)", x$alpha, 2L, TRUE)
   .paweh_console_rule()
+  if (identical(x$compatibility_scenario, "phenotype_misclassification")) {
+    bridge <- x$scenarios$phenotype_misclassification$ordinary_tdt_bridge
+    base <- x$scenarios$sequencing_only
+    adjusted <- x$scenarios$phenotype_misclassification
+    .paweh_console_section("Phenotype Adjustment")
+    .paweh_console_parameter(
+      "Method", "ordinary-TDT NCP attenuation bridge"
+    )
+    .paweh_console_parameter("Prevalence", bridge$prev, 5L)
+    .paweh_console_parameter("Unaffected as affected (pi01)", bridge$pi01, 5L)
+    .paweh_console_parameter("Attenuation factor", bridge$attenuation_factor, 8L)
+    .paweh_console_rule()
+    .paweh_console_section("Sequencing only")
+    .paweh_console_parameter("Continuous trio requirement",
+                             base$N_trios_continuous, 3L)
+    .paweh_console_parameter("Required complete trios", base$MSSN_trios,
+                             integer = TRUE)
+    .paweh_console_parameter("Achieved power", base$achieved_power, 6L)
+    .paweh_console_section("Phenotype misclassification")
+    .paweh_console_parameter("Adjusted continuous trio requirement",
+                             adjusted$N_trios_continuous, 3L)
+    .paweh_console_parameter("Adjusted required complete trios",
+                             adjusted$MSSN_trios, integer = TRUE)
+    .paweh_console_parameter("Adjusted achieved NCP",
+                             adjusted$achieved_lambda, 6L)
+    .paweh_console_parameter("Adjusted achieved power",
+                             adjusted$achieved_power, 6L)
+    .paweh_print_tdt_ngs_model(x)
+    .paweh_print_tdt_ngs_sequencing(x)
+    .paweh_console_rule()
+    return(invisible(x))
+  }
+  if ("heterogeneity" %in% names(x$scenarios)) {
+    base <- x$scenarios$sequencing_only
+    heterogeneous <- x$scenarios$heterogeneity
+    hbridge <- heterogeneous$ordinary_tdt_bridge
+    if ("phenotype_misclassification" %in% names(x$scenarios)) {
+      .paweh_console_section("Independent Sensitivity Scenarios")
+      .paweh_console_parameter(
+        "Interpretation", "Modifiers are evaluated separately"
+      )
+    }
+    .paweh_console_section("Sequencing only")
+    .paweh_console_parameter("Continuous trio requirement",
+                             base$N_trios_continuous, 3L)
+    .paweh_console_parameter("Required complete trios", base$MSSN_trios,
+                             integer = TRUE)
+    .paweh_console_parameter("Achieved power", base$achieved_power, 6L)
+    if ("phenotype_misclassification" %in% names(x$scenarios)) {
+      phenotype <- x$scenarios$phenotype_misclassification
+      pbridge <- phenotype$ordinary_tdt_bridge
+      .paweh_console_section("Phenotype misclassification")
+      .paweh_console_parameter(
+        "Phenotype adjustment", "ordinary-TDT NCP attenuation bridge"
+      )
+      .paweh_console_parameter("Prevalence", pbridge$prev, 5L)
+      .paweh_console_parameter("Unaffected as affected (pi01)",
+                               pbridge$pi01, 5L)
+      .paweh_console_parameter("Attenuation factor",
+                               pbridge$attenuation_factor, 8L)
+      .paweh_console_parameter("Adjusted required complete trios",
+                               phenotype$MSSN_trios, integer = TRUE)
+      .paweh_console_parameter("Adjusted achieved power",
+                               phenotype$achieved_power, 6L)
+    }
+    .paweh_console_section("Locus heterogeneity")
+    .paweh_console_parameter(
+      "Heterogeneity adjustment", "ordinary-TDT NCP attenuation bridge"
+    )
+    .paweh_console_parameter("Prevalence", hbridge$prev, 5L)
+    .paweh_console_parameter("Heterogeneous trio fraction (heter_rate)",
+                             hbridge$heter_rate, 5L)
+    .paweh_console_parameter("Linked/homogeneous fraction (pi)",
+                             hbridge$effective_pi, 5L)
+    .paweh_console_parameter("Attenuation factor",
+                             hbridge$attenuation_factor, 8L)
+    .paweh_console_parameter("Adjusted continuous trio requirement",
+                             heterogeneous$N_trios_continuous, 3L)
+    .paweh_console_parameter("Adjusted required complete trios",
+                             heterogeneous$MSSN_trios, integer = TRUE)
+    .paweh_console_parameter("Adjusted achieved NCP",
+                             heterogeneous$achieved_lambda, 6L)
+    .paweh_console_parameter("Adjusted achieved power",
+                             heterogeneous$achieved_power, 6L)
+    .paweh_print_tdt_ngs_model(x)
+    .paweh_print_tdt_ngs_sequencing(x)
+    .paweh_console_rule()
+    return(invisible(x))
+  }
   .paweh_console_section("Required Sample Size")
   .paweh_console_parameter("Continuous trio requirement",
                            x$N_trios_continuous, 3L)

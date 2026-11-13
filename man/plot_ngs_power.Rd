@@ -33,7 +33,8 @@ rather than a ggplot object.}
 \item{...}{Fixed arguments passed to \code{cc_ngs_power()} or
 \code{tdt_ngs_power()}. For case-control designs,
 \code{locus_het = TRUE} permits a vector of \code{pi} values. TDT1-NGS
-does not accept \code{locus_het} or \code{pi}.}
+accepts a fixed \code{locus_het} and \code{heter_rate} through
+\code{...}; its public convention is \code{heter_rate = 1 - pi}.}
 }
 \value{
 A ggplot object with exact results in \code{plot$data}, or a data
@@ -54,8 +55,7 @@ read-count probabilities and does not use the case-control hard-call model.
 Coverage is fixed and equal for the relevant study members. These plots do
 not model variable/BGE coverage distributions, cost optimization, or
 sample-specific depth. They introduce no simulation and delegate all
-statistical calculations to public PAWEH sequencing design APIs. Locus
-heterogeneity is currently available only for case-control designs.
+statistical calculations to public PAWEH sequencing design APIs.
 }
 \examples{
 plot_ngs_power(

@@ -17,7 +17,10 @@ tdt_power(
   heter_rate = 0,
   ET = NULL,
   ENT = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  effect = c("none", "phenotype_misclassification", "locus_heterogeneity",
+    "genotype_misclassification"),
+  genotype_misclassification_rate = NULL
 )
 }
 \arguments{
@@ -66,6 +69,16 @@ be accumulated over the same \code{N} trios that power is computed for.}
 
 \item{verbose}{Logical. If \code{TRUE} (default), prints a formatted
 summary of no-error power and any requested modifier-specific power.}
+
+\item{effect}{Character. Optional explicit effect selector: \code{"none"},
+\code{"phenotype_misclassification"}, \code{"locus_heterogeneity"}, or
+\code{"genotype_misclassification"}. The default is no effect. Calls that
+omit this argument retain the historical separate-sensitivity behavior of
+\code{misclass_rate} and \code{heter_rate}.}
+
+\item{genotype_misclassification_rate}{Numeric in \eqn{[0,0.5]}. The Chapter
+5 adjacent-genotype TDT error parameter \eqn{e}, required only when
+\code{effect = "genotype_misclassification"}.}
 }
 \value{
 An object of class \code{"tdt_power"}, containing:
@@ -86,8 +99,8 @@ misclassification, and heterogeneity parameters.}
 }
 \description{
 Computes power for the transmission disequilibrium test (TDT) at a fixed
-number of affected trios under three scenarios: (i) no error, (ii)
-phenotype misclassification only, and (iii) locus heterogeneity only.
+number of affected trios with no effect or one selected effect: phenotype
+misclassification, locus heterogeneity, or genotype misclassification.
 \code{input_mode} lets the transmission probabilities come either from a
 genetic model (\code{"model_based"}, the default) or directly from
 user-supplied expected transmission and non-transmission counts
@@ -140,6 +153,22 @@ If \code{pd} is needed but not supplied, it is solved from \code{ET} and
 quadratic has two roots summing to \eqn{1 - A}; the root in \eqn{(0, 0.5)}
 is used, with a message reporting the derived value. An error is raised if
 no such unique root exists -- supplying \code{pd} directly is preferred.
+
+The genotype-misclassification effect implements the Chapter 5
+single-parameter adjacent-genotype TDT model in Section 5.2.5:
+\eqn{\theta_{02}=\theta_{20}=0} and
+\eqn{\theta_{01}=\theta_{10}=\theta_{12}=\theta_{21}=e}. The independent
+member transitions are applied to the 15 true Mendelian-consistent trios,
+producing 27 observed configurations (Eqs. 5.18--5.20). Observed
+Mendelian-inconsistent trios are removed and the retained probabilities are
+renormalized (Eqs. 5.16--5.17); expected transmitted and non-transmitted
+counts and the NCP then follow Eqs. 5.22 and 5.21. This branch requires
+model-based input and cannot be combined with phenotype misclassification or
+locus heterogeneity. Only this Chapter 5 single-parameter adjacent-genotype
+TDT model is supported: TDTae and sequencing/NGS genotype error are not
+implemented.
+Power uses the package's existing nominal asymptotic chi-square threshold;
+conventional genotype error can inflate the ordinary TDT Type-I error.
 }
 \examples{
 # Model-based input
@@ -149,6 +178,14 @@ tdt_power(
   misclass_rate = 0.01, heter_rate = 0.10,
   verbose = FALSE
 )$power$no_error
+
+# Chapter 5 single-parameter adjacent-genotype TDT error
+tdt_power(
+  N = 600, pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
+  effect = "genotype_misclassification",
+  genotype_misclassification_rate = 0.01,
+  verbose = FALSE
+)$power$genotype_misclassification
 
 # model_free: supply expected transmissions/non-transmissions directly
 tdt_power(

@@ -10,13 +10,35 @@ cc_ngs_power(
   prev,
   pd,
   R2,
-  coverage,
-  seq_error,
+  coverage = NULL,
+  seq_error = NULL,
   MOI = c("M", "D", "Rec"),
   k = 1,
   verbose = TRUE,
   locus_het = FALSE,
-  pi = 1
+  pi = 1,
+  case_coverage = coverage,
+  ctrl_coverage = coverage,
+  case_seq_error = seq_error,
+  ctrl_seq_error = seq_error,
+  pheno_misclass = FALSE,
+  theta = 0,
+  phi = 0,
+  geno_misclass = c("none", "1p", "2p", "3p", "diff3p"),
+  e = 0,
+  e1 = 0,
+  e2 = 0,
+  e01 = 0,
+  e02 = 0,
+  e03 = 0,
+  case_e01 = 0,
+  case_e02 = 0,
+  case_e03 = 0,
+  ctrl_e01 = 0,
+  ctrl_e02 = 0,
+  ctrl_e03 = 0,
+  diff_source = c("explicit", "case", "ctrl"),
+  diff_multiplier = 1
 )
 }
 \arguments{
@@ -30,10 +52,12 @@ cc_ngs_power(
 
 \item{R2}{Numeric \eqn{> 0}. Homozygote relative risk.}
 
-\item{coverage}{Positive integer sequencing depth.}
+\item{coverage}{Common positive integer fixed sequencing depth. May be omitted
+when both group-specific depths are supplied.}
 
 \item{seq_error}{Symmetric per-read sequencing-error probability in
-\eqn{[0,0.5)}.}
+\eqn{[0,0.5)}. Common shorthand; may be omitted when both group-specific
+errors are supplied.}
 
 \item{MOI}{Character mode of inheritance: \code{"M"} for multiplicative,
 \code{"D"} for dominant, or \code{"Rec"} for recessive.}
@@ -50,19 +74,67 @@ case-control locus-heterogeneity mixture before sequencing observation.}
 \code{locus_het = TRUE}. One retains the original associated-case
 distribution; zero makes the case distribution equal to controls. When
 \code{locus_het = FALSE}, \code{pi} must remain at its default value of 1.}
+
+\item{case_coverage, ctrl_coverage}{Case/control fixed depths, respectively.
+Each defaults to \code{coverage}; an explicit value overrides it.}
+
+\item{case_seq_error, ctrl_seq_error}{Case/control per-read error probabilities.
+Each defaults to \code{seq_error}; an explicit value overrides it.
+Effective depths and errors obey the common parameter constraints.}
+
+\item{pheno_misclass}{Logical. If \code{TRUE}, apply the ordinary PAWEH
+case-control phenotype-misclassification model before sequencing.}
+
+\item{theta}{Numeric in \eqn{[0,1)}. Probability that a truly affected
+individual is classified as a control.}
+
+\item{phi}{Numeric in \eqn{[0,1)}. Probability that a truly unaffected
+individual is classified as a case.}
+
+\item{geno_misclass}{Character genotype-misclassification model:
+\code{"none"}, \code{"1p"}, \code{"2p"}, \code{"3p"}, or
+\code{"diff3p"}. The selected model is applied after sequencing calls.}
+
+\item{e}{Numeric in \eqn{[0,0.5]}. One-parameter symmetric error rate.}
+
+\item{e1, e2}{Numeric two-parameter homozygote-to-heterozygote and
+heterozygote-to-homozygote error rates.}
+
+\item{e01, e02, e03}{Numeric non-differential three-parameter error rates.}
+
+\item{case_e01, case_e02, case_e03}{Case-specific three-parameter error rates.}
+
+\item{ctrl_e01, ctrl_e02, ctrl_e03}{Control-specific three-parameter error
+rates.}
+
+\item{diff_source}{Character source for differential three-parameter errors:
+\code{"explicit"}, \code{"case"}, or \code{"ctrl"}.}
+
+\item{diff_multiplier}{Nonnegative multiplier used to derive the other
+group's rates when \code{diff_source} is \code{"case"} or \code{"ctrl"}.}
 }
 \value{
-Invisibly, an object of class \code{"cc_ngs_power"} containing the
-design inputs, trend scores, NCP and power, model information, true and
-called genotype frequencies, and the true-to-called transition matrix.
+Invisibly, an object of class \code{"cc_ngs_power"}. The
+\code{scenarios} list always contains \code{sequencing_only} and each
+explicitly requested modifier scenario. Every scenario records staged
+frequencies, sequencing and error matrices, Ahn components \code{D} and
+\code{Q}, NCP, and power. Legacy top-level result fields mirror sequencing
+only with zero or multiple optional modifiers and the requested modifier
+with exactly one; \code{compatibility_scenario} identifies it. The
+frequency list distinguishes
+post-sequencing calls from final post-genotype-misclassification values.
+The \code{sequencing} list records the four effective group parameters and
+\code{case_transition_matrix}/\code{ctrl_transition_matrix}. Legacy
+\code{coverage}/\code{seq_error} retain supplied common inputs (or NULL);
+\code{transition_matrix} aliases the case matrix, shared when mechanisms
+are equal. Use the two explicit matrices for differential designs.
 }
 \description{
 Computes prospective asymptotic power for a model-based case-control
-sequencing design. The calculation constructs true case and control
-genotype probabilities, applies a fixed-depth symmetric sequencing-error
-model with deterministic maximum-likelihood genotype calls, and evaluates
-the Ahn/Chapman-Nam Cochran-Armitage trend-test noncentrality parameter on
-the resulting called-genotype probabilities.
+sequencing design. Sequencing is the common reference mechanism. Optional
+phenotype misclassification, locus heterogeneity, and conventional genotype
+misclassification are evaluated as independent sensitivity scenarios from
+the same biological baseline and sequencing design.
 }
 \details{
 Trend scores are selected from \code{MOI}: \code{"M"} uses
@@ -74,14 +146,36 @@ chi-square distribution with the calculated NCP.
 Locus heterogeneity uses the same parameterization as ordinary PAWEH
 case-control design:
 \deqn{g_{case,H} = \pi g_{case} + (1-\pi)g_{control},}
-with the control distribution unchanged. This biological mixture is applied
-to true genotype probabilities before sequencing observation. Because the
-current sequencing-error model is nondifferential, the same transition
-matrix is applied to cases and controls, so mixing and sequencing commute by
-matrix linearity. This identity does not extend automatically to future
-differential case/control sequencing-error models. At \eqn{\pi=0}, the
-case-control contrast and NCP are zero, and asymptotic power equals
+with the control distribution unchanged. The scenario paths are:
+sequencing only, baseline to sequencing to test; phenotype, baseline to
+phenotype misclassification to sequencing to test; heterogeneity, baseline
+to locus heterogeneity to sequencing to test; and genotype, baseline to
+sequencing to conventional genotype misclassification to test. Supplying
+multiple modifiers returns multiple independent scenarios; modifiers are
+not combined.
+The same effective case/control coverage and sequencing-error settings are
+used in every scenario.
+Phenotype misclassification uses the same prevalence-weighted transformation
+as \code{\link{cc_power}}, with
+\code{theta = Pr(affected -> control)} and
+\code{phi = Pr(unaffected -> case)}. The resulting observed-case and
+observed-control distributions enter sequencing. Separate row-true,
+column-called matrices are then constructed using each observed group's
+effective depth and error, and applied as \code{t(M_case) \%*\% g_case} and
+\code{t(M_ctrl) \%*\% g_control}. The ordinary PAWEH 1p, 2p, 3p, or differential
+3p genotype-error matrices are applied only in their independent scenario,
+after sequencing calls, with the same row-current, column-observed
+convention.
+Only equal sequencing mechanisms permit commuting
+a shared biological mixture and sequencing. At \eqn{\pi=0}, equal mechanisms
+with no phenotype-induced difference give zero NCP and power equal to
 \code{alpha}.
+
+Differential sequencing or genotype-misclassification mechanisms can create
+observed case/control differences even under a biological null. Results
+remain nominal asymptotic calculations using the existing chi-square
+critical value; the null distribution and Type I error are not separately
+recalibrated here.
 
 This is an analytic study-design calculation applied to sequencing-derived
 called genotypes. It is not a raw-read likelihood or EM analysis, performs

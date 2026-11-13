@@ -210,39 +210,6 @@
   )
 }
 
-.paweh_plot_colors <- function() {
-  c(
-    cases = "#3F4850", controls = "#6F879A",
-    genotype = "#3F4850", trend = "#355C7D",
-    tdt_baseline = "#3F4850", tdt_misclassification = "#355C7D",
-    tdt_heterogeneity = "#6F879A", transmitted = "#3F4850",
-    nontransmitted = "#8FA1AF",
-    baseline = "#C7CDD2", adjusted = "#3F4850",
-    reference = "#7A848C"
-  )
-}
-
-.paweh_qtl_genotype_colors <- function() {
-  c(`Genotype 0` = "#3F4850", `Genotype 1` = "#6F879A", `Genotype 2` = "#355C7D")
-}
-
-.paweh_plot_theme <- function() {
-  ggplot2::theme_minimal(base_size = 11) +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(size = 12.5, face = "plain"),
-      axis.title = ggplot2::element_text(size = 10.5, color = "#3F4850"),
-      axis.text = ggplot2::element_text(size = 9.5, color = "#5F6B76"),
-      legend.title = ggplot2::element_text(size = 9.5),
-      legend.text = ggplot2::element_text(size = 9.5),
-      panel.grid.major = ggplot2::element_line(color = "#E9ECEF", linewidth = .35),
-      panel.grid.minor = ggplot2::element_blank(),
-      plot.background = ggplot2::element_rect(fill = "white", color = NA),
-      panel.background = ggplot2::element_rect(fill = "white", color = NA),
-      legend.background = ggplot2::element_rect(fill = "white", color = NA),
-      plot.margin = ggplot2::margin(8, 8, 8, 8)
-    )
-}
-
 .paweh_page_heading <- function(title, description) {
   shiny::div(
     class = "paweh-page-heading",

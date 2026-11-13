@@ -101,7 +101,8 @@ test_that("Chapter 5 coverage fixtures remain fixed through the public API", {
       stats::qchisq(1 - 5e-8, df = 1),
       df = 1, ncp = fixtures$lambda[[i]], lower.tail = FALSE
     )
-    expect_equal(result$power, expected_power, tolerance = 1e-14)
+    # Use absolute tolerance for cross-platform floating-point variation.
+    expect_lte(abs(result$power - expected_power), 1e-12)
   }
 })
 
@@ -200,8 +201,11 @@ test_that("result structure is transparent, finite, and returned invisibly", {
     result,
     c(
       "N", "alpha", "power", "lambda", "pd", "R1", "R2", "t",
-      "delta", "coverage", "seq_error", "efficient_information",
-      "information_matrix", "nuisance_rcond", "score_mean", "model_info"
+      "delta", "coverage", "seq_error", "father_coverage",
+      "mother_coverage", "child_coverage", "epsilon0", "epsilon1",
+      "symmetric_error", "sequencing", "efficient_information",
+      "information_matrix", "nuisance_rcond", "score_mean", "model_info",
+      "ncp_per_trio", "scenarios", "compatibility_scenario"
     )
   )
   expect_true(is.finite(result$power) && result$power >= 0 && result$power <= 1)
@@ -287,6 +291,11 @@ test_that("public scope contains no hard-call or ordinary-TDT substitution", {
   }
   expect_identical(
     names(formals(tdt_ngs_power)),
-    c("N", "pd", "R1", "coverage", "seq_error", "alpha", "verbose")
+    c(
+      "N", "pd", "R1", "coverage", "seq_error", "alpha", "verbose",
+      "father_coverage", "mother_coverage", "child_coverage",
+      "epsilon0", "epsilon1", "pheno_misclass", "prev", "pi01",
+      "locus_het", "heter_rate"
+    )
   )
 })

@@ -126,9 +126,5 @@ ngs_genotype_error_matrix <- function(coverage, seq_error) {
   # retain valid small tail probabilities and do not renormalize matrix rows.
   E[E < 0] <- 0
   E[E > 1] <- 1
-  if (any(abs(rowSums(E) - 1) > 1e-12)) {
-    stop("Internal error: genotype transition matrix rows must sum to 1.")
-  }
-
-  E
+  .validate_genotype_misclassification_matrix(E, tolerance = 1e-12)
 }
