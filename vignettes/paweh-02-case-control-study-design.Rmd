@@ -1,5 +1,5 @@
 ---
-title: "Case-control genetic association study design"
+title: "2. Case-Control Study Design"
 author: "paweh package authors"
 output:
   rmarkdown::html_vignette:
@@ -16,27 +16,110 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height
 library(paweh)
 ```
 
-# From a scientific contrast to a design
+# Can we recruit enough people to detect an association?
 
-A case-control association study asks whether genotype distributions differ
-between affected and unaffected groups. `paweh` supports the two-degree-of-
-freedom genotype chi-square test and a one-degree-of-freedom genotype trend
-test. The control-to-case ratio `k` connects the two sample sizes:
+A clinic can recruit 500 unrelated people with a particular disease. A partner
+clinic can recruit 500 people from the same source population who are free of
+the disease. The investigators suspect that one common DNA variant affects
+disease risk. Would comparing these **cases** and **controls** give them a good
+chance of detecting the difference they expect?
 
-\[
-N_{control}=kN_{case}.
-\]
+Before collecting samples, the investigators can specify a plausible genetic
+effect and choose the test they intend to run. **Power** is the probability
+that this test declares an association if that effect exists. If recruitment
+is flexible, they can instead choose a target power and ask for the **minimum
+sample size necessary (MSSN)**. We will do both, then see how the recruitment
+decision changes when a genotype call or a diagnosis can be wrong.
 
-In model-based designs, prevalence, disease-allele frequency, relative risk,
-and mode of inheritance determine the conditional genotype distributions. In
-model-free designs, the researcher supplies those distributions directly as
-`g1` (case or affected) and `g0` (control or unaffected).
+# What does a genotype frequency measure?
 
-# Basic power and inverse design
+At a *biallelic* variant there are two versions of the DNA sequence, or
+alleles. Call them A and a. At this location on a non-sex chromosome, each
+person carries two copies, one from each parent. Count copies of A in the
+same order throughout the study: **aa = 0, Aa = 1, AA = 2**.
+Aa is a *heterozygote* (different alleles). Both aa and AA are *homozygotes*
+(matching alleles).
 
-The unified interfaces are the normal starting point. This model-based example
-asks for power with 500 cases and an equal number of controls, then solves the
-inverse problem for 80% power.
+Suppose a pilot study found 36 aa, 48 Aa and 16 AA among 100 cases, and
+25 aa, 50 Aa and 25 AA among 100 controls. Dividing each count by the
+number of people **in its own group** gives a genotype distribution. In
+`paweh`, `g1` holds the three case proportions and `g0` the three control
+proportions. Each vector sums to one. The suffix labels disease status.
+
+```{r pilot-distributions}
+pilot_case <- c(aa = 36, Aa = 48, AA = 16)
+pilot_ctrl <- c(aa = 25, Aa = 50, AA = 25)
+g1 <- pilot_case / sum(pilot_case)
+g0 <- pilot_ctrl / sum(pilot_ctrl)
+```
+
+```{r frequency-figure, echo=FALSE, fig.height=3.4, fig.cap="In this illustrative pilot, cases more often carry aa and controls more often carry AA. Each set of three bars accounts for all people in its group."}
+barplot(100 * rbind(Cases = g1, Controls = g0), beside = TRUE,
+        col = c("#17656C", "#D8A360"), border = NA, ylim = c(0, 65),
+        xlab = "Genotype (zero, one or two copies of A)",
+        ylab = "People in each group (%)", legend.text = TRUE,
+        args.legend = list(x = "top", horiz = TRUE, bty = "n"))
+```
+
+An **allele frequency** counts copies across chromosomes. The 48 Aa cases
+contribute 48 copies of A and the 16 AA cases contribute another 32.
+That gives 80 copies among 200 chromosomes, or 40%, even though just 16% of
+cases are AA. The control allele frequency is 50%. A variant that affects
+disease risk, or is inherited alongside one that does, can produce a
+difference. Ancestry differences or sampling variation can also produce one.
+
+Sometimes a paper gives only the allele frequency $p$. Under **Hardy–Weinberg
+equilibrium** (HWE), the two allele copies pair independently at that
+frequency. The expected fractions with zero, one and two copies are
+$(1-p)^2$, $2p(1-p)$ and $p^2$. With $p=0.40$ these are 0.36, 0.48 and
+0.16. Using HWE separately in cases and controls is an explicit assumption
+in the published examples below. Directly observed genotype proportions can
+be supplied even when they depart from HWE.
+
+# Which difference should the planned test detect?
+
+**Pearson's genotype chi-square test** compares the counts in the two rows of
+a three-genotype table with the counts expected if genotype and disease
+status were independent. A shift in any category can count as evidence. The
+three differences in group proportions sum to zero, so knowing two fixes the
+third. This leaves **two degrees of freedom**.
+
+**The Cochran–Armitage trend test** assigns each genotype a prespecified
+score. The default weights `w = c(0, 1, 2)` score aa, Aa and AA by copies of A.
+Comparing the two groups' mean scores measures one contrast, giving **one
+degree of freedom**. In the pilot the mean is 0.8 copies per case and 1.0
+per control. A test directed at this shift can need fewer participants.
+
+Now imagine that in one group both homozygotes become less frequent by the
+same amount and heterozygotes become more frequent. Replacing one aa and
+one AA with two Aa leaves the mean score unchanged. The genotype test can
+detect this redistribution even though the copy-count contrast vanishes.
+Choose the test and scores to match the scientific hypothesis before
+examining study results. Armitage (1955) describes the trend test.
+
+# Calculate power and recruitment from a disease model
+
+Return to the clinics' proposed study. This time the available evidence
+concerns disease risk in the population. The team can use that evidence
+without estimating the case and control distributions separately.
+
+| Argument | Assumption or decision |
+|---|---|
+| `prev = 0.05` | Five percent of the source population is affected. Recruiting equal-sized groups is a separate design decision. |
+| `pd = 0.30` | Thirty percent of allele copies in the source population are the modeled disease allele. |
+| `R2 = 1.8` | Two-copy carriers have 1.8 times the disease probability of zero-copy carriers. Enter a risk ratio here. An odds ratio compares odds and generally has a different value. |
+| `MOI = "M"` | Each copy multiplies risk by the same factor. The one-copy relative risk is therefore $\sqrt{1.8}$. Dominant (`"D"`) and recessive (`"Rec"`) models give one-copy carriers the risk of two- and zero-copy carriers, respectively. |
+| `N_case = 500`, `k = 1` | Plan 500 cases. The ratio $k=N_{control}/N_{case}$ gives one control per case, hence 1,000 people. |
+| `alpha = 0.05` | Set a 5% nominal false-positive probability under no association for this prespecified test. A genome-wide scan needs a threshold accounting for many tests. |
+| `power = 0.80` | For the inverse calculation, find the group sizes that attain at least 80% power under the model. |
+
+With `input_mode = "model_based"`, both functions start with HWE in the
+source population. They use the relative risks and overall prevalence to
+obtain disease probabilities for each genotype. Weighting genotypes by
+their probabilities of being affected gives the case distribution after
+normalization. Weighting by the probabilities of being unaffected yields
+the control distribution. `verbose = FALSE` lets us display the planned
+tests side by side.
 
 ```{r basic-cc}
 basic_cc_power <- cc_power(
@@ -53,38 +136,96 @@ basic_cc_mssn <- cc_mssn(
   k = 1, verbose = FALSE
 )
 
-data.frame(
-  quantity = c("Genotype-test power", "Required cases", "Required controls", "Required total"),
-  value = c(
-    basic_cc_power$tests$genotypes$power,
-    basic_cc_mssn$tests$genotypes$MSSN_case,
-    basic_cc_mssn$tests$genotypes$MSSN_ctrl,
-    basic_cc_mssn$tests$genotypes$MSSN_total
-  )
-)
 ```
 
-These are asymptotic operating characteristics under the stated disease
-model. They do not account for uncertainty in the input parameters.
+```{r basic-results, echo=FALSE}
+fixed <- basic_cc_power$tests
+required <- basic_cc_mssn$tests
+knitr::kable(data.frame(
+  Test = c("Genotype", "Trend"),
+  Power = c(fixed$genotypes$power, fixed$trend$power),
+  Cases = c(required$genotypes$MSSN_case, required$trend$MSSN_case),
+  Controls = c(required$genotypes$MSSN_ctrl, required$trend$MSSN_ctrl),
+  Total = c(required$genotypes$MSSN_total, required$trend$MSSN_total)
+), digits = 4)
+```
 
-# Published-example reproduction: Gordon et al. (2002)
+Read the power column at the **fixed budget**. The genotype test would
+detect the modeled association in about 84% of repeated studies. The
+trend test would detect it in about 90%. Read the recruitment columns at the **80% target**.
+For the genotype test, recruit 457 cases and 457 controls (914 people).
+For a prespecified trend test, 373 cases and 373 controls (746 people)
+suffice under this multiplicative model. These are alternative study plans.
+The package rounds the required case count up, then rounds up the control
+count implied by `k`. The attained power can therefore exceed the target
+slightly.
 
-Gordon et al. studied case-control genotype tests under genotype
-misclassification. Their Figure 1b DSB example assumes case allele frequency
-0.40, control allele frequency 0.50, Hardy--Weinberg equilibrium (HWE), equal
-numbers of cases and controls, 95% power, and `alpha = 0.05`.
+# Use pilot frequencies when they are the evidence you have
 
-Under HWE, allele frequency `p` gives genotype probabilities
-`c((1-p)^2, 2*p*(1-p), p^2)`:
+When comparable pilot data or a publication give genotype counts by disease
+status, use `input_mode = "model_free"`. The two distributions directly
+encode the expected association. For example, use the frequencies from the
+figure to plan a **new** study of 500 cases and 500 controls:
+
+```{r pilot-power}
+pilot_plan <- cc_power(
+  N_case = 500, k = 1, alpha = 0.05, input_mode = "model_free",
+  g1 = g1, g0 = g0, verbose = FALSE
+)
+c(genotype = pilot_plan$tests$genotypes$power,
+  trend = pilot_plan$tests$trend$power)
+```
+
+Here the assumed frequencies give 98.5% genotype-test power and 99.4%
+trend-test power. The two input modes answer the same design question. The
+higher power here reflects the stronger contrast supplied by the pilot.
+An estimate from 100 people per group can be imprecise, especially for
+uncommon genotypes. Repeat the calculation with plausible smaller
+differences, keeping the future recruitment budget fixed. If applying an
+error model, establish that the inputs represent the intended **true**
+distributions before applying error to them.
+
+# How can biology or measurement change that contrast?
+
+| What happens | What changes in the comparison |
+|---|---|
+| **Locus heterogeneity.** People with the same diagnosis can have different underlying genetic causes. | If only a fraction of cases has the modeled association, mixing them with other cases can make the case distribution resemble that of controls. |
+| **Genotype misclassification.** The assay records a person with Aa as AA. | This person stays in the same disease group but moves between genotype columns. Distinct error patterns across the two groups can even create an apparent association. |
+| **Phenotype misclassification.** A person with disease is recorded as unaffected, or the reverse. | The genotype stays the same but contributes to the wrong disease group. The observed rows become mixtures of truly affected and unaffected people. |
+
+The next two examples use published designs so that we can check both the
+meaning of the inputs and the size of the effects against the original results.
+
+# Genotype misclassification in Gordon et al. (2002)
+
+Gordon et al. (2002) asked how many additional people would be needed to
+retain a chosen power when a single nucleotide variant is sometimes miscalled.
+In Figure 1b they used the **Douglas–Skol–Boehnke (DSB)** error model,
+named for Douglas, Skol and Boehnke (2002). Their calculation uses a genotype
+test, equal numbers of unrelated cases and controls, 95% target power,
+and a 5% significance threshold. Case and control allele frequencies of 0.40
+and 0.50 give the following genotype distributions under HWE:
 
 ```{r gordon-setup}
 g_gordon_case <- c(0.36, 0.48, 0.16)
 g_gordon_control <- c(0.25, 0.50, 0.25)
 ```
 
-In `paweh`'s two-parameter error model, Gordon's DSB parameters map as
-`e1 = delta` and `e2 = epsilon / 2`. The division by two reflects equal
-allocation of total heterozygote error to the two homozygotes.
+Gordon's Table 1b uses $\gamma$ for the chance a true homozygote is called
+heterozygous and $\eta$ for the total chance a true heterozygote is called
+homozygous. Earlier versions of this tutorial called the same two rates
+`delta` and `epsilon`. In the package, `e1 = delta` and `e2 = epsilon / 2`.
+The division by two matters because a miscalled Aa is equally likely to be
+read as aa or AA. The model rules out a direct aa-to-AA or AA-to-aa error.
+
+For example, with both total rates at 10%, read each row below as 100 people
+of one true genotype. The same probabilities apply to cases and controls.
+
+| True genotype | Called aa | Called Aa | Called AA |
+|---|---:|---:|---:|
+| aa | 90 | 10 | 0 |
+| Aa | 5 | 90 | 5 |
+| AA | 0 | 10 | 90 |
 
 ```{r gordon-reproduction}
 gordon_no_error <- cc_mssn(
@@ -103,27 +244,29 @@ gordon_dsb_10 <- cc_mssn(
   verbose = FALSE
 )
 
-data.frame(
-  DSB_error = c("No error", "delta = epsilon = 0.10"),
-  published_required_cases = c("approximately 386", "477"),
-  paweh_required_cases = c(
-    gordon_no_error$tests$genotypes$MSSN_case,
-    gordon_dsb_10$tests$genotypes$MSSN_case
-  )
-)
 ```
 
-This is a **Published-example reproduction**. The error result is exact at
-477 cases. The baseline is near-exact: `paweh` returns 387 rather than the
-paper's approximately 386 because the underlying continuous MSSN is about
-386.08 and `paweh` ceilings the number of subjects.
+```{r gordon-results, echo=FALSE}
+knitr::kable(data.frame(
+  Assumption = c("Accurate calls", "Both total error rates at 10%"),
+  Paper_cases = c(386, 477),
+  Required_cases = c(gordon_no_error$tests$genotypes$MSSN_case,
+                     gordon_dsb_10$tests$genotypes$MSSN_case)
+), col.names = c("Assumption", "Published cases", "Calculated cases"))
+```
 
-## Extending the same design: how MSSN grows with DSB error
+The paper reports approximately 386 cases with accurate calls. The
+continuous solution in `paweh` is 386.0778, giving 387 whole cases.
+With error, the result agrees exactly at **477 cases**. With one control
+per case, that adds 90 cases and 90 controls over the package baseline,
+taking recruitment from 774 to 954 people.
 
-The following sweep keeps the published genotype distributions and design
-fixed. A multiplier of one is `delta = epsilon = 0.10`; zero is no error.
+How quickly does the requirement grow between those two designs? The plot
+varies both rates together, holding frequencies, allocation, test, power and
+threshold at the published values. A multiplier of 0.5 (halfway along the horizontal axis) means that both
+total error probabilities are 5%.
 
-```{r gordon-plot, fig.cap="Required case sample size as the Gordon DSB error pattern increases from no error to delta = epsilon = 0.10."}
+```{r gordon-plot, fig.cap="Increasing both genotype error rates together raises the required case count from 387 to 477. Each point requires an equal number of controls."}
 plot_cc_mssn(
   x_var = "geno_error_multiplier",
   x_values = seq(0, 1, length.out = 6),
@@ -137,14 +280,29 @@ plot_cc_mssn(
 )
 ```
 
-The curve is a design sensitivity analysis: it treats error rates as fixed
-scenarios rather than estimating their uncertainty.
+# Disease misclassification in Edwards et al. (2005)
 
-# Published-example reproduction: Edwards et al. (2005)
+Imagine screening people for a rare disease. A truly affected person missed
+by the screen can enter the control group. A truly unaffected person who
+screens positive can enter the case group. Edwards et al. (2005) asked how
+much these two errors could change power with a fixed recruitment budget.
 
-Edwards et al. examined phenotype error in a biallelic case-control design.
-Their Figure 2 example uses 250 cases, 250 controls, `alpha = 0.01`, affected
-minor-allele frequency 0.05, unaffected minor-allele frequency 0.15, and HWE.
+The argument `theta` is the probability that a truly affected person is
+classified as a control (false negative). The argument `phi` is the
+probability that a truly unaffected person is classified as a case (false
+positive). Both probabilities condition on the **true** disease status.
+For example, among 10,000 people at 1% prevalence, there are 100 affected
+and 9,900 unaffected. With no false negatives and `phi = 0.01`, about 99
+unaffected people enter the screen-positive pool alongside 100 affected
+people. Thus a 1% false-positive rate can make nearly half that pool
+unaffected. This is why the function needs prevalence even when you supply
+both genotype distributions directly.
+
+Figure 2 of Edwards et al. uses 250 cases and 250 controls, a 1% significance
+threshold, and minor-allele frequencies of 0.05 among truly affected people
+and 0.15 among truly unaffected people. Assuming HWE within each group gives
+the vectors below. To isolate the contribution of false positives, hold
+`theta` at zero and compute genotype-test power for each row.
 
 ```{r edwards-setup}
 g_edwards_affected <- c(0.9025, 0.0950, 0.0025)
@@ -170,26 +328,28 @@ edwards_scenarios$paweh_power <- vapply(seq_len(nrow(edwards_scenarios)), functi
   )$tests$genotypes$power
 }, numeric(1))
 
-edwards_scenarios
+knitr::kable(edwards_scenarios, digits = 4,
+             col.names = c("Prevalence", "False negative", "False positive",
+                           "Paper power", "Calculated power"))
 ```
 
-This is an excellent **Published-example reproduction**; the paper reports
-rounded powers. Here `theta = Pr(affected -> control)` and
-`phi = Pr(unaffected -> case)`. For a rare disease, even a small `phi` can
-matter greatly because the unaffected source population is much larger than
-the affected source population. The no-error reference power is about
-0.9896.
+With correct diagnoses, the same 250 cases and 250 controls give
+`r sprintf("%.2f%%", 100 * cc_power(N_case = 250, k = 1, alpha = 0.01, input_mode = "model_free", g1 = g_edwards_affected, g0 = g_edwards_unaffected, verbose = FALSE)$tests$genotypes$power)` power. At 5% prevalence,
+increasing the false-positive rate from 1% to 2% cuts power from **91.35% to
+76.34%**. At 1% prevalence the same change cuts power from **33.20% to
+10.98%**. All four estimates reproduce the percentages reported by Edwards
+et al. to their published precision.
 
-## Extending Edwards: prevalence and false-positive classification
+How much power would be lost at intermediate false-positive rates? Both
+plots use the same true genotype frequencies, 250 people per group,
+`alpha = 0.01` and `theta = 0`. Within each plot only `phi` varies. The
+first plot assumes 5% prevalence.
 
-Both plots use the same underlying genotype distributions. Only prevalence is
-changed between panels.
-
-```{r edwards-plot-common, echo=FALSE, results='hide'}
+```{r edwards-plot-common}
 edwards_phi <- seq(0, 0.02, by = 0.0025)
 ```
 
-```{r edwards-plot-prev05, fig.cap="Power as unaffected subjects are increasingly classified as cases, with prevalence 0.05."}
+```{r edwards-plot-prev05, fig.cap="At 5% prevalence, increasing the false-positive rate from zero to 2% reduces genotype-test power from about 99% to 76%."}
 plot_cc_power(
   x_var = "phi", x_values = edwards_phi,
   test = "genotypes", input_mode = "model_free",
@@ -200,7 +360,11 @@ plot_cc_power(
 )
 ```
 
-```{r edwards-plot-prev01, fig.cap="The same sensitivity analysis with prevalence 0.01."}
+Now change only the source prevalence to 1% and repeat the same sweep.
+Compare the right endpoints to see how strongly prevalence changes the effect
+of the same classification error.
+
+```{r edwards-plot-prev01, fig.cap="At 1% prevalence, the same false-positive rate of 2% leaves only about 11% power. The unaffected population contributes many more misclassified cases relative to true cases."}
 plot_cc_power(
   x_var = "phi", x_values = edwards_phi,
   test = "genotypes", input_mode = "model_free",
@@ -211,13 +375,31 @@ plot_cc_power(
 )
 ```
 
-# Locus heterogeneity and the trend test
+# How does locus heterogeneity change recruitment?
 
-For case-control calculations, `pi` is the fraction of cases attributable to
-the modeled locus; `1 - pi` is the heterogeneous fraction. The model-free
-example below compares genotype and trend-test MSSN as heterogeneity grows.
+Suppose diagnoses and genotype calls are accurate, but the studied locus
+is relevant to only some cases. The homogeneous fraction, `pi`, follows
+the associated-case distribution. The heterogeneous fraction, `1 - pi`,
+follows the control distribution **at this marker**. For each genotype,
 
-```{r cc-heterogeneity-plot, fig.cap="Required cases for genotype and trend tests as the heterogeneous fraction increases."}
+$$
+g_{\mathrm{case,mix}} = \pi\,g_{\mathrm{case,associated}}+
+ (1-\pi)\,g_{\mathrm{control}} .
+$$
+
+For example, the reference case group in Gordon's design has 16% AA and
+controls have 25% AA. With `pi = 0.8`, the mixed cases are
+$0.8(0.16)+0.2(0.25)=0.178$, or 17.8% AA. This narrows their difference
+from controls. The model holds controls fixed and applies the same mixture
+fraction across genotypes. A distinct second case subtype with its own
+marker distribution would require a different assumption.
+
+How much recruitment compensates for that dilution? The horizontal axis is
+the **heterogeneous fraction** (`locus_het_rate = 1 - pi`). Hold the
+reference distributions, equal allocation, 80% target power and 5%
+threshold fixed. The two curves use different prespecified tests.
+
+```{r cc-heterogeneity-plot, fig.cap="As the heterogeneous fraction rises from zero to one half, the required cases increase roughly fourfold for each test. Recruit the same number of controls."}
 plot_cc_mssn(
   x_var = "locus_het_rate",
   x_values = seq(0, 0.50, by = 0.10),
@@ -229,16 +411,28 @@ plot_cc_mssn(
 )
 ```
 
-Ahn et al. (2007) provide **Published methodological context** for how SNP
-genotyping errors affect Cochran--Armitage trend-test designs. The plot above
-does not claim to reproduce their specific Taylor-series error framework.
+At zero heterogeneity the genotype test requires 241 cases and the trend
+test 197. At 50% heterogeneity the requirements rise to 964 and 789 cases,
+respectively, each with as many controls. At `pi = 0` the modeled case and
+control distributions coincide and increasing recruitment cannot recover
+the lost contrast. These curves illustrate the textbook mixture applied to
+the Gordon frequencies. Ahn et al. (2007) studied a separate question,
+using a Taylor approximation to assess how genotyping errors change the
+sample size for a Cochran–Armitage trend test.
 
-# Differential genotype error: a Type I error warning
+# What if cases and controls have different genotype errors?
 
-Moskvina et al. (2006) showed that different error mechanisms in cases and
-controls can substantially inflate Type I error, even when absolute error
-rates are small. The following calculation is therefore context, not a
-calibrated false-positive analysis.
+Imagine processing cases and controls in separate laboratory batches. If a
+batch tends to call more heterozygotes as homozygotes, the recorded genotype distributions can
+differ even when their *true* distributions are identical. A test calibrated
+for identical observed distributions can then reject too often under the
+biological null hypothesis. Moskvina et al. (2006) examine this inflation
+of the Type I error rate.
+
+The following illustrative design uses different error probabilities in each
+group. Within each group, `e01` moves a homozygote to the heterozygote,
+`e02` moves a heterozygote to **each** homozygote, and `e03` moves a
+homozygote to the opposite homozygote. The prefixes select the group.
 
 ```{r differential-error}
 diff_error_design <- cc_power(
@@ -253,17 +447,21 @@ diff_error_design <- cc_power(
 diff_error_design$tests$genotypes$power
 ```
 
-**Important:** `paweh` returns nominal asymptotic power or MSSN under
-differential genotype error using the usual chi-square critical value. It does
-not independently recalibrate an arbitrary differential-error null
-distribution. These nominal operating characteristics must not be interpreted
-as protection against the Type I error inflation described by Moskvina et al.
+The result, 0.9795, is **nominal power** computed at the usual chi-square
+cutoff. The function has not estimated the actual false-positive rate for
+these batches. Interpreting 0.9795 as a 98% chance of valid detection would
+require evidence that the cutoff controls Type I error under the proposed
+error process. This example illustrates the calibration concern raised by
+Moskvina et al. Their study supplies methodological context for the warning.
 
-# Independent sensitivity scenarios
+# Compare several departures from one baseline
 
-The unified interface accepts several modifiers in one call and reports each
-as a separate sensitivity scenario from the same no-error baseline. It does
-not combine the modifier transformations.
+Suppose the investigators want to budget for three possibilities, each in
+isolation. Request all three in one `cc_mssn()` call. For each scenario the
+function starts again from the supplied true case and control distributions.
+It applies just the selected transformation, then calculates both tests.
+Read `$scenarios` to compare all the answers. The top-level `$tests`
+reports the baseline when several modifiers are requested.
 
 ```{r independent-cc-scenarios}
 scenario_cc <- cc_mssn(
@@ -276,36 +474,75 @@ scenario_cc <- cc_mssn(
   verbose = FALSE
 )
 
-lapply(scenario_cc$scenarios, function(scenario) {
-  c(
-    genotype_cases = scenario$tests$genotypes$MSSN_case,
-    trend_cases = scenario$tests$trend$MSSN_case
-  )
-})
 ```
 
-# Choosing an interface and recognizing limits
+```{r scenario-results, echo=FALSE}
+labels <- c(no_error = "Baseline",
+            phenotype_misclassification = "Disease classification error",
+            heterogeneity = "20% heterogeneous cases",
+            genotype_misclassification = "Genotype calling error")
+comparison <- do.call(rbind, lapply(names(labels), function(id) {
+  tests <- scenario_cc$scenarios[[id]]$tests
+  data.frame(Scenario = unname(labels[id]),
+             Genotype_cases = tests$genotypes$MSSN_case,
+             Trend_cases = tests$trend$MSSN_case)
+}))
+knitr::kable(comparison, col.names = c("Scenario", "Genotype test: cases",
+                                       "Trend test: cases"))
+```
 
-Use `cc_power()` and `cc_mssn()` for most designs, particularly when switching
-between model-based and model-free inputs or comparing modifier scenarios. Specialized
-genotype-only functions remain available in the reference manual for focused
-calculations.
+Each entry counts cases and calls for an equal number of controls. For the
+genotype test, the 241-case baseline rises to 251 with genotype error, 345
+with diagnosis error, and 378 with heterogeneity. With the trend test the
+corresponding targets are 197, 205, 282 and 308. Of these individual
+assumptions, 20% heterogeneity requires the largest recruitment budget.
+A budget of 378 cases plus 378 controls covers each displayed genotype-test
+scenario separately. The table gives no estimate for a study with all three
+departures acting together.
 
-Interpretation depends on assumptions close to each calculation:
+# Choose a design for your study
 
-- HWE was used to construct genotype probabilities in the published examples.
-- Model-free probabilities are treated as supplied truth, not estimated with
-  uncertainty.
-- Model-based results inherit the selected prevalence, risk, and inheritance
-  model.
-- `theta` and `phi` describe opposite phenotype-error directions.
-- `pi` is the homogeneous fraction; `1 - pi` is heterogeneous.
-- Genotype and trend calculations use asymptotic chi-square approximations.
-- Integer MSSNs are ceiling values; a paper using another rounding convention
-  can differ by one subject.
-- Differential genotype error can invalidate nominal Type I error calibration.
+Decide which quantity is fixed first. Use `cc_power()` if you know how many
+cases you can recruit, or `cc_mssn()` if you need recruitment for a target
+power. In either call, choose the primary test and control-to-case ratio
+before comparing scenarios.
 
-# References
+| Evidence or concern | How to specify the design |
+|---|---|
+| Prior evidence about disease risks | Use `"model_based"` with population prevalence, allele frequency, two-copy relative risk and an inheritance rule. Explore the plausible range of each uncertain input. |
+| A pilot or published genotype table | Use `"model_free"` with `g1` and `g0` in consistent allele order. Check how comparable the source groups are to the planned study. |
+| Laboratory genotype errors | Set `geno_misclass` to a model compatible with assay validation data. For the DSB mechanism use `"2p"`. Group-specific errors require particular attention to false-positive calibration. |
+| Disease misclassification | Set `pheno_misclass = TRUE` and specify `prev`, `theta` and `phi`. Record which direction of error each clinical validation estimate measures. |
+| Locus heterogeneity | Set `locus_het = TRUE` and supply the homogeneous fraction as `pi`. Use this mixture when the other cases plausibly resemble controls at the marker. |
+
+These functions plan unmatched studies of unrelated participants and use
+large-sample chi-square approximations. Sparse genotype cells, for example
+a rare two-copy genotype in a small sample, deserve particular care.
+Results condition on the inputs and the planned test. Neither uncertainty in
+pilot frequencies nor calibration under arbitrary differential errors is
+included in the reported precision. See `?cc_power` and `?cc_mssn` for
+argument ranges, returned scenarios and worked examples.
+
+# Methodological references
+
+Gordon D, Finch SJ, Kim W. *Heterogeneity in Statistical Genetics: How to
+Assess, Address, and Account for Mixtures in Association Studies*. Springer
+(2020). Chapter 1, “Introduction to Heterogeneity in Statistical Genetics,”
+sections 1.4.1–1.4.2, describes the two ways to obtain genotype frequencies.
+For `cc_power()` and `cc_mssn()`, see the genotype and trend noncentrality
+parameters in §1.6.1.4, equations (1.22) and (1.24). These parameters measure
+how far the planned test distribution shifts under the assumed association.
+Chapter 2, “Overview of Genomic Heterogeneity in Statistical Genetics,”
+§2.7.1.2, equation (2.16), gives the case mixture used with `locus_het`.
+[Book DOI](https://doi.org/10.1007/978-3-030-61121-7).
+
+Armitage P (1955). Tests for linear trends in proportions and frequencies.
+*Biometrics* 11, 375–386. [DOI](https://doi.org/10.2307/3001775).
+
+Douglas JA, Skol AD, Boehnke M (2002). Probability of detection of genotyping
+errors and mutations as inheritance inconsistencies in nuclear-family data.
+*American Journal of Human Genetics* 70, 487–495.
+[DOI](https://doi.org/10.1086/338919).
 
 Ahn K, Haynes C, Kim W, St Fleur R, Gordon D, Finch SJ. The effects of SNP
 genotyping errors on the power of the Cochran-Armitage linear trend test for
@@ -327,8 +564,11 @@ differential genotyping error rate on the type I error probability of
 case-control studies. *Human Heredity*. 2006;61(1):55--64.
 <https://doi.org/10.1159/000092553>.
 
-# Session information
+<details>
+<summary>R session used to render this tutorial</summary>
 
-```{r session-info}
+```{r session-info, echo=FALSE}
 sessionInfo()
 ```
+
+</details>
