@@ -1,6 +1,6 @@
 # paweh 0.99.0
 
-* Initial Bioconductor submission candidate.
+* Initial development release.
 * Provides prospective power and minimum sample size calculations for
   case-control, TDT/family-based, quantitative-trait, sequencing-based, and
   LRTae study designs.

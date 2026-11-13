@@ -76,8 +76,8 @@ Function-level reference documentation is also available from the
 
 ## Installation
 
-`paweh` is currently under development and is not yet available through
-Bioconductor. Install the development version from GitHub:
+`paweh` is currently under development. Install the development version from
+GitHub:
 
 ```r
 if (!requireNamespace("remotes", quietly = TRUE)) {
@@ -206,8 +206,7 @@ performing genotyping.
 
 ## Citation
 
-A formal package citation will be added as `paweh` approaches its initial
-Bioconductor release. In the meantime, please consult the methodological
+For the statistical methods used in `paweh`, please consult the methodological
 references in the package documentation and study-design articles.
 
 ## License

@@ -40,17 +40,14 @@ Suggests:
     knitr,
     plotly,
     rmarkdown,
-    S4Vectors,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
     bslib,
     ggplot2,
-    methods,
     mvtnorm,
     rlang,
     shiny,
-    SummarizedExperiment,
     withr
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.1.0

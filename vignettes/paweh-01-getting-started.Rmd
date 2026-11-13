@@ -128,14 +128,13 @@ quantities.
 | Sequencing TDT | `tdt_ngs_power()`, `tdt_ngs_mssn()` | Sequencing Study Design |
 | Error-aware case-control / LRTae | `lrtae_ncp()`, `lrtae_power()`, `lrtae_mssn()` | LRTae Power and Sample-Size Design |
 
-# Why Bioconductor?
+# How paweh fits into a research workflow
 
-`paweh` is being prepared for Bioconductor because it provides prospective
-study-design infrastructure for genetic and genomic association research,
-including sequencing-based designs. These calculations complement downstream
-genomic analysis by examining operating characteristics before data generation
-or collection. The package does not currently claim sequencing-file,
-genomic-range, or `SummarizedExperiment` integration.
+`paweh` provides prospective study-design infrastructure for genetic and
+genomic association research, including sequencing-based designs. These
+calculations complement downstream genomic analysis by examining operating
+characteristics before data generation or collection. Inputs are study-design
+parameters and supplied summary quantities.
 
 # Published validation philosophy
 
@@ -154,14 +153,13 @@ designs with sensitivity calculations.
 
 # Installation
 
-Once `paweh` is available through Bioconductor, the standard installation path
-will be:
+Install the development version of `paweh` from GitHub:
 
 ```{r installation, eval=FALSE}
-if (!requireNamespace("BiocManager", quietly = TRUE)) {
-  install.packages("BiocManager")
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
 }
-BiocManager::install("paweh")
+remotes::install_github("akilanthony/paweh")
 ```
 
 No installation is performed while this vignette is built.
