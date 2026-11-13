@@ -1,219 +1,142 @@
-# paweh
+# paweh: power and sample size for genetic association studies
 
-`paweh` is statistical-genetics study-design software for prospective power and
-minimum sample size necessary (MSSN) calculations. Given a proposed sample
-size, it calculates power; given a target power, it calculates the sample size
-needed under the specified design assumptions. Its calculations are primarily
-parameter and model based and are intended for planning before data collection
-or genotyping, not for downstream association testing.
+If you can recruit 500 people with a disease and 500 without it, how likely is
+your study to detect a difference at a particular genetic variant? `paweh`
+calculates **power**: the chance that the planned test will detect an
+association of the size you assume. It also answers the recruitment question
+in reverse: the **minimum sample size necessary (MSSN)** to reach a chosen
+power under those same assumptions.
 
-The package supports case-control association studies, affected-child trio
-designs using the Transmission Disequilibrium Test (TDT), and continuous,
-extreme-phenotype, and multivariate quantitative-trait designs. Depending on
-the design, calculations can account for genotype misclassification,
-phenotype misclassification, and locus heterogeneity. Canonical case-control
-and TDT interfaces support model-based and model-free workflows where those
-input modes are applicable.
+People with the same diagnosis can have different underlying genetic causes
+(*locus heterogeneity*). A lab can misread a genotype, and a diagnosis can be
+recorded incorrectly. Each can change the difference a test sees between
+groups. Use `paweh` before data collection to compare a baseline plan with
+the departures that your chosen design supports.
 
-Genetic study-design calculations are commonly formulated under homogeneous,
-error-free assumptions. Selected departures from those assumptions can
-materially affect power and MSSN while being difficult to incorporate
-analytically. `paweh` provides accessible, reproducible implementations of
-published methods for examining supported heterogeneity and misclassification
-mechanisms alongside conventional power and sample-size calculations.
+## Methodological foundation
 
-## What `paweh` supports
+Gordon D, Finch SJ, Kim W. [*Heterogeneity in Statistical Genetics: How to
+Assess, Address, and Account for Mixtures in Association Studies*](https://doi.org/10.1007/978-3-030-61121-7).
+Springer; 2020. Derek Gordon is a coauthor of both the book and `paweh`.
+The book provides a foundation for understanding mixtures and measurement
+error. The package also draws on other published methods; each study-design
+article identifies the sources for its calculations.
 
-- **Case-control association:** two-degree-of-freedom genotype chi-square and
-  one-degree-of-freedom genotype trend designs, with supported models for
-  genotype or phenotype misclassification and locus heterogeneity.
-- **Affected-child trios:** TDT power and required-trio calculations under
-  no-error, phenotype-misclassification, and locus-heterogeneity scenarios.
-- **Quantitative traits:** one-way genotype-group ANOVA for continuously
-  measured traits, genotype chi-square designs for selected phenotype tails,
-  and multivariate designs using Pillai MANOVA or joint threshold selection.
-- **Sequencing-based designs:** analytic power, MSSN, and sensitivity plots for
-  fixed equal-depth case-control and TDT1-NGS studies with symmetric per-read
-  sequencing error. Case-control NGS supports locus heterogeneity.
+## Install and start here
 
-For case-control NGS, `paweh` constructs a sequencing-to-called-genotype
-transition matrix and then applies the published Ahn / Chapman--Nam trend-test
-framework. TDT1-NGS implements the Kim (2015) raw-read likelihood and
-information framework under the documented fixed equal-depth multiplicative
-model. In the matching Kim AIS design, the package reproduces the reported
-requirements of 654 complete trios at 4x and 416 at 25x.
-
-Model-based calculations express assumptions through quantities such as
-prevalence, disease-allele frequency, genotype relative risk, inheritance
-mode, or quantitative-trait variance. Where model-free input is supported,
-users can instead supply conditional genotype probabilities or expected
-transmission and non-transmission counts derived from pilot data, prior work,
-or external calculations. Model-free input does not eliminate assumptions; it
-places them in the supplied conditional quantities.
-
-Most functions return structured objects containing both the primary design
-answer and intermediate quantities useful for validation. Examples below
-extract only the result needed for interpretation; consult the reference
-documentation when diagnostic components are required.
-
-## Documentation
-
-The complete documentation is available at
-[https://akilanthony.github.io/paweh/](https://akilanthony.github.io/paweh/).
-
-Seven articles provide the main entry points:
-
-- [Getting Started](https://akilanthony.github.io/paweh/articles/paweh-01-getting-started.html)
-- [Case-Control Study Design](https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html)
-- [TDT Study Design](https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.html)
-- [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html)
-- [Interactive Dashboard](https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html)
-- [Sequencing-Based Genetic Study Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html)
-- [LRTae Power and Sample-Size Design](https://akilanthony.github.io/paweh/articles/paweh-07-lrtae-study-design.html)
-
-Function-level reference documentation is also available from the
-[pkgdown reference index](https://akilanthony.github.io/paweh/reference/).
-
-## Installation
-
-`paweh` is currently under development. Install the development version from
-GitHub:
+The package is available from GitHub and is not yet on CRAN. Choose **one**
+installation. For the stable package:
 
 ```r
-if (!requireNamespace("remotes", quietly = TRUE)) {
-    install.packages("remotes")
-}
-
-remotes::install_github("akilanthony/paweh")
+# Run once if needed: install.packages("remotes")
+remotes::install_github("akilanthony/paweh", ref = "main")
 ```
 
-## Interactive dashboard
-
-`paweh` includes an interactive Shiny interface for:
-
-- Case-Control studies
-- TDT / Family studies
-- Quantitative Trait studies
-
-The dashboard uses the same canonical package functions as the programmatic R
-interface and provides power, minimum-sample-size, sensitivity, visualization,
-advanced calculation details, and reproducible R calls. Construct and launch
-the dashboard explicitly with:
+For the experimental `develop` branch **with the revised tutorials**, use the
+following instead. Building the articles needs Pandoc (included with RStudio);
+`dependencies = TRUE` installs the suggested R packages for the examples.
 
 ```r
-app <- paweh_app()
-shiny::runApp(app)
+remotes::install_github(
+  "akilanthony/paweh", ref = "develop", dependencies = TRUE,
+  build_vignettes = TRUE
+)
 ```
 
-`paweh_app()` returns a Shiny application object and does not launch a browser
-or server on its own.
+Start with [Getting Started](vignettes/paweh-01-getting-started.Rmd), or open
+the rendered tutorial after the second installation with
+`vignette("paweh-01-getting-started", package = "paweh")`.
 
-See the [Interactive Dashboard](https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.html)
-vignette for a guided walkthrough of all three study-design workspaces.
+## Quick start: is the recruitment budget enough?
 
-## Quick start
+Suppose you plan to compare unrelated people with a disease (**cases**) and
+without it (**controls**) at one prespecified variant. First choose a test:
+here the genotype chi-square test asks whether the distribution of the three
+genotypes differs between groups. These are illustrative assumptions, not
+estimates for a particular disease.
 
-The canonical case-control interface can calculate genotype-test power for a
-fixed design. This example assumes 500 cases, an equal number of controls, 5%
-disease prevalence, a disease-allele frequency of 0.30, and a genotype
-relative risk of 1.8 under the package's multiplicative model:
+| Argument | What it means in this study |
+|---|---|
+| `N_case = 500`, `k = 1` | Recruit 500 cases. The control-to-case ratio is one, so recruit 500 controls too (1,000 people in total). |
+| `alpha = 0.05` | Use a 5% false-positive threshold for this one test under no association. A genome-wide scan needs a threshold accounting for many tests. |
+| `prev = 0.05` | Assume 5% of the source population has the disease. This is different from the deliberately balanced recruitment split. |
+| `pd = 0.30` | Assume 30% of allele copies in the population are the disease-associated version of the variant. |
+| `R2 = 1.8` | People with two copies have 1.8 times the disease risk of people with zero copies. This is a relative risk, not an odds ratio. |
+| `MOI = "M"` | Multiplicative inheritance: each additional copy multiplies risk by the same factor, here `sqrt(1.8)`. |
+| `power = 0.80` | For the inverse calculation, aim to detect the assumed association in 80% of repeated studies. |
+
+Give `cc_power()` the recruitment budget. With `input_mode = "model_based"`,
+the function derives the expected genotype frequencies from the disease
+model; the default assumes no measurement error or heterogeneity.
 
 ```r
 library(paweh)
 
-power_result <- cc_power(
-    N_case = 500,
-    alpha = 0.05,
-    input_mode = "model_based",
-    prev = 0.05,
-    pd = 0.30,
-    R2 = 1.8,
-    MOI = "M",
-    k = 1,
-    verbose = FALSE
+fixed <- cc_power(
+  N_case = 500, k = 1, alpha = 0.05, input_mode = "model_based",
+  prev = 0.05, pd = 0.30, R2 = 1.8, MOI = "M", verbose = FALSE
 )
-
-power_result$tests$genotypes$power
+fixed$tests$genotypes$power
 #> [1] 0.8366557
 ```
 
-The inverse calculation asks how many subjects are required for 80% power
-under the same assumptions:
+The budget gives **about 84% power**: if these assumptions hold, about 84 of
+100 such studies would detect the association. To plan for 80% instead, give
+`cc_mssn()` the target power and keep the test and assumptions fixed:
 
 ```r
-mssn_result <- cc_mssn(
-    power = 0.80,
-    alpha = 0.05,
-    input_mode = "model_based",
-    prev = 0.05,
-    pd = 0.30,
-    R2 = 1.8,
-    MOI = "M",
-    k = 1,
-    verbose = FALSE
+needed <- cc_mssn(
+  power = 0.80, k = 1, alpha = 0.05, input_mode = "model_based",
+  prev = 0.05, pd = 0.30, R2 = 1.8, MOI = "M", verbose = FALSE
 )
-
-c(
-    cases = mssn_result$tests$genotypes$MSSN_case,
-    controls = mssn_result$tests$genotypes$MSSN_ctrl,
-    total = mssn_result$tests$genotypes$MSSN_total
-)
+g <- needed$tests$genotypes
+c(cases = g$MSSN_case, controls = g$MSSN_ctrl, total = g$MSSN_total)
 #>    cases controls    total
 #>      457      457      914
 ```
 
-These are prospective operating characteristics under the stated model, not
-estimates fitted from subject-level genomic data. See the case-control article
-for model-free inputs and supported error and heterogeneity scenarios.
+Plan for **457 cases plus 457 controls**, or **914 people**. The function
+rounds up to whole participants. If the expected contrast is smaller or
+measurement is less reliable, rerun the design with those assumptions before
+committing to a recruitment target.
 
-Power and MSSN are inverse design questions, but integer recruitment targets
-may not reproduce a requested power exactly because required sample sizes are
-rounded up. Results also inherit all stated distributional, prevalence,
-frequency, relative-risk, linkage-disequilibrium, and error assumptions. The
-study-design articles document these assumptions and identify settings that
-are outside the current implementation.
+## Choose your study design
 
-## Study-design workflows
-
-| Design | Primary functions | Documentation |
+| Design and guide | Planning question | Start with |
 |---|---|---|
-| Case-control association | `cc_power()`, `cc_mssn()` | [Case-Control Study Design](https://akilanthony.github.io/paweh/articles/paweh-02-case-control-study-design.html) |
-| Affected-child trios / TDT | `tdt_power()`, `tdt_mssn()` | [TDT Study Design](https://akilanthony.github.io/paweh/articles/paweh-03-tdt-study-design.html) |
-| Continuous quantitative trait | `qtl_anova_power()`, `qtl_anova_mssn()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
-| Extreme quantitative trait | `qtl_threshold_chisq_power()`, `qtl_threshold_chisq_mssn()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
-| Multivariate quantitative traits | `qtl_multivariate_power_full()`, `qtl_multivariate_mssn_full()` | [Quantitative-Trait Study Design](https://akilanthony.github.io/paweh/articles/paweh-04-quantitative-trait-study-design.html) |
-| Case-control NGS | `cc_ngs_power()`, `cc_ngs_mssn()` | [Sequencing-Based Genetic Study Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html) |
-| TDT1-NGS | `tdt_ngs_power()`, `tdt_ngs_mssn()` | [Sequencing-Based Genetic Study Design](https://akilanthony.github.io/paweh/articles/paweh-06-sequencing-study-design.html) |
-| Error-aware case-control / LRTae | `lrtae_ncp()`, `lrtae_power()`, `lrtae_mssn()` | [LRTae Power and Sample-Size Design](https://akilanthony.github.io/paweh/articles/paweh-07-lrtae-study-design.html) |
+| [Case-control](vignettes/paweh-02-case-control-study-design.Rmd) | How many cases and controls would reveal a difference in genotype frequencies? | `cc_power()`, `cc_mssn()` |
+| [Transmission disequilibrium test (TDT)](vignettes/paweh-03-tdt-study-design.Rmd) | In families with an affected child, is one allele passed on more often than expected? How many complete trios are needed? | `tdt_power()`, `tdt_mssn()` |
+| [Quantitative traits](vignettes/paweh-04-quantitative-trait-study-design.Rmd) | How many people are needed to detect a difference in a measurement, such as height, across genotypes? The guide also covers sampling the extremes and studying multiple traits. | `qtl_anova_power()`, `qtl_anova_mssn()` |
+| [Sequencing](vignettes/paweh-06-sequencing-study-design.Rmd) | At a specified read depth and error rate, how many cases and controls or complete trios are needed? | `cc_ngs_power()`, `cc_ngs_mssn()`; `tdt_ngs_power()`, `tdt_ngs_mssn()` |
+| [Validation and measurement error (LRTae)](vignettes/paweh-07-lrtae-study-design.Rmd) | What power can a case-control study achieve when a subset receives gold-standard measurements? | `lrtae_power()`, `lrtae_mssn()` |
 
-## Published-example validation
+Prefer to explore assumptions interactively? The [dashboard guide](vignettes/paweh-05-interactive-dashboard.Rmd)
+covers case-control, trio and quantitative-trait studies. Launch it with
+`shiny::runApp(paweh::paweh_app())`. Use the
+[function reference](https://akilanthony.github.io/paweh/reference/) for
+arguments and return values, or `?paweh::cc_power` for help matching the
+version you installed.
 
-`paweh` includes literature-backed regression tests and worked examples for
-case-control genotype and phenotype misclassification, TDT phenotype
-misclassification and locus heterogeneity, and multivariate
-quantitative-trait power and sample size. The articles distinguish exact or
-near-exact published-example reproductions from papers used only as
-methodological context or motivating applications.
+## Related software and scope
 
-## Scope
+[Quanto](https://keck.usc.edu/biostatistics/software/) calculates power and
+sample size for genetic association studies, including gene–environment and
+gene–gene interactions. Michigan’s [CaTS](https://csg.sph.umich.edu/abecasis/cats/)
+addresses large association studies, including two-stage genome-wide designs;
+its related [GAS calculator](https://csg.sph.umich.edu/abecasis/cats/gas_power_calculator/)
+calculates power for one-stage studies.
 
-`paweh` is a prospective statistical study-design package. It does not perform
-GWAS association testing, sequence processing, variant annotation, or general
-genomic data management. Instead, it is intended to complement downstream
-genetic-analysis workflows by helping researchers examine power, sample size,
-and sensitivity to supported design assumptions before collecting data or
-performing genotyping.
+Choose the tool that models your sampling plan and intended test. `paweh`
+focuses on prospective calculations, including selected heterogeneity,
+misclassification, sequencing and validation models. Error options differ by
+design; for example, ordinary case-control calculations evaluate separate
+error scenarios. The package does not process sequencing data or run
+genome-wide association tests on participants.
 
-## Citation
+## Citation and license
 
-Use `citation("paweh")` for the package citation and a background textbook
-reference: Gordon, Finch and Kim (2020), *Heterogeneity in Statistical Genetics:
-How to Assess, Address, and Account for Mixtures in Association Studies*,
-[doi:10.1007/978-3-030-61121-7](https://doi.org/10.1007/978-3-030-61121-7).
-This book discusses several relevant methods; consult the method-specific
-references in the package documentation and study-design articles for the
-sources of individual calculations.
-
-## License
-
-`paweh` is available under the MIT License.
+Run `citation("paweh")` for the software citation and the background book.
+Also cite the method used in your analysis: for example,
+[Gordon et al. (2002)](https://doi.org/10.1159/000066696) for case-control
+genotyping error or [Edwards et al. (2005)](https://doi.org/10.1186/1471-2156-6-18)
+for errors in disease classification. The package uses the MIT license.

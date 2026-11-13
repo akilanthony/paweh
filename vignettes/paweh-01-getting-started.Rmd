@@ -11,161 +11,187 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
+# Start with the recruitment decision
+
+Suppose a team suspects that a particular DNA variant is more common in people
+with a disease than in people without it. They can afford to recruit 500 people
+in each group. Even if the difference is real, different samples will give
+different results. Is this budget likely to give a clear answer?
+
+**Power** is the probability that the planned test will declare an association
+when a particular difference really exists. **Minimum sample size necessary
+(MSSN)** turns the question around: for that difference and test, how many
+people must the team recruit to attain its target power? Neither calculation
+tells us how likely the hypothesis is to be true. We must first say how large
+a difference is plausible and how participants will be sampled and measured.
+
+# Install and load the package
+
+This tutorial accompanies the experimental `develop` branch on GitHub.
+To install it with the rendered articles, run the following once in R.
+Building the articles needs Pandoc (included with RStudio); the installation
+also requests the suggested R packages used in the examples.
+
+```r
+# If needed: install.packages("remotes")
+remotes::install_github(
+  "akilanthony/paweh", ref = "develop", dependencies = TRUE,
+  build_vignettes = TRUE
+)
+```
+
+If you need only the stable package, use
+`remotes::install_github("akilanthony/paweh", ref = "main")` instead.
+
+Then load the package in your analysis session:
+
+```{r setup}
 library(paweh)
 ```
 
-# What problem does `paweh` solve?
+# Read a genetic study plan
 
-`paweh` supports prospective power and minimum-sample-size-necessary (MSSN)
-calculations for genetic association study designs. It is intended for the
-stage at which a researcher is deciding what data to collect, how many
-subjects or trios are needed, and how sensitive that design may be to model
-assumptions.
+| Term | Meaning in this tutorial |
+|---|---|
+| Gene, variant, allele | A gene is a stretch of DNA that provides instructions for a functional product. A variant is a difference in DNA sequence at a particular location; an allele is one version of the sequence there. A variant need not be inside a gene. |
+| Genotype and phenotype | The genotype is the pair of alleles a person carries at the location studied here. The phenotype is a measured characteristic, such as disease status or height. |
+| Biallelic genotype: 0, 1, 2 | At a location with two allele types, count copies of the allele of interest. If it is A, then aa, Aa and AA score 0, 1 and 2. Use the same allele and order in both groups. |
+| Allele frequency | The fraction of allele copies of a given type. A person with genotype Aa contributes one A out of two copies; allele frequency is different from the fraction of people carrying any A. |
+| Disease prevalence | The fraction of the source population with the disease. Recruiting equal numbers of cases and controls does not imply 50% prevalence. |
+| Genotype relative risk | Disease probability for one genotype divided by that for a reference genotype. If the probabilities are 10% and 5%, the relative risk is 2. An odds ratio compares *odds* (probability divided by one minus probability); it is a different input. |
+| Mode of inheritance | A rule for how disease risk changes across genotypes. Under multiplicative inheritance each additional copy multiplies risk by the same factor; under a dominant model one and two copies have the same risk. |
+| Significance threshold and power | The threshold (`alpha`) sets the nominal chance of a false positive when there is no association. Power is the chance of crossing the threshold **when the assumed association exists**. |
+| Locus heterogeneity | Different genetic locations can contribute to the same diagnosis in different people. A marker may distinguish only some of the cases from controls. |
+| Misclassification | A measured category differs from the true one: for example, recording Aa as AA (genotype error) or a truly affected person as a control (phenotype error). |
 
-The relevant design inputs differ across studies. They can include sample
-size, allele frequency, genotype relative risk, genotype or phenotype
-misclassification, locus heterogeneity, family-based transmission,
-extreme-phenotype sampling, and correlation among quantitative traits.
-These quantities are assumptions or design targets, not estimates produced
-from raw genomic data by `paweh`.
+# Plan a case-control study from pilot frequencies
 
-# Power and MSSN answer inverse questions
+Imagine that earlier work gives the following proportions for our candidate
+variant. Among **cases**, 25% have zero copies of A, 50% have one, and 25%
+have two. Among **controls**, the corresponding proportions are 36%, 48% and
+16%. Each row sums to one because every person in that group has exactly one
+of the three genotypes. If your pilot gives counts, divide each count by the
+number genotyped **within its own group**. Dividing by the whole pilot size
+answers a different question.
 
-- **Power:** given a sample size and model, what probability of rejection is
-  expected under the specified alternative?
-- **MSSN:** given a target power and model, how many cases, controls, trios, or
-  total individuals are required?
+```{r genotype-frequencies}
+g_case    <- c(0.25, 0.50, 0.25)  # aa, Aa, AA among cases
+g_control <- c(0.36, 0.48, 0.16)  # aa, Aa, AA among controls
+```
 
-For example, suppose pilot work supplies conditional genotype probabilities
-for cases and controls. A compact power calculation is:
+## With a fixed budget, what could we detect?
 
-```{r tiny-example}
-g_case <- c(0.25, 0.50, 0.25)
-g_control <- c(0.36, 0.48, 0.16)
+The frequencies describe the difference we expect in the **new** study. The
+500 cases in the next call are people we plan to recruit, not the number of
+people who supplied the pilot frequencies. We assume unrelated participants,
+comparable source populations, and correct genotype and disease classification.
 
-starter_power <- cc_power(
-  N_case = 500,
-  alpha = 0.05,
-  input_mode = "model_free",
-  g1 = g_case,
-  g0 = g_control,
-  k = 1,
-  verbose = FALSE
+| Argument | Why use it here? |
+|---|---|
+| `input_mode = "model_free"` | We can specify genotype frequencies separately for each group rather than deriving them from a disease model. |
+| `g1`, `g0` | Supply the full three-element vectors for cases and controls, respectively. The 1 in `g1` labels disease status; it does not mean one copy of A. |
+| `N_case = 500`, `k = 1` | Fix the case count and the number of controls per case. Our plan has 500 controls and 1,000 participants in total. |
+| `alpha = 0.05` | Use 5% for a single prespecified candidate-variant test. A scan of many variants needs a more stringent threshold to control false positives across tests. |
+| `verbose = FALSE` | Return the results quietly so we can display just the quantities needed for recruitment. |
+
+```{r fixed-power}
+fixed <- cc_power(
+  N_case = 500, alpha = 0.05, k = 1, input_mode = "model_free",
+  g1 = g_case, g0 = g_control, verbose = FALSE
 )
-
-starter_power$tests$genotypes$power
+c(genotype = fixed$tests$genotypes$power, trend = fixed$tests$trend$power)
 ```
 
-The corresponding `cc_mssn()` calculation reverses the design question by
-replacing `N_case` with a target `power`.
+The **genotype test** compares the whole distribution across the three
+categories. At these frequencies its power is **`r sprintf("%.1f%%", 100 * fixed$tests$genotypes$power)`**.
+The **trend test** compares mean allele-copy scores (0, 1, 2) between groups;
+its power is **`r sprintf("%.1f%%", 100 * fixed$tests$trend$power)`**.
+Here cases tend to have more copies, so the targeted trend test uses the
+contrast efficiently. In a different disease, one-copy carriers might stand
+out while both zero- and two-copy carriers have similar risks. A difference
+like that can be missed by a trend test. Choose the primary test for the
+scientific contrast before looking at study results.
 
-# Five study-design families
+## If the target is 80% power, how many people are needed?
 
-## Case-control association
+Keep the same group frequencies, threshold and allocation. Replace the fixed
+case count with `power = 0.80`. Each row below is a separate plan, depending
+on which test you intend to use.
 
-Cases and controls are compared using a genotype chi-square or trend test.
-The canonical `cc_power()` and `cc_mssn()` interfaces support model-based and
-model-free inputs, along with compatible heterogeneity and error modifiers.
-
-## Affected-child trios
-
-The transmission disequilibrium test (TDT) compares transmitted and
-non-transmitted alleles in affected-child trios. `tdt_power()` and
-`tdt_mssn()` report power or required trio counts under distinct no-error,
-phenotype-misclassification, and locus-heterogeneity scenarios.
-
-## Quantitative traits
-
-For continuous traits, `paweh` supports one-way genotype-group ANOVA,
-threshold-selected genotype chi-square designs, and multivariate designs
-using Pillai MANOVA or joint threshold selection.
-
-## Sequencing-based designs
-
-For fixed-depth sequencing studies, `cc_ngs_power()` and `cc_ngs_mssn()`
-support case-control designs, while `tdt_ngs_power()` and `tdt_ngs_mssn()`
-support TDT1-NGS designs. `ngs_genotype_error_matrix()` constructs the
-sequencing-to-called-genotype transition matrix used by supported workflows;
-these functions do not process FASTQ, BAM, or VCF files.
-
-## LRTae validation/error-aware designs
-
-`lrtae_ncp()`, `lrtae_power()`, and `lrtae_mssn()` provide prospective
-error-aware case-control design calculations with validation data. They do not
-fit an observed-data likelihood, and LTTae is not implemented.
-
-# Model-based and model-free inputs
-
-These modes locate the scientific assumptions in different places.
-
-For **case-control** studies, model-based input uses prevalence, disease-allele
-frequency, genotype relative risk, and mode of inheritance. Model-free input
-uses supplied conditional genotype probabilities: `g1` for cases or affected
-subjects and `g0` for controls or unaffected subjects.
-
-For the **TDT**, model-based input uses `pd`, `prev`, `R1`, `R2`, and
-`delta_prime`. Model-free input starts from expected transmission and
-non-transmission counts (`ET` and `ENT`), with the associated number of trios
-needed for MSSN calculations.
-
-Model-free input is useful when these quantities come from pilot data, prior
-publications, external calculations, or direct design assumptions. It does
-not remove assumptions; it moves them into the supplied conditional
-quantities.
-
-# Where should I start?
-
-| Scientific design | Canonical starting functions | Detailed vignette |
-|---|---|---|
-| Case-control association | `cc_power()`, `cc_mssn()` | Case-Control Study Design |
-| Affected-child trios | `tdt_power()`, `tdt_mssn()` | TDT Study Design |
-| Continuous single-trait QTL | `qtl_anova_power()`, `qtl_anova_mssn()` | Quantitative-Trait Study Design |
-| Extreme-trait QTL | `qtl_threshold_chisq_power()`, `qtl_threshold_chisq_mssn()` | Quantitative-Trait Study Design |
-| Multivariate quantitative traits | `qtl_multivariate_power_full()`, `qtl_multivariate_mssn_full()` | Quantitative-Trait Study Design |
-| Sequencing case-control | `cc_ngs_power()`, `cc_ngs_mssn()` | Sequencing Study Design |
-| Sequencing TDT | `tdt_ngs_power()`, `tdt_ngs_mssn()` | Sequencing Study Design |
-| Error-aware case-control / LRTae | `lrtae_ncp()`, `lrtae_power()`, `lrtae_mssn()` | LRTae Power and Sample-Size Design |
-
-# How paweh fits into a research workflow
-
-`paweh` provides prospective study-design infrastructure for genetic and
-genomic association research, including sequencing-based designs. These
-calculations complement downstream genomic analysis by examining operating
-characteristics before data generation or collection. Inputs are study-design
-parameters and supplied summary quantities.
-
-# Published validation philosophy
-
-The remaining vignettes distinguish three uses of literature:
-
-- **Published-example reproduction:** a reported analytic result is evaluated
-  with a matching `paweh` design.
-- **Published methodological context:** a paper explains an important risk or
-  method, but its exact analysis is not claimed to be reproduced.
-- **Motivating published application:** an application motivates a design
-  question while using a different statistical procedure.
-
-The study-design vignettes reproduce validated examples across case-control,
-TDT, and multivariate quantitative-trait settings and then extend those fixed
-designs with sensitivity calculations.
-
-# Installation
-
-Install the development version of `paweh` from GitHub:
-
-```{r installation, eval=FALSE}
-if (!requireNamespace("remotes", quietly = TRUE)) {
-  install.packages("remotes")
-}
-remotes::install_github("akilanthony/paweh")
+```{r required-recruitment}
+needed <- cc_mssn(
+  power = 0.80, alpha = 0.05, k = 1, input_mode = "model_free",
+  g1 = g_case, g0 = g_control, verbose = FALSE
+)
+g <- needed$tests$genotypes
+t_plan <- needed$tests$trend
+recruitment <- data.frame(
+  test = c("Genotype", "Trend"),
+  cases = c(g$MSSN_case, t_plan$MSSN_case),
+  controls = c(g$MSSN_ctrl, t_plan$MSSN_ctrl),
+  total = c(g$MSSN_total, t_plan$MSSN_total)
+)
+knitr::kable(recruitment)
 ```
 
-No installation is performed while this vignette is built.
+For the genotype test, plan for **`r g$MSSN_case` cases and `r g$MSSN_ctrl`
+controls** (`r g$MSSN_total` people). For a prespecified trend test, the target
+is **`r t_plan$MSSN_case` cases and `r t_plan$MSSN_ctrl` controls**
+(`r t_plan$MSSN_total` people). Both fit the original budget. The required
+counts are rounded up to whole people, so achieved power need not be exactly
+80%. These targets treat the pilot proportions as the future frequencies. If
+the pilot was small, repeat both calls with plausible smaller differences to
+see whether the budget still suffices.
 
-# Session information
+# What if you do not have pilot frequencies?
 
-```{r session-info}
-sessionInfo()
-```
+Choose inputs based on the evidence available **before** recruitment:
+
+- **Case-control, model-based:** If prior studies give population prevalence
+  (`prev`), disease-allele frequency (`pd`), and disease risk for two copies
+  relative to zero (`R2`), supply those and the mode of inheritance (`MOI`).
+  The model starts with Hardy–Weinberg proportions (genotype frequencies
+  expected when allele copies pair at random) in the source population. It
+  uses the disease risks to derive separate frequencies in cases and
+  controls. With `MOI = "M"`, one copy has relative risk `sqrt(R2)`.
+- **Case-control, model-free:** If a comparable pilot or publication gives
+  the group-specific distributions, supply `g1` and `g0` as above. No
+  inheritance rule is required for this baseline calculation. You still
+  assume the same allele coding, suitable sampling and a plausible contrast
+  in the planned population. Some extensions require extra inputs; disease
+  misclassification, for instance, also needs prevalence.
+- **Affected-child trios:** The transmission disequilibrium test (TDT)
+  compares alleles passed on by parents with those not passed on. Its
+  model-free inputs are expected transmission and non-transmission **counts**
+  (`ET`, `ENT`), not case-control genotype frequencies. Counts have a scale:
+  for power at a fixed sample size they refer to the proposed number of trios;
+  for MSSN, supply the number of trios underlying the counts separately as
+  `n_trios`. The recruitment answer is in complete families, not people.
+
+# Choose the next calculation
+
+| If your planning question is… | Read next |
+|---|---|
+| What if only some cases carry the expected association, or genotypes or diagnoses are recorded incorrectly? | [Case-control design](paweh-02-case-control-study-design.html) compares each requested departure separately with the same baseline. Different calling errors in cases and controls can inflate false positives; a larger nominal power then need not mean a better design. |
+| How many families with an affected child and both parents do we need? | [TDT design](paweh-03-tdt-study-design.html) explains transmission counts and which family-based error and heterogeneity scenarios can be modeled. |
+| Our outcome is a measurement rather than a diagnosis. Should we measure everyone or sample extremes? | [Quantitative-trait design](paweh-04-quantitative-trait-study-design.html) compares group means, selection from trait extremes, and designs involving several traits. |
+| Could we explore the same assumptions without writing each call? | The [dashboard walkthrough](paweh-05-interactive-dashboard.html) connects interactive case-control, trio and quantitative-trait plans to reproducible R calls. |
+| How does the number of reads at a variant affect recruitment? | [Sequencing design](paweh-06-sequencing-study-design.html) distinguishes case-control genotype calls from the trio method based on reads. These are fixed-depth planning models; no sequence files are needed. |
+| Can we afford to verify diagnoses or genotypes in just part of the study? | [LRTae validation design](paweh-07-lrtae-study-design.html) allocates people according to which measurements receive a gold-standard check, and calculates power or required recruitment for that plan. |
+
+# Further reading
+
+Gordon D, Finch SJ, Kim W. [*Heterogeneity in Statistical Genetics: How to
+Assess, Address, and Account for Mixtures in Association Studies*](https://doi.org/10.1007/978-3-030-61121-7).
+Springer; 2020. This book provides background on why mixtures matter.
+For the case-control error models, see [Gordon et al. (2002) on genotype
+errors](https://doi.org/10.1159/000066696) and [Edwards et al. (2005) on
+phenotype errors](https://doi.org/10.1186/1471-2156-6-18). Consult the
+article for your design for its specific method and assumptions. Use
+`citation("paweh")` for the software citation.
+
+For other planning questions, [Quanto](https://keck.usc.edu/biostatistics/software/)
+includes gene–gene and gene–environment interaction designs.
+Michigan’s [CaTS](https://csg.sph.umich.edu/abecasis/cats/) supports large
+association studies including two-stage designs, and its [GAS calculator](https://csg.sph.umich.edu/abecasis/cats/gas_power_calculator/)
+provides a related one-stage power calculation.
