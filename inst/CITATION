@@ -1,0 +1,22 @@
+## Keep the software citation synchronized with DESCRIPTION metadata.
+citation(auto = meta)
+
+bibentry(
+  bibtype = "Book",
+  title = paste(
+    "Heterogeneity in Statistical Genetics:",
+    "How to Assess, Address, and Account for Mixtures in Association Studies"
+  ),
+  author = c(
+    person("Derek", "Gordon"),
+    person(c("Stephen", "J."), "Finch"),
+    person("Wonkuk", "Kim")
+  ),
+  year = "2020",
+  publisher = "Springer",
+  doi = "10.1007/978-3-030-61121-7",
+  header = paste(
+    "For background on relevant methods, see the following book.",
+    "The documentation identifies the sources of individual calculations."
+  )
+)

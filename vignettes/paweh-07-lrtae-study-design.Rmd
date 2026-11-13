@@ -2,9 +2,9 @@
 title: "LRTae power and sample-size design"
 author: "paweh package authors"
 output:
-  BiocStyle::html_document:
+  rmarkdown::html_vignette:
     toc: true
-    toc_float: true
+    number_sections: true
 vignette: >
   %\VignetteIndexEntry{7. LRTae Power and Sample-Size Design}
   %\VignetteEngine{knitr::rmarkdown}

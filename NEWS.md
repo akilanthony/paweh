@@ -1,6 +1,8 @@
 # paweh 0.99.0
 
 * Initial development release.
+* Prepares CRAN-compatible vignette formatting and metadata, with package and
+  background textbook citations.
 * Provides prospective power and minimum sample size calculations for
   case-control, TDT/family-based, quantitative-trait, sequencing-based, and
   LRTae study designs.

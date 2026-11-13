@@ -1,5 +1,5 @@
 Package: paweh
-Title: Power and Sample Size Analysis for Genetic Studies with Heterogeneity and Misclassification
+Title: Power and Sample Size for Genetic Association Studies
 Version: 0.99.0
 Authors@R:
     c(
@@ -26,17 +26,18 @@ Description: Provides prospective power and minimum sample size necessary
     affect power and sample-size requirements but can be difficult to
     incorporate analytically. Published statistical-genetics methods are
     implemented in a reproducible, primarily parameter- and model-based
-    framework with static visualizations and an optional Shiny dashboard for
+    framework with static visualizations and an optional 'shiny' dashboard for
     interactive exploration. The software supports prospective study planning;
-    it does not perform downstream association testing.
+    it does not perform downstream association testing. Implemented methods
+    include approaches discussed by Gordon, Finch and Kim (2020)
+    <doi:10.1007/978-3-030-61121-7>, alongside other method-specific sources
+    identified in the documentation.
 License: MIT + file LICENSE
 Encoding: UTF-8
 URL: https://github.com/akilanthony/paweh, https://akilanthony.github.io/paweh/
 BugReports: https://github.com/akilanthony/paweh/issues
-biocViews: ExperimentalDesign, Genetics, GenomeWideAssociation, ShinyApps
 Roxygen: list(markdown = TRUE)
 Suggests: 
-    BiocStyle,
     knitr,
     plotly,
     rmarkdown,

@@ -206,8 +206,13 @@ performing genotyping.
 
 ## Citation
 
-For the statistical methods used in `paweh`, please consult the methodological
-references in the package documentation and study-design articles.
+Use `citation("paweh")` for the package citation and a background textbook
+reference: Gordon, Finch and Kim (2020), *Heterogeneity in Statistical Genetics:
+How to Assess, Address, and Account for Mixtures in Association Studies*,
+[doi:10.1007/978-3-030-61121-7](https://doi.org/10.1007/978-3-030-61121-7).
+This book discusses several relevant methods; consult the method-specific
+references in the package documentation and study-design articles for the
+sources of individual calculations.
 
 ## License
 

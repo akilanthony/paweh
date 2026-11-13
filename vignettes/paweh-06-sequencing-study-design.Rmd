@@ -2,9 +2,9 @@
 title: "Sequencing-Based Genetic Study Design with PAWEH"
 author: "paweh package authors"
 output:
-  BiocStyle::html_document:
+  rmarkdown::html_vignette:
     toc: true
-    toc_float: true
+    number_sections: true
 vignette: >
   %\VignetteIndexEntry{6. Sequencing-Based Genetic Study Design with PAWEH}
   %\VignetteEngine{knitr::rmarkdown}

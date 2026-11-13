@@ -2,9 +2,9 @@
 title: "Interactive Study Design with the paweh Dashboard"
 author: "paweh package authors"
 output:
-  BiocStyle::html_document:
+  rmarkdown::html_vignette:
     toc: true
-    toc_float: true
+    number_sections: true
 vignette: >
   %\VignetteIndexEntry{5. Interactive Study Design with the paweh Dashboard}
   %\VignetteEngine{knitr::rmarkdown}

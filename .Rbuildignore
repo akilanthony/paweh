@@ -10,3 +10,4 @@
 ^tests/testthat/Rplots\.pdf$
 ^\.claude$
 ^\.github$
+^CRAN_PREPARATION_AUDIT\.md$
