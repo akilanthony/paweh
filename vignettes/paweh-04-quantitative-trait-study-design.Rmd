@@ -1,5 +1,5 @@
 ---
-title: "Quantitative-trait genetic association study design"
+title: "4. Quantitative-Trait Study Design"
 author: "paweh package authors"
 output:
   rmarkdown::html_vignette:
@@ -16,27 +16,61 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height
 library(paweh)
 ```
 
-# Quantitative-trait study design in PAWEH
+# How many people would we need to detect a shift in height?
 
-For a quantitative trait, genotype can shift the phenotype distribution rather
-than simply changing a binary disease probability. `paweh` uses a
-Falconer-style model to calculate prospective operating characteristics for
-association-study design. Its core inputs are:
+Suppose a growth study can measure adult height in a large cohort, but has a
+smaller budget for genotyping. A **quantitative trait** is a characteristic
+measured on a numerical scale. A **quantitative trait locus** (QTL) is a
+region of the genome whose variation contributes to differences in that
+measurement. At a variant with two alleles, a person's **genotype** tells us
+whether they carry zero, one, or two copies of the allele we are studying.
 
-- `qtl_var`: the proportion of trait variance attributable to the modeled QTL;
-- `tau`: dominance relative to additivity;
-- `pd`: the frequency of the modeled allele; and
-- residual variance or covariance: the remaining phenotype variation and, for
-  multiple traits, how those traits co-vary.
+Imagine that people with two copies are taller on average than people with
+zero copies. Plenty of people in the first group could still be shorter than
+people in the second. Can the study distinguish that shift in averages from
+the variation among people? **Power** is the probability of detecting the
+association in repeated studies if the assumed effect exists. We can either
+estimate power for the people we can recruit or calculate the minimum sample
+size needed (MSSN) for a target power.
 
-These functions plan studies under a specified model. They do not estimate QTL
-effects from individual-level phenotype and genotype observations.
+The examples below consider three recruitment decisions. We can measure and
+genotype everyone, genotype people selected by unusually high or low
+measurements, or take several measurements per person and design a joint
+test. The most expensive step in the study matters when comparing these plans.
 
-# Genotype-specific trait distributions
+# How much do the three genotype groups overlap?
 
-The three genotype groups can have different expected trait distributions, but
-residual variation makes those distributions overlap. Greater separation of
-the genotype means generally creates a stronger potential association signal.
+Start with the means of the two homozygotes, people with zero and two
+copies. In the Falconer-style model their midpoint is \(m\) and their means
+are \(m-a\) and \(m+a\). The **additive effect** \(a\) is half their
+difference. If each copy shifts the mean by the same amount, the heterozygote
+(one copy) sits at the midpoint. **Dominance** is the departure of its mean
+from that midpoint. The package calls this departure \(\delta\), so the
+one-copy mean is \(m+\delta\).
+
+- `tau` is the ratio \(\delta/a\). At zero, the three means are equally
+  spaced. At 0.5, the heterozygote moves halfway from the midpoint to the
+  two-copy mean. At 1 it coincides with that mean, and at −1 it coincides
+  with the zero-copy mean. The functions accept finite numeric ratios,
+  including values outside [−1, 1], which place the heterozygote beyond the
+  two homozygote means.
+- `pd` is the population frequency of the modeled allele, between zero and
+  one, exclusive. Under Hardy–Weinberg proportions the three genotype
+  frequencies are \((1-p_d)^2\), \(2p_d(1-p_d)\), and \(p_d^2\). These
+  weights determine how much each group contributes to population variation.
+- `qtl_var` is the fraction of total trait variance explained by the
+  differences between genotype means, also strictly between zero and one.
+  The model centers the population mean at zero and scales total variance
+  to one. Thus `qtl_var = 0.025` attributes **2.5%** of population variance
+  to the modeled locus. The remaining 0.975 is **residual variance** within
+  genotype groups. It includes other sources of variation, such as other
+  genes, environment and measurement error.
+
+Given these three inputs, `qtl_falconer_parameters()` derives the means and
+common within-group standard deviation. Gordon, Finch, and Kim (2020,
+§6.1.1) give this parameterization using Fisher's variance decomposition as
+presented by Lynch and Walsh. To see the overlap clearly, the figure first
+uses a larger QTL variance of 0.25 and a dominance ratio of 0.25.
 
 ```{r genotype-distributions, fig.cap="Deterministic genotype-specific quantitative-trait distributions under the Falconer model."}
 plot_qtl_genotype_distribution(
@@ -48,17 +82,45 @@ plot_qtl_genotype_distribution(
 )
 ```
 
-Vertical lines identify the genotype-specific means. `type = "binned"` is a
-deterministic histogram-style representation: each bar is calculated from the
-difference between analytic Normal CDF values at its bin boundaries. No random
-observations are simulated.
+Read each color across the horizontal trait scale. The vertical markers show
+the three means. Even at this large effect size, all three groups can produce
+measurements near the middle. Each bar height is the probability of its
+interval under the genotype's normal distribution divided by the bin width.
+These are deterministic model densities. This display gives each genotype its
+own density scale, so the relative numbers of people carrying each genotype
+cannot be read from the bar heights.
 
-# Continuous-trait ANOVA design
+# Measure everyone and compare means with ANOVA
 
-When every recruited subject is measured on the continuous trait, a one-way
-ANOVA can compare the three genotype groups. The following example calculates
-power at a fixed sample size and the minimum total sample size (MSSN) for 80%
-power.
+A one-way analysis of variance (ANOVA) compares the spread **between** the
+three genotype means with the variation **within** groups. Its null
+hypothesis is that all three population means are equal. The test can detect
+departures that involve dominance because it compares three groups without
+requiring the means to follow a straight line. The power model assumes
+independent participants, a normal trait within each genotype, and a common
+residual variance. Expected group sizes follow the allele frequency.
+
+Use the smaller 2.5% QTL from Gordon, Finch, and Kim (§6.1.4). The table
+explains the design choices in both calls.
+
+| Input | Choice | Meaning |
+|:---|:---|:---|
+| `N` | 996 | Total people, each contributing one trait measurement and one genotype. |
+| `alpha` | 0.0001 | Probability of rejecting equal means under the null model. |
+| `qtl_var`, `tau`, `pd` | 0.025, 0.5, 0.15 | Variance fraction, dominance/additivity ratio and allele frequency, respectively. |
+| `power` | 0.80 | Desired chance of detecting the modeled shift when solving for sample size. |
+| `count_method` | `"rounded"` | Round each expected genotype count separately. The alternative `"expected"` uses fractional counts for planning. |
+| `multiple_of_three` | `TRUE` | Search total sample sizes in steps of three for MSSN. With `FALSE`, search every eligible integer. |
+
+Table: Inputs for a continuous-trait study in unrelated participants.
+
+The step of three reproduces the textbook search. Actual genotype groups can
+have quite different sizes. At `pd = 0.15`, the rounded counts at 996 are
+720, 254 and 22. Separate rounding at other sample sizes can give counts that
+sum to a value slightly different from the supplied `N`. The F calculation
+uses two numerator degrees of freedom and `N - 3` denominator degrees of
+freedom. First ask what 996 participants provide, then solve for the size
+needed to reach 80%.
 
 ```{r anova-design}
 anova_power <- qtl_anova_power(
@@ -73,15 +135,25 @@ anova_mssn <- qtl_anova_mssn(
   count_method = "rounded", multiple_of_three = TRUE,
   verbose = FALSE
 )
-
-data.frame(
-  quantity = c("Power at N = 996", "Required total N", "Power at required N"),
-  value = c(anova_power$power, anova_mssn$N, anova_mssn$achieved_power)
-)
 ```
 
-One power curve summarizes how the design changes as more participants are
-measured.
+```{r anova-design-table, echo=FALSE}
+knitr::kable(data.frame(
+  quantity = c("Power at N = 996", "Required total N", "Power at required N"),
+  value = c(anova_power$power, anova_mssn$N, anova_mssn$achieved_power)
+), digits = 5,
+             col.names = c("Design quantity", "Value"),
+             caption = "Power and recruitment for the continuous height design.")
+```
+
+The two routes agree. A study of 996 people has **80.005% power**, and
+996 is the first eligible total on this search grid to reach 80%. Those
+996 participants are drawn across the full height distribution. Each
+participant counts once regardless of which genotype is observed.
+
+If recruitment falls short, the power loss depends on where the study lies
+on the curve. Holding the model and significance threshold fixed gives the
+following seven prospective studies.
 
 ```{r anova-plot, fig.cap="One-way genotype-group ANOVA power as total sample size increases."}
 plot_qtl_anova_power(
@@ -94,18 +166,40 @@ plot_qtl_anova_power(
 )
 ```
 
-# Extreme-phenotype sampling
+At 900 participants the power is about 72.5%, while 1,050 gives about
+83.8%. The gain from another 150 people becomes smaller toward the right
+of the plot. The continuous-trait calculation uses the height of every
+genotyped participant.
 
-Instead of recruiting across the full phenotype distribution, investigators
-may select subjects from its extremes. In `paweh`'s single-trait threshold
-design, upper-tail individuals become selected cases, lower-tail individuals
-become selected controls, and individuals in the middle are not selected.
-Upper and lower events are distinct tails rather than complements.
+# Measure broadly and genotype the extremes
 
-Li et al. (2019) provide a **motivating published application** of extreme
-quantitative-phenotype sampling. Their procedure is not the threshold-selected
-genotype chi-square method implemented by `paweh`, so this is motivation rather
-than a numerical reproduction.
+Suppose height measurements are already available to the cohort and
+genotyping is expensive. We could screen the measurements and invite only
+the tallest and shortest people for genotyping. When genotype shifts the
+trait mean, the high and low groups can differ appreciably in genotype
+frequencies. This design tests that difference using a genotype chi-square
+test with two degrees of freedom. Li et al. (2019) examine extreme sampling
+under balanced and unbalanced designs. The numerical example here comes
+from Gordon, Finch, and Kim (§6.1.3).
+
+There are three populations to keep track of. The **source population**
+supplies the distribution of measurements. The **screened participants**
+are those whose trait values we examine. The **selected participants**
+enter the genetic analysis. The package calls upper-tail participants
+cases and lower-tail participants controls. These labels indicate selection
+by height. People between the cutoffs enter neither group.
+
+`x_upper = 5` and `x_lower = 5` are **percentages**. The function converts
+them to standard normal cutoffs with `qnorm(1 - 5/100)` and
+`qnorm(5/100)`. Entering 0.05 would request 0.05% in that reference
+distribution. The source model is a mixture of three genotype-specific
+normals. Its mean and variance are standardized, but its actual tail
+probabilities can differ slightly from the reference percentages.
+
+The first call derives the boundaries and genotype frequencies within each
+tail. The second asks about a budget for 126 upper-tail people, and the third
+solves for the number needed to reach 80%. In both calls `k = 1` allocates
+one lower-tail participant per upper-tail participant.
 
 ```{r threshold-parameters}
 threshold_model <- qtl_falconer_threshold_parameters(
@@ -127,8 +221,10 @@ threshold_mssn <- qtl_threshold_chisq_mssn(
   x_upper = 5, x_lower = 5, k = 1,
   verbose = FALSE
 )
+```
 
-data.frame(
+```{r threshold-parameters-table, echo=FALSE}
+knitr::kable(data.frame(
   quantity = c(
     "Upper threshold", "Lower threshold", "Power with 126 selected cases",
     "Required selected cases", "Required selected controls",
@@ -144,12 +240,55 @@ data.frame(
     threshold_mssn$expected_population_screened_cases,
     threshold_mssn$expected_population_screened_controls
   )
-)
+), digits = 5,
+             col.names = c("Design quantity", "Value"),
+             caption = "Trait cutoffs, power, selected quotas and screening requirements.")
 ```
 
-The selected study MSSN and the expected source population screened are
-different quantities. Screening burden can be much larger because only a
-fraction of the source population falls into either selected tail.
+The thresholds are about **−1.645 and +1.645** population standard
+deviations. With 126 selected per tail, or **252 people genotyped**, power is
+**80.17%**. The model predicts that about 39.7% of the upper group and
+14.2% of the lower group will carry exactly one copy. This difference in
+genotype composition supplies evidence for the association.
+
+The shaded areas show which people enter the calculation. The curve is the
+population mixture, weighted by the expected frequency of each genotype.
+
+```{r tail-regions, echo=FALSE, fig.height=3.8, fig.alt="Two narrow shaded tails lie on opposite sides of the unselected middle of the height distribution.", fig.cap="Source population for the 2.5% QTL design. Shading marks the two groups eligible for genotyping."}
+model <- threshold_model$falconer
+density_at <- function(x) {
+  drop(vapply(model$mu, function(mu) dnorm(x, mu, model$residual_sd),
+              numeric(length(x))) %*% model$pi)
+}
+cuts <- threshold_model$thresholds
+x <- sort(c(seq(-4, 4, length.out = 601), cuts))
+y <- density_at(x)
+par(mar = c(4, 4, 1, 1))
+plot(x, y, type = "n", xlab = "Standardized height", ylab = "Population density",
+     ylim = c(0, 0.45), yaxs = "i")
+shade <- function(keep, fill) {
+  polygon(c(x[keep][1], x[keep], tail(x[keep], 1)),
+          c(0, y[keep], 0), col = fill, border = NA)
+}
+shade(x <= cuts["lower"], "#559bad")
+shade(x >= cuts["upper"], "#e69f49")
+lines(x, y, lwd = 2)
+abline(v = cuts, lty = 3)
+text(c(-2.65, 0, 2.65), c(.13, .26, .13),
+     c("Lower tail", "Middle: excluded", "Upper tail"))
+```
+
+About 5.012% of screened people meet the upper cutoff and 4.988% meet
+the lower cutoff. Dividing 126 by each eligibility probability gives
+**about 2,514 screened for the upper quota and 2,526 for the lower quota**.
+When one cohort supplies both tails, the same measurement screens a person
+for both. The two numbers are separate expectations. The actual number
+screened until both quotas fill varies. Compared with ANOVA's 996 genotypes,
+this plan saves genotyping while requiring more heights to be measured.
+
+What if the upper criterion is relaxed while the lower criterion stays at
+5%? The curve compares five choices with the same power target and equal
+selected group sizes.
 
 ```{r threshold-plot, fig.cap="Required selected cases as upper-tail sampling becomes less extreme, with the lower tail fixed at 5%."}
 plot_qtl_threshold_chisq_mssn(
@@ -167,26 +306,66 @@ plot_qtl_threshold_chisq_mssn(
 )
 ```
 
-Selection stringency changes genotype enrichment, selected-sample MSSN, and
-the operational burden of finding eligible participants.
+Moving the upper cutoff from 2.5% to 15% increases the required number
+in each selected group from 110 to 168. The wider upper tail makes eligible
+people easier to find, but its genotype frequencies are closer to those of
+the lower group. The vertical axis counts **selected upper-tail people**.
+Budget the screening step from each design's own selection probabilities.
 
-# Multiple quantitative traits
+# Two measurements on the same person
 
-Multiple correlated or biologically related phenotypes may carry complementary
-information about the same locus. Yang et al. (2010) provide a **motivating
-published application** of joint phenotype analysis, but their method is not
-the Pillai framework implemented by `paweh` and is not reproduced here.
+A growth-related variant might shift both adult height and arm span. One
+locus influencing several traits is **pleiotropy**. In a study with *locus
+heterogeneity*, several loci can each contribute to a similar phenotype in
+different people. Here we follow one locus across two measurements on the
+same people.
 
-For multivariate `paweh` designs, `qtl_var` and `tau` become
-phenotype-specific vectors, `pd` remains shared, and `cor_matrix` describes
-phenotype correlation. Use `test = "pillai"` for a continuous multivariate
-design or `test = "threshold_chisq"` for jointly threshold-selected phenotypes.
+For multiple traits, give one `qtl_var` and one `tau` per trait, in the
+same order as the rows and columns of `cor_matrix`. The allele frequency
+`pd` is shared because each participant has one genotype at this locus.
+Height and arm span may also vary together within any one genotype. For
+example, growth conditions could influence both. The implementation uses
+`cor_matrix` for this **within-genotype, or residual, correlation**. It
+multiplies each entry by the two residual standard deviations to obtain
+the common within-genotype covariance matrix. Supply a symmetric,
+positive-definite correlation matrix with ones on its diagonal.
 
-# Published-example reproduction: Gordon et al. (2017)
+Pooling genotypes adds another source of covariance when both trait means
+change with allele count. Even `diag(2)`, which sets the residual
+correlation to zero, can therefore give correlated traits in the full
+cohort. For planning, distinguish correlations estimated within genotype
+groups from a single correlation estimated in the whole population.
 
-The published pleiotropic example uses allele frequency 0.05, QTL variances
-0.10 and 0.05, dominance ratios 0 and 0.50, independent phenotypes, target
-power 0.80, and genome-wide `alpha = 5e-8`.
+# Use both continuous traits in a joint test
+
+Separate ANOVAs ask whether the genotype means differ for each trait in
+turn. A multivariate analysis of variance (MANOVA) asks one question about
+the *pair* of means. Does any genotype have a different mean profile for
+height and arm span? **Pillai's trace** measures the separation among those
+profiles along combinations of the traits, relative to the variation of
+people around their genotype means. Two highly correlated measurements may
+contribute little additional information about a common shift, while a
+shift across a direction with little residual variation can be easier to
+detect. A significant joint test alone does not identify which trait drives
+the association.
+
+The design assumes independent people and multivariate normal measurements
+within each genotype with a common covariance matrix. In the calculation
+of Gordon et al., each informative direction contributes
+\(r/(1+r)\) to the population trace, where \(r\) measures between-group
+variation relative to within-group variation in that direction. The
+function combines the trace, total sample size and degrees of freedom in
+a noncentral F power calculation. Its power advantage over a univariate
+test depends on the effect profile and covariance.
+
+## Reproduce the 326-person design of Gordon et al.
+
+Gordon et al. (published online in 2017, pp. 205–206) give a two-trait
+example with a 5% allele frequency. The QTL explains 10% and 5% of the
+respective trait variances. Trait 1 has equally spaced means, while trait 2
+has a heterozygote shift of half its additive effect. The identity matrix
+specifies zero residual correlation. Use the full measurements on everyone,
+target 80% power, and set the significance level to \(5\times 10^{-8}\).
 
 ```{r gordon-multivariate-reproduction}
 gordon_mv <- qtl_multivariate_mssn_full(
@@ -201,23 +380,25 @@ gordon_mv <- qtl_multivariate_mssn_full(
 )
 
 stopifnot(gordon_mv$N == 326L)
+```
 
-data.frame(
+```{r gordon-multivariate-reproduction-table, echo=FALSE}
+knitr::kable(data.frame(
   quantity = c(
     "Published integer MSSN",
     "paweh integer MSSN",
     "Historical fractional MSSN"
   ),
   value = c(326, gordon_mv$N, gordon_mv$historical_fractional_mssn)
-)
+), digits = 5,
+             col.names = c("Design quantity", "Value"),
+             caption = "Pillai sample size in the publication and under the same package design.")
 ```
 
-The published result and `paweh` both require 326 participants. The historical
-continuous root is approximately 325.5057; recruitment requires an integer, so
-the result is rounded upward.
-
-The inverse calculation evaluates power at the returned integer design using
-the same model.
+The publication reports **326 people**. The package's historical fractional
+solution is **325.5057**. Recruitment requires whole people, and the
+function searches for the first integer whose power reaches the target.
+Use the companion power function to check what the returned design achieves.
 
 ```{r gordon-multivariate-power}
 gordon_mv_power <- qtl_multivariate_power_full(
@@ -234,50 +415,180 @@ gordon_mv_power <- qtl_multivariate_power_full(
 gordon_mv_power$power
 ```
 
-# Joint multivariate threshold selection
+At 326 participants, power is **80.15%**. Thus a study repeated under
+these assumptions would detect the modeled difference in about four out
+of five repetitions. This published calculation uses expected genotype
+frequencies. At `pd = 0.05` only \(326(0.05)^2 = 0.815\) two-copy
+participants are expected. A realized cohort can lack this genotype
+entirely, which matters if the intended analysis requires all three groups.
+Yang et al. (2010) discuss another approach to multiple phenotypes that
+combines trait-specific tests. Their work provides context for the choice
+of test.
 
-For `test = "threshold_chisq"`, affected subjects must satisfy both upper-tail
-conditions, and unaffected subjects must satisfy both lower-tail conditions:
+# Genotype people who are extreme on both measurements
 
-\[
-\text{affected}: Y_1 \ge T_{U1} \;\mathbf{AND}\; Y_2 \ge T_{U2},
-\]
+Suppose both measurements are inexpensive and the budget covers genotyping
+a subset. We now want a group with **both** unusually high height **and**
+unusually high arm span, and a second group low on **both**. A person high
+on one trait and average or low on the other belongs to neither group.
+This design tests genotype frequencies across two selected groups.
 
-\[
-\text{unaffected}: Y_1 \le T_{L1} \;\mathbf{AND}\; Y_2 \le T_{L2}.
-\]
+For a new illustration, take an allele frequency of 0.40, QTL variances
+of 2.5% and 4%, and dominance ratios of 0.5 and 0, in height–arm span
+order. The residual correlation is 0.5 within every genotype. Each of the
+two upper cutoffs is the 90th standard normal percentile and each lower
+cutoff is the 10th. Seek equal numbers in the two joint tails (`k = 1`)
+for 80% power at 0.0001. The first call solves for the quota in each tail.
+The second checks power at that upper-tail quota using exactly the same
+assumptions.
 
-Subjects in mixed or middle regions are unselected. For example,
-`x_upper = c(10, 10)` and `x_lower = c(10, 10)` define joint upper- and
-lower-tail selection at 10% for each phenotype. These thresholds illustrate
-the design and are not part of the published Gordon reproduction.
+```{r joint-design}
+joint_inputs <- list(
+  qtl_var = c(0.025, 0.04), tau = c(0.5, 0), pd = 0.40,
+  cor_matrix = matrix(c(1, 0.5, 0.5, 1), nrow = 2),
+  test = "threshold_chisq", x_upper = c(10, 10), x_lower = c(10, 10),
+  k = 1, alpha = 0.0001, verbose = FALSE
+)
+joint_size <- do.call(qtl_multivariate_mssn_full,
+                      c(list(power = 0.80), joint_inputs))
+joint_power <- do.call(qtl_multivariate_power_full,
+                       c(list(N_case = joint_size$N_case), joint_inputs))
+```
 
-# Scope and limitations
+The eligibility percentages below use both measurements on each person.
+The screening column divides each selected quota by its own eligibility
+probability.
 
-Joint multivariate tail probabilities use deterministic Miwa integration
-through 20 dimensions and locally seeded Genz--Bretz integration above 20.
-The latter restores the caller's random-number state and retains integration
-status information.
+```{r joint-results, echo=FALSE}
+knitr::kable(data.frame(
+  Group = c("Both high", "Both low"),
+  Eligible_percent = 100 * unname(joint_size$thresholds$prevalences),
+  Selected = c(joint_size$N_case, joint_size$N_control),
+  Expected_screened = c(joint_size$expected_population_screened_cases,
+                        joint_size$expected_population_screened_controls)
+), digits = c(0, 3, 0, 1),
+col.names = c("Joint tail", "Eligible (%)", "Selected people", "Expected screened"),
+caption = "Recruitment from two correlated measurements with 10% reference tails.")
+```
 
-Important scope boundaries are:
+**73 people per tail** (146 genotyped) give **`r sprintf("%.2f%%", 100 * joint_power$power)` power**.
+About 3.32% qualify for the upper group and 3.33% for the lower group.
+Expect to screen about **2,198 for the upper quota and 2,192 for the lower
+quota**. A single screening cohort contributes to both. Multiplying 10% by
+10% would miss the correlation and the genotype mixture in this example.
 
-- calculations are prospective study-design calculations, not model fitting;
-- genotype-specific phenotypes follow the modeled normal assumptions;
-- residual variance and covariance determine distributional overlap;
-- single-trait threshold designs exclude the middle of the distribution;
-- multivariate threshold selection uses joint AND semantics;
-- subjects in mixed or middle multivariate regions are unselected;
-- a multivariate trend test is not implemented; and
-- plots visualize the design model rather than observed participant-level data.
+The picture shows how correlation and genotype shifts shape this selection.
+Each outline encloses the central 50% of one genotype's modeled bivariate
+distribution. The corner colors show the joint selection rule applied to
+the entire cohort.
 
-# References
+```{r joint-regions, echo=FALSE, fig.height=5.0, fig.alt="Three ellipses slope upward around their genotype means. Only the upper right and lower left corners qualify.", fig.cap="Height and arm span on standardized scales. The centers are genotype means and the tilted ellipses show within-genotype variation."}
+model2 <- joint_size$falconer
+limits <- c(-2.5, 2.5)
+hi <- joint_size$thresholds$upper_threshold
+lo <- joint_size$thresholds$lower_threshold
+par(mar = c(4.2, 4.2, 0.6, 1))
+plot(NA, xlim = limits, ylim = limits, asp = 1, xaxs = "i", yaxs = "i",
+     xlab = "Standardized height", ylab = "Standardized arm span")
+usr <- par("usr")
+rect(hi[1], hi[2], usr[2], usr[4], col = "#fae2bc", border = NA)
+rect(usr[1], usr[3], lo[1], lo[2], col = "#c5e4ed", border = NA)
+abline(v = c(lo[1], hi[1]), h = c(lo[2], hi[2]), lty = 3, col = "gray45")
+angle <- seq(0, 2 * pi, length.out = 181)
+circle <- cbind(cos(angle), sin(angle)) * sqrt(qchisq(0.5, df = 2))
+outline <- circle %*% chol(model2$residual_covariance_matrix)
+cols <- c("#245568", "#984b14", "#624784")
+for (j in 1:3) {
+  center <- model2$mean_matrix[, j]
+  lines(outline[, 1] + center[1], outline[, 2] + center[2],
+        col = cols[j], lty = j, lwd = 2)
+  points(center[1], center[2], pch = 15 + j, col = cols[j])
+}
+text(1.82, 1.93, "Both high")
+text(-1.82, -1.93, "Both low")
+legend("topleft", legend = c("0 copies", "1 copy", "2 copies"),
+       col = cols, lty = 1:3, pch = 16:18, lwd = 2, bty = "n", cex = 0.85)
+box()
+```
+
+Within a genotype, people taller than their group mean tend also to have
+longer arm span. Across genotypes, the centers move as well. A person at
+(+2, −2) misses both joint groups despite two individually extreme values.
+A person at (+2, +2) qualifies for the upper group. The outlines show only
+the central half of each group: all three distributions extend into both
+shaded corners.
+
+## Advanced detail: computing the chance of eligibility
+
+For each genotype, the program integrates its multivariate normal density
+over each selected corner. Weighting the three probabilities by genotype
+frequency gives the fraction eligible from the source population. Conditioning
+on eligibility then gives the genotype frequencies used in the chi-square
+power calculation. This implements the joint probabilities in Gordon, Finch,
+and Kim (§6.2.2–6.2.3) directly. The textbook also discusses a product
+approximation for weak correlation and small QTL effects (Eq. 6.15).
+
+With one dimension, an ordinary normal cumulative probability suffices.
+For 2–20 traits, `mvtnorm` uses the deterministic integration method of
+Miwa, Hayter, and Kuriki. With more than 20 traits, the package switches to
+randomized Genz–Bretz integration with a fixed local seed and restores the
+caller's random-number state. Both multivariate procedures are numerical
+approximations. For an advanced design, inspect
+`joint_size$thresholds$integration` for the algorithm, completion message
+and any available error estimate for each genotype and tail. These
+integration settings apply to the threshold calculation. The continuous
+Pillai calculation uses mean and covariance matrices directly.
+
+# Choose a recruitment plan
+
+| Available measurements and budget | Calculation | Count to budget |
+|:---|:---|:---|
+| One continuous trait and a genotype on everyone | `qtl_anova_power()` or `qtl_anova_mssn()` | Total participants with both measurements. |
+| One trait screened broadly, genotyping concentrated at the extremes | `qtl_threshold_chisq_power()` or `qtl_threshold_chisq_mssn()` | Genotyped people in each tail, plus the larger pool to screen. |
+| Several continuous traits and a genotype on everyone | `qtl_multivariate_*_full()` with `test = "pillai"` | Total people with a complete trait profile and genotype. |
+| Several traits screened broadly, with all upper or all lower criteria required | `qtl_multivariate_*_full()` with `test = "threshold_chisq"` | Selected people per joint tail and the screening effort to fill both quotas. |
+
+Table: The same target power can require different kinds of recruitment.
+
+For example, the 996-person and 252-person designs use the same single-trait
+model and cutoff for statistical significance. The first buys a genotype
+for everyone measured. The second buys 252 genotypes and needs access to
+measurements from roughly 2,500 people. That distinction determines which
+plan fits a given cohort and budget.
+
+# Methods and references
+
+Gordon, Finch, and Kim's Chapter 6, *Threshold-Selected Quantitative Trait
+Loci and Pleiotropy*, gives the univariate examples (§§6.1.3–6.1.4) and
+the multiple-trait mixture and thresholds (§6.2). Its worked multivariate
+example in §6.2.4 has different parameters from the paper's 326-person
+Pillai example. The joint-tail design and drawings in this tutorial are
+illustrations.
+
+Fisher RA (1918). The correlation between relatives on the supposition of
+Mendelian inheritance. *Transactions of the Royal Society of Edinburgh* 52,
+399–433. <https://doi.org/10.1017/S0080456800012163>.
+
+Lynch M, Walsh B (1998). *Genetics and Analysis of Quantitative Traits*.
+Sinauer Associates.
+
+Falconer DS, Mackay TFC (1996). *Introduction to Quantitative Genetics*.
+4th edition. Longman.
+
+Gordon D, Finch SJ, Kim W (2020). *Heterogeneity in Statistical Genetics:
+How to Assess, Address, and Account for Mixtures in Association Studies*.
+Springer. <https://doi.org/10.1007/978-3-030-61121-7>.
+
+Miwa T, Hayter AJ, Kuriki S (2003). The evaluation of general non-centred
+orthant probabilities. *Journal of the Royal Statistical Society, Series B*
+65, 223–234. <https://doi.org/10.1111/1467-9868.00382>.
 
 Genz A, Bretz F. *Computation of Multivariate Normal and t Probabilities*.
 Springer; 2009. <https://doi.org/10.1007/978-3-642-01689-9>.
 
 Gordon D, Londono D, Patel P, Kim W, Finch SJ, Heiman GA. An analytic solution
-to computation of power and sample size for genetic association studies under
-a pleiotropic mode of inheritance. *Human Heredity*. 2017;81(4):194--209.
+to the computation of power and sample size for genetic association studies under
+a pleiotropic mode of inheritance. *Human Heredity*. 81(4), 194–209 (2016 issue, published online 2017).
 <https://doi.org/10.1159/000457135>.
 
 Li Y, Levran O, Kim J, Zhang T, Chen X, Suo C. Extreme sampling design in
@@ -289,7 +600,7 @@ Pillai KCS. Some new test criteria in multivariate analysis. *Annals of
 Mathematical Statistics*. 1955;26(1):117--121.
 <https://doi.org/10.1214/aoms/1177728599>.
 
-Yang Q, Wu H, Guo C. Analyze multivariate phenotypes in genetic association
+Yang Q, Wu H, Guo CY, Fox CS. Analyze multivariate phenotypes in genetic association
 studies by combining univariate association tests. *Genetic Epidemiology*.
 2010;34(5):444--454. <https://doi.org/10.1002/gepi.20497>.
 
