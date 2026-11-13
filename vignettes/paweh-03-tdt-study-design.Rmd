@@ -1,5 +1,5 @@
 ---
-title: "Transmission disequilibrium test study design"
+title: "3. TDT Study Design"
 author: "paweh package authors"
 output:
   rmarkdown::html_vignette:
@@ -16,27 +16,132 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height
 library(paweh)
 ```
 
-# Why use an affected-child trio design?
+# Why compare a child with their parents?
 
-The transmission disequilibrium test (TDT) compares an allele transmitted to
-an affected child with the alternative parental allele that was not
-transmitted. This within-family comparison can avoid confounding from
-population stratification that affects unrelated case-control comparisons.
+Suppose a clinic can recruit 600 children with a childhood disease and both
+parents of each child. A nearby DNA marker has two versions, or *alleles*,
+called A and a. Do affected children inherit A more often than expected from
+parents who could pass on either allele? How many families would give the
+study a good chance of detecting such a difference?
 
-Let `ET` and `ENT` denote expected transmitted and non-transmitted counts. The
-one-degree-of-freedom TDT non-centrality parameter is based on their contrast,
+In an unrelated case-control study, cases and controls might come from
+populations where A has different frequencies. If disease prevalence also
+differs between those populations, a difference in allele frequencies can
+look like a disease association. This is *population stratification*. The
+transmission disequilibrium test (TDT; Spielman, McGinnis, and Ewens, 1993)
+asks which allele an affected child received **within the same family**.
+Both possible alleles come from the same parent, so ancestry differences
+between unrelated groups do not supply the comparison. A mistaken disease
+diagnosis or an incorrect genotype can still change the result.
+
+# What does one family contribute?
+
+A **complete trio** consists of two biological parents and their affected
+child, all genotyped at the marker. At an autosomal marker a child inherits
+one allele from each parent. A parent with genotype Aa is *heterozygous*:
+either A or a can be passed on. A parent with genotype aa (or AA) is
+*homozygous*: both copies are alike. The figure follows one of the possible
+outcomes for an Aa parent and an aa parent.
+
+```{r trio-diagram, echo=FALSE, fig.height=3.5, fig.alt="The Aa parent transmits A and does not transmit a. The aa parent transmits a. The affected child is Aa.", fig.cap="One complete trio. Arrows trace the inherited alleles; the alternative allele is identified inside each parent's box."}
+par(mar = rep(0.3, 4))
+plot.new()
+plot.window(xlim = c(0, 10), ylim = c(0, 6), xaxs = "i", yaxs = "i")
+node <- function(x, y, title, detail, fill) {
+  rect(x - 2.12, y - 0.7, x + 2.12, y + 0.7,
+       col = fill, border = "#334e63", lwd = 1.5)
+  text(x, y + 0.22, title, font = 2)
+  text(x, y - 0.28, detail, cex = 0.85)
+}
+node(2.4, 4.95, "Parent 1: Aa", "a was not transmitted", "#e1f2ec")
+node(7.6, 4.95, "Parent 2: aa", "both copies are a", "#edf2f7")
+arrows(c(2.4, 7.6), 4.18, c(4.35, 5.65), 1.78, length = 0.12,
+       lwd = 2, col = c("#236752", "#334e63"))
+text(2.0, 3.0, "passed A", col = "#194d3c")
+text(8.0, 3.0, "passed a", col = "#334e63")
+node(5, 1.0, "Affected child: Aa", "one allele from each parent", "#fff1cf")
+```
+
+Count transmissions with respect to **one prespecified allele**, here A.
+Parent 1 adds one transmission of A; the untransmitted a tells us what the
+child could have received instead. Had this child received a from Parent 1,
+that parent would add one *non-transmission of A*. Parent 2 adds neither
+count: there was no choice between A and a. A trio can thus contribute zero,
+one, or two informative parental transmissions. Plan recruitment in complete
+families: 600 independent trios need 1,800 people, but 1,800 individuals
+alone do not guarantee even one complete trio.
+
+# From transmissions to power
+
+Under Mendelian segregation each heterozygous parent passes on either allele
+with probability one half. Under the TDT null (no linkage or no association),
+and with accurate calls and ascertainment, selecting affected children
+should not systematically favor A. The observed TDT compares how often A was
+transmitted with how often it was not. A sustained imbalance provides evidence
+against that null; it does not establish that A itself causes disease.
+
+Before recruiting anyone, we have no observed counts. Instead, a design model
+predicts **ET**, the expected number of informative transmissions of A, and
+**ENT**, the expected number of informative non-transmissions of A. These can
+be fractional because they are averages over hypothetical repetitions of the
+study. Deng and Chen's affected-trio calculation uses this contrast to obtain
+the noncentrality parameter (NCP):
 
 \[
 \lambda = \frac{(ET-ENT)^2}{ET+ENT}.
 \]
 
-In this vignette, `N` and every reported MSSN are numbers of affected-child
-trios, not numbers of individual people.
+The numerator is the squared excess of one outcome over the other; either
+direction counts as evidence. The denominator is the total expected number of
+informative transmissions. At a given total, a larger imbalance gives a
+larger NCP. At fixed transmission proportions, doubling the number of
+independent families doubles the NCP. Power is the probability that the
+statistic exceeds the chosen null cutoff when the modeled association is
+real. The calculation uses a large-sample chi-square approximation with one
+degree of freedom: central under the usual null and noncentral under the
+alternative. The NCP is a design quantity, not a statistic observed in a
+particular family study.
 
-# Power and MSSN for trios
+# Would 600 trios suffice?
 
-The canonical model-based interfaces answer inverse design questions under a
-common genetic model.
+Start with a two-allele disease locus and a marker that tags it. *Relative
+risk* compares disease risk at one genotype with risk in people who carry
+zero copies of the modeled disease allele. The inputs below specify an
+illustrative study; the disease definition and frequencies would need
+independent justification in a real design.
+
+| Input | Value | Meaning in this design |
+|:---|:---|:---|
+| `N` | 600 | Complete affected-child trios available for a power calculation. |
+| `pd` | 0.30 | Population frequency of the disease allele; the modeled marker allele has the same frequency. |
+| `prev` | 0.05 | Fraction of the source population truly affected, before classification error. |
+| `R1` | 1.5 | One-copy genotype has 1.5 times the zero-copy disease risk. |
+| `R2` | 2.25 | Two-copy genotype has 2.25 times the zero-copy risk. |
+| `alpha` | 0.05 | Nominal probability of rejecting a true null; sets the test cutoff. |
+| `delta_prime` | 1 | Maximum positive linkage disequilibrium (LD) at these allele frequencies. |
+| `misclass_rate` | 0.01 | Probability a truly unaffected child is classified as affected, in the phenotype scenario. |
+| `heter_rate` | 0.10 | Fraction of families unlinked to the modeled locus, in a separate scenario. |
+| `target_power` | 0.80 | Desired probability of detecting the modeled association when solving for sample size. |
+
+Table: Assumptions and design targets for the first two calls.
+
+Here each additional copy multiplies disease risk by 1.5, so
+`R2 = R1^2`. Prevalence and genotype frequencies anchor those relative risks
+to absolute disease probabilities (penetrances). The model assumes random
+pairing of parental haplotypes (the alleles carried together on a chromosome)
+and Hardy-Weinberg genotype proportions. LD measures whether the marker and
+disease alleles occur together more often than their marginal frequencies
+predict. With equal frequencies at the two loci the implementation sets
+\(D = D' p_d(1-p_d)\). The input `delta_prime` is this normalized positive
+\(D'\), ranging from zero to one. A value of one means maximal positive
+tagging for these frequencies; it is not a parent's probability of passing
+on A. The canonical linked-family calculation assumes no recombination
+between the two loci. It does not model negative LD or independently chosen
+marker and disease allele frequencies.
+
+Use `tdt_power()` when the family count is fixed. Reverse the question with
+`tdt_mssn()`: find the minimum sample size needed (MSSN) for 80% power.
+These calls return a baseline and two **separate** sensitivity scenarios.
 
 ```{r basic-tdt}
 basic_tdt_power <- tdt_power(
@@ -54,24 +159,46 @@ basic_tdt_mssn <- tdt_mssn(
   misclass_rate = 0.01, heter_rate = 0.10,
   verbose = FALSE
 )
-
-data.frame(
-  scenario = c("No error", "Phenotype misclassification", "Locus heterogeneity"),
-  power_at_600_trios = unlist(basic_tdt_power$power),
-  required_trios = unlist(basic_tdt_mssn$N),
-  row.names = NULL
-)
 ```
 
-The canonical backend reports separate modifier scenarios. It does not claim
-that the misclassification and heterogeneity components are a combined-error
-analysis.
+```{r basic-tdt-table, echo=FALSE}
+required <- unlist(basic_tdt_mssn$N, use.names = FALSE)
+knitr::kable(data.frame(
+  Scenario = c("Baseline", "Phenotype misclassification", "Locus heterogeneity"),
+  Power = unlist(basic_tdt_power$power, use.names = FALSE),
+  MSSN = required, Trios = ceiling(required)
+), digits = 4, caption = "Power at 600 trios and trios needed for 80% power.")
+```
 
-# Model-based and model-free TDT inputs
+At 600 trios the baseline has about 99.67% power. Changing only the disease
+labels lowers power to 97.51%; changing only the mix of families gives 98.79%.
+Reading down the last column instead, the three plans need 215, 307, and 266
+whole trios, respectively. Round sample sizes up, and budget separately for
+incomplete families. Neither modified row models both mechanisms together.
 
-Model-based input uses `pd`, `prev`, `R1`, `R2`, and `delta_prime`. The
-lower-level probability and count functions make the connection to `ET` and
-`ENT` visible without requiring a long derivation.
+# What if the expected counts are already known?
+
+A genetic model supplies counts by predicting transmissions. Alternatively,
+a pilot study or an external model may supply estimates of ET and ENT for a
+known number of similar trios. The `model_free` interface uses those counts;
+their relevance still depends on the marker, case definition, and recruitment
+population matching the proposed study.
+
+The next calculation makes the units visible. Define `gT` as the probability
+that a randomly selected parental contribution from an affected-child trio
+is informative **and** transmits A; `gNT` is the probability that it is
+informative **and** does not transmit A. There are two parental contributions
+per trio, so ET = 2 × number of trios × gT, and likewise for ENT. Homozygous
+parents contribute to neither event. The two probabilities need not add to one
+and are not case or control genotype frequencies.
+
+Here `N_star = 500` is the design size used by the count helper. Setting
+`pi = 1` puts all families in the linked group. This example retains the
+helpers' default `theta1 = pd` (0.30). In the published count equations
+this position represents the recombination fraction in linked families
+(Chen et al., 2009, Appendix), whereas the canonical model-based example
+above uses zero. Set `theta1 = 0` explicitly in all three helpers to match
+that linkage assumption.
 
 ```{r expected-counts}
 gT <- tdt_expected_transmission_probability(
@@ -87,17 +214,22 @@ expected_counts <- tdt_expected_transmission_counts(
   pd = 0.30, prev = 0.05, R1 = 1.5, R2 = 2.25,
   delta_prime = 1, pi = 1, verbose = FALSE
 )
-
-data.frame(
-  quantity = c("Transmission probability", "Non-transmission probability", "ET", "ENT"),
-  value = c(gT$gT_star, gNT$gNT_star, expected_counts$ET_star, expected_counts$ENT_star)
-)
 ```
 
-If a pilot study or external calculation already supplies expected counts,
-they can be used directly:
+```{r expected-counts-table, echo=FALSE}
+knitr::kable(data.frame(
+  Quantity = c("gT (per parent)", "gNT (per parent)", "ET (500 trios)", "ENT (500 trios)"),
+  Value = c(gT$gT_star, gNT$gNT_star, expected_counts$ET_star, expected_counts$ENT_star)
+), digits = 4, caption = "From parental probabilities to expected counts in 500 families.")
+```
 
-```{r model-free-power}
+Of 1,000 parental contributions, the model expects about 246.52 informative
+transmissions and 210.00 informative non-transmissions of A. The informative
+fraction is about 46%; *among informative contributions*, the predicted share
+transmitting A is about 54%. To compare power interfaces fairly, give both
+the very same counts and cutoff:
+
+```{r model-free-power, message=FALSE}
 count_power <- tdt_power_from_expected_counts(
   ET = expected_counts$ET_star,
   ENT = expected_counts$ENT_star,
@@ -112,44 +244,62 @@ canonical_model_free <- tdt_power(
   verbose = FALSE
 )
 
-c(lower_level_power = count_power$power,
+c(lower_level_power = count_power[["Power"]],
   canonical_power = canonical_model_free$power$no_error)
 ```
 
-For model-free MSSN, `n_trios` records the trio count represented by the
-supplied `ET` and `ENT`. Applying heterogeneity additionally requires `pd`;
-applying phenotype misclassification requires `pd` and `prev`. Model-free
-inputs therefore relocate assumptions rather than eliminate them.
+Both calls give about 40.12% power (NCP 2.92): in repeated studies under
+these assumptions, roughly four in ten would detect the imbalance. This
+agreement checks the count-to-power calculation, not equivalence to the
+earlier 600-family genetic model. For fixed-sample power, `N` must equal
+the number of trios represented by the **absolute** counts. For model-free
+MSSN, give that source count as `n_trios`, so the function can infer rates
+per parent before solving for a *new* family count. For a nonzero modifier
+supply `pd` where possible; the implementation can infer it only under its
+allele-frequency assumptions. Phenotype misclassification also needs `prev`.
 
-# Chapter 5 genotype misclassification
+# Misread genotypes: the model in Gordon, Finch, and Kim (2020)
 
-The public `effect` argument can select `"none"`,
-`"phenotype_misclassification"`, `"locus_heterogeneity"`, or
-`"genotype_misclassification"`. The last option implements the Chapter 5
-model-based TDT genotype-error model through the scalar argument
-`genotype_misclassification_rate`.
+A laboratory might report Aa as AA. That can hide an informative parent,
+create an apparent transmission, or produce a child whose called genotype is
+impossible given the parents' calls. This is an error in the measured DNA
+genotype, a different problem from assigning the wrong disease diagnosis.
+Gordon, Finch, and Kim's *Heterogeneity in Statistical Genetics*, Chapter 5,
+*Designing Genetic Linkage and Association Studies that Maintain Desired
+Statistical Power in the Presence of Mixtures*, treats this problem in
+§5.2.5 (pp. 277–284). Its one-parameter illustration adapts the error model of
+Douglas, Skol, and Boehnke (2002).
 
-For adjacent-genotype error rate (e), with (0 \le e \le 0.5), the
-transition matrix from true to observed genotype is
+Code a genotype by its number of A copies: aa = 0, Aa = 1, AA = 2. An
+*adjacent* error changes the called count by one copy. The parameter
+`genotype_misclassification_rate`, denoted by \(e\), is the probability of
+**each allowed change**, with \(0 \le e \le 0.5\). Read across a row for
+one person's possible laboratory calls:
 
-\[
-M(e) =
-\begin{bmatrix}
-1-e & e & 0 \\
-e & 1-2e & e \\
-0 & e & 1-e
-\end{bmatrix}.
-\]
+| True copies | Called 0 | Called 1 | Called 2 |
+|:---|:---:|:---:|:---:|
+| 0 (aa) | \(1-e\) | \(e\) | 0 |
+| 1 (Aa) | \(e\) | \(1-2e\) | \(e\) |
+| 2 (AA) | 0 | \(e\) | \(1-e\) |
 
-Thus a true genotype 0 can be observed as 0 or 1, a true genotype 1 can be
-observed as 0, 1, or 2, and a true genotype 2 can be observed as 1 or 2.
-Direct errors between genotypes 0 and 2 are not allowed.
+Table: Transition matrix from true to called marker genotype (textbook Eq. 5.19).
 
-The calculation begins with the true Mendelian trio distribution, applies the
-transition model to the observed trio genotypes, and removes observed
-Mendelian-inconsistent states. It renormalizes the retained consistent states,
-calculates their expected transmitted and non-transmitted counts, and uses the
-resulting TDT non-centrality parameter for prospective power or MSSN.
+At \(e=0.01\), aa is called Aa 1% of the time and never AA. An Aa genotype
+has two possible wrong calls, each with probability 1%, so its total error
+probability is 2%. An AA genotype can be called Aa but never aa. The model
+applies these probabilities independently to both parents and the child.
+
+Suppose both parents are called aa but the child is called Aa. No parental
+call can supply A, so this implementation excludes the called trio as
+*Mendelian-inconsistent*. Of 27 possible ordered call patterns, 15 are
+consistent. Removing the other patterns leaves less than unit probability;
+dividing each retained probability by their sum gives the distribution
+**among families that pass the check**. A consistent call can still be
+wrong. The function counts informative transmissions in this conditional
+distribution (§5.2.5.1, Eqs. 5.21–5.22).
+
+Use the original 600-family design again, now changing only the genotype
+calls. The last column rounds up the required number of analyzable trios.
 
 ```{r genotype-misclassification}
 genotype_error_power <- tdt_power(
@@ -174,31 +324,48 @@ genotype_error_mssn_values <- c(
   genotype_error_mssn$N$no_error,
   genotype_error_mssn$N$genotype_misclassification
 )
-
-data.frame(
-  scenario = c("No genotype error", "1% adjacent-genotype error"),
-  power_at_600 = c(
-    genotype_error_power$power$no_error,
-    genotype_error_power$power$genotype_misclassification
-  ),
-  fractional_mssn = genotype_error_mssn_values,
-  recruitment_trios = ceiling(genotype_error_mssn_values)
-)
 ```
 
-In this example, genotype error reduces power at 600 trios and increases the
-recruitment target for 80% power. This branch is available only with
-`input_mode = "model_based"` and uses one scalar adjacent-genotype error rate;
-it does not accept a custom transition matrix. It cannot be combined with
-phenotype misclassification or locus heterogeneity. It is neither TDTae nor
-the sequencing/NGS genotype-error implementation.
+```{r genotype-misclassification-table, echo=FALSE}
+knitr::kable(data.frame(
+  Scenario = c("Accurate calls", "1% per adjacent error"),
+  Power = c(genotype_error_power$power$no_error,
+            genotype_error_power$power$genotype_misclassification),
+  MSSN = genotype_error_mssn_values, Trios = ceiling(genotype_error_mssn_values)
+), digits = 4, caption = "Power at 600 retained trios and retained trios needed for 80% nominal power.")
+```
 
-# Published-example reproduction: Buyske et al. (2009)
+At 600 analyzable trios, the expected counts move from 328.70 versus 219.13
+to 324.95 versus 223.04. Their smaller contrast lowers the NCP from 21.91 to
+18.95. Power falls from 99.67% to 99.17%, and 80% nominal power now
+requires **249 rather than 215 retained trios**. About 98.63% of called
+families pass the consistency check in the error scenario. Recruiting exactly
+249 families therefore does not guarantee 249 usable trios.
 
-Buyske et al. examined phenotype misclassification in affected-child trios.
-The validated multiplicative example uses target power 0.80, `alpha = 1e-5`,
-`pd = 0.50`, prevalence 0.01, `R2 = 2.5`, `R1 = sqrt(2.5)`, maximum positive
-LD, and phenotype misclassification rate 0.05.
+There is a second cost: at the nominal 5% cutoff, the modeled null rejection
+rate at 600 trios is about **5.75%**
+(`genotype_error_power$genotype_misclassification$actual_alpha`).
+Neither the power nor the sample-size result recalibrates that cutoff. The
+book demonstrates null rejection-rate inflation; the 600-family power
+comparison is a package illustration under a disease alternative, not a
+published power benchmark or a correction for errors in observed data.
+
+# Children classified as affected: Buyske et al. (2009)
+
+Suppose screening captures all children with the disease, but also labels 5%
+of unaffected children as affected. With 1% prevalence, among 10,000
+children we would expect 100 true cases and about 495 false positives
+(5% of 9,900). Only about one in six screen-positive children would be a
+true case. This is why `misclass_rate = 0.05` does **not** mean that 5% of
+enrolled trios have a wrong diagnosis: the rate is conditional on being
+unaffected. The added families dilute the disease-related transmission
+contrast.
+
+Buyske et al. studied this one-way error for a multiplicative risk model.
+Use their stringent cutoff of 0.00001, 80% power, equal allele frequencies
+of 0.50, maximal positive LD and a two-copy relative risk of 2.5. The table
+compares their published example (p. 291) with this calculation. Compute the
+package ratio from the unrounded estimates.
 
 ```{r buyske-reproduction}
 buyske <- tdt_mssn(
@@ -211,21 +378,31 @@ buyske <- tdt_mssn(
 )
 
 buyske_ratio <- buyske$N$misclassification / buyske$N$no_error
-data.frame(
-  quantity = c("No-error MSSN", "Misclassification MSSN", "Final sample-size ratio"),
-  published = c("approximately 546", "approximately 21,400", "approximately 39-fold"),
-  paweh = c(buyske$N$no_error, buyske$N$misclassification, buyske_ratio)
-)
 ```
 
-This is an excellent **Published-example reproduction**: approximately 546
-versus 21,401 affected-child trios, a 39.23-fold final sample-size ratio.
-A 39.23-fold ratio is a 3,822.7% increase, not a 39.23% increase. The
-`percent_increase` component stores this conventional percentage as
-`100 * ((new / baseline) - 1)`; the validated final-to-baseline ratio remains
-39.23-fold.
+```{r buyske-reproduction-table, echo=FALSE}
+knitr::kable(data.frame(
+  Quantity = c("Baseline trios", "Trios with false positives", "Final / baseline"),
+  Published = c(691, 27118, 27118 / 691),
+  paweh = c(ceiling(buyske$N$no_error), ceiling(buyske$N$misclassification),
+            buyske_ratio)
+), digits = 2, caption = "Buyske et al. and paweh: whole trios and the final-to-baseline ratio.")
+```
 
-## Extending Buyske: a misclassification curve
+The package needs **546 versus 21,401** whole trios. A ratio of 39.23 means
+the final study needs about 39 times as many trios; the **increase** is
+\(100(39.22715-1)\), about **3,822.7%**. The paper reports **691 versus
+27,118**, also about 39-fold. The *relative* result is reproduced, not the
+absolute sample sizes. Gordon, Finch, and Kim (§5.2.6, p. 285) identify a
+missing factor in the paper's Eq. 5 and give corrected transmission
+equations. This does not, by itself, establish the reason for the difference
+in the no-error counts.
+
+## How much does case definition matter?
+
+For a clinic that cannot know its false-positive rate exactly, vary that rate
+while holding prevalence and all other design assumptions fixed. Each point
+is a separate sample-size calculation.
 
 ```{r buyske-curve, fig.cap="Required affected-child trios as phenotype misclassification increases under the Buyske model."}
 plot_tdt_mssn(
@@ -241,15 +418,15 @@ plot_tdt_mssn(
 )
 ```
 
-The steep curve identifies a fragile design region. It does not represent a
-confidence interval or a probability distribution over the error rate.
+A steeper segment means that the same extra percentage point of
+false-positive classifications costs more families. Here tightening the
+case definition near the high-error end could save thousands of trios, if
+the other assumptions hold. The curve is a sensitivity analysis, not an
+uncertainty interval.
 
-## Extending Buyske: prevalence by misclassification
-
-The optional interactive surface can evaluate the same Buyske parameters over
-a modest prevalence-by-error grid. The example is left unevaluated in the
-installed vignette to avoid embedding a multi-megabyte Plotly widget; run the
-copyable code in an interactive R session to explore the surface.
+To explore prevalence as well, run the optional Plotly code in an interactive
+session. The height at each pair of coordinates is the required trio count.
+The widget is omitted from the installed article to keep its size small.
 
 ```{r buyske-surface, eval=FALSE}
 plot_tdt_surface3d(
@@ -263,13 +440,26 @@ plot_tdt_surface3d(
 )
 ```
 
-When run interactively, this surface extends discrete calculations into a
-sensitivity analysis; it is not an uncertainty distribution.
+Compare points at the same error rate: a smaller underlying pool of true
+cases makes the same false-positive rate more costly. The grid varies study
+assumptions; its heights are not probabilities that those assumptions hold.
 
-# Published-example reproduction: Chen et al. (2009)
+# One clinical diagnosis, several genetic causes: Chen et al. (2009)
 
-Chen et al. studied TDT design under locus heterogeneity. Here `heter_rate` is
-the heterogeneous or unlinked trio fraction, equal to `1 - pi`.
+Two children can meet the same disease definition for different genetic
+reasons. If the marker tracks a disease locus in some families but is
+unlinked to the cause in others, even perfectly diagnosed families can dilute
+the signal. Chen et al. model a *linked fraction*, called `pi` in the count
+helper, and an *unlinked fraction*, `heter_rate = 1 - pi` in the canonical
+functions. In the unlinked component the recombination fraction is one half:
+the marker and disease locus segregate independently, giving no systematic
+excess of transmissions over non-transmissions. The mixture fraction
+describes **families**, not the proportion of children misdiagnosed or the
+population frequency of an allele.
+
+Recreate the comparison in Chen et al., Figure 2: use 80% power at 0.00001,
+allele frequencies of 0.25, prevalence of 0.10 and a multiplicative model
+with two-copy relative risk 1.5. Only the unlinked fraction changes.
 
 ```{r chen-reproduction}
 chen_no_heterogeneity <- tdt_mssn(
@@ -289,21 +479,27 @@ chen_half_heterogeneous <- tdt_mssn(
   misclass_rate = 0, heter_rate = 0.50,
   verbose = FALSE
 )
-
-data.frame(
-  heterogeneous_fraction = c(0, 0.50),
-  published_required_trios = c("approximately 3430", "approximately 13721"),
-  paweh_required_trios = c(
-    chen_no_heterogeneity$N$heterogeneity,
-    chen_half_heterogeneous$N$heterogeneity
-  )
-)
 ```
 
-This is a near-exact **Published-example reproduction**. Small differences
-reflect the paper's reported integer values and rounding.
+```{r chen-reproduction-table, echo=FALSE}
+required <- c(chen_no_heterogeneity$N$heterogeneity,
+              chen_half_heterogeneous$N$heterogeneity)
+knitr::kable(data.frame(
+  Unlinked = c("0%", "50%"), Published = c(3430, 13721),
+  MSSN = required, Trios = ceiling(required)
+), digits = 2, caption = "Chen et al., Figure 2: published trios and paweh estimates.")
+```
 
-## Extending Chen: dilution by heterogeneous trios
+Chen et al. report 3,430 trios for a homogeneous sample and 13,721 with
+half the families unlinked. The corresponding package requirements rounded
+up are **3,431 and 13,723 trios**. Both give essentially a fourfold increase
+in the final study size. Half as many signal-carrying families per recruited
+trio means roughly half the transmission contrast; the contrast enters the
+NCP *squared*. The paper does not establish an exact reason for the small
+absolute differences.
+
+To plan between those endpoints, vary only the unlinked fraction; each point
+below solves again for the same target power.
 
 ```{r chen-curve, fig.cap="Required affected-child trios as the heterogeneous or unlinked fraction increases under the Chen model."}
 plot_tdt_mssn(
@@ -319,41 +515,73 @@ plot_tdt_mssn(
 )
 ```
 
-Heterogeneous trios dilute locus-specific signal. A flatter curve would
-indicate a more robust design; a steep curve signals that modest departures
-from homogeneity require substantially more families.
+Moving right means recruiting from a less genetically homogeneous population
+while keeping the disease definition unchanged. The rising slope shows that
+each additional five percentage points of unlinked families costs more trios
+near 50% than near zero. A pilot estimate of the linked fraction can help
+decide which part of this curve to budget for.
 
-# Assumptions and limitations
+# Choosing a TDT design
 
-- The design is an affected-child trio TDT using an asymptotic chi-square
-  approximation.
-- In the current parameterization, `delta_prime` lies in `[0, 1]` and scales
-  maximum **positive** LD. Negative LD requires another allele-frequency-
-  dependent normalization and is not implemented.
-- `misclass_rate` and `heter_rate` describe distinct reported scenarios.
-- Chapter 5 genotype misclassification is model-based, uses one scalar
-  adjacent-genotype error rate, and cannot be combined with the other error
-  mechanisms.
-- TDTae and sequencing/NGS genotype error are outside this implementation.
-- Model-free `ET` and `ENT` are treated as supplied expected counts.
-- MSSN is measured in trios.
-- Curves and surfaces vary fixed assumptions; they are not uncertainty bands.
+Begin with the constraint your study actually faces, then choose the
+assumptions supported by your evidence.
 
-# References
+| Question or evidence | Choice |
+|:---|:---|
+| We can obtain a fixed number of complete trios. | Use `tdt_power(N = ...)`; read power at that number of families. |
+| We need a specified probability of detection. | Use `tdt_mssn(target_power = ...)`; round up and allow for losses separately. |
+| We know prevalence, allele frequency and plausible genotype risks. | Use `input_mode = "model_based"` and state the assumed positive LD. |
+| An earlier population supplies expected informative counts. | Use `"model_free"` with ET, ENT and the number of trios that produced them. |
+| Screening may admit unaffected children. | Vary `misclass_rate`; specify the true prevalence, even with count inputs. |
+| Correctly diagnosed families may be unlinked to this locus. | Vary `heter_rate` over a plausible range, with the linked fraction equal to one minus that rate. |
+| DNA calls may be wrong by one allele copy. | Use `effect = "genotype_misclassification"` with model-based input and the scalar adjacent-error rate. Inspect retention and actual alpha as well as power. |
 
-Buyske S, Yang G, Matise TC, Gordon D. When a case is not a case: effects of
-phenotype misclassification on power and sample size requirements for the
-transmission disequilibrium test with affected child trios. *Human Heredity*.
-2009;67(4):287--292. <https://doi.org/10.1159/000194981>.
+Table: Match the study constraint, available information and source of error to a design calculation.
 
-Chen C, Yang G, Buyske S, Matise T, Finch SJ, Gordon D. Transmission
-disequilibrium test power and sample size in the presence of locus
-heterogeneity. *Statistical Applications in Genetics and Molecular Biology*.
-2009;8:Article 44. <https://doi.org/10.2202/1544-6115.1501>.
+For a single comparison, select `effect = "none"`,
+`"phenotype_misclassification"`, `"locus_heterogeneity"`, or
+`"genotype_misclassification"`. Supplying both phenotype and heterogeneity
+rates in the default interface returns separate scenarios. There is no joint
+model for these mechanisms; genotype misclassification cannot be layered
+onto either, inferred from ET and ENT alone, or specified by a custom
+transition matrix. The adjacent-call model does not describe sequencing
+reads or read depth. These functions plan studies; they do not perform
+TDTae, the error-aware association test for observed family data.
 
-Gordon D, Finch SJ, Kim W. *Heterogeneity in Statistical Genetics: How to
-Assess, Address, and Account for Mixtures in Association Studies*. Springer;
-2020. <https://doi.org/10.1007/978-3-030-61121-7>.
+# Methods and references
+
+The family diagram and the first two worked designs illustrate the original
+TDT and its prospective power calculation. The genotype example extends
+the textbook's null-error calculation; the Buyske and Chen sections compare
+published designs with package results. The sensitivity curves and surface
+are package extensions of those scenarios.
+
+- Spielman RS, McGinnis RE, Ewens WJ (1993). Transmission test for linkage
+  disequilibrium: the insulin gene region and insulin-dependent diabetes
+  mellitus (IDDM). *American Journal of Human Genetics* 52:506–516.
+  PMID: 8447318. Original within-family test.
+- Deng HW, Chen WM (2001). The power of the transmission disequilibrium
+  test (TDT) with both case-parent and control-parent trios. *Genetical
+  Research* 78:289–302. <https://doi.org/10.1017/S001667230100533X>.
+  The affected-child component underlies the expected-count NCP used here.
+- Douglas JA, Skol AD, Boehnke M (2002). Probability of detection of
+  genotyping errors and mutations as inheritance inconsistencies in
+  nuclear-family data. *American Journal of Human Genetics* 70:487–495.
+  <https://doi.org/10.1086/338919>. Antecedent of the textbook error model.
+- Buyske S, Yang G, Matise TC, Gordon D (2009). When a case is not a case:
+  effects of phenotype misclassification on power and sample size
+  requirements for the transmission disequilibrium test with affected child
+  trios. *Human Heredity* 67:287–292. <https://doi.org/10.1159/000194981>.
+- Chen C, Yang G, Buyske S, Matise T, Finch SJ, Gordon D (2009).
+  Transmission disequilibrium test power and sample size in the presence of
+  locus heterogeneity. *Statistical Applications in Genetics and Molecular
+  Biology* 8:Article 44. <https://doi.org/10.2202/1544-6115.1501>.
+- Gordon D, Finch SJ, Kim W (2020). *Heterogeneity in Statistical Genetics:
+  How to Assess, Address, and Account for Mixtures in Association Studies*.
+  Springer. <https://doi.org/10.1007/978-3-030-61121-7>. Chapter 1,
+  §1.6.1.3 defines the statistic and §1.6.1.4 gives the design NCP
+  (Eq. 1.25); Chapter 5, §§5.2.5, 5.2.6 and 5.3.3 cover genotype errors,
+  phenotype errors and locus heterogeneity, respectively.
 
 # Session information
 
