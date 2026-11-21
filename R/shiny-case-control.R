@@ -423,8 +423,10 @@
   cards <- lapply(c$adjusted$scenarios, function(scenario) {
     card(scenario, scenario$label)
   })
+  # Named arguments to layout_column_wrap become attributes instead of cards.
+  grid <- do.call(bslib::layout_column_wrap, c(list(width = "360px"), unname(cards)))
   shiny::tagList(shiny::div(class = "paweh-model-specification", .paweh_cc_model_summary(c)),
-    do.call(bslib::layout_column_wrap, c(list(width = "360px"), cards)), shiny::div(
+    grid, shiny::div(
     class = "paweh-interpretation", shiny::h4("Interpretation"),
     shiny::p(if (length(cards) == 1L) txt else
       "Each modifier is reported as an independent sensitivity scenario from the same no-error baseline.")

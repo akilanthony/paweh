@@ -33,6 +33,12 @@
 
 .paweh_qtl_ui <- function(id) {
   ns <- shiny::NS(id)
+  continuous <- "input.subtype === 'continuous'"
+  extreme <- "input.subtype === 'extreme'"
+  multivariate <- "input.subtype === 'multivariate'"
+  selected_sample <- paste0(extreme, " || (", multivariate,
+    " && input.mv_test === 'threshold_chisq')")
+  panel <- function(condition, ...) shiny::conditionalPanel(condition, ..., ns = ns)
   shiny::div(
     class = "paweh-workspace paweh-qtl-workspace",
     .paweh_page_heading(
@@ -54,8 +60,54 @@
         shiny::radioButtons(ns("objective"), "Objective", c(
           `Estimate power` = "power", `Minimum sample size` = "mssn"
         )),
-        shiny::uiOutput(ns("objective_inputs")),
-        shiny::uiOutput(ns("core_inputs")),
+        # Keep inputs mounted when the workflow, objective, or trait count changes.
+        panel(
+          "input.objective === 'mssn'",
+          shiny::sliderInput(ns("target_power"), "Target power (%)", 50, 99, 80)
+        ),
+        panel(
+          "input.objective === 'power'",
+          panel(paste0("!(", selected_sample, ")"),
+            shiny::numericInput(ns("N"), "Total sample size", 500, 4, NA, 10)
+          ),
+          panel(selected_sample,
+            shiny::numericInput(ns("N_case"), "Upper-tail selected sample", 150, 1, NA, 5)
+          )
+        ),
+        shiny::numericInput(
+          ns("pd"), "Modeled-allele frequency (%)", 30, 0.01, 99.99, 0.1
+        ),
+        shiny::tags$small(
+          class = "text-muted",
+          "Population frequency of the allele defining the three genotype groups."
+        ),
+        panel(paste0("!(", multivariate, ")"),
+          shiny::numericInput(
+            ns("qtl_var"), "Variance explained by the QTL (%)", 10, 0.01, 99.99, 0.1
+          ),
+          panel(continuous, shiny::tags$small(
+            class = "text-muted",
+            "Proportion of total trait variance attributable to the modeled QTL."
+          )),
+          shiny::numericInput(ns("tau"), "Dominance parameter", 0, NA, NA, 0.1),
+          panel(continuous, shiny::tags$small(
+            class = "text-muted",
+            "Dominance-to-additivity ratio in the canonical Falconer model."
+          )),
+          panel(extreme,
+            shiny::numericInput(
+              ns("x_upper"), "Upper population tail selected (%)", 10, 0.01, 99.99, 0.5
+            ),
+            shiny::numericInput(
+              ns("x_lower"), "Lower population tail selected (%)", 10, 0.01, 99.99, 0.5
+            ),
+            shiny::tags$small(
+              class = "text-muted",
+              "Tail percentages define standardized-normal population percentiles; the middle is excluded."
+            )
+          )
+        ),
+        panel(multivariate, .paweh_qtl_multivariate_inputs(ns)),
         shiny::numericInput(
           ns("alpha"), "Significance level (alpha)", 0.05,
           min = 1e-8, max = 0.999999
@@ -63,7 +115,18 @@
         shiny::tags$details(
           class = "paweh-sidebar-section",
           shiny::tags$summary(shiny::strong("Advanced assumptions")),
-          shiny::uiOutput(ns("advanced_inputs"))
+          panel(continuous,
+            shiny::selectInput(
+              ns("count_method"), "Genotype-count method",
+              c(Rounded = "rounded", Expected = "expected")
+            ),
+            panel("input.objective === 'mssn'", shiny::checkboxInput(
+              ns("multiple_of_three"), "Restrict sample size to multiples of three", TRUE
+            ))
+          ),
+          panel(selected_sample, shiny::numericInput(
+            ns("k"), "Lower-tail selected per upper-tail selected", 1, 0.01, NA, 0.1
+          ))
         ),
         shiny::actionButton(
           ns("calculate"), "Calculate study design",
@@ -261,47 +324,65 @@
 
 .paweh_qtl_sig <- function(values) serialize(values, NULL)
 
-.paweh_qtl_trait_inputs <- function(ns, p, threshold = FALSE) {
-  controls <- list()
+.paweh_qtl_multivariate_inputs <- function(ns) {
   defaults <- .paweh_qtl_defaults()
-  for (i in seq_len(p)) controls <- c(controls, list(
-    shiny::h6(paste("Trait", i)),
-    shiny::numericInput(
-      ns(paste0("mv_qtl_var_", i)), "Variance explained (%)",
-      defaults[[paste0("mv_qtl_var_", i)]], 0.01, 99.99, 0.1
-    ),
-    shiny::numericInput(
-      ns(paste0("mv_tau_", i)), "Dominance parameter",
-      defaults[[paste0("mv_tau_", i)]], NA, NA, 0.1
-    ),
-    if (threshold) shiny::numericInput(
-      ns(paste0("mv_x_upper_", i)), "Upper population tail selected (%)",
-      defaults[[paste0("mv_x_upper_", i)]], 0.01, 99.99, 0.5
-    ),
-    if (threshold) shiny::numericInput(
-      ns(paste0("mv_x_lower_", i)), "Lower population tail selected (%)",
-      defaults[[paste0("mv_x_lower_", i)]], 0.01, 99.99, 0.5
+  traits <- lapply(seq_len(4L), function(i) {
+    shiny::conditionalPanel(
+      sprintf("input.n_traits >= %d", i), ns = ns,
+      .paweh_qtl_trait_inputs(ns, i)
     )
-  ))
-  shiny::tagList(controls)
+  })
+  correlations <- lapply(2:4, function(j) {
+    shiny::conditionalPanel(
+      sprintf("input.n_traits >= %d", j), ns = ns,
+      lapply(seq_len(j - 1L), function(i) {
+        id <- paste0("corr_", i, "_", j)
+        shiny::numericInput(
+          ns(id), paste("Correlation: Trait", i, "and Trait", j),
+          defaults[[id]], -0.99, 0.99, 0.05
+        )
+      })
+    )
+  })
+  shiny::tagList(
+    shiny::selectInput(
+      ns("n_traits"), "Number of quantitative traits",
+      stats::setNames(2:4, 2:4)
+    ),
+    shiny::radioButtons(ns("mv_test"), "Joint analysis", c(
+      `Joint continuous-trait test (Pillai MANOVA)` = "pillai",
+      `Joint extreme-selection test` = "threshold_chisq"
+    )),
+    traits,
+    shiny::h6("Phenotype correlations"),
+    correlations,
+    shiny::tags$small(
+      class = "text-muted",
+      "Pairwise phenotype correlations; the assembled matrix must be positive definite."
+    )
+  )
 }
 
-.paweh_qtl_correlation_inputs <- function(ns, p) {
-  controls <- list()
+.paweh_qtl_trait_inputs <- function(ns, i) {
   defaults <- .paweh_qtl_defaults()
-  for (i in seq_len(p - 1L)) for (j in seq.int(i + 1L, p)) {
-    id <- paste0("corr_", i, "_", j)
-    controls[[length(controls) + 1L]] <- shiny::numericInput(
-      ns(id), paste("Correlation: Trait", i, "and Trait", j),
-      defaults[[id]], -0.99, 0.99, 0.05
-    )
+  numeric_field <- function(prefix, label, min, max, step) {
+    id <- paste0(prefix, i)
+    shiny::numericInput(ns(id), label, defaults[[id]], min, max, step)
   }
-  shiny::tagList(controls)
+  shiny::tagList(
+    shiny::h6(paste("Trait", i)),
+    numeric_field("mv_qtl_var_", "Variance explained (%)", 0.01, 99.99, 0.1),
+    numeric_field("mv_tau_", "Dominance parameter", NA, NA, 0.1),
+    shiny::conditionalPanel(
+      "input.mv_test === 'threshold_chisq'", ns = ns,
+      numeric_field("mv_x_upper_", "Upper population tail selected (%)", 0.01, 99.99, 0.5),
+      numeric_field("mv_x_lower_", "Lower population tail selected (%)", 0.01, 99.99, 0.5)
+    )
+  )
 }
 
 .paweh_qtl_server <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
-    ns <- session$ns
     state <- shiny::reactiveValues(
       calculation = NULL, error = NULL, signature = NULL
     )
@@ -320,119 +401,6 @@
       )
       shiny::p(class = "text-muted", text)
     })
-    output$objective_inputs <- shiny::renderUI({
-      objective <- if (is.null(input$objective)) "power" else input$objective
-      subtype <- if (is.null(input$subtype)) "continuous" else input$subtype
-      test <- if (is.null(input$mv_test)) "pillai" else input$mv_test
-      if (objective == "mssn") {
-        shiny::sliderInput(
-          ns("target_power"), "Target power (%)", 50, 99, 80
-        )
-      } else if (subtype == "continuous" ||
-                 subtype == "multivariate" && test == "pillai") {
-        shiny::numericInput(ns("N"), "Total sample size", 500, 4, NA, 10)
-      } else {
-        shiny::numericInput(
-          ns("N_case"), "Upper-tail selected sample", 150, 1, NA, 5
-        )
-      }
-    })
-    output$core_inputs <- shiny::renderUI({
-      subtype <- if (is.null(input$subtype)) "continuous" else input$subtype
-      common <- shiny::tagList(
-        shiny::numericInput(
-          ns("pd"), "Modeled-allele frequency (%)", 30, 0.01, 99.99, 0.1
-        ),
-        shiny::tags$small(
-          class = "text-muted",
-          "Population frequency of the allele defining the three genotype groups."
-        )
-      )
-      if (subtype == "continuous") {
-        shiny::tagList(
-          common,
-          shiny::numericInput(
-            ns("qtl_var"), "Variance explained by the QTL (%)",
-            10, 0.01, 99.99, 0.1
-          ),
-          shiny::tags$small(
-            class = "text-muted",
-            "Proportion of total trait variance attributable to the modeled QTL."
-          ),
-          shiny::numericInput(
-            ns("tau"), "Dominance parameter", 0, NA, NA, 0.1
-          ),
-          shiny::tags$small(
-            class = "text-muted",
-            "Dominance-to-additivity ratio in the canonical Falconer model."
-          )
-        )
-      } else if (subtype == "extreme") {
-        shiny::tagList(
-          common,
-          shiny::numericInput(
-            ns("qtl_var"), "Variance explained by the QTL (%)",
-            10, 0.01, 99.99, 0.1
-          ),
-          shiny::numericInput(ns("tau"), "Dominance parameter", 0, NA, NA, 0.1),
-          shiny::numericInput(
-            ns("x_upper"), "Upper population tail selected (%)",
-            10, 0.01, 99.99, 0.5
-          ),
-          shiny::numericInput(
-            ns("x_lower"), "Lower population tail selected (%)",
-            10, 0.01, 99.99, 0.5
-          ),
-          shiny::tags$small(
-            class = "text-muted",
-            "Tail percentages define standardized-normal population percentiles; the middle is excluded."
-          )
-        )
-      } else {
-        p <- if (is.null(input$n_traits)) 2L else as.integer(input$n_traits)
-        test <- if (is.null(input$mv_test)) "pillai" else input$mv_test
-        shiny::tagList(
-          common,
-          shiny::selectInput(
-            ns("n_traits"), "Number of quantitative traits",
-            stats::setNames(2:4, 2:4)
-          ),
-          shiny::radioButtons(ns("mv_test"), "Joint analysis", c(
-            `Joint continuous-trait test (Pillai MANOVA)` = "pillai",
-            `Joint extreme-selection test` = "threshold_chisq"
-          )),
-          .paweh_qtl_trait_inputs(ns, p, threshold = test == "threshold_chisq"),
-          shiny::h6("Phenotype correlations"),
-          .paweh_qtl_correlation_inputs(ns, p),
-          shiny::tags$small(
-            class = "text-muted",
-            "Pairwise phenotype correlations; the assembled matrix must be positive definite."
-          )
-        )
-      }
-    })
-    output$advanced_inputs <- shiny::renderUI({
-      subtype <- if (is.null(input$subtype)) "continuous" else input$subtype
-      if (subtype == "continuous") {
-        shiny::tagList(
-          shiny::selectInput(
-            ns("count_method"), "Genotype-count method",
-            c(Rounded = "rounded", Expected = "expected")
-          ),
-          if (identical(input$objective, "mssn")) shiny::checkboxInput(
-            ns("multiple_of_three"),
-            "Restrict sample size to multiples of three", TRUE
-          )
-        )
-      } else if (subtype == "extreme" ||
-                 identical(input$mv_test, "threshold_chisq")) {
-        shiny::numericInput(
-          ns("k"), "Lower-tail selected per upper-tail selected",
-          1, 0.01, NA, 0.1
-        )
-      }
-    })
-
     shiny::observeEvent(input$calculate, {
       state$error <- NULL
       submitted <- values()

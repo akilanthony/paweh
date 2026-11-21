@@ -22,35 +22,53 @@ test_that("QTL UI is a simple input and canonical-output workspace", {
   }
 })
 
-test_that("QTL subtype controls retain every required input", {
+test_that("QTL keeps one selector and conditions only the dependent inputs", {
+  html <- as.character(paweh:::.paweh_qtl_ui("qtl"))
+  for (id in c("mv_test", "n_traits", "mv_x_upper_1", "mv_x_lower_1",
+               "corr_2_3", "N", "N_case", "target_power")) {
+    ids <- gregexpr(sprintf('id="qtl-%s"', id), html, fixed = TRUE)[[1]]
+    expect_true(length(ids) == 1L && ids[[1L]] > 0L, info = id)
+  }
+  expect_match(html, "input.n_traits &gt;= 3", fixed = TRUE)
+  expect_match(html, "input.mv_test === &#39;threshold_chisq&#39;", fixed = TRUE)
+})
+
+test_that("joint QTL controls submit the selected test and retain the frozen result", {
+  args <- list(
+    qtl_var = c(.025, .04), tau = c(.5, 0), pd = .4,
+    cor_matrix = matrix(c(1, .5, .5, 1), 2), alpha = .0001,
+    test = "threshold_chisq", x_upper = c(10, 10), x_lower = c(10, 10),
+    k = 1, verbose = FALSE
+  )
+  required <- do.call(qtl_multivariate_mssn_full, c(list(power = .8), args))
+  direct <- do.call(qtl_multivariate_power_full, c(list(N_case = 73), args))
+
   shiny::testServer(paweh:::.paweh_qtl_server, {
-    session$setInputs(subtype = "continuous", objective = "power")
-    session$flushReact()
-    core <- paste(as.character(output$core_inputs), collapse = "\n")
-    advanced <- paste(as.character(output$advanced_inputs), collapse = "\n")
-    expect_match(core, "Variance explained by the QTL", fixed = TRUE)
-    expect_match(core, "Dominance parameter", fixed = TRUE)
-    expect_match(advanced, "Genotype-count method", fixed = TRUE)
-
-    session$setInputs(subtype = "extreme")
-    session$flushReact()
-    core <- paste(as.character(output$core_inputs), collapse = "\n")
-    advanced <- paste(as.character(output$advanced_inputs), collapse = "\n")
-    expect_match(core, "Upper population tail selected", fixed = TRUE)
-    expect_match(core, "Lower population tail selected", fixed = TRUE)
-    expect_match(advanced, "Lower-tail selected per upper-tail", fixed = TRUE)
-
     session$setInputs(
-      subtype = "multivariate", n_traits = "3",
-      mv_test = "threshold_chisq"
+      subtype = "multivariate", n_traits = "2", mv_test = "threshold_chisq",
+      objective = "mssn", pd = 40, mv_qtl_var_1 = 2.5, mv_qtl_var_2 = 4,
+      mv_tau_1 = .5, mv_tau_2 = 0, corr_1_2 = .5, alpha = .0001
     )
-    session$flushReact()
-    core <- paste(as.character(output$core_inputs), collapse = "\n")
-    expect_match(core, "Joint continuous-trait test", fixed = TRUE)
-    expect_match(core, "Joint extreme-selection test", fixed = TRUE)
-    expect_match(core, "Trait 3", fixed = TRUE)
-    expect_match(core, "Correlation: Trait 2 and Trait 3", fixed = TRUE)
-    expect_match(core, "Upper population tail selected", fixed = TRUE)
+    session$setInputs(calculate = 1)
+    result <- session$returned$calculation()$result
+    expect_s3_class(result, "qtl_multivariate_mssn_full")
+    expect_identical(result$test, "threshold_chisq")
+    expect_equal(c(result$N_case, result$N_control), c(73, 73))
+    expect_equal(result$achieved_power, required$achieved_power)
+    frozen <- output$verbose_output
+    expect_match(frozen, "Required Selected Sample", fixed = TRUE)
+
+    session$setInputs(n_traits = "3")
+    expect_true(session$returned$changed())
+    expect_identical(output$verbose_output, frozen)
+
+    session$setInputs(n_traits = "2", objective = "power", N_case = 73)
+    session$setInputs(calculate = 2)
+    result <- session$returned$calculation()$result
+    expect_s3_class(result, "qtl_multivariate_power_full")
+    expect_identical(result$test, "threshold_chisq")
+    expect_equal(result$power, direct$power)
+    expect_match(output$verbose_output, "Threshold-Selected", fixed = TRUE)
   })
 })
 

@@ -113,9 +113,8 @@ unchecked for the first calculation.
 | Homozygote relative risk | 2 | `R2 = 2`; the one-copy relative risk is therefore the square root of 2 |
 | Significance level (alpha) | 0.05 | `alpha = 0.05` for each test considered |
 
-Select **Calculate study design** and read **Interpretation** on **Results**.
-Open **Advanced calculation details** and find **Statistical result details**
-for the percentages to two decimal places. The **genotype chi-square** test
+Select **Calculate study design** and read both powers in the **No error**
+table on **Results**. The **genotype chi-square** test
 asks whether the distribution across zero, one and two copies differs in any
 way between cases and controls. The **trend** test asks about a systematic
 change with allele count, using one degree of freedom instead of two.
@@ -137,7 +136,7 @@ the assumed difference about 96 times, and the trend test about 98 times.
 The ordered difference suits a trend test here; it need not be the better
 choice for another inheritance pattern. Plan for the test you intend to use.
 
-```{r shiny-cc-results, echo=FALSE, out.width="100%", fig.alt="Expanded case-control details show model assumptions, case and control genotype probabilities, power of 96.19% and 98.22%, and the corresponding cc_power call.", fig.cap="Compare the model on the left with the last calculation on the right. Statistical result details and Reproduce in R are near the bottom of the expanded panel."}
+```{r shiny-cc-results, echo=FALSE, out.width="100%", fig.alt="The Case-Control Results tab shows a table with 96.19% power for the genotype chi-square test and 98.22% for the trend test.", fig.cap="The Results table compares both tests for the same 500 cases and 500 controls."}
 knitr::include_graphics("images/shiny-cc-results.png")
 ```
 
@@ -344,14 +343,13 @@ represent correlations *within genotype groups*; together they must form
 a positive-definite correlation matrix.
 
 **Joint continuous-trait test (Pillai MANOVA)** uses the complete measurements
-to compare the groups' mean vectors. **Joint extreme-selection test** is
-intended for people who meet all the upper cutoffs or all the lower cutoffs;
-it needs upper and lower percentages for each trait and the selected-sample
-ratio. Check the selected option and the heading in **Output**. In the
-current dashboard the joint selector can revert to Pillai when the form
-refreshes. If it does, use `qtl_multivariate_power_full()` or
-`qtl_multivariate_mssn_full()` with `test = "threshold_chisq"` for the
-joint-tail design. Do not read a Pillai result as a joint-tail result.
+to compare the groups' mean vectors. For power, enter the total sample
+size. **Joint extreme-selection test** includes people who meet all the
+upper cutoffs or all the lower cutoffs. Enter upper and lower percentages
+for each trait and set the ratio under **Advanced assumptions**. For power,
+enter the upper-tail sample size. For either test, select **Minimum sample
+size** to enter a target power instead. Select **Calculate study design**
+to update **Output**.
 
 There are no **Results**, **Sensitivity**, **Visualize**, **Methods** or
 generated-code panels in this workspace. The [quantitative-trait

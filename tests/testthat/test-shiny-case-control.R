@@ -59,6 +59,36 @@ test_that("validation is friendly and calculated state remains frozen", {
   })
 })
 
+test_that("Case-Control result cards contain actual tables for the frozen design", {
+  shiny::testServer(paweh:::.paweh_case_control_server, {
+    tables <- function() {
+      html <- output$results$html
+      regmatches(html, gregexpr("(?s)<table[^>]*>.*?</table>", html, perl = TRUE))[[1]]
+    }
+    session$setInputs(objective = "power", input_mode = "model_based")
+    session$setInputs(calculate = 1)
+    initial <- tables()
+    expect_length(initial, 1L)
+    expect_match(initial, "<td>Genotype chi-square</td>[[:space:]]*<td>96.19%</td>")
+    expect_match(initial, "<td>Trend</td>[[:space:]]*<td>98.22%</td>")
+
+    session$setInputs(section = "Sensitivity", objective = "mssn",
+      input_mode = "model_free", locus_het = TRUE, pi = 75)
+    session$setInputs(section = "Results")
+    expect_identical(tables(), initial)
+
+    session$setInputs(calculate = 2)
+    rendered <- tables()
+    expect_length(rendered, 2L)
+    for (table in rendered) {
+      expect_match(table, "<th>Cases</th>", fixed = TRUE)
+      expect_match(table, "<th>Controls</th>", fixed = TRUE)
+      expect_match(table, "<td>Genotype chi-square</td>", fixed = TRUE)
+      expect_match(table, "<td>Trend</td>", fixed = TRUE)
+    }
+  })
+})
+
 test_that("sensitivity points are direct canonical calls of frozen input", {
   v <- paweh:::.paweh_cc_defaults()
   calc <- paweh:::.paweh_cc_calculate(paweh:::.paweh_cc_snapshot(v))
