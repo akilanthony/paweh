@@ -1,41 +1,107 @@
 url: https://akilanthony.github.io/paweh/
+
 template:
   bootstrap: 5
-reference:
-- title: 'Case-control: canonical interfaces'
+  math-rendering: mathml
+  bslib:
+    bg: "#ffffff"
+    fg: "#202f40"
+    primary: "#165a65"
+    link-color: "#145967"
+    link-hover-color: "#103c49"
+    border-radius: "0.4rem"
+
+home:
+  sidebar: false
+  description: "Estimate statistical power and sample size for genetic association studies before collecting data."
+
+navbar:
+  bg: light
+  structure:
+    left: [home, start, designs, methods, reference]
+    right: [search, github]
+  components:
+    home:
+      text: Home
+      href: index.html
+    start:
+      text: Get Started
+      href: articles/paweh-01-getting-started.html
+    designs:
+      text: Study Designs
+      menu:
+      - text: All articles
+        href: articles/index.html
+      - text: "-------"
+      - text: Case-Control Studies
+        href: articles/paweh-02-case-control-study-design.html
+      - text: TDT / Family Studies
+        href: articles/paweh-03-tdt-study-design.html
+      - text: Quantitative Traits
+        href: articles/paweh-04-quantitative-trait-study-design.html
+      - text: Sequencing-Based Studies
+        href: articles/paweh-06-sequencing-study-design.html
+      - text: Validation-Based / LRTae Studies
+        href: articles/paweh-07-lrtae-study-design.html
+      - text: "-------"
+      - text: Interactive Dashboard
+        href: articles/paweh-05-interactive-dashboard.html
+    methods:
+      text: Methods & Sources
+      href: articles/paweh-08-methods-and-sources.html
+    reference:
+      text: Function Reference
+      href: reference/index.html
+    github:
+      text: GitHub
+      href: https://github.com/akilanthony/paweh
+
+articles:
+- title: Get started
+  contents: paweh-01-getting-started
+- title: Study design tutorials
   contents:
+  - paweh-02-case-control-study-design
+  - paweh-03-tdt-study-design
+  - paweh-04-quantitative-trait-study-design
+  - paweh-06-sequencing-study-design
+  - paweh-07-lrtae-study-design
+- title: Interactive workflow
+  contents: paweh-05-interactive-dashboard
+- title: Scientific foundations
+  contents: paweh-08-methods-and-sources
+
+reference:
+- title: "Case-Control: Main Functions"
+  desc: "Estimate power and recruitment for unrelated cases and controls."
+- contents:
   - cc_mssn
   - cc_power
-- title: 'Case-control: genotype misclassification'
-  contents:
+- title: "Case-Control: Misclassification and Heterogeneity"
+  desc: "Explore how errors and genetic mixtures change a planned comparison."
+- contents:
   - cc_chisq_mssn_genotype_misclassification_1p
-  - cc_chisq_power_genotype_misclassification_1p
   - cc_chisq_mssn_genotype_misclassification_2p
-  - cc_chisq_power_genotype_misclassification_2p
   - cc_chisq_mssn_genotype_misclassification_3p
-  - cc_chisq_power_genotype_misclassification_3p
   - cc_chisq_mssn_genotype_misclassification_differential_3p
-  - cc_chisq_power_genotype_misclassification_differential_3p
-- title: 'Case-control: phenotype misclassification'
-  contents:
-  - cc_chisq_mssn_phenotype_misclassification
-  - cc_chisq_power_phenotype_misclassification
-- title: 'Case-control: locus heterogeneity'
-  contents:
   - cc_chisq_mssn_locus_heterogeneity
+  - cc_chisq_mssn_phenotype_misclassification
+  - cc_chisq_power_genotype_misclassification_1p
+  - cc_chisq_power_genotype_misclassification_2p
+  - cc_chisq_power_genotype_misclassification_3p
+  - cc_chisq_power_genotype_misclassification_differential_3p
   - cc_chisq_power_locus_heterogeneity
+  - cc_chisq_power_phenotype_misclassification
   - cc_trend_mssn_locus_heterogeneity
   - cc_trend_power_locus_heterogeneity
-- title: 'Case-control: plotting'
-  contents:
-  - plot_cc_mssn
-  - plot_cc_power
-- title: 'TDT: canonical interfaces'
-  contents:
+- title: "TDT: Main Functions"
+  desc: "Plan a transmission disequilibrium test with affected children and both parents."
+- contents:
   - tdt_mssn
   - tdt_power
-- title: 'TDT: expected counts and lower-level calculations'
-  contents:
+- title: "TDT: Specialized Calculations"
+  desc: "Work with expected transmissions, genetic models and phenotype misclassification."
+- contents:
   - tdt_expected_nontransmission_probability
   - tdt_expected_transmission_counts
   - tdt_expected_transmission_probability
@@ -43,72 +109,51 @@ reference:
   - tdt_mssn_phenotype_misclassification_from_ncp
   - tdt_power_from_expected_counts
   - tdt_power_from_model
-- title: 'TDT: canonical plotting'
-  contents:
-  - plot_tdt_mssn
-  - plot_tdt_power
-  - plot_tdt_surface3d
-- title: 'TDT: phenotype misclassification plotting'
-  contents:
-  - plot_tdt_mssn_phenotype_misclassification
-  - plot_tdt_power_phenotype_misclassification
-- title: 'TDT: locus heterogeneity plotting'
-  contents:
-  - plot_tdt_mssn_locus_heterogeneity
-  - plot_tdt_power_locus_heterogeneity
-- title: 'Quantitative traits: model parameters'
-  contents:
-  - qtl_falconer_parameters
-  - qtl_falconer_threshold_parameters
-- title: 'Quantitative traits: ANOVA'
-  contents:
+- title: "Quantitative Traits"
+  desc: "Plan analyses of continuous traits, selected extremes and multiple correlated measurements."
+- contents:
   - qtl_anova_mssn
   - qtl_anova_power
-- title: 'Quantitative traits: threshold genotype chi-square'
-  contents:
-  - qtl_threshold_chisq_mssn
-  - qtl_threshold_chisq_power
-- title: 'Quantitative traits: multivariate Pillai MANOVA'
-  contents:
+  - qtl_falconer_parameters
+  - qtl_falconer_threshold_parameters
   - qtl_multivariate_mssn_full
   - qtl_multivariate_power_full
-- title: 'Quantitative traits: plotting'
-  contents:
+  - qtl_threshold_chisq_mssn
+  - qtl_threshold_chisq_power
+- title: "Sequencing"
+  desc: "Compare sequencing depth and read error assumptions for case-control or trio designs."
+- contents:
+  - cc_ngs_mssn
+  - cc_ngs_power
+  - ngs_genotype_error_matrix
+  - tdt_ngs_mssn
+  - tdt_ngs_power
+- title: "LRTae"
+  desc: "Plan studies that verify diagnoses, genotypes or both in a subset of participants."
+- contents:
+  - lrtae_mssn
+  - lrtae_ncp
+  - lrtae_power
+- title: "Plotting and Visualization"
+  desc: "Show design sensitivity, power, recruitment or genotype distributions."
+- contents:
+  - plot_cc_mssn
+  - plot_cc_power
+  - plot_ngs_mssn
+  - plot_ngs_power
   - plot_qtl_anova_mssn
   - plot_qtl_anova_power
   - plot_qtl_genotype_distribution
-  - plot_qtl_multivariate_contour
-  - plot_qtl_multivariate_surface3d
   - plot_qtl_threshold_chisq_mssn
   - plot_qtl_threshold_chisq_power
-- title: 'Sequencing study design'
-  contents:
-  - ngs_genotype_error_matrix
-  - cc_ngs_power
-  - cc_ngs_mssn
-  - tdt_ngs_power
-  - tdt_ngs_mssn
-  - plot_ngs_power
-  - plot_ngs_mssn
-- title: 'Interactive application'
-  contents:
+  - plot_tdt_mssn
+  - plot_tdt_mssn_locus_heterogeneity
+  - plot_tdt_mssn_phenotype_misclassification
+  - plot_tdt_power
+  - plot_tdt_power_locus_heterogeneity
+  - plot_tdt_power_phenotype_misclassification
+  - plot_tdt_surface3d
+- title: "Interactive Dashboard"
+  desc: "Open the Shiny interface for case-control, trio and quantitative-trait designs."
+- contents:
   - paweh_app
-articles:
-- title: Getting Started
-  navbar: Getting Started
-  contents: paweh-01-getting-started
-- title: Case-Control Study Design
-  navbar: Case-Control Study Design
-  contents: paweh-02-case-control-study-design
-- title: TDT Study Design
-  navbar: TDT Study Design
-  contents: paweh-03-tdt-study-design
-- title: Quantitative-Trait Study Design
-  navbar: Quantitative-Trait Study Design
-  contents: paweh-04-quantitative-trait-study-design
-- title: Interactive Dashboard
-  navbar: Interactive Dashboard
-  contents: paweh-05-interactive-dashboard
-- title: Sequencing-Based Genetic Study Design
-  navbar: Sequencing-Based Genetic Study Design
-  contents: paweh-06-sequencing-study-design

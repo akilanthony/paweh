@@ -807,7 +807,7 @@ Each row uses the same sequencing design. In the phenotype and heterogeneity
 rows the biological mixture changes **before** sequencing. The genotype-error
 row starts with the original biological groups and transforms their
 sequencing calls **afterward**. For each group its effective transition
-matrix in row notation is \(E_{\rm sequencing}E_{\rm genotype}\).
+matrix in row notation is \(E_{\mathrm{sequencing}}E_{\mathrm{genotype}}\).
 The three modifiers each act on their own and there is no combined
 all-errors result.
 
@@ -824,7 +824,7 @@ intermediate and final group frequencies, and the relevant scenario's
 
 With the same 4× sequencing mechanism in both groups, we can isolate the
 effect of locus heterogeneity. The case distribution before sequencing is
-\(\pi g_{\rm case}+(1-\pi)g_{\rm control}\). Here `pi` is the fraction
+\(\pi g_{\mathrm{case}}+(1-\pi)g_{\mathrm{control}}\). Here `pi` is the fraction
 retaining the locus-specific case distribution. In the trio interface
 `heter_rate` counts the **unlinked** fraction instead.
 
@@ -938,7 +938,7 @@ case/control association studies. *Annals of Human Genetics*.
 
 Chapman DG, Nam JM. Asymptotic power of chi square tests for linear trends in
 proportions. *Biometrics*. 1968;24(2):315--327.
-<https://doi.org/10.2307/2528035>.
+<https://doi.org/10.2307/2528037>.
 
 Gordon D, Finch SJ, Kim W. *Heterogeneity in Statistical Genetics: How to
 Assess, Address, and Account for Mixtures in Association Studies*. Springer;

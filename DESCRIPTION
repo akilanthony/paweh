@@ -1,6 +1,7 @@
 Package: paweh
 Title: Power and Sample Size for Genetic Association Studies
 Version: 0.99.0
+Date: 2026-11-13
 Authors@R:
     c(
       person(

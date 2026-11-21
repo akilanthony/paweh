@@ -1,27 +1,21 @@
-# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
-# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+name: pkgdown.yaml
+
 on:
   push:
     branches: [develop]
   pull_request:
   workflow_dispatch:
 
-name: pkgdown.yaml
-
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
-  pkgdown:
+  build:
     runs-on: ubuntu-latest
-    # Only restrict concurrency for non-PR jobs
-    concurrency:
-      group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -32,17 +26,53 @@ jobs:
           extra-packages: any::pkgdown, local::.
           needs: website
 
-      - name: Exclude internal development instructions
-        run: mv AGENTS.md "$RUNNER_TEMP/AGENTS.md"
+      - name: Exclude internal development documents
+        run: mv AGENTS.md CRAN_PREPARATION_AUDIT.md "$RUNNER_TEMP/"
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
-      - name: Deploy to GitHub pages 🚀
-        if: github.event_name != 'pull_request'
+      - name: Save the manual develop build
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkgdown-site
+          path: docs/
+          include-hidden-files: true
+          if-no-files-found: error
+
+  deploy:
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pkgdown-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Verify Pages credential is configured
+        env:
+          PAGES_TOKEN: ${{ secrets.PAWEH_PAGES_TOKEN }}
+        run: |
+          if [ -z "$PAGES_TOKEN" ]; then
+            echo "::error::Configure PAWEH_PAGES_TOKEN before publishing from gh-pages."
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: pkgdown-site
+          path: docs/
+
+      - name: Publish site to gh-pages
         uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
         with:
-          clean: true
+          token: ${{ secrets.PAWEH_PAGES_TOKEN }}
           branch: gh-pages
           folder: docs
+          clean: true
+          force: false

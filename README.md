@@ -15,12 +15,17 @@ the departures that your chosen design supports.
 
 ## Methodological foundation
 
+[<img src="man/figures/textbook-cover.jpg" width="145" alt="Springer cover of Heterogeneity in Statistical Genetics by Derek Gordon, Stephen J. Finch, and Wonkuk Kim">](https://doi.org/10.1007/978-3-030-61121-7)
+
+<sub>Cover artwork by Springer. Used with permission.</sub>
+
 Gordon D, Finch SJ, Kim W. [*Heterogeneity in Statistical Genetics: How to
 Assess, Address, and Account for Mixtures in Association Studies*](https://doi.org/10.1007/978-3-030-61121-7).
 Springer; 2020. Derek Gordon is a coauthor of both the book and `paweh`.
 The book provides a foundation for understanding mixtures and measurement
-error. The package also draws on other published methods; each study-design
-article identifies the sources for its calculations.
+error. The package also draws on other published methods. The
+[Methods & Sources article](vignettes/paweh-08-methods-and-sources.Rmd) maps
+functions to publications, textbook sections and numerical comparisons.
 
 ## Install and start here
 
