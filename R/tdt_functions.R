@@ -3,7 +3,7 @@
 #' Computes the statistical power of the Transmission Disequilibrium Test (TDT)
 #' given the expected number of transmissions (ET) and non-transmissions (ENT)
 #' under a specified significance level. Implements Eq. 1.25 (Chapter 1,
-#' Section 1.6.1.3, p. 27) of Gordon, Finch, and Kim (2020).
+#' Section 1.6.1.4, p. 27) of Gordon, Finch, and Kim (2020).
 
 #' @param ET Numeric. Expected number of transmissions.
 #' @param ENT Numeric. Expected number of non-transmissions.
@@ -23,10 +23,10 @@
 #' \deqn{1 - P(\chi^2_{1,\lambda} < q_{\chi^2_{1,1-\alpha}})}
 #'
 #' @return A list containing:
-#' \item{lambda}{Non-centrality parameter.}
-#' \item{power}{Computed power at the given alpha level.}
-#' \item{ET}{Expected transmissions.}
-#' \item{ENT}{Expected non-transmissions.}
+#' \item{\code{"Non-Centrality Parameter (lambda)"}}{Non-centrality parameter.}
+#' \item{\code{Power}}{Computed power.}
+#' \item{\code{"Expected Transmissions (ET)"}}{Expected transmissions.}
+#' \item{\code{"Expected Non-Transmissions (ENT)"}}{Expected non-transmissions.}
 #'
 #'
 #' @importFrom stats pchisq qchisq uniroot
@@ -109,11 +109,12 @@ tdt_power_from_expected_counts <- function(ET, ENT, alpha = 0.05) {
 #' marker-locus assumptions should be considered when interpreting \code{pd}.
 #'
 #' @return A list containing:
-#' \item{lambda}{Non-centrality parameter.}
-#' \item{power}{Computed power at the given significance level.}
-#' \item{ET}{Expected transmissions.}
-#' \item{ENT}{Expected non-transmissions.}
-#' \item{Penetrances}{Vector of computed penetrances (f0, f1, f2).}
+#' \item{\code{"Non-Centrality Parameter (lambda)"}}{Non-centrality parameter.}
+#' \item{\code{Power}}{Computed power.}
+#' \item{\code{"Expected Transmissions (ET)"}}{Expected transmissions.}
+#' \item{\code{"Expected Non-Transmissions (ENT)"}}{Expected non-transmissions.}
+#' \item{Penetrances}{Vector of penetrances (f0, f1, f2).}
+#' \item{C, Delta}{Penetrance contrast and linkage disequilibrium coefficient.}
 #'
 #' @examples
 #' # Example: model-based power computation
@@ -452,7 +453,10 @@ tdt_mssn_phenotype_misclassification_from_ncp <- function(
 #' @param R2 Numeric. Relative risk for homozygotes.
 #' @param delta_prime Numeric. Linkage disequilibrium scale parameter (\eqn{D'}) (default = 1).
 #' @param pi01 Numeric. Misclassification rate (default = 0).
-#' @param theta1 Numeric. Population allele frequency (defaults to `pd` if `NULL`).
+#' @param theta1 Numeric. Recombination fraction between the marker and
+#'   disease loci (from 0 to 0.5). When `NULL`, this helper uses its
+#'   historical default `pd`. Supply `theta1 = 0` to match the canonical
+#'   linked component, keeping the other model inputs the same.
 #' @param digits Integer. Number of digits for printed results (default = 6).
 #' @param verbose Logical. If `TRUE`, prints intermediate quantities (default = TRUE).
 #'
@@ -587,7 +591,10 @@ tdt_expected_transmission_probability <- function(pd, prev, R1, R2,
 #' @param R2 Numeric. Relative risk for homozygotes.
 #' @param delta_prime Numeric. Linkage disequilibrium scale parameter (\eqn{D'}) (default = 1).
 #' @param pi01 Numeric. Misclassification rate (default = 0).
-#' @param theta1 Numeric. Population allele frequency (defaults to `pd` if `NULL`).
+#' @param theta1 Numeric. Recombination fraction between the marker and
+#'   disease loci (from 0 to 0.5). When `NULL`, this helper uses its
+#'   historical default `pd`. Supply `theta1 = 0` to match the canonical
+#'   linked component, keeping the other model inputs the same.
 #' @param digits Integer. Number of digits for printing (default = 6).
 #' @param verbose Logical. If `TRUE`, prints intermediate quantities (default = TRUE).
 #'
@@ -722,7 +729,10 @@ tdt_expected_nontransmission_probability <- function(pd, prev, R1, R2,
 #' @param delta_prime Numeric. Linkage disequilibrium scale parameter (\eqn{D'}) (default = 1).
 #' @param pi Numeric in \eqn{[0,1]}. Linked/homogeneous trio fraction
 #'   (default \code{1}); \eqn{1-\pi} is the heterogeneous fraction.
-#' @param theta1 Numeric. Population allele frequency (defaults to `pd` if `NULL`).
+#' @param theta1 Numeric. Recombination fraction between the marker and
+#'   disease loci (from 0 to 0.5). When `NULL`, this helper uses its
+#'   historical default `pd`. Supply `theta1 = 0` to match the canonical
+#'   linked component, keeping the other model inputs the same.
 #' @param digits Integer. Number of digits for printing (default = 6).
 #' @param verbose Logical. If `TRUE`, prints intermediate quantities (default = TRUE).
 #'

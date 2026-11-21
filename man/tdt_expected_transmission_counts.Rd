@@ -33,7 +33,10 @@ tdt_expected_transmission_counts(
 \item{pi}{Numeric in \eqn{[0,1]}. Linked/homogeneous trio fraction
 (default \code{1}); \eqn{1-\pi} is the heterogeneous fraction.}
 
-\item{theta1}{Numeric. Population allele frequency (defaults to \code{pd} if \code{NULL}).}
+\item{theta1}{Numeric. Recombination fraction between the marker and
+disease loci (from 0 to 0.5). When \code{NULL}, this helper uses its
+historical default \code{pd}. Supply \code{theta1 = 0} to match the canonical
+linked component, keeping the other model inputs the same.}
 
 \item{digits}{Integer. Number of digits for printing (default = 6).}
 

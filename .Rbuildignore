@@ -11,3 +11,4 @@
 ^\.claude$
 ^\.github$
 ^CRAN_PREPARATION_AUDIT\.md$
+^CRAN_FINAL_READINESS_AUDIT\.md$

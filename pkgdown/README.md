@@ -6,8 +6,9 @@ the repository’s `_pkgdown.yml`.
 
 For a clean preview, work from a temporary copy of the package source that
 includes `pkgdown/`, `man/figures/`, `_pkgdown.yml` and all eight vignettes.
-Exclude `AGENTS.md` and `CRAN_PREPARATION_AUDIT.md` from the copy because
-pkgdown renders top-level Markdown pages. With pkgdown and the package
+Exclude `AGENTS.md`, `CRAN_PREPARATION_AUDIT.md`, and
+`CRAN_FINAL_READINESS_AUDIT.md` from the copy because pkgdown renders
+top-level Markdown pages. With pkgdown and the package
 dependencies installed, run this from the temporary source directory.
 
 ```r

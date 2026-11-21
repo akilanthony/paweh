@@ -29,7 +29,10 @@ tdt_expected_nontransmission_probability(
 
 \item{pi01}{Numeric. Misclassification rate (default = 0).}
 
-\item{theta1}{Numeric. Population allele frequency (defaults to \code{pd} if \code{NULL}).}
+\item{theta1}{Numeric. Recombination fraction between the marker and
+disease loci (from 0 to 0.5). When \code{NULL}, this helper uses its
+historical default \code{pd}. Supply \code{theta1 = 0} to match the canonical
+linked component, keeping the other model inputs the same.}
 
 \item{digits}{Integer. Number of digits for printing (default = 6).}
 

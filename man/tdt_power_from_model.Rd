@@ -37,11 +37,12 @@ If not provided, they are computed internally using \code{prev}, \code{R1}, and 
 }
 \value{
 A list containing:
-\item{lambda}{Non-centrality parameter.}
-\item{power}{Computed power at the given significance level.}
-\item{ET}{Expected transmissions.}
-\item{ENT}{Expected non-transmissions.}
-\item{Penetrances}{Vector of computed penetrances (f0, f1, f2).}
+\item{\code{"Non-Centrality Parameter (lambda)"}}{Non-centrality parameter.}
+\item{\code{Power}}{Computed power.}
+\item{\code{"Expected Transmissions (ET)"}}{Expected transmissions.}
+\item{\code{"Expected Non-Transmissions (ENT)"}}{Expected non-transmissions.}
+\item{Penetrances}{Vector of penetrances (f0, f1, f2).}
+\item{C, Delta}{Penetrance contrast and linkage disequilibrium coefficient.}
 }
 \description{
 Computes the statistical power of the Transmission Disequilibrium Test (TDT)

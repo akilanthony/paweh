@@ -82,7 +82,7 @@
 #' from \code{prev}, \code{R1}, \code{R2}, and \code{pd}, and the expected
 #' transmission and non-transmission probabilities under each of the three
 #' scenarios are computed from the standard TDT formulation in Eq. 1.25
-#' (Chapter 1, Section 1.6.1.3, p. 27), the phenotype-misclassification
+#' (Chapter 1, Section 1.6.1.4, p. 27), the phenotype-misclassification
 #' probabilities in Eqs. 5.24--5.27 (Section 5.2.6, pp. 284--285), and the
 #' locus-heterogeneity construction in Eqs. 5.30--5.34a (Section 5.3.3,
 #' pp. 293--294) of Gordon, Finch, and Kim (2020). Eq. 5.28 is a numerical

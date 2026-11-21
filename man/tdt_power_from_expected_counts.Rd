@@ -15,16 +15,16 @@ tdt_power_from_expected_counts(ET, ENT, alpha = 0.05)
 }
 \value{
 A list containing:
-\item{lambda}{Non-centrality parameter.}
-\item{power}{Computed power at the given alpha level.}
-\item{ET}{Expected transmissions.}
-\item{ENT}{Expected non-transmissions.}
+\item{\code{"Non-Centrality Parameter (lambda)"}}{Non-centrality parameter.}
+\item{\code{Power}}{Computed power.}
+\item{\code{"Expected Transmissions (ET)"}}{Expected transmissions.}
+\item{\code{"Expected Non-Transmissions (ENT)"}}{Expected non-transmissions.}
 }
 \description{
 Computes the statistical power of the Transmission Disequilibrium Test (TDT)
 given the expected number of transmissions (ET) and non-transmissions (ENT)
 under a specified significance level. Implements Eq. 1.25 (Chapter 1,
-Section 1.6.1.3, p. 27) of Gordon, Finch, and Kim (2020).
+Section 1.6.1.4, p. 27) of Gordon, Finch, and Kim (2020).
 }
 \details{
 The function calculates the non-centrality parameter and statistical power for the TDT

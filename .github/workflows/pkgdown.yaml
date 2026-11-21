@@ -27,7 +27,7 @@ jobs:
           needs: website
 
       - name: Exclude internal development documents
-        run: mv AGENTS.md CRAN_PREPARATION_AUDIT.md "$RUNNER_TEMP/"
+        run: mv AGENTS.md CRAN_PREPARATION_AUDIT.md CRAN_FINAL_READINESS_AUDIT.md "$RUNNER_TEMP/"
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
