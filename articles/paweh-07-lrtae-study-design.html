@@ -4,212 +4,209 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LRTae power and sample-size design • paweh</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
-<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="LRTae power and sample-size design">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>7. LRTae Power and Sample-Size Design • paweh</title>
+<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="7. LRTae Power and Sample-Size Design">
 </head>
-<body data-spy="scroll" data-target="#toc">
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <div class="container template-article">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">paweh</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
-      </span>
-    </div>
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="../reference/index.html">Reference</a>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Articles
+    <a class="navbar-brand me-2" href="../index.html">paweh</a>
 
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="../articles/paweh-01-getting-started.html">Getting started with paweh</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-02-case-control-study-design.html">Case-control genetic association study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-03-tdt-study-design.html">Transmission disequilibrium test study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative-trait genetic association study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-07-lrtae-study-design.html">LRTae power and sample-size design</a>
-    </li>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.0</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/paweh-01-getting-started.html">Get Started</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-study-designs" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Study Designs</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-study-designs">
+<li><a class="dropdown-item" href="../articles/index.html">All articles</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/paweh-02-case-control-study-design.html">Case-Control Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-03-tdt-study-design.html">TDT / Family Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative Traits</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-07-lrtae-study-design.html">Validation-Based / LRTae Studies</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/paweh-05-interactive-dashboard.html">Interactive Dashboard</a></li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../articles/paweh-08-methods-and-sources.html">Methods &amp; Sources</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Function Reference</a></li>
       </ul>
-<ul class="nav navbar-nav navbar-right">
-<li>
-  <a href="https://github.com/akilanthony/paweh/" class="external-link">
-    <span class="fab fa-github fa-lg"></span>
-
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/akilanthony/paweh">GitHub</a></li>
       </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
-</div>
-<!--/.navbar -->
+</nav><div class="container template-article">
 
 
 
-      </header><div class="row">
-  <div class="col-md-9 contents">
-    <div class="page-header toc-ignore">
-      <h1 data-toc-skip>LRTae power and sample-size design</h1>
+
+<div class="row">
+  <main id="main" class="col-md-9"><div class="page-header">
+
+      <h1>7. LRTae Power and Sample-Size Design</h1>
                         <h4 data-toc-skip class="author">paweh package
 authors</h4>
             
       
       <small class="dont-index">Source: <a href="https://github.com/akilanthony/paweh/blob/HEAD/vignettes/paweh-07-lrtae-study-design.Rmd" class="external-link"><code>vignettes/paweh-07-lrtae-study-design.Rmd</code></a></small>
-      <div class="hidden name"><code>paweh-07-lrtae-study-design.Rmd</code></div>
-
+      <div class="d-none name"><code>paweh-07-lrtae-study-design.Rmd</code></div>
     </div>
 
     
     
 <div class="section level2">
-<h2 id="what-is-lrtae">What is LRTae?<a class="anchor" aria-label="anchor" href="#what-is-lrtae"></a>
+<h2 id="which-measurements-should-the-team-confirm">Which measurements should the team confirm?<a class="anchor" aria-label="anchor" href="#which-measurements-should-the-team-confirm"></a>
 </h2>
-<p>LRTae is a likelihood-ratio framework for case-control genetic
-association studies in which phenotype classification, genotype
-classification, or both may be measured with error. A subset of
-participants can receive more accurate or gold-standard measurements.
-These validation data inform the error process and contribute
-information about the association.</p>
-<p>The basic problem is easy to state:</p>
-<blockquote>
-<p>true phenotype and genotype -&gt; fallible measured phenotype and
-genotype -&gt; potentially distorted apparent association</p>
-</blockquote>
-<p>Validation provides a second path:</p>
-<blockquote>
-<p>gold-standard measurements on a subset -&gt; information about
-misclassification -&gt; improved efficient information for the
-association test</p>
-</blockquote>
-<p><code>paweh</code> implements the <strong>prospective design</strong>
-calculations <code><a href="../reference/lrtae_ncp.html">lrtae_ncp()</a></code>, <code><a href="../reference/lrtae_power.html">lrtae_power()</a></code>, and
-<code><a href="../reference/lrtae_mssn.html">lrtae_mssn()</a></code>. They calculate expected operating
-characteristics before data collection. The package does not implement
-the observed-data iterative likelihood fitting or association test from
-the historical LRTae spreadsheet and software.</p>
+<p>A clinic plans to recruit 500 unrelated people to study whether a DNA
+variant is more common in patients with a disease than in unaffected
+controls. Everyone will receive a routine diagnosis and a laboratory
+genotype call. The team can pay for a specialist’s diagnostic review and
+a confirmatory assay, but cannot give both to everyone. A case recorded
+as a control can make the groups look more alike. An incorrect genotype
+call can obscure a difference even when the diagnosis is right. Can the
+team still detect the difference it expects? Which measurements would be
+most useful to confirm, and how many people would it need for 80%
+power?</p>
+<p>The <strong>Likelihood Ratio Test Allowing for Error (LRTae)</strong>
+compares two explanations for the measurements: the true genotype
+distribution is the same in cases and controls, or it differs. Both
+explanations allow routine measurements to be wrong. When a routine
+result and a more reliable result are available for the same person, the
+pair helps distinguish a measurement error from a real difference
+between groups.</p>
+<p>Here <strong>validation</strong> means checking a person’s
+measurement against a reference assessment. It is different from testing
+the accuracy of statistical software. In
+<strong>double-sampling</strong>, some people receive both the routine
+measurement and the reference assessment of the same trait. Keep the
+routine result even when the two disagree. The model treats the
+reference result as the truth; a specialist review or second assay does
+not automatically meet that standard.</p>
+<p>This is a <em>prospective</em> calculation: before anyone is
+recruited, we specify what the study might look like and ask how often
+the test would detect the assumed association. To run the examples,
+first load the package.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/akilanthony/paweh" class="external-link">paweh</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="four-validation-tiers">Four validation tiers<a class="anchor" aria-label="anchor" href="#four-validation-tiers"></a>
+<h2 id="decide-who-receives-each-reference-assessment">Decide who receives each reference assessment<a class="anchor" aria-label="anchor" href="#decide-who-receives-each-reference-assessment"></a>
 </h2>
-<p>Each planned participant belongs to one mutually exclusive
-measurement tier.</p>
+<p>The <strong>phenotype</strong> is the person’s disease status. The
+<strong>genotype</strong> here is the number of copies of one chosen
+allele (version of the DNA sequence). Everyone gets both routine
+measurements. The four tiers in the diagram describe only what is added.
+For example, someone who receives both reference assessments belongs in
+the fourth tier and is counted once.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tier_counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  n_fallible <span class="op">=</span> <span class="fl">248</span>,</span>
+<span>  n_pheno_validated <span class="op">=</span> <span class="fl">135</span>,</span>
+<span>  n_geno_validated <span class="op">=</span> <span class="fl">72</span>,</span>
+<span>  n_both_validated <span class="op">=</span> <span class="fl">45</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="figure">
+<img src="paweh-07-lrtae-study-design_files/figure-html/tier-diagram-1.png" class="r-plt" alt="All 500 receive routine diagnosis and genotyping. Of these, 248 have no reference assessment, 135 have diagnosis confirmed only, 72 have genotype confirmed only and 45 have both confirmed." width="672"><p class="caption">
+The two decisions cross: read down for diagnostic review and across for
+the confirmatory genotype assay. Each participant occupies one cell.
+</p>
+</div>
+<p>The four counts add to <strong>500 individual participants</strong>,
+including 180 with a reference diagnosis (135 + 45) and 117 with a
+reference genotype (72 + 45). The two reference-assessment totals
+overlap; adding them would count 45 people twice. There are no family
+trios in this design.</p>
+<p>For <code><a href="../reference/lrtae_ncp.html">lrtae_ncp()</a></code> and <code><a href="../reference/lrtae_power.html">lrtae_power()</a></code>, supply
+these four <strong>counts</strong> because the study size is fixed. For
+<code><a href="../reference/lrtae_mssn.html">lrtae_mssn()</a></code>, the total is what we want to find. Supply the
+same four categories as <strong>shares</strong> of whatever total will
+be recruited: 49.6%, 27.0%, 14.4% and 9.0%, respectively.</p>
+</div>
+<div class="section level2">
+<h2 id="describe-the-study-before-routine-measurement">Describe the study before routine measurement<a class="anchor" aria-label="anchor" href="#describe-the-study-before-routine-measurement"></a>
+</h2>
+<p>For a single variant with two alleles, let 0, 1 and 2 mean copies of
+the chosen allele. For example, if that allele is A, the genotypes GG,
+AG and AA have 0, 1 and 2 copies. Always use this order, and count the
+same allele, in both groups and in the error matrix.</p>
 <table class="table">
 <colgroup>
-<col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
+<col width="50%">
+<col width="50%">
 </colgroup>
 <thead><tr class="header">
-<th>Tier</th>
-<th>Phenotype</th>
-<th>Genotype</th>
-<th>Fixed-design argument</th>
-<th>MSSN allocation argument</th>
+<th align="left">Argument</th>
+<th align="left">What to supply</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td>Fallible only</td>
-<td>Fallible</td>
-<td>Fallible</td>
-<td><code>n_fallible</code></td>
-<td><code>prop_fallible</code></td>
+<td align="left"><code>true_control_genotype_frequencies</code></td>
+<td align="left">Fractions of true controls with 0, 1 and 2 copies,
+before any measurement errors.</td>
 </tr>
 <tr class="even">
-<td>Phenotype validated</td>
-<td>Gold standard</td>
-<td>Fallible</td>
-<td><code>n_pheno_validated</code></td>
-<td><code>prop_pheno_validated</code></td>
+<td align="left"><code>true_case_genotype_frequencies</code></td>
+<td align="left">The corresponding fractions <em>among true cases</em>.
+They describe the association the team wants to be able to detect.</td>
 </tr>
 <tr class="odd">
-<td>Genotype validated</td>
-<td>Fallible</td>
-<td>Gold standard</td>
-<td><code>n_geno_validated</code></td>
-<td><code>prop_geno_validated</code></td>
-</tr>
-<tr class="even">
-<td>Both validated</td>
-<td>Gold standard</td>
-<td>Gold standard</td>
-<td><code>n_both_validated</code></td>
-<td><code>prop_both_validated</code></td>
+<td align="left"><code>true_sampling_proportions</code></td>
+<td align="left">The planned fractions of study participants who are
+true controls and true cases, in that order.</td>
 </tr>
 </tbody>
 </table>
-<p>The four fixed counts sum to the total sample size. The four MSSN
-proportions must be nonnegative and sum to one.</p>
-<blockquote>
-<p><strong>Matrix orientation is important:</strong> for both
-misclassification matrices, rows are <strong>true</strong> categories
-and columns are <strong>observed</strong> categories.</p>
-</blockquote>
-</div>
-<div class="section level2">
-<h2 id="a-reproducible-prospective-design">A reproducible prospective design<a class="anchor" aria-label="anchor" href="#a-reproducible-prospective-design"></a>
-</h2>
-<p>Consider a research team planning a case-control association study.
-Routine phenotype ascertainment is imperfect, routine genotyping has a
-small classification error, and gold-standard clinical adjudication and
-confirmatory genotyping are too expensive for every participant.</p>
-<p>The following deterministic inputs come from a historical LRTae
-development workbook. They are used here as a reproducible worked
-design, not as observed patient data and not as a realized NCP
-benchmark.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<p>Each vector sums to one (up to numerical rounding); its entries must
+be positive. These supplied design values are deterministic: running the
+example again uses the same numbers.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p_control</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5645454545</span>, <span class="fl">0.3739393939</span>, <span class="fl">0.0615151515</span><span class="op">)</span></span>
 <span><span class="va">p_case</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.36</span>, <span class="fl">0.48</span>, <span class="fl">0.16</span><span class="op">)</span></span>
-<span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">phenotype_error</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span></span>
+<span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+<p>Here about 6.15% of true controls and 16% of true cases carry two
+copies. That difference is part of the assumed association. In
+<code>q = c(0.5, 0.5)</code>, half of the sample is expected to be true
+controls and half true cases. Investigators can recruit equal groups
+even for a rare disease: <code>q</code> describes the study composition,
+not disease prevalence in the source population. With imperfect
+diagnoses the proportions <em>recorded</em> as cases and controls can
+also differ from <code>q</code>.</p>
+<div class="section level3">
+<h3 id="from-true-categories-to-routine-results">From true categories to routine results<a class="anchor" aria-label="anchor" href="#from-true-categories-to-routine-results"></a>
+</h3>
+<p>For each true category, imagine following 100 people through the
+routine measurement. Where would their results be recorded? The
+probabilities of those destinations form one <strong>row</strong> of a
+misclassification matrix. Columns are the <strong>observed</strong>
+categories. Diagonal entries mean the measurement is correct.
+<code>byrow = TRUE</code> fills the R matrix one true category at a
+time.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">phenotype_error</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.98</span>, <span class="fl">0.02</span>,</span>
 <span>    <span class="fl">0.04</span>, <span class="fl">0.96</span><span class="op">)</span>,</span>
 <span>  nrow <span class="op">=</span> <span class="fl">2</span>,</span>
@@ -221,102 +218,124 @@ benchmark.</p>
 <span>    <span class="fl">0.010</span>, <span class="fl">0.025</span>, <span class="fl">0.965</span><span class="op">)</span>,</span>
 <span>  nrow <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  byrow <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">model_inputs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left"></th>
+<th align="right">Observed control</th>
+<th align="right">Observed case</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">True control</td>
+<td align="right">0.98</td>
+<td align="right">0.02</td>
+</tr>
+<tr class="even">
+<td align="left">True case</td>
+<td align="right">0.04</td>
+<td align="right">0.96</td>
+</tr>
+</tbody>
+</table>
+<p>Among <strong>true controls</strong>, 98% are recorded as controls
+and 2% as cases. Among <strong>true cases</strong>, 4% are recorded as
+controls and 96% as cases. The second row does <em>not</em> say that 4%
+of recorded controls have the disease: that would ask the reverse
+question.</p>
+<table class="table">
+<thead><tr class="header">
+<th align="left"></th>
+<th align="right">Observed 0</th>
+<th align="right">Observed 1</th>
+<th align="right">Observed 2</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">True 0</td>
+<td align="right">0.965</td>
+<td align="right">0.025</td>
+<td align="right">0.010</td>
+</tr>
+<tr class="even">
+<td align="left">True 1</td>
+<td align="right">0.025</td>
+<td align="right">0.950</td>
+<td align="right">0.025</td>
+</tr>
+<tr class="odd">
+<td align="left">True 2</td>
+<td align="right">0.010</td>
+<td align="right">0.025</td>
+<td align="right">0.965</td>
+</tr>
+</tbody>
+</table>
+<p>Read the middle row from left to right. If the true genotype has
+<strong>one copy</strong>, the routine assay calls zero copies 2.5% of
+the time, one copy 95%, and two copies 2.5%. Each row accounts for all
+possible calls and sums to one. Both matrices are assumptions for
+planning; <code>paweh</code> does not estimate them from patient
+records. A team might use a pilot study with paired assessments to
+choose plausible values.</p>
+<p><strong>Where did these inputs come from?</strong> The package
+examples and earlier draft attribute them to a development workbook; an
+independent copy establishing the complete input set was not verified.
+There is a close published relative. Gordon, Finch and Kim (2020),
+section 4.2.1.4, pp. 138–141, give the same genotype frequencies to
+printed precision and the same genotype error matrix. Their 500-person
+replicate has 45 people checked on both traits; Tables 4.1–4.2 give 117
+genotype and 180 phenotype checks in total, consistent with all four
+counts above. But the book uses 5% for a true case recorded as a
+control, versus 4% here. Its fitted statistic of 24.1626 (p. 144) is for
+one simulated dataset. The calculations below illustrate a design; they
+do not reproduce that statistic or a published power benchmark.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="will-500-people-suffice-and-how-many-are-needed">Will 500 people suffice, and how many are needed?<a class="anchor" aria-label="anchor" href="#will-500-people-suffice-and-how-many-are-needed"></a>
+</h2>
+<p>Collect the assumptions under the function argument names so that the
+same inputs can be reused. In R, <code><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call()</a></code> passes a list of
+named arguments to a function. The fixed-design calls combine the model
+inputs with <code>tier_counts</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">model_inputs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  true_control_genotype_frequencies <span class="op">=</span> <span class="va">p_control</span>,</span>
 <span>  true_case_genotype_frequencies <span class="op">=</span> <span class="va">p_case</span>,</span>
 <span>  true_sampling_proportions <span class="op">=</span> <span class="va">q</span>,</span>
 <span>  phenotype_misclassification_matrix <span class="op">=</span> <span class="va">phenotype_error</span>,</span>
 <span>  genotype_misclassification_matrix <span class="op">=</span> <span class="va">genotype_error</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">tier_counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  n_fallible <span class="op">=</span> <span class="fl">248</span>,</span>
-<span>  n_pheno_validated <span class="op">=</span> <span class="fl">135</span>,</span>
-<span>  n_geno_validated <span class="op">=</span> <span class="fl">72</span>,</span>
-<span>  n_both_validated <span class="op">=</span> <span class="fl">45</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>The sampling proportions are in control/case order. The
-genotype-frequency vectors use the same three-category order as the rows
-and columns of <code>genotype_error</code>.</p>
-</div>
-<div class="section level2">
-<h2 id="computing-the-ncp">Computing the NCP<a class="anchor" aria-label="anchor" href="#computing-the-ncp"></a>
-</h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">historical_ncp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">lrtae_ncp</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">model_inputs</span>, <span class="va">tier_counts</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">historical_ncp</span></span>
-<span><span class="co">#&gt; [1] 22.40827</span></span></code></pre></div>
-<p>The noncentrality parameter (NCP) summarizes the expected separation
-between the alternative and null distributions. Larger values imply
-greater expected ability to detect association, holding the reference
-distribution fixed.</p>
-<p>Technically, the implementation evaluates</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><msup><mi mathvariant="normal">Δ</mi><mi>𝖳</mi></msup><msub><mi>I</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><mi mathvariant="normal">Δ</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\lambda = \Delta^\mathsf{T} I_{\mathrm{eff}} \Delta,
-</annotation></semantics></math></p>
-<p>where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
-contrasts the free control and case genotype frequencies and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><annotation encoding="application/x-tex">I_{\mathrm{eff}}</annotation></semantics></math>
-is their efficient information after nuisance parameters are eliminated
-by a Schur complement. This is an expected-information design quantity;
-it is not the likelihood-ratio statistic from one simulated or observed
-data set.</p>
-</div>
-<div class="section level2">
-<h2 id="computing-power">Computing power<a class="anchor" aria-label="anchor" href="#computing-power"></a>
-</h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<p>Start with <code><a href="../reference/lrtae_ncp.html">lrtae_ncp()</a></code>. Its <strong>noncentrality
+parameter (NCP)</strong> measures how far the expected test-statistic
+distribution under the assumed association separates from the
+distribution under no association. Equal true genotype frequencies give
+zero separation. At the same significance level and degrees of freedom,
+a larger NCP gives a greater chance of detecting the association. The
+NCP describes a study design; it is neither an observed test statistic
+nor a p-value.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">historical_ncp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">lrtae_ncp</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">model_inputs</span>, <span class="va">tier_counts</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Use <code><a href="../reference/lrtae_power.html">lrtae_power()</a></code> to translate that separation into a
+probability. <code>alpha = 0.05</code> sets a nominal 5% chance of
+declaring association when there is none. The large-sample test has two
+degrees of freedom: once two of the three genotype frequencies are
+known, the third must complete the sum to one. Power is the chance of
+exceeding the test’s cutoff <em>if the specified case and control
+frequencies really differ as assumed</em>.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">historical_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span></span>
 <span>  <span class="va">lrtae_power</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">model_inputs</span>, <span class="va">tier_counts</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">historical_power</span></span>
-<span><span class="co">#&gt; $power</span></span>
-<span><span class="co">#&gt; [1] 0.9925041</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $ncp</span></span>
-<span><span class="co">#&gt; [1] 22.40827</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $df</span></span>
-<span><span class="co">#&gt; [1] 2</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $alpha</span></span>
-<span><span class="co">#&gt; [1] 0.05</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $critical_value</span></span>
-<span><span class="co">#&gt; [1] 5.991465</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $n_fallible</span></span>
-<span><span class="co">#&gt; [1] 248</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $n_pheno_validated</span></span>
-<span><span class="co">#&gt; [1] 135</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $n_geno_validated</span></span>
-<span><span class="co">#&gt; [1] 72</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $n_both_validated</span></span>
-<span><span class="co">#&gt; [1] 45</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $N_total</span></span>
-<span><span class="co">#&gt; [1] 500</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; attr(,"class")</span></span>
-<span><span class="co">#&gt; [1] "lrtae_power"</span></span></code></pre></div>
-<p>For three genotype categories, the test has <code>3 - 1 = 2</code>
-degrees of freedom. The returned object records power, NCP, degrees of
-freedom, significance level, critical value, all four tier counts, and
-total sample size.</p>
-</div>
-<div class="section level2">
-<h2 id="computing-minimum-sample-size">Computing minimum sample size<a class="anchor" aria-label="anchor" href="#computing-minimum-sample-size"></a>
-</h2>
-<p>The workbook allocation corresponds to proportions 248/500, 135/500,
-72/500, and 45/500. The same planned allocation can be used to ask how
-many total participants are required for 80% power.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<span><span class="op">)</span></span></code></pre></div>
+<p>Now turn the question around. <strong>Target power</strong> of 0.80
+means the team wants to detect that difference in at least 80% of
+comparable studies. Ask <code><a href="../reference/lrtae_mssn.html">lrtae_mssn()</a></code> for the minimum sample
+size necessary (MSSN). Keep the error matrices, genotype frequencies,
+case/control mix and significance level the same; replace fixed counts
+with the requested proportions.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">historical_mssn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span></span>
 <span>  <span class="va">lrtae_mssn</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -330,72 +349,114 @@ many total participants are required for 80% power.</p>
 <span>      prop_both_validated <span class="op">=</span> <span class="fl">45</span> <span class="op">/</span> <span class="fl">500</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">historical_mssn</span></span>
-<span><span class="co">#&gt; $MSSN_total</span></span>
-<span><span class="co">#&gt; [1] 216</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $target_power</span></span>
-<span><span class="co">#&gt; [1] 0.8</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $achieved_power</span></span>
-<span><span class="co">#&gt; [1] 0.8021865</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $achieved_ncp</span></span>
-<span><span class="co">#&gt; [1] 9.685026</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $df</span></span>
-<span><span class="co">#&gt; [1] 2</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $alpha</span></span>
-<span><span class="co">#&gt; [1] 0.05</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $critical_value</span></span>
-<span><span class="co">#&gt; [1] 5.991465</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $prop_fallible</span></span>
-<span><span class="co">#&gt; [1] 0.496</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $prop_pheno_validated</span></span>
-<span><span class="co">#&gt; [1] 0.27</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $prop_geno_validated</span></span>
-<span><span class="co">#&gt; [1] 0.144</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $prop_both_validated</span></span>
-<span><span class="co">#&gt; [1] 0.09</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $n_fallible</span></span>
-<span><span class="co">#&gt; [1] 107</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $n_pheno_validated</span></span>
-<span><span class="co">#&gt; [1] 58</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $n_geno_validated</span></span>
-<span><span class="co">#&gt; [1] 31</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $n_both_validated</span></span>
-<span><span class="co">#&gt; [1] 20</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; attr(,"class")</span></span>
-<span><span class="co">#&gt; [1] "lrtae_mssn"</span></span></code></pre></div>
-<p><code>MSSN_total</code> is the minimum integer total under this
-allocation rule. The Hamilton largest-remainder rule assigns integer
-tier counts that sum exactly to the selected total, so the achieved
-proportions can differ slightly from the requested proportions. The
-returned achieved power is therefore normally just above, rather than
-exactly equal to, the target.</p>
+<span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">Question</th>
+<th align="right">Participants</th>
+<th align="right">NCP</th>
+<th align="left">Power</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Recruit 500 as planned</td>
+<td align="right">500</td>
+<td align="right">22.4083</td>
+<td align="left">99.25%</td>
+</tr>
+<tr class="even">
+<td align="left">Recruit for 80% power</td>
+<td align="right">216</td>
+<td align="right">9.6850</td>
+<td align="left">80.22%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The 500-person plan exceeds the target.</strong> Its NCP of
+22.4083 corresponds to 99.25% power: about 99 in 100 studies would
+detect this particular difference if the assumptions hold. At the same
+validation shares, the team can meet its 80% target with <strong>216
+participants</strong>. Their integer allocation gives 80.22% power.
+Neither percentage is the probability that the variant causes the
+disease.</p>
+<div class="section level3">
+<h3 id="turn-validation-shares-into-people">Turn validation shares into people<a class="anchor" aria-label="anchor" href="#turn-validation-shares-into-people"></a>
+</h3>
+<p>A clinic cannot book a fraction of a participant. The
+<strong>Hamilton largest-remainder rule</strong> first gives each tier
+the whole part of its quota. It then gives the remaining places, one
+each, to the tiers with the largest fractional remainders. The package
+resolves exact ties in its argument order: routine only, phenotype only,
+genotype only, then both.</p>
+<p>Try it with just <strong>10 places</strong> and the same shares. The
+quotas are 4.96, 2.70, 1.44 and 0.90. Start with 4, 2, 1 and 0 people.
+The three remaining places go to routine only (0.96), both (0.90) and
+phenotype only (0.70), giving <strong>5 + 3 + 1 + 1 = 10</strong>. This
+illustrates rounding, not a recommendation to run a ten-person
+study.</p>
+<p>Apply the same rule to the 216-person recruitment plan:</p>
+<table class="table">
+<thead><tr class="header">
+<th align="left">Tier</th>
+<th align="left">Share</th>
+<th align="left">Quota</th>
+<th align="right">Whole</th>
+<th align="left">Remainder</th>
+<th align="right">Assigned</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Routine only</td>
+<td align="left">49.6%</td>
+<td align="left">107.136</td>
+<td align="right">107</td>
+<td align="left">0.136</td>
+<td align="right">107</td>
+</tr>
+<tr class="even">
+<td align="left">Phenotype only</td>
+<td align="left">27.0%</td>
+<td align="left">58.320</td>
+<td align="right">58</td>
+<td align="left">0.320</td>
+<td align="right">58</td>
+</tr>
+<tr class="odd">
+<td align="left">Genotype only</td>
+<td align="left">14.4%</td>
+<td align="left">31.104</td>
+<td align="right">31</td>
+<td align="left">0.104</td>
+<td align="right">31</td>
+</tr>
+<tr class="even">
+<td align="left">Both</td>
+<td align="left">9.0%</td>
+<td align="left">19.440</td>
+<td align="right">19</td>
+<td align="left">0.440</td>
+<td align="right">20</td>
+</tr>
+</tbody>
+</table>
+<p>The whole parts sum to 215. The largest remainder is 0.440 in the
+both-validated tier, so its 19 becomes 20. The final counts are
+<strong>107 + 58 + 31 + 20 = 216</strong>. The last tier now has 20/216,
+or about 9.26%, slightly above the requested 9%. The rule keeps the
+counts close to the requested shares while filling every place. It does
+not search for the best use of a validation budget.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="why-validation-allocation-matters">Why validation allocation matters<a class="anchor" aria-label="anchor" href="#why-validation-allocation-matters"></a>
+<h2 id="which-checks-make-a-difference-at-220-people">Which checks make a difference at 220 people?<a class="anchor" aria-label="anchor" href="#which-checks-make-a-difference-at-220-people"></a>
 </h2>
-<p>Here four designs have the same total sample size
-(<code>N = 220</code>) and identical biological and error assumptions.
-Only the allocation across validation tiers changes. The low-validation
-design retains a small number in every validation tier; complete absence
-of validation can leave the error model unidentified and its information
-matrix singular.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<p>Suppose recruitment is capped at 220. The team can change the
+reference assessments but keeps the same biological assumptions,
+measurement errors, case/control mix and 5% significance level. Each row
+below is a different plan for those same 220 places. In particular, the
+two focused designs move 33 checks from one measurement to the other
+without changing the number of people checked.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">allocations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  design <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>    <span class="st">"Low validation"</span>, <span class="st">"Phenotype focused"</span>, <span class="st">"Genotype focused"</span>, <span class="st">"Balanced"</span></span>
@@ -413,110 +474,209 @@ matrix singular.</p>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="va">allocations</span><span class="op">$</span><span class="va">N_total</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">allocations</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">allocations</span><span class="op">$</span><span class="va">NCP</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">design_results</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">ncp</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">allocations</span><span class="op">$</span><span class="va">Power</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">design_results</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">power</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">allocations</span></span>
-<span><span class="co">#&gt;              design n_fallible n_pheno_validated n_geno_validated</span></span>
-<span><span class="co">#&gt; 1    Low validation        198                 9                9</span></span>
-<span><span class="co">#&gt; 2 Phenotype focused        154                44               11</span></span>
-<span><span class="co">#&gt; 3  Genotype focused        154                11               44</span></span>
-<span><span class="co">#&gt; 4          Balanced        110                33               33</span></span>
-<span><span class="co">#&gt;   n_both_validated N_total       NCP     Power</span></span>
-<span><span class="co">#&gt; 1                4     220  9.230733 0.7817215</span></span>
-<span><span class="co">#&gt; 2               11     220  9.536493 0.7956772</span></span>
-<span><span class="co">#&gt; 3               11     220  9.538300 0.7957574</span></span>
-<span><span class="co">#&gt; 4               44     220 10.021618 0.8163019</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">old_par</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4.3</span>, <span class="fl">8.2</span>, <span class="fl">1.0</span>, <span class="fl">1.0</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/barplot.html" class="external-link">barplot</a></span><span class="op">(</span></span>
-<span>  <span class="va">allocations</span><span class="op">$</span><span class="va">Power</span>,</span>
-<span>  names.arg <span class="op">=</span> <span class="va">allocations</span><span class="op">$</span><span class="va">design</span>,</span>
-<span>  horiz <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  xlab <span class="op">=</span> <span class="st">"Prospective power"</span>,</span>
-<span>  las <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  col <span class="op">=</span> <span class="st">"#355C7D"</span>,</span>
-<span>  border <span class="op">=</span> <span class="cn">NA</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="fl">0.80</span>, lty <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="st">"#7A4F5B"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">allocations</span><span class="op">$</span><span class="va">Power</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">design_results</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">power</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="20%">
+<col width="14%">
+<col width="17%">
+<col width="16%">
+<col width="5%">
+<col width="6%">
+<col width="9%">
+<col width="9%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Design</th>
+<th align="right">Routine only</th>
+<th align="right">Phenotype only</th>
+<th align="right">Genotype only</th>
+<th align="right">Both</th>
+<th align="right">Total</th>
+<th align="right">NCP</th>
+<th align="left">Power</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Low validation</td>
+<td align="right">198</td>
+<td align="right">9</td>
+<td align="right">9</td>
+<td align="right">4</td>
+<td align="right">220</td>
+<td align="right">9.2307</td>
+<td align="left">78.172%</td>
+</tr>
+<tr class="even">
+<td align="left">Phenotype focused</td>
+<td align="right">154</td>
+<td align="right">44</td>
+<td align="right">11</td>
+<td align="right">11</td>
+<td align="right">220</td>
+<td align="right">9.5365</td>
+<td align="left">79.568%</td>
+</tr>
+<tr class="odd">
+<td align="left">Genotype focused</td>
+<td align="right">154</td>
+<td align="right">11</td>
+<td align="right">44</td>
+<td align="right">11</td>
+<td align="right">220</td>
+<td align="right">9.5383</td>
+<td align="left">79.576%</td>
+</tr>
+<tr class="even">
+<td align="left">Balanced</td>
+<td align="right">110</td>
+<td align="right">33</td>
+<td align="right">33</td>
+<td align="right">44</td>
+<td align="right">220</td>
+<td align="right">10.0216</td>
+<td align="left">81.630%</td>
+</tr>
+</tbody>
+</table>
 <div class="figure">
-<img src="paweh-07-lrtae-study-design_files/figure-html/validation-figure-1.png" class="r-plt" alt="Prospective LRTae power for four validation allocations with the same total sample size and error assumptions." width="672"><p class="caption">
-Prospective LRTae power for four validation allocations with the same
-total sample size and error assumptions.
+<img src="paweh-07-lrtae-study-design_files/figure-html/validation-figure-1.png" class="r-plt" alt="Four horizontal power bars. Only the balanced design crosses the dashed line at 80 percent." width="672"><p class="caption">
+Probability of detecting the assumed association at 220 people. The
+dashed line marks the 80% target.
 </p>
 </div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">old_par</span><span class="op">)</span></span></code></pre></div>
-<p>Validation is therefore not merely a data-cleaning exercise: it
-contributes statistical information. The comparison does not establish
-that one allocation is universally optimal. Phenotype and genotype
-validation can trade off differently under other frequencies, error
-matrices, costs, or effect sizes.</p>
+<p>Only the balanced design clears 80% (81.63%). It puts 110 people in
+at least one validation tier, including 44 who get both checks. The
+low-validation plan checks just 22 people and reaches 78.17%. The
+focused plans reach 79.568% and 79.576%: switching the focus has little
+practical effect here, and neither reaches the target. This comparison
+holds recruitment fixed, <strong>not spending</strong>. Confirming both
+measurements for more people may cost substantially more. Different
+error rates, genotype frequencies or validation costs could favor a
+different plan.</p>
 </div>
 <div class="section level2">
-<h2 id="reading-the-misclassification-matrices">Reading the misclassification matrices<a class="anchor" aria-label="anchor" href="#reading-the-misclassification-matrices"></a>
+<h2 id="technical-detail-what-information-does-validation-add">Technical detail: what information does validation add?<a class="anchor" aria-label="anchor" href="#technical-detail-what-information-does-validation-add"></a>
 </h2>
-<p>For the phenotype matrix,</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0.98</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0.02</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0.04</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0.96</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\begin{pmatrix}
-0.98 &amp; 0.02 \\
-0.04 &amp; 0.96
-\end{pmatrix},
+<p>The contrast of interest,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>,
+is the difference between control and case frequencies for the first two
+genotypes. The third difference is determined by the first two. The
+direction here is control minus case. The expected information measures
+how precisely the planned measurements can distinguish these
+differences. A reference diagnosis tells us which disease group a
+participant actually belongs to; a reference genotype tells us which
+genotype category contributed the observation. The four tiers therefore
+contribute different amounts of information per person.</p>
+<p>The NCP combines the size of the assumed difference with the
+information available to detect it:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><msup><mi mathvariant="normal">Δ</mi><mi>𝖳</mi></msup><msub><mi>I</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><mi mathvariant="normal">Δ</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\lambda = \Delta^{\mathsf T} I_{\mathrm{eff}} \Delta .
 </annotation></semantics></math></p>
-<p>98% of true controls are observed as controls and 2% as cases; 4% of
-true cases are observed as controls and 96% as cases. Again,
-<strong>true categories are rows and observed categories are
-columns</strong>.</p>
-<p>The genotype matrix is read the same way. For example, a participant
-in the first true genotype category is observed in categories one, two,
-and three with probabilities 0.965, 0.025, and 0.010. Each row must sum
-to one, and its category order must match both genotype-frequency
-vectors.</p>
+<p>Why <em>efficient</em> information? The association contrasts are not
+the only unknowns in an eventual analysis. The background genotype
+distribution and the true sampling mix also affect what is observed.
+Those are <strong>nuisance parameters</strong> for this question:
+necessary to describe the data, but not the differences being tested.
+The calculation allows for uncertainty about them even though planning
+values are supplied.</p>
+<div class="section level3">
+<h3 id="the-information-matrix-and-its-schur-complement">The information matrix and its Schur complement<a class="anchor" aria-label="anchor" href="#the-information-matrix-and-its-schur-complement"></a>
+</h3>
+<p>The package adds the expected information from each tier, weighted by
+its participant count. Write the resulting matrix in blocks for the
+frequency contrasts
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ψ</mi><annotation encoding="application/x-tex">\psi</annotation></semantics></math>
+and nuisance parameters
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>.
+Here
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
+consists of the free case genotype frequencies and the true control
+sampling share. The error-matrix entries are held fixed in this
+calculation. The <strong>Schur complement</strong> is the block
+calculation</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi></mrow></msub><mo>=</mo><msub><mi>I</mi><mrow><mi>ψ</mi><mi>ψ</mi></mrow></msub><mo>−</mo><msub><mi>I</mi><mrow><mi>ψ</mi><mi>η</mi></mrow></msub><msubsup><mi>I</mi><mrow><mi>η</mi><mi>η</mi></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msubsup><msub><mi>I</mi><mrow><mi>η</mi><mi>ψ</mi></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+I_{\mathrm{eff}} =
+ I_{\psi\psi} - I_{\psi\eta} I_{\eta\eta}^{-1} I_{\eta\psi}.
+</annotation></semantics></math></p>
+<p>The first term is the information about the contrasts if the nuisance
+parameters were known. The subtraction accounts for information shared
+with those parameters. With three genotype categories, the 5% cutoff of
+the central chi-square distribution on two degrees of freedom is about
+5.9915. Power is the area above that same cutoff in a noncentral
+chi-square distribution with the design’s NCP. This uses expected
+measurements across possible studies; no likelihood is fitted to an
+individual dataset.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="when-to-use-these-functions">When to use these functions<a class="anchor" aria-label="anchor" href="#when-to-use-these-functions"></a>
+<h2 id="what-could-make-the-plan-unreliable">What could make the plan unreliable?<a class="anchor" aria-label="anchor" href="#what-could-make-the-plan-unreliable"></a>
 </h2>
-<p>The current LRTae functions are appropriate when:</p>
-<ul>
-<li>a case-control genetic association study is being planned;</li>
-<li>expected true control and case genotype distributions are
-available;</li>
-<li>phenotype or genotype measurement may be imperfect;</li>
-<li>validation subsamples are planned; and</li>
-<li>the investigator wants an NCP, power, or minimum total sample
-size.</li>
-</ul>
-<p>Important limitations are:</p>
-<ul>
-<li>these are prospective calculations, not observed-data association
-fitting;</li>
-<li>error matrices are treated as known design assumptions;</li>
-<li>validity depends on the assumed error model;</li>
-<li>validation allocation affects both information and
-identifiability;</li>
-<li>this implementation is not LTTae; and</li>
-<li>it is not a sequencing/read-level error model.</li>
-</ul>
+<p><strong>Can the measurements distinguish the explanations?</strong>
+If many people have a positive routine diagnosis, that could reflect
+more true cases or more false positives. Without enough paired routine
+and reference diagnoses, the observed labels alone may not identify both
+explanations separately. This is an <strong>identifiability</strong>
+problem. In an analysis that estimates error rates, the corresponding
+validation data help separate them. Here the rates are supplied; too
+little independent information about the modeled frequency parameters
+can still make the nuisance information matrix singular (it has no
+inverse). A singularity means this calculation cannot distinguish the
+required parameters for that design. It does not mean that every tier
+must be nonempty or that every method for misclassification will
+fail.</p>
+<p><strong>Would the assumptions travel to this clinic?</strong> The
+calculation uses one phenotype error matrix across genotypes and one
+genotype error matrix across disease groups; the model combines these
+error processes independently given the true categories. If the
+confirmatory assessment itself often errs, the pilot differs from the
+recruits, or the laboratory calls cases less accurately than controls,
+the quoted power may be misleading. Before choosing a recruitment
+target, rerun the design with plausible higher and lower error rates
+(adjust each diagonal so its row still sums to one) and with a smaller
+case/control difference. The power calculation uses a large-sample
+approximation, which also warrants caution with sparse categories.</p>
+<p><strong>Do you have a design or patient records?</strong> These
+functions take design probabilities and tier sizes. Barral et
+al. describe software that instead fits likelihoods to observed counts
+and tests an association. That requires observed data and estimation
+steps outside the scope of these planning functions. LTTae is a
+different, trend-based test that assigns scores to genotypes; LRTae here
+tests differences in the genotype distribution. Neither sequencing depth
+nor individual read errors are inputs. For a study starting from
+sequence reads, see the <a href="paweh-06-sequencing-study-design.html">sequencing study design
+vignette</a>.</p>
 </div>
 <div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h2 id="methods-and-references">Methods and references<a class="anchor" aria-label="anchor" href="#methods-and-references"></a>
 </h2>
-<p>Barral S, Haynes C, Stone M, Gordon D. LRTae: improving statistical
-power for genetic association with case/control data when phenotype
-and/or genotype misclassification errors are present. <em>BMC
-Genetics</em>. 2006;7:24. <a href="https://doi.org/10.1186/1471-2156-7-24" class="external-link uri">https://doi.org/10.1186/1471-2156-7-24</a>.</p>
-<p>Ji F, Yang Y, Haynes C, Finch SJ, Gordon D. Computing asymptotic
-power and sample size for case-control genetic association studies in
-the presence of phenotype and/or genotype misclassification errors.
+<ul>
+<li>Ji F, Yang Y, Haynes C, Finch SJ, Gordon D. <a href="https://doi.org/10.2202/1544-6115.1184" class="external-link">Computing asymptotic power
+and sample size for case-control genetic association studies in the
+presence of phenotype and/or genotype misclassification errors</a>.
 <em>Statistical Applications in Genetics and Molecular Biology</em>.
-2005;4(1):Article 37. <a href="https://doi.org/10.2202/1544-6115.1184" class="external-link uri">https://doi.org/10.2202/1544-6115.1184</a>.</p>
-<p>Gordon D, Finch SJ, Kim W. <em>Heterogeneity in Statistical Genetics:
-How to Assess, Address, and Account for Mixtures in Association
-Studies</em>. Springer; 2020. <a href="https://doi.org/10.1007/978-3-030-61121-7" class="external-link uri">https://doi.org/10.1007/978-3-030-61121-7</a>.</p>
+2005;4:Article 37. This is the primary methodological source for the
+prospective NCP and its use for power and recruitment. Integer tier
+assignment is described here as a package rule.</li>
+<li>Barral S, Haynes C, Stone M, Gordon D. <a href="https://doi.org/10.1186/1471-2156-7-24" class="external-link">LRTae: improving
+statistical power for genetic association with case/control data when
+phenotype and/or genotype misclassification errors are present</a>.
+<em>BMC Genetics</em>. 2006;7:24. This paper describes the observed-data
+software and illustrates its use with an ankylosing spondylitis
+application.</li>
+<li>Gordon D, Finch SJ, Kim W. <a href="https://doi.org/10.1007/978-3-030-61121-7" class="external-link"><em>Heterogeneity in
+Statistical Genetics: How to Assess, Address, and Account for Mixtures
+in Association Studies</em></a>. Springer; 2020. Chapter 4, sections
+4.2.1.1–4.2.1.4, covers the measurement groups, observed likelihoods,
+test and worked example; section 4.2.2 introduces LTTae. Chapter 5,
+section 5.2.3, discusses <em>empirical</em> LRTae power from
+simulations, a different route from the analytical power above.</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
 <span><span class="co">#&gt; Platform: aarch64-apple-darwin23</span></span>
@@ -536,49 +696,38 @@ Studies</em>. Springer; 2020. <a href="https://doi.org/10.1007/978-3-030-61121-7
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] paweh_0.99.0     BiocStyle_2.40.0</span></span>
+<span><span class="co">#&gt; [1] paweh_0.99.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;  [1] gtable_0.3.6        jsonlite_2.0.0      dplyr_1.2.1        </span></span>
-<span><span class="co">#&gt;  [4] compiler_4.6.1      BiocManager_1.30.27 tidyselect_1.2.1   </span></span>
-<span><span class="co">#&gt;  [7] dichromat_2.0-1     jquerylib_0.1.4     systemfonts_1.3.2  </span></span>
-<span><span class="co">#&gt; [10] scales_1.4.0        textshaping_1.0.5   yaml_2.3.12        </span></span>
-<span><span class="co">#&gt; [13] fastmap_1.2.0       ggplot2_4.0.3       R6_2.6.1           </span></span>
-<span><span class="co">#&gt; [16] generics_0.1.4      knitr_1.51          htmlwidgets_1.6.4  </span></span>
-<span><span class="co">#&gt; [19] tibble_3.3.1        bookdown_0.47       desc_1.4.3         </span></span>
-<span><span class="co">#&gt; [22] bslib_0.12.0        pillar_1.11.1       RColorBrewer_1.1-3 </span></span>
-<span><span class="co">#&gt; [25] rlang_1.3.0         cachem_1.1.0        xfun_0.60          </span></span>
-<span><span class="co">#&gt; [28] fs_2.1.0            sass_0.4.10         S7_0.2.2           </span></span>
-<span><span class="co">#&gt; [31] otel_0.2.0          cli_3.6.6           pkgdown_2.2.1      </span></span>
-<span><span class="co">#&gt; [34] magrittr_2.0.5      digest_0.6.39       grid_4.6.1         </span></span>
-<span><span class="co">#&gt; [37] mvtnorm_1.4-2       lifecycle_1.0.5     vctrs_0.7.3        </span></span>
-<span><span class="co">#&gt; [40] evaluate_1.0.5      glue_1.8.1          farver_2.1.2       </span></span>
-<span><span class="co">#&gt; [43] ragg_1.5.2          rmarkdown_2.31      pkgconfig_2.0.3    </span></span>
-<span><span class="co">#&gt; [46] tools_4.6.1         htmltools_0.5.9</span></span></code></pre></div>
+<span><span class="co">#&gt;  [1] gtable_0.3.6       jsonlite_2.0.0     dplyr_1.2.1        compiler_4.6.1    </span></span>
+<span><span class="co">#&gt;  [5] tidyselect_1.2.1   dichromat_2.0-1    jquerylib_0.1.4    systemfonts_1.3.2 </span></span>
+<span><span class="co">#&gt;  [9] scales_1.4.0       textshaping_1.0.5  yaml_2.3.12        fastmap_1.2.0     </span></span>
+<span><span class="co">#&gt; [13] ggplot2_4.0.3      R6_2.6.1           generics_0.1.4     knitr_1.51        </span></span>
+<span><span class="co">#&gt; [17] htmlwidgets_1.6.4  tibble_3.3.1       desc_1.4.3         bslib_0.12.0      </span></span>
+<span><span class="co">#&gt; [21] pillar_1.11.1      RColorBrewer_1.1-3 rlang_1.3.0        cachem_1.1.0      </span></span>
+<span><span class="co">#&gt; [25] xfun_0.60          fs_2.1.0           sass_0.4.10        S7_0.2.2          </span></span>
+<span><span class="co">#&gt; [29] otel_0.2.0         cli_3.6.6          pkgdown_2.2.1      magrittr_2.0.5    </span></span>
+<span><span class="co">#&gt; [33] digest_0.6.39      grid_4.6.1         mvtnorm_1.4-2      lifecycle_1.0.5   </span></span>
+<span><span class="co">#&gt; [37] vctrs_0.7.3        evaluate_1.0.5     glue_1.8.1         farver_2.1.2      </span></span>
+<span><span class="co">#&gt; [41] ragg_1.5.2         rmarkdown_2.31     tools_4.6.1        pkgconfig_2.0.3   </span></span>
+<span><span class="co">#&gt; [45] htmltools_0.5.9</span></span></code></pre></div>
 </div>
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-
-      </div>
-
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by Akil Anthony, Derek Gordon.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by Akil Anthony, Derek Gordon.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
-
 
 
 

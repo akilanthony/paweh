@@ -4,456 +4,612 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Interactive Study Design with the paweh Dashboard • paweh</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
-<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Interactive Study Design with the paweh Dashboard">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>5. Interactive Study Design with the paweh Dashboard • paweh</title>
+<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="5. Interactive Study Design with the paweh Dashboard">
 </head>
-<body data-spy="scroll" data-target="#toc">
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <div class="container template-article">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">paweh</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
-      </span>
-    </div>
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="../reference/index.html">Reference</a>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Articles
+    <a class="navbar-brand me-2" href="../index.html">paweh</a>
 
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="../articles/paweh-01-getting-started.html">Getting started with paweh</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-02-case-control-study-design.html">Case-control genetic association study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-03-tdt-study-design.html">Transmission disequilibrium test study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative-trait genetic association study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-07-lrtae-study-design.html">LRTae power and sample-size design</a>
-    </li>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.0</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/paweh-01-getting-started.html">Get Started</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-study-designs" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Study Designs</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-study-designs">
+<li><a class="dropdown-item" href="../articles/index.html">All articles</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/paweh-02-case-control-study-design.html">Case-Control Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-03-tdt-study-design.html">TDT / Family Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative Traits</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-07-lrtae-study-design.html">Validation-Based / LRTae Studies</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/paweh-05-interactive-dashboard.html">Interactive Dashboard</a></li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../articles/paweh-08-methods-and-sources.html">Methods &amp; Sources</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Function Reference</a></li>
       </ul>
-<ul class="nav navbar-nav navbar-right">
-<li>
-  <a href="https://github.com/akilanthony/paweh/" class="external-link">
-    <span class="fab fa-github fa-lg"></span>
-
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/akilanthony/paweh">GitHub</a></li>
       </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
-</div>
-<!--/.navbar -->
+</nav><div class="container template-article">
 
 
 
-      </header><div class="row">
-  <div class="col-md-9 contents">
-    <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Interactive Study Design with the paweh
-Dashboard</h1>
+
+<div class="row">
+  <main id="main" class="col-md-9"><div class="page-header">
+
+      <h1>5. Interactive Study Design with the paweh Dashboard</h1>
                         <h4 data-toc-skip class="author">paweh package
 authors</h4>
             
       
       <small class="dont-index">Source: <a href="https://github.com/akilanthony/paweh/blob/HEAD/vignettes/paweh-05-interactive-dashboard.Rmd" class="external-link"><code>vignettes/paweh-05-interactive-dashboard.Rmd</code></a></small>
-      <div class="hidden name"><code>paweh-05-interactive-dashboard.Rmd</code></div>
-
+      <div class="d-none name"><code>paweh-05-interactive-dashboard.Rmd</code></div>
     </div>
 
     
     
 <div class="section level2">
-<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+<h2 id="choose-the-study-you-can-recruit">Choose the study you can recruit<a class="anchor" aria-label="anchor" href="#choose-the-study-you-can-recruit"></a>
 </h2>
-<p><code>paweh</code> includes an interactive Shiny interface for
-Case-Control, TDT / Family, and Quantitative Trait study-design
-calculations. The dashboard uses the same canonical statistical
-functions as the programmatic R interface; it is an interface to those
-functions, not a separate statistical engine.</p>
-<p>This guide focuses on navigating the interface and carrying a design
-through its workflow. For statistical definitions, assumptions, and
-derivations, use the study-specific vignettes linked throughout this
-guide.</p>
-</div>
-<div class="section level2">
-<h2 id="launching-the-dashboard">Launching the dashboard<a class="anchor" aria-label="anchor" href="#launching-the-dashboard"></a>
-</h2>
-<p>Construct the application and then launch the returned object
-explicitly:</p>
+<p>A clinic can recruit 500 patients and 500 unaffected controls. Is
+that enough to detect a difference in their genotypes? A family registry
+has a different question: how many affected children <strong>and their
+parents</strong> are needed? A growth study may instead have one height
+measurement per person. The first decision in the dashboard is which of
+these studies you are planning.</p>
+<p>The dashboard lets you enter a design, read the answer and try
+another assumption without writing R code. It calls the same public
+<code>paweh</code> functions you would use in a script. All three
+workspaces are <strong>prospective</strong>: you supply a difference
+worth detecting and assumptions about the people you expect to recruit.
+<strong>Power</strong> is the chance that a repeated study would detect
+that difference if those assumptions hold. <strong>Minimum sample
+size</strong> works backwards from a target power to the recruitment
+needed. Neither calculation tells you whether an association exists in a
+dataset.</p>
+<div class="section level3">
+<h3 id="install-open-and-stop-the-app">Install, open and stop the app<a class="anchor" aria-label="anchor" href="#install-open-and-stop-the-app"></a>
+</h3>
+<p>To follow this guide with the version on the personal GitHub
+repository’s <code>develop</code> branch, run the first block once.
+Suggested packages include <code>plotly</code> for the optional
+family-study surface. Building the offline vignettes also needs Pandoc,
+which is included with RStudio.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">app</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/paweh_app.html">paweh_app</a></span><span class="op">(</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># If needed: install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"akilanthony/paweh"</span>, ref <span class="op">=</span> <span class="st">"develop"</span>,</span>
+<span>                        dependencies <span class="op">=</span> <span class="cn">TRUE</span>, build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Run the next block in an interactive R session.
+<code><a href="../reference/paweh_app.html">paweh_app()</a></code> constructs an application object;
+<code>shiny::runApp(app)</code> starts it. Use the URL printed in the R
+console if the viewer does not open. Stop the app to return to the R
+prompt (the stop button in RStudio, or Ctrl+C in a terminal). Reading or
+building this vignette does not start a server.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/akilanthony/paweh" class="external-link">paweh</a></span><span class="op">)</span></span>
+<span><span class="va">app</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/paweh_app.html">paweh_app</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/runApp.html" class="external-link">runApp</a></span><span class="op">(</span><span class="va">app</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="../reference/paweh_app.html">paweh_app()</a></code> returns a <code>shiny.appobj</code>; it does
-not launch the application automatically. Keeping construction and
-launch separate is useful in scripts, tests, and deployment tooling. The
-vignette does not execute <code>runApp()</code>.</p>
 <div class="figure">
-<img src="images/shiny-home.png" class="r-plt" alt="Home page of the paweh dashboard showing Case-Control, TDT or Family, and Quantitative Trait study families." width="100%"><p class="caption">
-The paweh dashboard organizes study design by study family, with a
-dedicated workspace for each supported design.
+<img src="images/shiny-home.png" class="r-plt" alt="Home has three buttons: Open Case-Control, Open TDT / Family and Open Quantitative Trait." width="100%"><p class="caption">
+Start with how participants will be sampled and measured. The same three
+workspaces are available in the top navigation.
 </p>
 </div>
-<p>A typical workflow begins the same way in each workspace:</p>
+<p>Choose <strong>Open Case-Control</strong> for unrelated cases and
+controls, <strong>Open TDT / Family</strong> for transmissions within
+families, or <strong>Open Quantitative Trait</strong> for measured
+traits such as height. <a href="paweh-06-sequencing-study-design.html">Sequencing designs</a> and
+<a href="paweh-07-lrtae-study-design.html">LRTae validation designs</a>
+are available in R; neither has a dedicated dashboard workspace.</p>
+</div>
+<div class="section level3">
+<h3 id="how-to-read-any-workspace">How to read any workspace<a class="anchor" aria-label="anchor" href="#how-to-read-any-workspace"></a>
+</h3>
 <ol style="list-style-type: decimal">
-<li>Choose a study family.</li>
-<li>Select <strong>Estimate power</strong> or <strong>Minimum sample
-size</strong>.</li>
-<li>Enter the model assumptions.</li>
-<li>Select <strong>Calculate study design</strong>.</li>
+<li>Choose the study family. Under <strong>Design setup</strong>, choose
+<strong>Estimate power</strong> if you know the sample size, or
+<strong>Minimum sample size</strong> if you know the power you
+want.</li>
+<li>Enter the assumptions. Fields marked <strong>(%)</strong> take
+percentages: enter 30 for 30%. <strong>Significance level
+(alpha)</strong> takes a probability: enter 0.05 for a nominal 5%
+false-positive rate under no association.</li>
+<li>Select <strong>Calculate study design</strong>. Scroll down the
+setup panel if needed. Read <strong>Results</strong> for Case-Control or
+TDT / Family; read <strong>Output</strong> for Quantitative Trait.</li>
+<li>Try a different assumption. The first two workspaces have a
+<strong>Sensitivity</strong> tab; for quantitative traits, record the
+first answer, edit the input and calculate again.</li>
+<li>Save a calculation worth keeping. Case-Control and TDT / Family
+generate a <strong>Reproduce in R</strong> block. The height example
+below shows the equivalent handwritten call for Quantitative Trait.</li>
 </ol>
-<p>The Case-Control and TDT / Family workspaces then provide
-<strong>Results</strong>, <strong>Sensitivity</strong>,
-<strong>Visualize</strong>, and <strong>Methods</strong> tabs, plus
-advanced details and a reproducible R call. The Quantitative Trait
-workspace is intentionally simpler: its <strong>Output</strong> card
-displays the verbose output from the corresponding canonical QTL
-function.</p>
-<blockquote>
-<p><strong>Frozen calculated design.</strong> Selecting
-<strong>Calculate study design</strong> evaluates the current inputs.
-Editing an input afterward does not partially update the previous
-result. The Case-Control and TDT / Family workspaces ask the user to
-recalculate to update their panels; the Quantitative Trait workspace
-reports “Inputs have changed. Recalculate to update output.”</p>
-</blockquote>
+<p><strong>Inputs and results can refer to different designs.</strong>
+Editing the form does not recalculate. The previous answer stays
+visible, with a notice to recalculate. This lets you finish changing
+several related assumptions without mistaking a partly edited design for
+a result. For Case-Control and TDT / Family, the plots and generated
+code use the last <em>calculated</em> design as well. Select
+<strong>Calculate study design</strong> again before recording an answer
+for the edited inputs.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="case-control-workflow">Case-Control workflow<a class="anchor" aria-label="anchor" href="#case-control-workflow"></a>
+<h2 id="case-control-will-500-cases-and-500-controls-suffice">Case-Control: will 500 cases and 500 controls suffice?<a class="anchor" aria-label="anchor" href="#case-control-will-500-cases-and-500-controls-suffice"></a>
 </h2>
-<p>The Case-Control workspace compares genotype distributions between
-cases and controls. Choose whether to estimate power at a specified
-number of cases or find the minimum sample size for a target power.
-Inputs may be specified as a genetic model or as direct case and control
-genotype probabilities.</p>
-<p>For a model-based design, core assumptions include disease
-prevalence, modeled-allele frequency, the homozygote relative risk and
-mode of inheritance, the case-to-control allocation, and the
-significance level. Advanced options cover phenotype misclassification,
-genotype misclassification, and locus heterogeneity. Their statistical
-definitions are described in the <a href="paweh-02-case-control-study-design.html">Case-Control Study
-Design</a> vignette.</p>
-<p>A representative programmatic calculation corresponding to the
-dashboard is:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<p>Suppose a clinic expects the modeled allele (one version of a DNA
+sequence) to have a population frequency of 30%. People with two copies
+are assumed to have twice the disease risk of people with none. The team
+wants at least 80% power. Open <strong>Case-Control</strong>, choose
+<strong>Estimate power</strong> and <strong>Genetic model</strong>, and
+enter the following values. Leave the boxes under <strong>Advanced
+assumptions</strong> unchecked for the first calculation.</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Dashboard field</th>
+<th align="left">Enter</th>
+<th align="left">Corresponding argument in <code><a href="../reference/cc_power.html">cc_power()</a></code>
+</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Number of cases</td>
+<td align="left">500</td>
+<td align="left">
+<code>N_case = 500</code> affected people</td>
+</tr>
+<tr class="even">
+<td align="left">Controls per case</td>
+<td align="left">1</td>
+<td align="left">
+<code>k = 1</code>: 500 unaffected controls,
+<strong>1,000 people total</strong>
+</td>
+</tr>
+<tr class="odd">
+<td align="left">Disease prevalence (%)</td>
+<td align="left">10</td>
+<td align="left">
+<code>prev = 0.10</code> in the source population, not
+the fraction of recruited cases</td>
+</tr>
+<tr class="even">
+<td align="left">Modeled-allele frequency (%)</td>
+<td align="left">30</td>
+<td align="left">
+<code>pd = 0.30</code> of allele copies, not 30% of
+people</td>
+</tr>
+<tr class="odd">
+<td align="left">Inheritance model</td>
+<td align="left">Multiplicative</td>
+<td align="left">
+<code>MOI = "M"</code>: each additional copy multiplies
+risk by the same factor</td>
+</tr>
+<tr class="even">
+<td align="left">Homozygote relative risk</td>
+<td align="left">2</td>
+<td align="left">
+<code>R2 = 2</code>; the one-copy relative risk is
+therefore the square root of 2</td>
+</tr>
+<tr class="odd">
+<td align="left">Significance level (alpha)</td>
+<td align="left">0.05</td>
+<td align="left">
+<code>alpha = 0.05</code> for each test considered</td>
+</tr>
+</tbody>
+</table>
+<p>Select <strong>Calculate study design</strong> and read both powers
+in the <strong>No error</strong> table on <strong>Results</strong>. The
+<strong>genotype chi-square</strong> test asks whether the distribution
+across zero, one and two copies differs in any way between cases and
+controls. The <strong>trend</strong> test asks about a systematic change
+with allele count, using one degree of freedom instead of two.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cc_design</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cc_power.html">cc_power</a></span><span class="op">(</span></span>
-<span>  N_case <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  input_mode <span class="op">=</span> <span class="st">"model_based"</span>,</span>
-<span>  prev <span class="op">=</span> <span class="fl">0.10</span>,</span>
-<span>  pd <span class="op">=</span> <span class="fl">0.30</span>,</span>
-<span>  R2 <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  MOI <span class="op">=</span> <span class="st">"M"</span>,</span>
-<span>  k <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  N_case <span class="op">=</span> <span class="fl">500</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, input_mode <span class="op">=</span> <span class="st">"model_based"</span>,</span>
+<span>  prev <span class="op">=</span> <span class="fl">0.10</span>, pd <span class="op">=</span> <span class="fl">0.30</span>, R2 <span class="op">=</span> <span class="fl">2</span>, MOI <span class="op">=</span> <span class="st">"M"</span>, k <span class="op">=</span> <span class="fl">1</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span><span class="va">cc_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  test <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Genotype chi-square"</span>, <span class="st">"Trend"</span><span class="op">)</span>,</span>
 <span>  power <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">cc_design</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">genotypes</span><span class="op">$</span><span class="va">power</span>, <span class="va">cc_design</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">trend</span><span class="op">$</span><span class="va">power</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;                  test     power</span></span>
-<span><span class="co">#&gt; 1 Genotype chi-square 0.9619099</span></span>
-<span><span class="co">#&gt; 2               Trend 0.9821860</span></span></code></pre></div>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">cc_table</span>, digits <span class="op">=</span> <span class="fl">5</span>, col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Test"</span>, <span class="st">"Power"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">Test</th>
+<th align="right">Power</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Genotype chi-square</td>
+<td align="right">0.96191</td>
+</tr>
+<tr class="even">
+<td align="left">Trend</td>
+<td align="right">0.98219</td>
+</tr>
+</tbody>
+</table>
+<p>Both exceed 80%. In 100 studies like this one, the genotype test
+would detect the assumed difference about 96 times, and the trend test
+about 98 times. The ordered difference suits a trend test here; it need
+not be the better choice for another inheritance pattern. Plan for the
+test you intend to use.</p>
 <div class="figure">
-<img src="images/shiny-cc-results.png" class="r-plt" alt="Case-Control dashboard showing calculated genotype chi-square and trend-test power with the frozen study-design summary." width="100%"><p class="caption">
-The Case-Control Results tab summarizes genotype chi-square and
-trend-test power for the frozen study design, with advanced calculation
-details available for review.
+<img src="images/shiny-cc-results.png" class="r-plt" alt="The Case-Control Results tab shows a table with 96.19% power for the genotype chi-square test and 98.22% for the trend test." width="100%"><p class="caption">
+The Results table compares both tests for the same 500 cases and 500
+controls.
 </p>
 </div>
-<p>For power, Results reports the expected power of the genotype
-chi-square and trend tests. For minimum sample size, it reports the
-required design size. When an effective modifier is active, the
-dashboard distinguishes the no-error baseline from adjusted results.
-These are deterministic calculations under the entered assumptions, not
-estimates from observed data.</p>
-<p>In Sensitivity, select one parameter and a range. Every other
-assumption stays at its frozen value, and a vertical marker identifies
-the calculated design. The plot may use a tightly zoomed y-axis to make
-small changes in power visible; the interface notes when it does so.
-Visualize presents the current case-control genotype comparison using
-the frozen design.</p>
+<div class="section level3">
+<h3 id="what-if-allele-frequency-is-uncertain">What if allele frequency is uncertain?<a class="anchor" aria-label="anchor" href="#what-if-allele-frequency-is-uncertain"></a>
+</h3>
+<p>Select <strong>Sensitivity</strong>, choose <strong>Allele
+frequency</strong> under <strong>Parameter</strong>, set
+<strong>Range</strong> to approximately 0.20–0.40, and select
+<strong>Run sensitivity analysis</strong>. Here the horizontal axis uses
+fractions (0.30 is the sidebar’s 30%). The vertical axis shows power for
+each test at each candidate frequency; the dotted vertical line marks
+the frozen design’s 0.30. The case count, allocation, risk model,
+prevalence and alpha stay fixed. Near 0.20 the genotype test has about
+91% power, versus 96% at 0.30. A tightly zoomed vertical scale can make
+that difference look larger: read the tick values.</p>
+<p>These curves are <strong>not confidence intervals</strong>. Each
+point answers a new design question with a deliberately chosen input.
+Under <strong>Minimum sample size</strong>, the vertical axis instead
+reports the required total number of people. <strong>Visualize</strong>
+shows the calculated genotype distributions; <strong>Methods</strong>
+identifies the test and function.</p>
+<p>To examine measurement errors or disease due to other loci, open
+<strong>Advanced assumptions</strong>, choose the relevant mechanism,
+enter its rates, and calculate again. Case-control heterogeneity uses
+the percentage of disease <strong>attributable</strong> to the modeled
+locus. A requested phenotype error, genotype error or heterogeneity
+scenario is compared separately with the same no-error baseline. Turning
+on several boxes does not estimate their joint effect. The <a href="paweh-02-case-control-study-design.html">case-control tutorial</a>
+works through recruitment and these mechanisms in detail.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="tdt-family-workflow">TDT / Family workflow<a class="anchor" aria-label="anchor" href="#tdt-family-workflow"></a>
+<h2 id="tdt-family-what-if-some-enrolled-children-are-misclassified">TDT / Family: what if some enrolled children are misclassified?<a class="anchor" aria-label="anchor" href="#tdt-family-what-if-some-enrolled-children-are-misclassified"></a>
 </h2>
-<p>The TDT / Family workspace designs transmission disequilibrium
-studies in affected-child trios; the trio, rather than an individual
-participant, is the sampling unit. Choose power or minimum sample size,
-then specify either a genetic model or direct expected transmission
-quantities. Model-based inputs include the heterozygote relative risk
-(R1), homozygote relative risk (R2), and linkage disequilibrium measure
-D-prime, along with prevalence and allele frequency. See <a href="paweh-03-tdt-study-design.html">TDT Study Design</a> for the
-underlying statistical model.</p>
-<blockquote>
-<p><strong>Separate TDT modifier scenarios.</strong> Phenotype
-misclassification and locus heterogeneity are evaluated as separate TDT
-sensitivity scenarios. When both are enabled, the dashboard displays (1)
-the baseline/no-error design, (2) the phenotype-misclassification
-scenario, and (3) the locus-heterogeneity scenario. It does
-<strong>not</strong> interpret them as one joint combined TDT model.</p>
-</blockquote>
-<p>For a genetic-model input, <strong>Advanced assumptions</strong> also
-offers the exact control <strong>Genotype misclassification (Chapter
-5)</strong>. Selecting it reveals <strong>Genotype misclassification
-rate (%)</strong>, which accepts a percentage from 0 to 50; the
-interface converts that value to the package-scale proportion supplied
-as <code>genotype_misclassification_rate</code>. This model is
-unavailable for direct transmission quantities and must be used
-separately from phenotype misclassification and locus heterogeneity. The
-interface reports a clear error if those constraints are violated.</p>
-<p>The Results and advanced-details panels report the no-error and
-Chapter 5 genotype-misclassification quantities returned by
-<code><a href="../reference/tdt_power.html">tdt_power()</a></code> or <code><a href="../reference/tdt_mssn.html">tdt_mssn()</a></code>, including retained
-and Mendelian-inconsistent trio probabilities. Sensitivity and advanced
-surface plots are not provided for this genotype-error branch.</p>
+<p>A family registry can recruit <strong>600 complete trios</strong>:
+600 affected children and both biological parents of each child, or
+<strong>1,800 people</strong>. The transmission disequilibrium test
+(TDT) asks whether an allele is transmitted to affected children more
+often than expected from informative parents. An unaffected control
+group is not needed.</p>
+<ol style="list-style-type: decimal">
+<li>Open <strong>TDT / Family</strong>, choose <strong>Estimate
+power</strong> and <strong>Genetic model</strong>. Enter 600 for
+<strong>Number of affected-child trios</strong>, 5 for <strong>Disease
+prevalence (%)</strong>, and 30 for <strong>Modeled-allele frequency
+(%)</strong>.</li>
+<li>Enter <strong>Heterozygote relative risk (R1)</strong> = 1.5 and
+<strong>Homozygote relative risk (R2)</strong> = 2.25. These compare one
+and two copies with zero copies. Enter 1 for <strong>Linkage
+disequilibrium (D′)</strong> and 0.05 for <strong>Significance level
+(alpha)</strong>. D′ describes how strongly the marker and disease
+allele travel together; 1 specifies the maximum positive association
+given the model’s allele frequencies.</li>
+<li>Leave <strong>Advanced assumptions</strong> off and select
+<strong>Calculate study design</strong>. <strong>Results</strong> gives
+99.7% power for the no-error design.</li>
+<li>Open <strong>Advanced assumptions</strong>. Check <strong>Phenotype
+misclassification</strong> and enter 2 for <strong>Control-to-affected
+misclassification rate (%)</strong>. This means 2% of truly unaffected
+children are classified as affected, not that 2% of recruited children
+are unaffected. Check <strong>Locus heterogeneity</strong> and enter 20
+for <strong>Locus heterogeneity rate (%)</strong>: in that alternative
+scenario, 20% of affected trios have disease unrelated to the modeled
+locus. Select <strong>Calculate study design</strong> again.</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">family_design</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tdt_power.html">tdt_power</a></span><span class="op">(</span></span>
+<span>  N <span class="op">=</span> <span class="fl">600</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, input_mode <span class="op">=</span> <span class="st">"model_based"</span>,</span>
+<span>  prev <span class="op">=</span> <span class="fl">0.05</span>, pd <span class="op">=</span> <span class="fl">0.30</span>, R1 <span class="op">=</span> <span class="fl">1.5</span>, R2 <span class="op">=</span> <span class="fl">2.25</span>, delta_prime <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  misclass_rate <span class="op">=</span> <span class="fl">0.02</span>, heter_rate <span class="op">=</span> <span class="fl">0.20</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">family_design</span><span class="op">$</span><span class="va">power</span><span class="op">)</span></span>
+<span><span class="co">#&gt;          no_error misclassification     heterogeneity </span></span>
+<span><span class="co">#&gt;         0.9967475         0.9197733         0.9628649</span></span></code></pre></div>
+<p>Read across <strong>three separate plans</strong>: the same 600 trios
+give 99.67% power at baseline, 91.98% with phenotype error alone, and
+96.29% with locus heterogeneity alone. Both mechanisms weaken the
+expected transmission imbalance. The decreases are about 7.7 and 3.4
+<strong>percentage points</strong>; do not add them or treat the last
+row as a combined model. To work backwards from a target, choose
+<strong>Minimum sample size</strong>, set <strong>Target power
+(%)</strong>, and calculate again. The resulting recruitment unit is
+still complete trios.</p>
 <div class="figure">
-<img src="images/shiny-tdt-both-modifiers.png" class="r-plt" alt="TDT dashboard displaying baseline, phenotype-misclassification, and locus-heterogeneity power scenarios separately." width="100%"><p class="caption">
-The TDT Results tab keeps the baseline, phenotype-misclassification, and
-locus-heterogeneity scenarios separate when both modifiers are
-requested.
+<img src="images/shiny-tdt-both-modifiers.png" class="r-plt" alt="TDT Results shows 600 trios in each of three cards: no-error 99.7%, phenotype misclassification 92.0%, and locus heterogeneity 96.3%." width="100%"><p class="caption">
+Read each adjusted card against No-error design. Each changes one
+assumption while keeping the 600-trio recruitment fixed.
 </p>
 </div>
-<p>The transmission visualization compares expected transmitted and
-non-transmitted quantities and labels them numerically from the
-canonical TDT result. Sensitivity varies one parameter at a time while
-preserving the other frozen assumptions.</p>
-<p>An optional 3D surface explores two assumptions simultaneously. It is
-generated only after the user requests it, uses the frozen model-based
-design, and does not alter the primary calculation. Rotate the Plotly
-surface with click and drag, and zoom or inspect values
-interactively.</p>
+<div class="section level3">
+<h3 id="vary-one-family-assumption-then-two">Vary one family assumption, then two<a class="anchor" aria-label="anchor" href="#vary-one-family-assumption-then-two"></a>
+</h3>
+<p>Keep the power design above. Under <strong>Sensitivity</strong>,
+choose the phenotype misclassification rate, set a
+<strong>Range</strong> and select <strong>Run sensitivity
+analysis</strong>. Moving right increases the assumed error rate; moving
+down means less power. Only the phenotype-error scenario depends on that
+rate. For a minimum-size design, a rising curve instead means more trios
+must be recruited.</p>
+<p>Under <strong>Visualize</strong>, the first chart shows expected
+transmission and non-transmission. To see a surface, expand
+<strong>Advanced visualization</strong>. Select <strong>Phenotype
+misclassification</strong> under <strong>Scenario</strong>,
+<strong>Modeled-allele frequency</strong> under <strong>X
+parameter</strong>, and <strong>Phenotype misclassification
+rate</strong> under <strong>Y parameter</strong>. Then select
+<strong>Generate 3D surface</strong>. Height shows power for that pair
+of assumptions. Drag to rotate the surface. It is generated on request,
+using the last calculated design; opening the tab alone does not
+generate it. This option needs the suggested <code>plotly</code> package
+and a genetic-model design.</p>
 <div class="figure">
-<img src="images/shiny-tdt-3d.png" class="r-plt" alt="Three-dimensional TDT power surface over allele frequency and phenotype-misclassification rate." width="100%"><p class="caption">
-The optional TDT 3D surface explores two assumptions simultaneously
-while retaining the last calculated model-based design.
+<img src="images/shiny-tdt-3d.png" class="r-plt" alt="Expanded Advanced visualization shows phenotype misclassification, modeled-allele frequency and error rate selectors, and the generated three-dimensional power surface." width="100%"><p class="caption">
+The surface below the controls varies two assumptions. The transmission
+bars above it describe just the frozen design.
 </p>
 </div>
 </div>
-<div class="section level2">
-<h2 id="quantitative-trait-workflow">Quantitative Trait workflow<a class="anchor" aria-label="anchor" href="#quantitative-trait-workflow"></a>
-</h2>
-<p>The Quantitative Trait workspace is a thin input interface over the
-public QTL functions. Its workflow is deliberately direct:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">inputs</mtext><mo>→</mo><mtext mathvariant="normal">Calculate study design</mtext><mo>→</mo><mtext mathvariant="normal">canonical verbose PAWEH output</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">
-\text{inputs} \longrightarrow \text{Calculate study design}
-\longrightarrow \text{canonical verbose PAWEH output}.
-</annotation></semantics></math></p>
-<p>Choose <strong>Estimate power</strong> or <strong>Minimum sample
-size</strong>, enter the model inputs, and select <strong>Calculate
-study design</strong>. The single <strong>Output</strong> card then
-shows the verbose console presentation generated by the corresponding
-canonical function. There are no QTL Results, Sensitivity, Visualize,
-Methods, advanced decomposition, or 2-D/3-D Plotly panels in the current
-dashboard.</p>
-<p>The workspace exposes three designs:</p>
-<ul>
-<li>
-<strong>Full continuous trait</strong> calls
-<code><a href="../reference/qtl_anova_power.html">qtl_anova_power()</a></code> or <code><a href="../reference/qtl_anova_mssn.html">qtl_anova_mssn()</a></code>.</li>
-<li>
-<strong>Extreme phenotype sampling</strong> calls
-<code><a href="../reference/qtl_threshold_chisq_power.html">qtl_threshold_chisq_power()</a></code> or
-<code><a href="../reference/qtl_threshold_chisq_mssn.html">qtl_threshold_chisq_mssn()</a></code>.</li>
-<li>
-<strong>Multiple quantitative traits</strong> calls
-<code><a href="../reference/qtl_multivariate_power_full.html">qtl_multivariate_power_full()</a></code> or
-<code><a href="../reference/qtl_multivariate_mssn_full.html">qtl_multivariate_mssn_full()</a></code>, using either the Pillai
-continuous-trait test or joint threshold-selected genotype chi-square
-test.</li>
-</ul>
-<p>Common controls include objective-specific sample size or target
-power, significance level, and modeled-allele frequency. The continuous
-design adds QTL variance, dominance, and genotype-count options. The
-extreme design adds upper- and lower-tail percentages and their
-selected-sample ratio. The multivariate design accepts two to four
-phenotype-specific QTL variances and dominance values, pairwise
-phenotype correlations, and joint-tail inputs when the threshold test is
-selected.</p>
-<p>If inputs change after a calculation, the previous verbose output
-remains visible with the notice <strong>Inputs have changed. Recalculate
-to update output.</strong> The <a href="paweh-04-quantitative-trait-study-design.html">Quantitative-Trait
-Study Design</a> vignette provides the statistical interpretation and
-approved model visualizations outside the dashboard.</p>
 <div class="section level3">
-<h3 id="full-continuous-trait">Full continuous trait<a class="anchor" aria-label="anchor" href="#full-continuous-trait"></a>
+<h3 id="when-the-error-is-in-the-genotype-call">When the error is in the genotype call<a class="anchor" aria-label="anchor" href="#when-the-error-is-in-the-genotype-call"></a>
 </h3>
-<p>This design analyzes the measured quantitative phenotype directly.
-Enter total sample size for power or target power for MSSN, QTL variance
-explained, dominance, allele frequency, and the optional genotype-count
-settings. The Output card presents the canonical ANOVA result.</p>
-</div>
-<div class="section level3">
-<h3 id="extreme-phenotype-sampling">Extreme phenotype sampling<a class="anchor" aria-label="anchor" href="#extreme-phenotype-sampling"></a>
-</h3>
-<p>This design analyzes individuals selected from the lower and upper
-phenotype tails. The user enters population-tail percentages and an
-upper-tail selected sample for power, or target power for MSSN. The
-model determines the phenotype thresholds, and the Output card reports
-the canonical threshold-design result.</p>
-</div>
-<div class="section level3">
-<h3 id="multiple-quantitative-traits">Multiple quantitative traits<a class="anchor" aria-label="anchor" href="#multiple-quantitative-traits"></a>
-</h3>
-<p>The calculation supports two to four traits, with trait-specific
-variance explained and dominance values plus pairwise phenotype
-correlations. Choose a Pillai continuous-trait test or joint
-extreme-selection test. For the latter, enter upper and lower
-percentages for every trait and the lower-to-upper selected-sample
-ratio. All selected traits enter the canonical calculation; the current
-QTL workspace does not add a separate plot.</p>
+<p>The control <strong>Genotype misclassification (Chapter 5)</strong>
+refers specifically to Gordon, Finch and Kim (2020), <em>Heterogeneity
+in Statistical Genetics</em>, Chapter 5, §5.2.5. It uses a single rate
+for errors between adjacent genotype categories and checks whether the
+called child and parent genotypes are consistent with inheritance. It is
+not a general model for all laboratory errors.</p>
+<p>Use <strong>Genetic model</strong> and <strong>uncheck both</strong>
+phenotype misclassification and locus heterogeneity first. Check
+<strong>Genotype misclassification (Chapter 5)</strong>, enter 1 for
+<strong>Genotype misclassification rate (%)</strong>, and calculate. The
+dashboard accepts 0–50%; 1 means
+<code>genotype_misclassification_rate = 0.01</code> in R. With the
+600-trio assumptions above, power is 99.17% at the nominal cutoff. The
+calculation is conditional on retained, inheritance-consistent trios;
+see the <a href="paweh-03-tdt-study-design.html">TDT tutorial</a> for
+retention and the effect on the false-positive rate. <strong>Direct
+transmission quantities</strong> do not specify the full trio genotypes
+this model needs. Neither the one-parameter sensitivity plot nor the
+advanced surface is supplied for an active genotype-error scenario.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="detailed-panels-in-case-control-and-tdt">Detailed panels in Case-Control and TDT<a class="anchor" aria-label="anchor" href="#detailed-panels-in-case-control-and-tdt"></a>
+<h2 id="quantitative-trait-how-many-people-should-a-height-study-measure">Quantitative Trait: how many people should a height study
+measure?<a class="anchor" aria-label="anchor" href="#quantitative-trait-how-many-people-should-a-height-study-measure"></a>
 </h2>
-<p>In the Case-Control and TDT / Family workspaces, <strong>Advanced
-calculation details</strong> exposes deeper quantities returned by the
-same canonical calculation used for the primary result. Depending on the
-workflow, these can include genotype probabilities, expected
-transmission quantities, noncentrality parameters, degrees of freedom,
-and fractional minimum sample size. Not every field appears for every
-model.</p>
-<p><strong>Methods</strong> summarizes the statistical procedure and
-assumptions for the frozen design. It complements Advanced calculation
-details: Methods explains what procedure is being used, while Advanced
-calculation details shows quantities produced by that calculation. These
-panels are not part of the current Quantitative Trait workspace.</p>
+<p>Suppose height is measured on unrelated participants and a
+quantitative trait locus (QTL) is expected to explain 2.5% of its
+population variance. The question is whether average height differs
+across the three genotype groups. Open <strong>Quantitative
+Trait</strong>. This workspace has an <strong>Output</strong> card that
+prints the canonical R calculation, including its inputs and result.</p>
+<ol style="list-style-type: decimal">
+<li>Under <strong>How will the phenotype be analyzed?</strong>, select
+<strong>Full continuous trait</strong>, then <strong>Estimate
+power</strong>. Enter <strong>Total sample size</strong> = 996.</li>
+<li>Set <strong>Modeled-allele frequency (%)</strong> to 15 and
+<strong>Variance explained by the QTL (%)</strong> to 2.5. The second
+number is a share of variation <em>between people’s heights</em>, not a
+2.5% change in a person’s height. Enter 0.5 for <strong>Dominance
+parameter</strong>: the one-copy mean is displaced from the midpoint of
+the two homozygote means by half their additive half-difference. At zero
+the three genotype means would be equally spaced.</li>
+<li>Enter 0.0001 for <strong>Significance level (alpha)</strong>. Under
+<strong>Advanced assumptions</strong>, keep <strong>Genotype-count
+method</strong> set to <strong>Rounded</strong>. Select
+<strong>Calculate study design</strong>. Check the sample size and alpha
+at the top of <strong>Output</strong>, then read <strong>Power</strong>
+under <strong>Test Results</strong>.</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">height</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qtl_anova_power.html">qtl_anova_power</a></span><span class="op">(</span></span>
+<span>  N <span class="op">=</span> <span class="fl">996</span>, alpha <span class="op">=</span> <span class="fl">0.0001</span>, pd <span class="op">=</span> <span class="fl">0.15</span>, qtl_var <span class="op">=</span> <span class="fl">0.025</span>, tau <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  count_method <span class="op">=</span> <span class="st">"rounded"</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">height</span><span class="op">$</span><span class="va">power</span></span>
+<span><span class="co">#&gt; [1] 0.8000478</span></span></code></pre></div>
+<p>Power is <strong>0.800048</strong>, or about 80%: this design just
+meets the target. Select <strong>Minimum sample size</strong>, enter 80
+for <strong>Target power (%)</strong>, retain the same trait assumptions
+and leave <strong>Restrict sample size to multiples of three</strong>
+checked. Recalculate: <strong>Minimum total sample size</strong> is
+<strong>996 individuals</strong> on this search grid, not 996 in each
+genotype group. If a pilot suggests the locus explains less variance,
+reduce that field and recalculate before settling on a recruitment
+number.</p>
+<div class="figure">
+<img src="images/shiny-qtl-continuous.png" class="r-plt" alt="Full continuous trait selected; the Output card identifies one-way ANOVA, total sample size 996, alpha 0.0001 and rounded genotype counts." width="100%"><p class="caption">
+Start by checking the Study Design section in Output. Scroll through the
+printed report to Test Results for power.
+</p>
+</div>
+<div class="section level3">
+<h3 id="if-only-the-tallest-and-shortest-people-will-be-genotyped">If only the tallest and shortest people will be genotyped<a class="anchor" aria-label="anchor" href="#if-only-the-tallest-and-shortest-people-will-be-genotyped"></a>
+</h3>
+<p>Choose <strong>Extreme phenotype sampling</strong> and
+<strong>Estimate power</strong>. Enter 126 for <strong>Upper-tail
+selected sample</strong>. Re-enter the same frequency, variance,
+dominance and alpha as above. Set <strong>Upper population tail selected
+(%)</strong> and <strong>Lower population tail selected (%)</strong> to
+5, and <strong>Lower-tail selected per upper-tail selected</strong> to 1
+under <strong>Advanced assumptions</strong>. Select <strong>Calculate
+study design</strong>. These cutoffs select extremes relative to the
+population; the ratio determines how many of each extreme enter the
+test.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tails</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qtl_threshold_chisq_power.html">qtl_threshold_chisq_power</a></span><span class="op">(</span></span>
+<span>  N_case <span class="op">=</span> <span class="fl">126</span>, k <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.0001</span>, pd <span class="op">=</span> <span class="fl">0.15</span>,</span>
+<span>  qtl_var <span class="op">=</span> <span class="fl">0.025</span>, tau <span class="op">=</span> <span class="fl">0.5</span>, x_upper <span class="op">=</span> <span class="fl">5</span>, x_lower <span class="op">=</span> <span class="fl">5</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>selected <span class="op">=</span> <span class="va">tails</span><span class="op">$</span><span class="va">N_total</span>, power <span class="op">=</span> <span class="va">tails</span><span class="op">$</span><span class="va">power</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    selected       power </span></span>
+<span><span class="co">#&gt; 252.0000000   0.8016659</span></span></code></pre></div>
+<p>Here the printed “cases” are the upper tail and “controls” the lower
+tail: 126 of each, <strong>252 genotyped people</strong> and
+<strong>80.17% power</strong>. More people must have their height
+measured to find those extremes. In R, <code>x_upper</code> and
+<code>x_lower</code> take <strong>percentages</strong> (5), whereas
+<code>qtl_var</code> and <code>pd</code> take
+<strong>fractions</strong>. Try a wider tail and recalculate to see how
+changing selection changes power for the same number genotyped.</p>
+<details><summary>
+See the extreme-sampling Output card
+</summary><div class="figure">
+<img src="images/shiny-qtl-extreme.png" class="r-plt" alt="Extreme phenotype sampling output lists 126 selected cases, 126 selected controls, total 252 and 5% upper and lower tails." width="100%"><p class="caption">
+The count in Study Design is the number selected from the tails, not the
+number screened for height.
+</p>
+</div>
+</details>
+</div>
+<div class="section level3">
+<h3 id="if-several-traits-are-measured-on-each-person">If several traits are measured on each person<a class="anchor" aria-label="anchor" href="#if-several-traits-are-measured-on-each-person"></a>
+</h3>
+<p>Choose <strong>Multiple quantitative traits</strong> for, say, height
+and arm span measured on the same people. The form offers two to four
+traits. Specify one QTL variance and dominance ratio per trait, a shared
+allele frequency, and a correlation for each pair. The <strong>Phenotype
+correlations</strong> fields represent correlations <em>within genotype
+groups</em>; together they must form a positive-definite correlation
+matrix.</p>
+<p><strong>Joint continuous-trait test (Pillai MANOVA)</strong> uses the
+complete measurements to compare the groups’ mean vectors. For power,
+enter the total sample size. <strong>Joint extreme-selection
+test</strong> includes people who meet all the upper cutoffs or all the
+lower cutoffs. Enter upper and lower percentages for each trait and set
+the ratio under <strong>Advanced assumptions</strong>. For power, enter
+the upper-tail sample size. For either test, select <strong>Minimum
+sample size</strong> to enter a target power instead. Select
+<strong>Calculate study design</strong> to update
+<strong>Output</strong>.</p>
+<p>There are no <strong>Results</strong>, <strong>Sensitivity</strong>,
+<strong>Visualize</strong>, <strong>Methods</strong> or generated-code
+panels in this workspace. The <a href="paweh-04-quantitative-trait-study-design.html">quantitative-trait
+tutorial</a> includes complete multivariate calls, genotype-specific
+distributions and plots of selection thresholds.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="reproduce-calculations-in-r">Reproduce calculations in R<a class="anchor" aria-label="anchor" href="#reproduce-calculations-in-r"></a>
+<h2 id="keep-the-calculation-with-the-protocol">Keep the calculation with the protocol<a class="anchor" aria-label="anchor" href="#keep-the-calculation-with-the-protocol"></a>
 </h2>
-<p>The Case-Control and TDT / Family advanced details include a
-<strong>Reproduce in R</strong> block generated from the frozen inputs.
-It uses the same canonical public function and arguments as the
-dashboard calculation. For example, a model-based TDT design may
-produce:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/tdt_power.html">tdt_power</a></span><span class="op">(</span></span>
-<span>  N <span class="op">=</span> <span class="fl">600</span>,</span>
-<span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  input_mode <span class="op">=</span> <span class="st">"model_based"</span>,</span>
-<span>  prev <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  pd <span class="op">=</span> <span class="fl">0.30</span>,</span>
-<span>  R1 <span class="op">=</span> <span class="fl">1.5</span>,</span>
-<span>  R2 <span class="op">=</span> <span class="fl">2.25</span>,</span>
-<span>  delta_prime <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Copy this code into a script to preserve or extend the design. For
-QTL, use the canonical function identified above with the same inputs
-entered in the GUI; the dashboard itself displays that function’s
-verbose output rather than a separate generated call block.</p>
+<p>In <strong>Case-Control</strong> or <strong>TDT / Family</strong>,
+open <strong>Results</strong> → <strong>Advanced calculation
+details</strong> → <strong>Reproduce in R</strong>. Copy the call into a
+script after <code><a href="https://github.com/akilanthony/paweh" class="external-link">library(paweh)</a></code>. The case-control and family
+calls above are runnable equivalents of the generated calls. For a
+height study, save the corresponding QTL call yourself; use
+<code>verbose = TRUE</code> to print its dashboard-style report. Record
+the package version (<code>packageVersion("paweh")</code>), the sampling
+unit and the source of each assumption. A colleague can then reproduce a
+number in a protocol or manuscript, or change one assumption for a
+sensitivity analysis without re-entering the whole study.</p>
 </div>
 <div class="section level2">
 <h2 id="frequently-asked-questions">Frequently asked questions<a class="anchor" aria-label="anchor" href="#frequently-asked-questions"></a>
 </h2>
-<p><strong>Why did my result not change when I edited an
-input?</strong></p>
-<p>The dashboard preserves the last calculated design until
-<strong>Calculate study design</strong> is selected again.</p>
-<p><strong>Why is the sensitivity plot y-axis zoomed?</strong></p>
-<p>A tighter scale makes small changes in power easier to see. The
-dashboard displays a note when the scale is tightly zoomed.</p>
-<p><strong>Why can minimum sample size be <code>Inf</code>?</strong></p>
-<p>For a model with no detectable contrast or effect, no finite sample
-size can reach the requested power.</p>
-<p><strong>Why are TDT error and heterogeneity mechanisms shown
-separately?</strong></p>
-<p>Phenotype misclassification and locus heterogeneity are separate
-sensitivity scenarios rather than one combined model. Chapter 5 genotype
-misclassification is also modeled separately and cannot be combined with
-either of them.</p>
-<p><strong>Why does the QTL workspace show only console-style
-output?</strong></p>
-<p>It is intentionally a thin GUI over the canonical QTL functions. The
-dedicated QTL vignette and plotting functions provide model
-visualizations.</p>
-<p><strong>Why does the TDT 3D plot not appear immediately?</strong></p>
-<p>The TDT Plotly surface is generated on demand to keep startup
-responsive.</p>
-<p><strong>What is the difference between Advanced calculation details
-and Methods in the Case-Control and TDT workspaces?</strong></p>
-<p>Advanced details shows model and calculation quantities; Methods
-summarizes the statistical procedure and assumptions.</p>
+<p><strong>I changed a field. Which answer am I looking at?</strong>
+Until you select <strong>Calculate study design</strong>, you are
+looking at the last calculation. In QTL, the notice reads “Inputs have
+changed. Recalculate to update output.” Check the printed assumptions as
+well as the form.</p>
+<p><strong>Why are there two case-control answers?</strong> The genotype
+and trend tests ask different questions about the same people. Find both
+under <strong>Advanced calculation details</strong> if a results card is
+not visible. Choose the analysis before examining study data.</p>
+<p><strong>What counts as one unit?</strong> Case-control power starts
+from cases and adds controls according to the ratio. TDT counts complete
+trios, so multiply by three for the corresponding people. Full-trait QTL
+counts measured individuals; a tail design counts the people selected
+for genotyping.</p>
+<p><strong>What does an infinite minimum sample size mean?</strong> If
+the assumed groups do not differ, recruiting more of them does not
+create an association. For example, equal expected transmitted and
+non-transmitted counts give no TDT signal to detect. Check the effect
+assumptions before interpreting <code>Inf</code>.</p>
+<p><strong>Why can’t I see the 3D plot or a combined-error
+curve?</strong> A family surface requires a calculated genetic-model
+design, <code>plotly</code>, two distinct axes and <strong>Generate 3D
+surface</strong>. The genotype-error branch does not offer it. The
+phenotype-error and heterogeneity curves each change a different
+assumption relative to baseline; they do not describe both operating at
+once.</p>
+<p><strong>Can I upload genotypes or test whether my variant is
+associated?</strong> No. The dashboard takes planning assumptions, not
+participant records or genomic files. A high power estimate describes a
+proposed test under an assumed effect. It is neither an observed p-value
+nor proof of association.</p>
 </div>
 <div class="section level2">
-<h2 id="dashboard-and-programmatic-workflows">Dashboard and programmatic workflows<a class="anchor" aria-label="anchor" href="#dashboard-and-programmatic-workflows"></a>
+<h2 id="sources-and-further-reading">Sources and further reading<a class="anchor" aria-label="anchor" href="#sources-and-further-reading"></a>
 </h2>
-<p>Use the Case-Control and TDT / Family workspaces for interactive
-study planning, sensitivity inspection, and visualization. Use the
-Quantitative Trait workspace as a compact input front end to canonical
-verbose output. Use the public R functions for scripted workflows,
-reproducible pipelines, batch analyses, and code accompanying
-manuscripts or supplements. Every workspace delegates its calculations
-to the same statistical backend as those functions.</p>
-</div>
-<div class="section level2">
-<h2 id="further-reading">Further reading<a class="anchor" aria-label="anchor" href="#further-reading"></a>
-</h2>
-<p>This vignette teaches the dashboard interface. The other articles
-explain the statistical methods and parameters in greater detail:</p>
+<p>The <a href="paweh-01-getting-started.html">Getting Started guide</a>
+introduces power and recruitment. The scientific sources depend on the
+workspace and question:</p>
 <ul>
-<li><a href="paweh-01-getting-started.html">Getting Started</a></li>
-<li><a href="paweh-02-case-control-study-design.html">Case-Control Study
-Design</a></li>
-<li><a href="paweh-03-tdt-study-design.html">TDT Study Design</a></li>
-<li><a href="paweh-04-quantitative-trait-study-design.html">Quantitative-Trait
-Study Design</a></li>
+<li>For case-control genotype error, see <a href="https://doi.org/10.1159/000066696" class="external-link">Gordon et al. (2002)</a> and
+the <a href="paweh-02-case-control-study-design.html">case-control
+tutorial</a>.</li>
+<li>For family studies, <a href="https://doi.org/10.1159/000194981" class="external-link">Buyske et al. (2009)</a>
+address phenotype error and <a href="https://doi.org/10.2202/1544-6115.1501" class="external-link">Chen et al. (2009)</a>
+address locus heterogeneity. Gordon, Finch and Kim (2020), <a href="https://doi.org/10.1007/978-3-030-61121-7" class="external-link"><em>Heterogeneity in
+Statistical Genetics: How to Assess, Address, and Account for Mixtures
+in Association Studies</em></a>, Chapter 5, §5.2.5, is the source behind
+the genotype-error control.</li>
+<li>For selecting quantitative-trait extremes, see <a href="https://doi.org/10.1038/s41598-019-51790-w" class="external-link">Li et al. (2019)</a>
+and the <a href="paweh-04-quantitative-trait-study-design.html">quantitative-trait
+tutorial</a> for its distinction between single-trait and joint
+selection.</li>
 </ul>
-</div>
-<div class="section level2">
-<h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
-</h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
+<details><summary>
+R session used to render this guide
+</summary><pre><code><span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
 <span><span class="co">#&gt; Platform: aarch64-apple-darwin23</span></span>
 <span><span class="co">#&gt; Running under: macOS Tahoe 26.6.2</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -471,49 +627,39 @@ Study Design</a></li>
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] paweh_0.99.0     BiocStyle_2.40.0</span></span>
+<span><span class="co">#&gt; [1] paweh_0.99.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;  [1] gtable_0.3.6        jsonlite_2.0.0      dplyr_1.2.1        </span></span>
-<span><span class="co">#&gt;  [4] compiler_4.6.1      BiocManager_1.30.27 tidyselect_1.2.1   </span></span>
-<span><span class="co">#&gt;  [7] dichromat_2.0-1     jquerylib_0.1.4     systemfonts_1.3.2  </span></span>
-<span><span class="co">#&gt; [10] scales_1.4.0        textshaping_1.0.5   yaml_2.3.12        </span></span>
-<span><span class="co">#&gt; [13] fastmap_1.2.0       ggplot2_4.0.3       R6_2.6.1           </span></span>
-<span><span class="co">#&gt; [16] generics_0.1.4      knitr_1.51          htmlwidgets_1.6.4  </span></span>
-<span><span class="co">#&gt; [19] tibble_3.3.1        bookdown_0.47       desc_1.4.3         </span></span>
-<span><span class="co">#&gt; [22] bslib_0.12.0        pillar_1.11.1       RColorBrewer_1.1-3 </span></span>
-<span><span class="co">#&gt; [25] rlang_1.3.0         cachem_1.1.0        xfun_0.60          </span></span>
-<span><span class="co">#&gt; [28] fs_2.1.0            sass_0.4.10         S7_0.2.2           </span></span>
-<span><span class="co">#&gt; [31] otel_0.2.0          cli_3.6.6           pkgdown_2.2.1      </span></span>
-<span><span class="co">#&gt; [34] magrittr_2.0.5      digest_0.6.39       grid_4.6.1         </span></span>
-<span><span class="co">#&gt; [37] mvtnorm_1.4-2       lifecycle_1.0.5     vctrs_0.7.3        </span></span>
-<span><span class="co">#&gt; [40] evaluate_1.0.5      glue_1.8.1          farver_2.1.2       </span></span>
-<span><span class="co">#&gt; [43] ragg_1.5.2          rmarkdown_2.31      pkgconfig_2.0.3    </span></span>
-<span><span class="co">#&gt; [46] tools_4.6.1         htmltools_0.5.9</span></span></code></pre></div>
+<span><span class="co">#&gt;  [1] gtable_0.3.6       jsonlite_2.0.0     dplyr_1.2.1        compiler_4.6.1    </span></span>
+<span><span class="co">#&gt;  [5] tidyselect_1.2.1   dichromat_2.0-1    jquerylib_0.1.4    systemfonts_1.3.2 </span></span>
+<span><span class="co">#&gt;  [9] scales_1.4.0       textshaping_1.0.5  yaml_2.3.12        fastmap_1.2.0     </span></span>
+<span><span class="co">#&gt; [13] ggplot2_4.0.3      R6_2.6.1           generics_0.1.4     knitr_1.51        </span></span>
+<span><span class="co">#&gt; [17] htmlwidgets_1.6.4  tibble_3.3.1       desc_1.4.3         bslib_0.12.0      </span></span>
+<span><span class="co">#&gt; [21] pillar_1.11.1      RColorBrewer_1.1-3 rlang_1.3.0        cachem_1.1.0      </span></span>
+<span><span class="co">#&gt; [25] xfun_0.60          fs_2.1.0           sass_0.4.10        S7_0.2.2          </span></span>
+<span><span class="co">#&gt; [29] otel_0.2.0         cli_3.6.6          pkgdown_2.2.1      magrittr_2.0.5    </span></span>
+<span><span class="co">#&gt; [33] digest_0.6.39      grid_4.6.1         mvtnorm_1.4-2      lifecycle_1.0.5   </span></span>
+<span><span class="co">#&gt; [37] vctrs_0.7.3        evaluate_1.0.5     glue_1.8.1         farver_2.1.2      </span></span>
+<span><span class="co">#&gt; [41] ragg_1.5.2         rmarkdown_2.31     tools_4.6.1        pkgconfig_2.0.3   </span></span>
+<span><span class="co">#&gt; [45] htmltools_0.5.9</span></span></code></pre>
+</details>
 </div>
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-
-      </div>
-
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by Akil Anthony, Derek Gordon.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by Akil Anthony, Derek Gordon.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
-
 
 
 

@@ -9,4 +9,8 @@ articles:
   paweh-05-interactive-dashboard: paweh-05-interactive-dashboard.html
   paweh-06-sequencing-study-design: paweh-06-sequencing-study-design.html
   paweh-07-lrtae-study-design: paweh-07-lrtae-study-design.html
-last_built: 2026-09-16T14:40Z
+  paweh-08-methods-and-sources: paweh-08-methods-and-sources.html
+last_built: 2026-11-21T20:24Z
+urls:
+  reference: https://akilanthony.github.io/paweh/reference
+  article: https://akilanthony.github.io/paweh/articles

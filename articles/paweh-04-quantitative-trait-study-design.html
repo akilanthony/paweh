@@ -4,140 +4,159 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quantitative-trait genetic association study design • paweh</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
-<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Quantitative-trait genetic association study design">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>4. Quantitative-Trait Study Design • paweh</title>
+<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="4. Quantitative-Trait Study Design">
 </head>
-<body data-spy="scroll" data-target="#toc">
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <div class="container template-article">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">paweh</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
-      </span>
-    </div>
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="../reference/index.html">Reference</a>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Articles
+    <a class="navbar-brand me-2" href="../index.html">paweh</a>
 
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="../articles/paweh-01-getting-started.html">Getting started with paweh</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-02-case-control-study-design.html">Case-control genetic association study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-03-tdt-study-design.html">Transmission disequilibrium test study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative-trait genetic association study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-07-lrtae-study-design.html">LRTae power and sample-size design</a>
-    </li>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.0</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/paweh-01-getting-started.html">Get Started</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-study-designs" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Study Designs</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-study-designs">
+<li><a class="dropdown-item" href="../articles/index.html">All articles</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/paweh-02-case-control-study-design.html">Case-Control Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-03-tdt-study-design.html">TDT / Family Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative Traits</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-07-lrtae-study-design.html">Validation-Based / LRTae Studies</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/paweh-05-interactive-dashboard.html">Interactive Dashboard</a></li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../articles/paweh-08-methods-and-sources.html">Methods &amp; Sources</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Function Reference</a></li>
       </ul>
-<ul class="nav navbar-nav navbar-right">
-<li>
-  <a href="https://github.com/akilanthony/paweh/" class="external-link">
-    <span class="fab fa-github fa-lg"></span>
-
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/akilanthony/paweh">GitHub</a></li>
       </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
-</div>
-<!--/.navbar -->
+</nav><div class="container template-article">
 
 
 
-      </header><div class="row">
-  <div class="col-md-9 contents">
-    <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Quantitative-trait genetic association study
-design</h1>
+
+<div class="row">
+  <main id="main" class="col-md-9"><div class="page-header">
+
+      <h1>4. Quantitative-Trait Study Design</h1>
                         <h4 data-toc-skip class="author">paweh package
 authors</h4>
             
       
       <small class="dont-index">Source: <a href="https://github.com/akilanthony/paweh/blob/HEAD/vignettes/paweh-04-quantitative-trait-study-design.Rmd" class="external-link"><code>vignettes/paweh-04-quantitative-trait-study-design.Rmd</code></a></small>
-      <div class="hidden name"><code>paweh-04-quantitative-trait-study-design.Rmd</code></div>
-
+      <div class="d-none name"><code>paweh-04-quantitative-trait-study-design.Rmd</code></div>
     </div>
 
     
     
 <div class="section level2">
-<h2 id="quantitative-trait-study-design-in-paweh">Quantitative-trait study design in PAWEH<a class="anchor" aria-label="anchor" href="#quantitative-trait-study-design-in-paweh"></a>
+<h2 id="how-many-people-would-we-need-to-detect-a-shift-in-height">How many people would we need to detect a shift in height?<a class="anchor" aria-label="anchor" href="#how-many-people-would-we-need-to-detect-a-shift-in-height"></a>
 </h2>
-<p>For a quantitative trait, genotype can shift the phenotype
-distribution rather than simply changing a binary disease probability.
-<code>paweh</code> uses a Falconer-style model to calculate prospective
-operating characteristics for association-study design. Its core inputs
-are:</p>
-<ul>
-<li>
-<code>qtl_var</code>: the proportion of trait variance attributable
-to the modeled QTL;</li>
-<li>
-<code>tau</code>: dominance relative to additivity;</li>
-<li>
-<code>pd</code>: the frequency of the modeled allele; and</li>
-<li>residual variance or covariance: the remaining phenotype variation
-and, for multiple traits, how those traits co-vary.</li>
-</ul>
-<p>These functions plan studies under a specified model. They do not
-estimate QTL effects from individual-level phenotype and genotype
-observations.</p>
+<p>Suppose a growth study can measure adult height in a large cohort,
+but has a smaller budget for genotyping. A <strong>quantitative
+trait</strong> is a characteristic measured on a numerical scale. A
+<strong>quantitative trait locus</strong> (QTL) is a region of the
+genome whose variation contributes to differences in that measurement.
+At a variant with two alleles, a person’s <strong>genotype</strong>
+tells us whether they carry zero, one, or two copies of the allele we
+are studying.</p>
+<p>Imagine that people with two copies are taller on average than people
+with zero copies. Plenty of people in the first group could still be
+shorter than people in the second. Can the study distinguish that shift
+in averages from the variation among people? <strong>Power</strong> is
+the probability of detecting the association in repeated studies if the
+assumed effect exists. We can either estimate power for the people we
+can recruit or calculate the minimum sample size needed (MSSN) for a
+target power.</p>
+<p>The examples below consider three recruitment decisions. We can
+measure and genotype everyone, genotype people selected by unusually
+high or low measurements, or take several measurements per person and
+design a joint test. The most expensive step in the study matters when
+comparing these plans.</p>
 </div>
 <div class="section level2">
-<h2 id="genotype-specific-trait-distributions">Genotype-specific trait distributions<a class="anchor" aria-label="anchor" href="#genotype-specific-trait-distributions"></a>
+<h2 id="how-much-do-the-three-genotype-groups-overlap">How much do the three genotype groups overlap?<a class="anchor" aria-label="anchor" href="#how-much-do-the-three-genotype-groups-overlap"></a>
 </h2>
-<p>The three genotype groups can have different expected trait
-distributions, but residual variation makes those distributions overlap.
-Greater separation of the genotype means generally creates a stronger
-potential association signal.</p>
+<p>Start with the means of the two homozygotes, people with zero and two
+copies. In the Falconer-style model their midpoint is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+and their means are
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>−</mo><mi>a</mi></mrow><annotation encoding="application/x-tex">m-a</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>+</mo><mi>a</mi></mrow><annotation encoding="application/x-tex">m+a</annotation></semantics></math>.
+The <strong>additive effect</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+is half their difference. If each copy shifts the mean by the same
+amount, the heterozygote (one copy) sits at the midpoint.
+<strong>Dominance</strong> is the departure of its mean from that
+midpoint. The package calls this departure
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>,
+so the one-copy mean is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>+</mo><mi>δ</mi></mrow><annotation encoding="application/x-tex">m+\delta</annotation></semantics></math>.</p>
+<ul>
+<li>
+<code>tau</code> is the ratio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mi>/</mi><mi>a</mi></mrow><annotation encoding="application/x-tex">\delta/a</annotation></semantics></math>.
+At zero, the three means are equally spaced. At 0.5, the heterozygote
+moves halfway from the midpoint to the two-copy mean. At 1 it coincides
+with that mean, and at −1 it coincides with the zero-copy mean. The
+functions accept finite numeric ratios, including values outside [−1,
+1], which place the heterozygote beyond the two homozygote means.</li>
+<li>
+<code>pd</code> is the population frequency of the modeled allele,
+between zero and one, exclusive. Under Hardy–Weinberg proportions the
+three genotype frequencies are
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mi>d</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">(1-p_d)^2</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><msub><mi>p</mi><mi>d</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mi>d</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">2p_d(1-p_d)</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>p</mi><mi>d</mi><mn>2</mn></msubsup><annotation encoding="application/x-tex">p_d^2</annotation></semantics></math>.
+These weights determine how much each group contributes to population
+variation.</li>
+<li>
+<code>qtl_var</code> is the fraction of total trait variance
+explained by the differences between genotype means, also strictly
+between zero and one. The model centers the population mean at zero and
+scales total variance to one. Thus <code>qtl_var = 0.025</code>
+attributes <strong>2.5%</strong> of population variance to the modeled
+locus. The remaining 0.975 is <strong>residual variance</strong> within
+genotype groups. It includes other sources of variation, such as other
+genes, environment and measurement error.</li>
+</ul>
+<p>Given these three inputs, <code><a href="../reference/qtl_falconer_parameters.html">qtl_falconer_parameters()</a></code>
+derives the means and common within-group standard deviation. Gordon,
+Finch, and Kim (2020, §6.1.1) give this parameterization using Fisher’s
+variance decomposition as presented by Lynch and Walsh. To see the
+overlap clearly, the figure first uses a larger QTL variance of 0.25 and
+a dominance ratio of 0.25.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_genotype_distribution.html">plot_qtl_genotype_distribution</a></span><span class="op">(</span></span>
 <span>  qtl_var <span class="op">=</span> <span class="fl">0.25</span>,</span>
@@ -152,19 +171,92 @@ Deterministic genotype-specific quantitative-trait distributions under
 the Falconer model.
 </p>
 </div>
-<p>Vertical lines identify the genotype-specific means.
-<code>type = "binned"</code> is a deterministic histogram-style
-representation: each bar is calculated from the difference between
-analytic Normal CDF values at its bin boundaries. No random observations
-are simulated.</p>
+<p>Read each color across the horizontal trait scale. The vertical
+markers show the three means. Even at this large effect size, all three
+groups can produce measurements near the middle. Each bar height is the
+probability of its interval under the genotype’s normal distribution
+divided by the bin width. These are deterministic model densities. This
+display gives each genotype its own density scale, so the relative
+numbers of people carrying each genotype cannot be read from the bar
+heights.</p>
 </div>
 <div class="section level2">
-<h2 id="continuous-trait-anova-design">Continuous-trait ANOVA design<a class="anchor" aria-label="anchor" href="#continuous-trait-anova-design"></a>
+<h2 id="measure-everyone-and-compare-means-with-anova">Measure everyone and compare means with ANOVA<a class="anchor" aria-label="anchor" href="#measure-everyone-and-compare-means-with-anova"></a>
 </h2>
-<p>When every recruited subject is measured on the continuous trait, a
-one-way ANOVA can compare the three genotype groups. The following
-example calculates power at a fixed sample size and the minimum total
-sample size (MSSN) for 80% power.</p>
+<p>A one-way analysis of variance (ANOVA) compares the spread
+<strong>between</strong> the three genotype means with the variation
+<strong>within</strong> groups. Its null hypothesis is that all three
+population means are equal. The test can detect departures that involve
+dominance because it compares three groups without requiring the means
+to follow a straight line. The power model assumes independent
+participants, a normal trait within each genotype, and a common residual
+variance. Expected group sizes follow the allele frequency.</p>
+<p>Use the smaller 2.5% QTL from Gordon, Finch, and Kim (§6.1.4). The
+table explains the design choices in both calls.</p>
+<table class="table">
+<caption>Inputs for a continuous-trait study in unrelated
+participants.</caption>
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Input</th>
+<th align="left">Choice</th>
+<th align="left">Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>N</code></td>
+<td align="left">996</td>
+<td align="left">Total people, each contributing one trait measurement
+and one genotype.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>alpha</code></td>
+<td align="left">0.0001</td>
+<td align="left">Probability of rejecting equal means under the null
+model.</td>
+</tr>
+<tr class="odd">
+<td align="left">
+<code>qtl_var</code>, <code>tau</code>,
+<code>pd</code>
+</td>
+<td align="left">0.025, 0.5, 0.15</td>
+<td align="left">Variance fraction, dominance/additivity ratio and
+allele frequency, respectively.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>power</code></td>
+<td align="left">0.80</td>
+<td align="left">Desired chance of detecting the modeled shift when
+solving for sample size.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>count_method</code></td>
+<td align="left"><code>"rounded"</code></td>
+<td align="left">Round each expected genotype count separately. The
+alternative <code>"expected"</code> uses fractional counts for
+planning.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>multiple_of_three</code></td>
+<td align="left"><code>TRUE</code></td>
+<td align="left">Search total sample sizes in steps of three for MSSN.
+With <code>FALSE</code>, search every eligible integer.</td>
+</tr>
+</tbody>
+</table>
+<p>The step of three reproduces the textbook search. Actual genotype
+groups can have quite different sizes. At <code>pd = 0.15</code>, the
+rounded counts at 996 are 720, 254 and 22. Separate rounding at other
+sample sizes can give counts that sum to a value slightly different from
+the supplied <code>N</code>. The F calculation uses two numerator
+degrees of freedom and <code>N - 3</code> denominator degrees of
+freedom. First ask what 996 participants provide, then solve for the
+size needed to reach 80%.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">anova_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qtl_anova_power.html">qtl_anova_power</a></span><span class="op">(</span></span>
 <span>  N <span class="op">=</span> <span class="fl">996</span>, alpha <span class="op">=</span> <span class="fl">0.0001</span>,</span>
@@ -177,18 +269,37 @@ sample size (MSSN) for 80% power.</p>
 <span>  qtl_var <span class="op">=</span> <span class="fl">0.025</span>, tau <span class="op">=</span> <span class="fl">0.5</span>, pd <span class="op">=</span> <span class="fl">0.15</span>,</span>
 <span>  count_method <span class="op">=</span> <span class="st">"rounded"</span>, multiple_of_three <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  quantity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Power at N = 996"</span>, <span class="st">"Required total N"</span>, <span class="st">"Power at required N"</span><span class="op">)</span>,</span>
-<span>  value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">anova_power</span><span class="op">$</span><span class="va">power</span>, <span class="va">anova_mssn</span><span class="op">$</span><span class="va">N</span>, <span class="va">anova_mssn</span><span class="op">$</span><span class="va">achieved_power</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt;              quantity       value</span></span>
-<span><span class="co">#&gt; 1    Power at N = 996   0.8000478</span></span>
-<span><span class="co">#&gt; 2    Required total N 996.0000000</span></span>
-<span><span class="co">#&gt; 3 Power at required N   0.8000478</span></span></code></pre></div>
-<p>One power curve summarizes how the design changes as more
-participants are measured.</p>
+<span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Power and recruitment for the continuous height
+design.</caption>
+<thead><tr class="header">
+<th align="left">Design quantity</th>
+<th align="right">Value</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Power at N = 996</td>
+<td align="right">0.80005</td>
+</tr>
+<tr class="even">
+<td align="left">Required total N</td>
+<td align="right">996.00000</td>
+</tr>
+<tr class="odd">
+<td align="left">Power at required N</td>
+<td align="right">0.80005</td>
+</tr>
+</tbody>
+</table>
+<p>The two routes agree. A study of 996 people has <strong>80.005%
+power</strong>, and 996 is the first eligible total on this search grid
+to reach 80%. Those 996 participants are drawn across the full height
+distribution. Each participant counts once regardless of which genotype
+is observed.</p>
+<p>If recruitment falls short, the power loss depends on where the study
+lies on the curve. Holding the model and significance threshold fixed
+gives the following seven prospective studies.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_anova_power.html">plot_qtl_anova_power</a></span><span class="op">(</span></span>
 <span>  x_var <span class="op">=</span> <span class="st">"N"</span>,</span>
@@ -203,21 +314,42 @@ participants are measured.</p>
 One-way genotype-group ANOVA power as total sample size increases.
 </p>
 </div>
+<p>At 900 participants the power is about 72.5%, while 1,050 gives about
+83.8%. The gain from another 150 people becomes smaller toward the right
+of the plot. The continuous-trait calculation uses the height of every
+genotyped participant.</p>
 </div>
 <div class="section level2">
-<h2 id="extreme-phenotype-sampling">Extreme-phenotype sampling<a class="anchor" aria-label="anchor" href="#extreme-phenotype-sampling"></a>
+<h2 id="measure-broadly-and-genotype-the-extremes">Measure broadly and genotype the extremes<a class="anchor" aria-label="anchor" href="#measure-broadly-and-genotype-the-extremes"></a>
 </h2>
-<p>Instead of recruiting across the full phenotype distribution,
-investigators may select subjects from its extremes. In
-<code>paweh</code>’s single-trait threshold design, upper-tail
-individuals become selected cases, lower-tail individuals become
-selected controls, and individuals in the middle are not selected. Upper
-and lower events are distinct tails rather than complements.</p>
-<p>Li et al. (2019) provide a <strong>motivating published
-application</strong> of extreme quantitative-phenotype sampling. Their
-procedure is not the threshold-selected genotype chi-square method
-implemented by <code>paweh</code>, so this is motivation rather than a
-numerical reproduction.</p>
+<p>Suppose height measurements are already available to the cohort and
+genotyping is expensive. We could screen the measurements and invite
+only the tallest and shortest people for genotyping. When genotype
+shifts the trait mean, the high and low groups can differ appreciably in
+genotype frequencies. This design tests that difference using a genotype
+chi-square test with two degrees of freedom. Li et al. (2019) examine
+extreme sampling under balanced and unbalanced designs. The numerical
+example here comes from Gordon, Finch, and Kim (§6.1.3).</p>
+<p>There are three populations to keep track of. The <strong>source
+population</strong> supplies the distribution of measurements. The
+<strong>screened participants</strong> are those whose trait values we
+examine. The <strong>selected participants</strong> enter the genetic
+analysis. The package calls upper-tail participants cases and lower-tail
+participants controls. These labels indicate selection by height. People
+between the cutoffs enter neither group.</p>
+<p><code>x_upper = 5</code> and <code>x_lower = 5</code> are
+<strong>percentages</strong>. The function converts them to standard
+normal cutoffs with <code>qnorm(1 - 5/100)</code> and
+<code>qnorm(5/100)</code>. Entering 0.05 would request 0.05% in that
+reference distribution. The source model is a mixture of three
+genotype-specific normals. Its mean and variance are standardized, but
+its actual tail probabilities can differ slightly from the reference
+percentages.</p>
+<p>The first call derives the boundaries and genotype frequencies within
+each tail. The second asks about a budget for 126 upper-tail people, and
+the third solves for the number needed to reach 80%. In both calls
+<code>k = 1</code> allocates one lower-tail participant per upper-tail
+participant.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">threshold_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qtl_falconer_threshold_parameters.html">qtl_falconer_threshold_parameters</a></span><span class="op">(</span></span>
 <span>  qtl_var <span class="op">=</span> <span class="fl">0.025</span>, tau <span class="op">=</span> <span class="fl">0.5</span>, pd <span class="op">=</span> <span class="fl">0.15</span>,</span>
@@ -237,37 +369,71 @@ numerical reproduction.</p>
 <span>  qtl_var <span class="op">=</span> <span class="fl">0.025</span>, tau <span class="op">=</span> <span class="fl">0.5</span>, pd <span class="op">=</span> <span class="fl">0.15</span>,</span>
 <span>  x_upper <span class="op">=</span> <span class="fl">5</span>, x_lower <span class="op">=</span> <span class="fl">5</span>, k <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  quantity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="st">"Upper threshold"</span>, <span class="st">"Lower threshold"</span>, <span class="st">"Power with 126 selected cases"</span>,</span>
-<span>    <span class="st">"Required selected cases"</span>, <span class="st">"Required selected controls"</span>,</span>
-<span>    <span class="st">"Expected source population screened for cases"</span>,</span>
-<span>    <span class="st">"Expected source population screened for controls"</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="va">threshold_model</span><span class="op">$</span><span class="va">upper_threshold</span>,</span>
-<span>    <span class="va">threshold_model</span><span class="op">$</span><span class="va">lower_threshold</span>,</span>
-<span>    <span class="va">threshold_power</span><span class="op">$</span><span class="va">power</span>,</span>
-<span>    <span class="va">threshold_mssn</span><span class="op">$</span><span class="va">N_case</span>,</span>
-<span>    <span class="va">threshold_mssn</span><span class="op">$</span><span class="va">N_control</span>,</span>
-<span>    <span class="va">threshold_mssn</span><span class="op">$</span><span class="va">expected_population_screened_cases</span>,</span>
-<span>    <span class="va">threshold_mssn</span><span class="op">$</span><span class="va">expected_population_screened_controls</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt;                                           quantity        value</span></span>
-<span><span class="co">#&gt; 1                                  Upper threshold    1.6448536</span></span>
-<span><span class="co">#&gt; 2                                  Lower threshold   -1.6448536</span></span>
-<span><span class="co">#&gt; 3                    Power with 126 selected cases    0.8016659</span></span>
-<span><span class="co">#&gt; 4                          Required selected cases  126.0000000</span></span>
-<span><span class="co">#&gt; 5                       Required selected controls  126.0000000</span></span>
-<span><span class="co">#&gt; 6    Expected source population screened for cases 2513.7381119</span></span>
-<span><span class="co">#&gt; 7 Expected source population screened for controls 2526.1897442</span></span></code></pre></div>
-<p>The selected study MSSN and the expected source population screened
-are different quantities. Screening burden can be much larger because
-only a fraction of the source population falls into either selected
-tail.</p>
+<span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Trait cutoffs, power, selected quotas and screening
+requirements.</caption>
+<thead><tr class="header">
+<th align="left">Design quantity</th>
+<th align="right">Value</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Upper threshold</td>
+<td align="right">1.64485</td>
+</tr>
+<tr class="even">
+<td align="left">Lower threshold</td>
+<td align="right">-1.64485</td>
+</tr>
+<tr class="odd">
+<td align="left">Power with 126 selected cases</td>
+<td align="right">0.80167</td>
+</tr>
+<tr class="even">
+<td align="left">Required selected cases</td>
+<td align="right">126.00000</td>
+</tr>
+<tr class="odd">
+<td align="left">Required selected controls</td>
+<td align="right">126.00000</td>
+</tr>
+<tr class="even">
+<td align="left">Expected source population screened for cases</td>
+<td align="right">2513.73811</td>
+</tr>
+<tr class="odd">
+<td align="left">Expected source population screened for controls</td>
+<td align="right">2526.18974</td>
+</tr>
+</tbody>
+</table>
+<p>The thresholds are about <strong>−1.645 and +1.645</strong>
+population standard deviations. With 126 selected per tail, or
+<strong>252 people genotyped</strong>, power is <strong>80.17%</strong>.
+The model predicts that about 39.7% of the upper group and 14.2% of the
+lower group will carry exactly one copy. This difference in genotype
+composition supplies evidence for the association.</p>
+<p>The shaded areas show which people enter the calculation. The curve
+is the population mixture, weighted by the expected frequency of each
+genotype.</p>
+<div class="figure">
+<img src="paweh-04-quantitative-trait-study-design_files/figure-html/tail-regions-1.png" class="r-plt" alt="Two narrow shaded tails lie on opposite sides of the unselected middle of the height distribution." width="672"><p class="caption">
+Source population for the 2.5% QTL design. Shading marks the two groups
+eligible for genotyping.
+</p>
+</div>
+<p>About 5.012% of screened people meet the upper cutoff and 4.988% meet
+the lower cutoff. Dividing 126 by each eligibility probability gives
+<strong>about 2,514 screened for the upper quota and 2,526 for the lower
+quota</strong>. When one cohort supplies both tails, the same
+measurement screens a person for both. The two numbers are separate
+expectations. The actual number screened until both quotas fill varies.
+Compared with ANOVA’s 996 genotypes, this plan saves genotyping while
+requiring more heights to be measured.</p>
+<p>What if the upper criterion is relaxed while the lower criterion
+stays at 5%? The curve compares five choices with the same power target
+and equal selected group sizes.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_qtl_threshold_chisq_mssn.html">plot_qtl_threshold_chisq_mssn</a></span><span class="op">(</span></span>
 <span>  x_var <span class="op">=</span> <span class="st">"x_upper"</span>,</span>
@@ -288,31 +454,74 @@ Required selected cases as upper-tail sampling becomes less extreme,
 with the lower tail fixed at 5%.
 </p>
 </div>
-<p>Selection stringency changes genotype enrichment, selected-sample
-MSSN, and the operational burden of finding eligible participants.</p>
+<p>Moving the upper cutoff from 2.5% to 15% increases the required
+number in each selected group from 110 to 168. The wider upper tail
+makes eligible people easier to find, but its genotype frequencies are
+closer to those of the lower group. The vertical axis counts
+<strong>selected upper-tail people</strong>. Budget the screening step
+from each design’s own selection probabilities.</p>
 </div>
 <div class="section level2">
-<h2 id="multiple-quantitative-traits">Multiple quantitative traits<a class="anchor" aria-label="anchor" href="#multiple-quantitative-traits"></a>
+<h2 id="two-measurements-on-the-same-person">Two measurements on the same person<a class="anchor" aria-label="anchor" href="#two-measurements-on-the-same-person"></a>
 </h2>
-<p>Multiple correlated or biologically related phenotypes may carry
-complementary information about the same locus. Yang et al. (2010)
-provide a <strong>motivating published application</strong> of joint
-phenotype analysis, but their method is not the Pillai framework
-implemented by <code>paweh</code> and is not reproduced here.</p>
-<p>For multivariate <code>paweh</code> designs, <code>qtl_var</code> and
-<code>tau</code> become phenotype-specific vectors, <code>pd</code>
-remains shared, and <code>cor_matrix</code> describes phenotype
-correlation. Use <code>test = "pillai"</code> for a continuous
-multivariate design or <code>test = "threshold_chisq"</code> for jointly
-threshold-selected phenotypes.</p>
+<p>A growth-related variant might shift both adult height and arm span.
+One locus influencing several traits is <strong>pleiotropy</strong>. In
+a study with <em>locus heterogeneity</em>, several loci can each
+contribute to a similar phenotype in different people. Here we follow
+one locus across two measurements on the same people.</p>
+<p>For multiple traits, give one <code>qtl_var</code> and one
+<code>tau</code> per trait, in the same order as the rows and columns of
+<code>cor_matrix</code>. The allele frequency <code>pd</code> is shared
+because each participant has one genotype at this locus. Height and arm
+span may also vary together within any one genotype. For example, growth
+conditions could influence both. The implementation uses
+<code>cor_matrix</code> for this <strong>within-genotype, or residual,
+correlation</strong>. It multiplies each entry by the two residual
+standard deviations to obtain the common within-genotype covariance
+matrix. Supply a symmetric, positive-definite correlation matrix with
+ones on its diagonal.</p>
+<p>Pooling genotypes adds another source of covariance when both trait
+means change with allele count. Even <code>diag(2)</code>, which sets
+the residual correlation to zero, can therefore give correlated traits
+in the full cohort. For planning, distinguish correlations estimated
+within genotype groups from a single correlation estimated in the whole
+population.</p>
 </div>
 <div class="section level2">
-<h2 id="published-example-reproduction-gordon-et-al--2017">Published-example reproduction: Gordon et al. (2017)<a class="anchor" aria-label="anchor" href="#published-example-reproduction-gordon-et-al--2017"></a>
+<h2 id="use-both-continuous-traits-in-a-joint-test">Use both continuous traits in a joint test<a class="anchor" aria-label="anchor" href="#use-both-continuous-traits-in-a-joint-test"></a>
 </h2>
-<p>The published pleiotropic example uses allele frequency 0.05, QTL
-variances 0.10 and 0.05, dominance ratios 0 and 0.50, independent
-phenotypes, target power 0.80, and genome-wide
-<code>alpha = 5e-8</code>.</p>
+<p>Separate ANOVAs ask whether the genotype means differ for each trait
+in turn. A multivariate analysis of variance (MANOVA) asks one question
+about the <em>pair</em> of means. Does any genotype have a different
+mean profile for height and arm span? <strong>Pillai’s trace</strong>
+measures the separation among those profiles along combinations of the
+traits, relative to the variation of people around their genotype means.
+Two highly correlated measurements may contribute little additional
+information about a common shift, while a shift across a direction with
+little residual variation can be easier to detect. A significant joint
+test alone does not identify which trait drives the association.</p>
+<p>The design assumes independent people and multivariate normal
+measurements within each genotype with a common covariance matrix. In
+the calculation of Gordon et al., each informative direction contributes
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r/(1+r)</annotation></semantics></math>
+to the population trace, where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+measures between-group variation relative to within-group variation in
+that direction. The function combines the trace, total sample size and
+degrees of freedom in a noncentral F power calculation. Its power
+advantage over a univariate test depends on the effect profile and
+covariance.</p>
+<div class="section level3">
+<h3 id="reproduce-the-326-person-design-of-gordon-et-al-">Reproduce the 326-person design of Gordon et al.<a class="anchor" aria-label="anchor" href="#reproduce-the-326-person-design-of-gordon-et-al-"></a>
+</h3>
+<p>Gordon et al. (published online in 2017, pp. 205–206) give a
+two-trait example with a 5% allele frequency. The QTL explains 10% and
+5% of the respective trait variances. Trait 1 has equally spaced means,
+while trait 2 has a heterozygote shift of half its additive effect. The
+identity matrix specifies zero residual correlation. Use the full
+measurements on everyone, target 80% power, and set the significance
+level to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5</mn><mo>×</mo><msup><mn>10</mn><mrow><mi>−</mi><mn>8</mn></mrow></msup></mrow><annotation encoding="application/x-tex">5\times 10^{-8}</annotation></semantics></math>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gordon_mv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qtl_multivariate_mssn_full.html">qtl_multivariate_mssn_full</a></span><span class="op">(</span></span>
 <span>  power <span class="op">=</span> <span class="fl">0.80</span>,</span>
@@ -325,25 +534,34 @@ phenotypes, target power 0.80, and genome-wide
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="va">gordon_mv</span><span class="op">$</span><span class="va">N</span> <span class="op">==</span> <span class="fl">326L</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  quantity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="st">"Published integer MSSN"</span>,</span>
-<span>    <span class="st">"paweh integer MSSN"</span>,</span>
-<span>    <span class="st">"Historical fractional MSSN"</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">326</span>, <span class="va">gordon_mv</span><span class="op">$</span><span class="va">N</span>, <span class="va">gordon_mv</span><span class="op">$</span><span class="va">historical_fractional_mssn</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt;                     quantity    value</span></span>
-<span><span class="co">#&gt; 1     Published integer MSSN 326.0000</span></span>
-<span><span class="co">#&gt; 2         paweh integer MSSN 326.0000</span></span>
-<span><span class="co">#&gt; 3 Historical fractional MSSN 325.5057</span></span></code></pre></div>
-<p>The published result and <code>paweh</code> both require 326
-participants. The historical continuous root is approximately 325.5057;
-recruitment requires an integer, so the result is rounded upward.</p>
-<p>The inverse calculation evaluates power at the returned integer
-design using the same model.</p>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="va">gordon_mv</span><span class="op">$</span><span class="va">N</span> <span class="op">==</span> <span class="fl">326L</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Pillai sample size in the publication and under the same
+package design.</caption>
+<thead><tr class="header">
+<th align="left">Design quantity</th>
+<th align="right">Value</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Published integer MSSN</td>
+<td align="right">326.0000</td>
+</tr>
+<tr class="even">
+<td align="left">paweh integer MSSN</td>
+<td align="right">326.0000</td>
+</tr>
+<tr class="odd">
+<td align="left">Historical fractional MSSN</td>
+<td align="right">325.5057</td>
+</tr>
+</tbody>
+</table>
+<p>The publication reports <strong>326 people</strong>. The package’s
+historical fractional solution is <strong>325.5057</strong>. Recruitment
+requires whole people, and the function searches for the first integer
+whose power reaches the target. Use the companion power function to
+check what the returned design achieves.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gordon_mv_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qtl_multivariate_power_full.html">qtl_multivariate_power_full</a></span><span class="op">(</span></span>
 <span>  N <span class="op">=</span> <span class="va">gordon_mv</span><span class="op">$</span><span class="va">N</span>,</span>
@@ -358,73 +576,224 @@ design using the same model.</p>
 <span></span>
 <span><span class="va">gordon_mv_power</span><span class="op">$</span><span class="va">power</span></span>
 <span><span class="co">#&gt; [1] 0.8014862</span></span></code></pre></div>
+<p>At 326 participants, power is <strong>80.15%</strong>. Thus a study
+repeated under these assumptions would detect the modeled difference in
+about four out of five repetitions. This published calculation uses
+expected genotype frequencies. At <code>pd = 0.05</code> only
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>326</mn><mo stretchy="false" form="prefix">(</mo><mn>0.05</mn><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo>=</mo><mn>0.815</mn></mrow><annotation encoding="application/x-tex">326(0.05)^2 = 0.815</annotation></semantics></math>
+two-copy participants are expected. A realized cohort can lack this
+genotype entirely, which matters if the intended analysis requires all
+three groups. Yang et al. (2010) discuss another approach to multiple
+phenotypes that combines trait-specific tests. Their work provides
+context for the choice of test.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="joint-multivariate-threshold-selection">Joint multivariate threshold selection<a class="anchor" aria-label="anchor" href="#joint-multivariate-threshold-selection"></a>
+<h2 id="genotype-people-who-are-extreme-on-both-measurements">Genotype people who are extreme on both measurements<a class="anchor" aria-label="anchor" href="#genotype-people-who-are-extreme-on-both-measurements"></a>
 </h2>
-<p>For <code>test = "threshold_chisq"</code>, affected subjects must
-satisfy both upper-tail conditions, and unaffected subjects must satisfy
-both lower-tail conditions:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">affected</mtext><mo>:</mo><msub><mi>Y</mi><mn>1</mn></msub><mo>≥</mo><msub><mi>T</mi><mrow><mi>U</mi><mn>1</mn></mrow></msub><mspace width="0.278em"></mspace><mrow><mi>𝐀</mi><mi>𝐍</mi><mi>𝐃</mi></mrow><mspace width="0.278em"></mspace><msub><mi>Y</mi><mn>2</mn></msub><mo>≥</mo><msub><mi>T</mi><mrow><mi>U</mi><mn>2</mn></mrow></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\text{affected}: Y_1 \ge T_{U1} \;\mathbf{AND}\; Y_2 \ge T_{U2},
-</annotation></semantics></math></p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">unaffected</mtext><mo>:</mo><msub><mi>Y</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>T</mi><mrow><mi>L</mi><mn>1</mn></mrow></msub><mspace width="0.278em"></mspace><mrow><mi>𝐀</mi><mi>𝐍</mi><mi>𝐃</mi></mrow><mspace width="0.278em"></mspace><msub><mi>Y</mi><mn>2</mn></msub><mo>≤</mo><msub><mi>T</mi><mrow><mi>L</mi><mn>2</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
-\text{unaffected}: Y_1 \le T_{L1} \;\mathbf{AND}\; Y_2 \le T_{L2}.
-</annotation></semantics></math></p>
-<p>Subjects in mixed or middle regions are unselected. For example,
-<code>x_upper = c(10, 10)</code> and <code>x_lower = c(10, 10)</code>
-define joint upper- and lower-tail selection at 10% for each phenotype.
-These thresholds illustrate the design and are not part of the published
-Gordon reproduction.</p>
+<p>Suppose both measurements are inexpensive and the budget covers
+genotyping a subset. We now want a group with <strong>both</strong>
+unusually high height <strong>and</strong> unusually high arm span, and
+a second group low on <strong>both</strong>. A person high on one trait
+and average or low on the other belongs to neither group. This design
+tests genotype frequencies across two selected groups.</p>
+<p>For a new illustration, take an allele frequency of 0.40, QTL
+variances of 2.5% and 4%, and dominance ratios of 0.5 and 0, in
+height–arm span order. The residual correlation is 0.5 within every
+genotype. Each of the two upper cutoffs is the 90th standard normal
+percentile and each lower cutoff is the 10th. Seek equal numbers in the
+two joint tails (<code>k = 1</code>) for 80% power at 0.0001. The first
+call solves for the quota in each tail. The second checks power at that
+upper-tail quota using exactly the same assumptions.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">joint_inputs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  qtl_var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.04</span><span class="op">)</span>, tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0</span><span class="op">)</span>, pd <span class="op">=</span> <span class="fl">0.40</span>,</span>
+<span>  cor_matrix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">1</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  test <span class="op">=</span> <span class="st">"threshold_chisq"</span>, x_upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>, x_lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>,</span>
+<span>  k <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.0001</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">joint_size</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">qtl_multivariate_mssn_full</span>,</span>
+<span>                      <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>power <span class="op">=</span> <span class="fl">0.80</span><span class="op">)</span>, <span class="va">joint_inputs</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">joint_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">qtl_multivariate_power_full</span>,</span>
+<span>                       <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N_case <span class="op">=</span> <span class="va">joint_size</span><span class="op">$</span><span class="va">N_case</span><span class="op">)</span>, <span class="va">joint_inputs</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The eligibility percentages below use both measurements on each
+person. The screening column divides each selected quota by its own
+eligibility probability.</p>
+<table class="table">
+<caption>Recruitment from two correlated measurements with 10% reference
+tails.</caption>
+<thead><tr class="header">
+<th align="left">Joint tail</th>
+<th align="right">Eligible (%)</th>
+<th align="right">Selected people</th>
+<th align="right">Expected screened</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Both high</td>
+<td align="right">3.322</td>
+<td align="right">73</td>
+<td align="right">2197.7</td>
+</tr>
+<tr class="even">
+<td align="left">Both low</td>
+<td align="right">3.330</td>
+<td align="right">73</td>
+<td align="right">2192.0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>73 people per tail</strong> (146 genotyped) give
+<strong>80.56% power</strong>. About 3.32% qualify for the upper group
+and 3.33% for the lower group. Expect to screen about <strong>2,198 for
+the upper quota and 2,192 for the lower quota</strong>. A single
+screening cohort contributes to both. Multiplying 10% by 10% would miss
+the correlation and the genotype mixture in this example.</p>
+<p>The picture shows how correlation and genotype shifts shape this
+selection. Each outline encloses the central 50% of one genotype’s
+modeled bivariate distribution. The corner colors show the joint
+selection rule applied to the entire cohort.</p>
+<div class="figure">
+<img src="paweh-04-quantitative-trait-study-design_files/figure-html/joint-regions-1.png" class="r-plt" alt="Three ellipses slope upward around their genotype means. Only the upper right and lower left corners qualify." width="672"><p class="caption">
+Height and arm span on standardized scales. The centers are genotype
+means and the tilted ellipses show within-genotype variation.
+</p>
+</div>
+<p>Within a genotype, people taller than their group mean tend also to
+have longer arm span. Across genotypes, the centers move as well. A
+person at (+2, −2) misses both joint groups despite two individually
+extreme values. A person at (+2, +2) qualifies for the upper group. The
+outlines show only the central half of each group: all three
+distributions extend into both shaded corners.</p>
+<div class="section level3">
+<h3 id="advanced-detail-computing-the-chance-of-eligibility">Advanced detail: computing the chance of eligibility<a class="anchor" aria-label="anchor" href="#advanced-detail-computing-the-chance-of-eligibility"></a>
+</h3>
+<p>For each genotype, the program integrates its multivariate normal
+density over each selected corner. Weighting the three probabilities by
+genotype frequency gives the fraction eligible from the source
+population. Conditioning on eligibility then gives the genotype
+frequencies used in the chi-square power calculation. This implements
+the joint probabilities in Gordon, Finch, and Kim (§6.2.2–6.2.3)
+directly. The textbook also discusses a product approximation for weak
+correlation and small QTL effects (Eq. 6.15).</p>
+<p>With one dimension, an ordinary normal cumulative probability
+suffices. For 2–20 traits, <code>mvtnorm</code> uses the deterministic
+integration method of Miwa, Hayter, and Kuriki. With more than 20
+traits, the package switches to randomized Genz–Bretz integration with a
+fixed local seed and restores the caller’s random-number state. Both
+multivariate procedures are numerical approximations. For an advanced
+design, inspect <code>joint_size$thresholds$integration</code> for the
+algorithm, completion message and any available error estimate for each
+genotype and tail. These integration settings apply to the threshold
+calculation. The continuous Pillai calculation uses mean and covariance
+matrices directly.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="scope-and-limitations">Scope and limitations<a class="anchor" aria-label="anchor" href="#scope-and-limitations"></a>
+<h2 id="choose-a-recruitment-plan">Choose a recruitment plan<a class="anchor" aria-label="anchor" href="#choose-a-recruitment-plan"></a>
 </h2>
-<p>Joint multivariate tail probabilities use deterministic Miwa
-integration through 20 dimensions and locally seeded Genz–Bretz
-integration above 20. The latter restores the caller’s random-number
-state and retains integration status information.</p>
-<p>Important scope boundaries are:</p>
-<ul>
-<li>calculations are prospective study-design calculations, not model
-fitting;</li>
-<li>genotype-specific phenotypes follow the modeled normal
-assumptions;</li>
-<li>residual variance and covariance determine distributional
-overlap;</li>
-<li>single-trait threshold designs exclude the middle of the
-distribution;</li>
-<li>multivariate threshold selection uses joint AND semantics;</li>
-<li>subjects in mixed or middle multivariate regions are
-unselected;</li>
-<li>a multivariate trend test is not implemented; and</li>
-<li>plots visualize the design model rather than observed
-participant-level data.</li>
-</ul>
+<table class="table">
+<caption>The same target power can require different kinds of
+recruitment.</caption>
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Available measurements and budget</th>
+<th align="left">Calculation</th>
+<th align="left">Count to budget</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">One continuous trait and a genotype on everyone</td>
+<td align="left">
+<code><a href="../reference/qtl_anova_power.html">qtl_anova_power()</a></code> or
+<code><a href="../reference/qtl_anova_mssn.html">qtl_anova_mssn()</a></code>
+</td>
+<td align="left">Total participants with both measurements.</td>
+</tr>
+<tr class="even">
+<td align="left">One trait screened broadly, genotyping concentrated at
+the extremes</td>
+<td align="left">
+<code><a href="../reference/qtl_threshold_chisq_power.html">qtl_threshold_chisq_power()</a></code> or
+<code><a href="../reference/qtl_threshold_chisq_mssn.html">qtl_threshold_chisq_mssn()</a></code>
+</td>
+<td align="left">Genotyped people in each tail, plus the larger pool to
+screen.</td>
+</tr>
+<tr class="odd">
+<td align="left">Several continuous traits and a genotype on
+everyone</td>
+<td align="left">
+<code>qtl_multivariate_*_full()</code> with
+<code>test = "pillai"</code>
+</td>
+<td align="left">Total people with a complete trait profile and
+genotype.</td>
+</tr>
+<tr class="even">
+<td align="left">Several traits screened broadly, with all upper or all
+lower criteria required</td>
+<td align="left">
+<code>qtl_multivariate_*_full()</code> with
+<code>test = "threshold_chisq"</code>
+</td>
+<td align="left">Selected people per joint tail and the screening effort
+to fill both quotas.</td>
+</tr>
+</tbody>
+</table>
+<p>For example, the 996-person and 252-person designs use the same
+single-trait model and cutoff for statistical significance. The first
+buys a genotype for everyone measured. The second buys 252 genotypes and
+needs access to measurements from roughly 2,500 people. That distinction
+determines which plan fits a given cohort and budget.</p>
 </div>
 <div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h2 id="methods-and-references">Methods and references<a class="anchor" aria-label="anchor" href="#methods-and-references"></a>
 </h2>
+<p>Gordon, Finch, and Kim’s Chapter 6, <em>Threshold-Selected
+Quantitative Trait Loci and Pleiotropy</em>, gives the univariate
+examples (§§6.1.3–6.1.4) and the multiple-trait mixture and thresholds
+(§6.2). Its worked multivariate example in §6.2.4 has different
+parameters from the paper’s 326-person Pillai example. The joint-tail
+design and drawings in this tutorial are illustrations.</p>
+<p>Fisher RA (1918). The correlation between relatives on the
+supposition of Mendelian inheritance. <em>Transactions of the Royal
+Society of Edinburgh</em> 52, 399–433. <a href="https://doi.org/10.1017/S0080456800012163" class="external-link uri">https://doi.org/10.1017/S0080456800012163</a>.</p>
+<p>Lynch M, Walsh B (1998). <em>Genetics and Analysis of Quantitative
+Traits</em>. Sinauer Associates.</p>
+<p>Falconer DS, Mackay TFC (1996). <em>Introduction to Quantitative
+Genetics</em>. 4th edition. Longman.</p>
+<p>Gordon D, Finch SJ, Kim W (2020). <em>Heterogeneity in Statistical
+Genetics: How to Assess, Address, and Account for Mixtures in
+Association Studies</em>. Springer. <a href="https://doi.org/10.1007/978-3-030-61121-7" class="external-link uri">https://doi.org/10.1007/978-3-030-61121-7</a>.</p>
+<p>Miwa T, Hayter AJ, Kuriki S (2003). The evaluation of general
+non-centred orthant probabilities. <em>Journal of the Royal Statistical
+Society, Series B</em> 65, 223–234. <a href="https://doi.org/10.1111/1467-9868.00382" class="external-link uri">https://doi.org/10.1111/1467-9868.00382</a>.</p>
 <p>Genz A, Bretz F. <em>Computation of Multivariate Normal and t
 Probabilities</em>. Springer; 2009. <a href="https://doi.org/10.1007/978-3-642-01689-9" class="external-link uri">https://doi.org/10.1007/978-3-642-01689-9</a>.</p>
 <p>Gordon D, Londono D, Patel P, Kim W, Finch SJ, Heiman GA. An analytic
-solution to computation of power and sample size for genetic association
-studies under a pleiotropic mode of inheritance. <em>Human
-Heredity</em>. 2017;81(4):194–209. <a href="https://doi.org/10.1159/000457135" class="external-link uri">https://doi.org/10.1159/000457135</a>.</p>
+solution to the computation of power and sample size for genetic
+association studies under a pleiotropic mode of inheritance. <em>Human
+Heredity</em>. 81(4), 194–209 (2016 issue, published online 2017). <a href="https://doi.org/10.1159/000457135" class="external-link uri">https://doi.org/10.1159/000457135</a>.</p>
 <p>Li Y, Levran O, Kim J, Zhang T, Chen X, Suo C. Extreme sampling
 design in genetic association mapping of quantitative trait loci using
 balanced and unbalanced case-control samples. <em>Scientific
 Reports</em>. 2019;9:15504. <a href="https://doi.org/10.1038/s41598-019-51790-w" class="external-link uri">https://doi.org/10.1038/s41598-019-51790-w</a>.</p>
 <p>Pillai KCS. Some new test criteria in multivariate analysis.
 <em>Annals of Mathematical Statistics</em>. 1955;26(1):117–121. <a href="https://doi.org/10.1214/aoms/1177728599" class="external-link uri">https://doi.org/10.1214/aoms/1177728599</a>.</p>
-<p>Yang Q, Wu H, Guo C. Analyze multivariate phenotypes in genetic
-association studies by combining univariate association tests.
+<p>Yang Q, Wu H, Guo CY, Fox CS. Analyze multivariate phenotypes in
+genetic association studies by combining univariate association tests.
 <em>Genetic Epidemiology</em>. 2010;34(5):444–454. <a href="https://doi.org/10.1002/gepi.20497" class="external-link uri">https://doi.org/10.1002/gepi.20497</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
 <span><span class="co">#&gt; Platform: aarch64-apple-darwin23</span></span>
@@ -444,50 +813,38 @@ association studies by combining univariate association tests.
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] paweh_0.99.0     BiocStyle_2.40.0</span></span>
+<span><span class="co">#&gt; [1] paweh_0.99.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;  [1] gtable_0.3.6        jsonlite_2.0.0      dplyr_1.2.1        </span></span>
-<span><span class="co">#&gt;  [4] compiler_4.6.1      BiocManager_1.30.27 tidyselect_1.2.1   </span></span>
-<span><span class="co">#&gt;  [7] dichromat_2.0-1     jquerylib_0.1.4     systemfonts_1.3.2  </span></span>
-<span><span class="co">#&gt; [10] scales_1.4.0        textshaping_1.0.5   yaml_2.3.12        </span></span>
-<span><span class="co">#&gt; [13] fastmap_1.2.0       ggplot2_4.0.3       R6_2.6.1           </span></span>
-<span><span class="co">#&gt; [16] labeling_0.4.3      generics_0.1.4      knitr_1.51         </span></span>
-<span><span class="co">#&gt; [19] htmlwidgets_1.6.4   tibble_3.3.1        bookdown_0.47      </span></span>
-<span><span class="co">#&gt; [22] desc_1.4.3          bslib_0.12.0        pillar_1.11.1      </span></span>
-<span><span class="co">#&gt; [25] RColorBrewer_1.1-3  rlang_1.3.0         cachem_1.1.0       </span></span>
-<span><span class="co">#&gt; [28] xfun_0.60           fs_2.1.0            sass_0.4.10        </span></span>
-<span><span class="co">#&gt; [31] S7_0.2.2            otel_0.2.0          cli_3.6.6          </span></span>
-<span><span class="co">#&gt; [34] withr_3.0.3         pkgdown_2.2.1       magrittr_2.0.5     </span></span>
-<span><span class="co">#&gt; [37] digest_0.6.39       grid_4.6.1          mvtnorm_1.4-2      </span></span>
-<span><span class="co">#&gt; [40] lifecycle_1.0.5     vctrs_0.7.3         evaluate_1.0.5     </span></span>
-<span><span class="co">#&gt; [43] glue_1.8.1          farver_2.1.2        ragg_1.5.2         </span></span>
-<span><span class="co">#&gt; [46] rmarkdown_2.31      pkgconfig_2.0.3     tools_4.6.1        </span></span>
-<span><span class="co">#&gt; [49] htmltools_0.5.9</span></span></code></pre></div>
+<span><span class="co">#&gt;  [1] gtable_0.3.6       jsonlite_2.0.0     dplyr_1.2.1        compiler_4.6.1    </span></span>
+<span><span class="co">#&gt;  [5] tidyselect_1.2.1   dichromat_2.0-1    jquerylib_0.1.4    systemfonts_1.3.2 </span></span>
+<span><span class="co">#&gt;  [9] scales_1.4.0       textshaping_1.0.5  yaml_2.3.12        fastmap_1.2.0     </span></span>
+<span><span class="co">#&gt; [13] ggplot2_4.0.3      R6_2.6.1           labeling_0.4.3     generics_0.1.4    </span></span>
+<span><span class="co">#&gt; [17] knitr_1.51         htmlwidgets_1.6.4  tibble_3.3.1       desc_1.4.3        </span></span>
+<span><span class="co">#&gt; [21] bslib_0.12.0       pillar_1.11.1      RColorBrewer_1.1-3 rlang_1.3.0       </span></span>
+<span><span class="co">#&gt; [25] cachem_1.1.0       xfun_0.60          fs_2.1.0           sass_0.4.10       </span></span>
+<span><span class="co">#&gt; [29] S7_0.2.2           otel_0.2.0         cli_3.6.6          withr_3.0.3       </span></span>
+<span><span class="co">#&gt; [33] pkgdown_2.2.1      magrittr_2.0.5     digest_0.6.39      grid_4.6.1        </span></span>
+<span><span class="co">#&gt; [37] mvtnorm_1.4-2      lifecycle_1.0.5    vctrs_0.7.3        evaluate_1.0.5    </span></span>
+<span><span class="co">#&gt; [41] glue_1.8.1         farver_2.1.2       ragg_1.5.2         rmarkdown_2.31    </span></span>
+<span><span class="co">#&gt; [45] tools_4.6.1        pkgconfig_2.0.3    htmltools_0.5.9</span></span></code></pre></div>
 </div>
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-
-      </div>
-
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by Akil Anthony, Derek Gordon.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by Akil Anthony, Derek Gordon.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
-
 
 
 

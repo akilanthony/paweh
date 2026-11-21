@@ -4,415 +4,468 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Getting started with paweh • paweh</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
-<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Getting started with paweh">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="Getting started with paweh">
 </head>
-<body data-spy="scroll" data-target="#toc">
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <div class="container template-article">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">paweh</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
-      </span>
-    </div>
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="../reference/index.html">Reference</a>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Articles
+    <a class="navbar-brand me-2" href="../index.html">paweh</a>
 
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="../articles/paweh-01-getting-started.html">Getting started with paweh</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-02-case-control-study-design.html">Case-control genetic association study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-03-tdt-study-design.html">Transmission disequilibrium test study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative-trait genetic association study design</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-05-interactive-dashboard.html">Interactive Study Design with the paweh Dashboard</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Genetic Study Design with PAWEH</a>
-    </li>
-    <li>
-      <a href="../articles/paweh-07-lrtae-study-design.html">LRTae power and sample-size design</a>
-    </li>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.0</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/paweh-01-getting-started.html">Get Started</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-study-designs" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Study Designs</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-study-designs">
+<li><a class="dropdown-item" href="../articles/index.html">All articles</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/paweh-02-case-control-study-design.html">Case-Control Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-03-tdt-study-design.html">TDT / Family Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-04-quantitative-trait-study-design.html">Quantitative Traits</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Studies</a></li>
+    <li><a class="dropdown-item" href="../articles/paweh-07-lrtae-study-design.html">Validation-Based / LRTae Studies</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/paweh-05-interactive-dashboard.html">Interactive Dashboard</a></li>
   </ul>
 </li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../articles/paweh-08-methods-and-sources.html">Methods &amp; Sources</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Function Reference</a></li>
       </ul>
-<ul class="nav navbar-nav navbar-right">
-<li>
-  <a href="https://github.com/akilanthony/paweh/" class="external-link">
-    <span class="fab fa-github fa-lg"></span>
-
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/akilanthony/paweh">GitHub</a></li>
       </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
-</div>
-<!--/.navbar -->
+</nav><div class="container template-article">
 
 
 
-      </header><div class="row">
-  <div class="col-md-9 contents">
-    <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Getting started with paweh</h1>
+
+<div class="row">
+  <main id="main" class="col-md-9"><div class="page-header">
+
+      <h1>Getting started with paweh</h1>
                         <h4 data-toc-skip class="author">paweh package
 authors</h4>
             
       
       <small class="dont-index">Source: <a href="https://github.com/akilanthony/paweh/blob/HEAD/vignettes/paweh-01-getting-started.Rmd" class="external-link"><code>vignettes/paweh-01-getting-started.Rmd</code></a></small>
-      <div class="hidden name"><code>paweh-01-getting-started.Rmd</code></div>
-
+      <div class="d-none name"><code>paweh-01-getting-started.Rmd</code></div>
     </div>
 
     
     
 <div class="section level2">
-<h2 id="what-problem-does-paweh-solve">What problem does <code>paweh</code> solve?<a class="anchor" aria-label="anchor" href="#what-problem-does-paweh-solve"></a>
+<h2 id="start-with-the-recruitment-decision">Start with the recruitment decision<a class="anchor" aria-label="anchor" href="#start-with-the-recruitment-decision"></a>
 </h2>
-<p><code>paweh</code> supports prospective power and
-minimum-sample-size-necessary (MSSN) calculations for genetic
-association study designs. It is intended for the stage at which a
-researcher is deciding what data to collect, how many subjects or trios
-are needed, and how sensitive that design may be to model
-assumptions.</p>
-<p>The relevant design inputs differ across studies. They can include
-sample size, allele frequency, genotype relative risk, genotype or
-phenotype misclassification, locus heterogeneity, family-based
-transmission, extreme-phenotype sampling, and correlation among
-quantitative traits. These quantities are assumptions or design targets,
-not estimates produced from raw genomic data by <code>paweh</code>.</p>
+<p>Suppose a team suspects that a particular DNA variant is more common
+in people with a disease than in people without it. They can afford to
+recruit 500 people in each group. Even if the difference is real,
+different samples will give different results. Is this budget likely to
+give a clear answer?</p>
+<p><strong>Power</strong> is the probability that the planned test will
+declare an association when a particular difference really exists.
+<strong>Minimum sample size necessary (MSSN)</strong> turns the question
+around: for that difference and test, how many people must the team
+recruit to attain its target power? Neither calculation tells us how
+likely the hypothesis is to be true. We must first say how large a
+difference is plausible and how participants will be sampled and
+measured.</p>
 </div>
 <div class="section level2">
-<h2 id="power-and-mssn-answer-inverse-questions">Power and MSSN answer inverse questions<a class="anchor" aria-label="anchor" href="#power-and-mssn-answer-inverse-questions"></a>
+<h2 id="install-and-load-the-package">Install and load the package<a class="anchor" aria-label="anchor" href="#install-and-load-the-package"></a>
 </h2>
-<ul>
-<li>
-<strong>Power:</strong> given a sample size and model, what
-probability of rejection is expected under the specified
-alternative?</li>
-<li>
-<strong>MSSN:</strong> given a target power and model, how many
-cases, controls, trios, or total individuals are required?</li>
-</ul>
-<p>For example, suppose pilot work supplies conditional genotype
-probabilities for cases and controls. A compact power calculation
-is:</p>
+<p>This tutorial accompanies the experimental <code>develop</code>
+branch on GitHub. To install it with the rendered articles, run the
+following once in R. Building the articles needs Pandoc (included with
+RStudio); the installation also requests the suggested R packages used
+in the examples.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g_case</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.50</span>, <span class="fl">0.25</span><span class="op">)</span></span>
-<span><span class="va">g_control</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.36</span>, <span class="fl">0.48</span>, <span class="fl">0.16</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">starter_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cc_power.html">cc_power</a></span><span class="op">(</span></span>
-<span>  N_case <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  input_mode <span class="op">=</span> <span class="st">"model_free"</span>,</span>
-<span>  g1 <span class="op">=</span> <span class="va">g_case</span>,</span>
-<span>  g0 <span class="op">=</span> <span class="va">g_control</span>,</span>
-<span>  k <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">starter_power</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">genotypes</span><span class="op">$</span><span class="va">power</span></span>
-<span><span class="co">#&gt; [1] 0.9852151</span></span></code></pre></div>
-<p>The corresponding <code><a href="../reference/cc_mssn.html">cc_mssn()</a></code> calculation reverses the
-design question by replacing <code>N_case</code> with a target
-<code>power</code>.</p>
+<code class="sourceCode R"><span><span class="co"># If needed: install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span></span>
+<span>  <span class="st">"akilanthony/paweh"</span>, ref <span class="op">=</span> <span class="st">"develop"</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  build_vignettes <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>If you need only the stable package, use
+<code>remotes::install_github("akilanthony/paweh", ref = "main")</code>
+instead.</p>
+<p>Then load the package in your analysis session:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/akilanthony/paweh" class="external-link">paweh</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="five-study-design-families">Five study-design families<a class="anchor" aria-label="anchor" href="#five-study-design-families"></a>
-</h2>
-<div class="section level3">
-<h3 id="case-control-association">Case-control association<a class="anchor" aria-label="anchor" href="#case-control-association"></a>
-</h3>
-<p>Cases and controls are compared using a genotype chi-square or trend
-test. The canonical <code><a href="../reference/cc_power.html">cc_power()</a></code> and <code><a href="../reference/cc_mssn.html">cc_mssn()</a></code>
-interfaces support model-based and model-free inputs, along with
-compatible heterogeneity and error modifiers.</p>
-</div>
-<div class="section level3">
-<h3 id="affected-child-trios">Affected-child trios<a class="anchor" aria-label="anchor" href="#affected-child-trios"></a>
-</h3>
-<p>The transmission disequilibrium test (TDT) compares transmitted and
-non-transmitted alleles in affected-child trios.
-<code><a href="../reference/tdt_power.html">tdt_power()</a></code> and <code><a href="../reference/tdt_mssn.html">tdt_mssn()</a></code> report power or
-required trio counts under distinct no-error,
-phenotype-misclassification, and locus-heterogeneity scenarios.</p>
-</div>
-<div class="section level3">
-<h3 id="quantitative-traits">Quantitative traits<a class="anchor" aria-label="anchor" href="#quantitative-traits"></a>
-</h3>
-<p>For continuous traits, <code>paweh</code> supports one-way
-genotype-group ANOVA, threshold-selected genotype chi-square designs,
-and multivariate designs using Pillai MANOVA or joint threshold
-selection.</p>
-</div>
-<div class="section level3">
-<h3 id="sequencing-based-designs">Sequencing-based designs<a class="anchor" aria-label="anchor" href="#sequencing-based-designs"></a>
-</h3>
-<p>For fixed-depth sequencing studies, <code><a href="../reference/cc_ngs_power.html">cc_ngs_power()</a></code> and
-<code><a href="../reference/cc_ngs_mssn.html">cc_ngs_mssn()</a></code> support case-control designs, while
-<code><a href="../reference/tdt_ngs_power.html">tdt_ngs_power()</a></code> and <code><a href="../reference/tdt_ngs_mssn.html">tdt_ngs_mssn()</a></code> support
-TDT1-NGS designs. <code><a href="../reference/ngs_genotype_error_matrix.html">ngs_genotype_error_matrix()</a></code> constructs
-the sequencing-to-called-genotype transition matrix used by supported
-workflows; these functions do not process FASTQ, BAM, or VCF files.</p>
-</div>
-<div class="section level3">
-<h3 id="lrtae-validationerror-aware-designs">LRTae validation/error-aware designs<a class="anchor" aria-label="anchor" href="#lrtae-validationerror-aware-designs"></a>
-</h3>
-<p><code><a href="../reference/lrtae_ncp.html">lrtae_ncp()</a></code>, <code><a href="../reference/lrtae_power.html">lrtae_power()</a></code>, and
-<code><a href="../reference/lrtae_mssn.html">lrtae_mssn()</a></code> provide prospective error-aware case-control
-design calculations with validation data. They do not fit an
-observed-data likelihood, and LTTae is not implemented.</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="model-based-and-model-free-inputs">Model-based and model-free inputs<a class="anchor" aria-label="anchor" href="#model-based-and-model-free-inputs"></a>
-</h2>
-<p>These modes locate the scientific assumptions in different
-places.</p>
-<p>For <strong>case-control</strong> studies, model-based input uses
-prevalence, disease-allele frequency, genotype relative risk, and mode
-of inheritance. Model-free input uses supplied conditional genotype
-probabilities: <code>g1</code> for cases or affected subjects and
-<code>g0</code> for controls or unaffected subjects.</p>
-<p>For the <strong>TDT</strong>, model-based input uses <code>pd</code>,
-<code>prev</code>, <code>R1</code>, <code>R2</code>, and
-<code>delta_prime</code>. Model-free input starts from expected
-transmission and non-transmission counts (<code>ET</code> and
-<code>ENT</code>), with the associated number of trios needed for MSSN
-calculations.</p>
-<p>Model-free input is useful when these quantities come from pilot
-data, prior publications, external calculations, or direct design
-assumptions. It does not remove assumptions; it moves them into the
-supplied conditional quantities.</p>
-</div>
-<div class="section level2">
-<h2 id="where-should-i-start">Where should I start?<a class="anchor" aria-label="anchor" href="#where-should-i-start"></a>
+<h2 id="read-a-genetic-study-plan">Read a genetic study plan<a class="anchor" aria-label="anchor" href="#read-a-genetic-study-plan"></a>
 </h2>
 <table class="table">
 <colgroup>
-<col width="33%">
-<col width="33%">
-<col width="33%">
+<col width="50%">
+<col width="50%">
 </colgroup>
 <thead><tr class="header">
-<th>Scientific design</th>
-<th>Canonical starting functions</th>
-<th>Detailed vignette</th>
+<th>Term</th>
+<th>Meaning in this tutorial</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td>Case-control association</td>
-<td>
-<code><a href="../reference/cc_power.html">cc_power()</a></code>, <code><a href="../reference/cc_mssn.html">cc_mssn()</a></code>
-</td>
-<td>Case-Control Study Design</td>
+<td>Gene, variant, allele</td>
+<td>A gene is a stretch of DNA that provides instructions for a
+functional product. A variant is a difference in DNA sequence at a
+particular location; an allele is one version of the sequence there. A
+variant need not be inside a gene.</td>
 </tr>
 <tr class="even">
-<td>Affected-child trios</td>
-<td>
-<code><a href="../reference/tdt_power.html">tdt_power()</a></code>, <code><a href="../reference/tdt_mssn.html">tdt_mssn()</a></code>
-</td>
-<td>TDT Study Design</td>
+<td>Genotype and phenotype</td>
+<td>The genotype is the pair of alleles a person carries at the location
+studied here. The phenotype is a measured characteristic, such as
+disease status or height.</td>
 </tr>
 <tr class="odd">
-<td>Continuous single-trait QTL</td>
-<td>
-<code><a href="../reference/qtl_anova_power.html">qtl_anova_power()</a></code>, <code><a href="../reference/qtl_anova_mssn.html">qtl_anova_mssn()</a></code>
-</td>
-<td>Quantitative-Trait Study Design</td>
+<td>Biallelic genotype: 0, 1, 2</td>
+<td>At a location with two allele types, count copies of the allele of
+interest. If it is A, then aa, Aa and AA score 0, 1 and 2. Use the same
+allele and order in both groups.</td>
 </tr>
 <tr class="even">
-<td>Extreme-trait QTL</td>
-<td>
-<code><a href="../reference/qtl_threshold_chisq_power.html">qtl_threshold_chisq_power()</a></code>,
-<code><a href="../reference/qtl_threshold_chisq_mssn.html">qtl_threshold_chisq_mssn()</a></code>
-</td>
-<td>Quantitative-Trait Study Design</td>
+<td>Allele frequency</td>
+<td>The fraction of allele copies of a given type. A person with
+genotype Aa contributes one A out of two copies; allele frequency is
+different from the fraction of people carrying any A.</td>
 </tr>
 <tr class="odd">
-<td>Multivariate quantitative traits</td>
-<td>
-<code><a href="../reference/qtl_multivariate_power_full.html">qtl_multivariate_power_full()</a></code>,
-<code><a href="../reference/qtl_multivariate_mssn_full.html">qtl_multivariate_mssn_full()</a></code>
-</td>
-<td>Quantitative-Trait Study Design</td>
+<td>Disease prevalence</td>
+<td>The fraction of the source population with the disease. Recruiting
+equal numbers of cases and controls does not imply 50% prevalence.</td>
 </tr>
 <tr class="even">
-<td>Sequencing case-control</td>
-<td>
-<code><a href="../reference/cc_ngs_power.html">cc_ngs_power()</a></code>, <code><a href="../reference/cc_ngs_mssn.html">cc_ngs_mssn()</a></code>
-</td>
-<td>Sequencing Study Design</td>
+<td>Genotype relative risk</td>
+<td>Disease probability for one genotype divided by that for a reference
+genotype. If the probabilities are 10% and 5%, the relative risk is 2.
+An odds ratio compares <em>odds</em> (probability divided by one minus
+probability); it is a different input.</td>
 </tr>
 <tr class="odd">
-<td>Sequencing TDT</td>
-<td>
-<code><a href="../reference/tdt_ngs_power.html">tdt_ngs_power()</a></code>, <code><a href="../reference/tdt_ngs_mssn.html">tdt_ngs_mssn()</a></code>
-</td>
-<td>Sequencing Study Design</td>
+<td>Mode of inheritance</td>
+<td>A rule for how disease risk changes across genotypes. Under
+multiplicative inheritance each additional copy multiplies risk by the
+same factor; under a dominant model one and two copies have the same
+risk.</td>
 </tr>
 <tr class="even">
-<td>Error-aware case-control / LRTae</td>
-<td>
-<code><a href="../reference/lrtae_ncp.html">lrtae_ncp()</a></code>, <code><a href="../reference/lrtae_power.html">lrtae_power()</a></code>,
-<code><a href="../reference/lrtae_mssn.html">lrtae_mssn()</a></code>
-</td>
-<td>LRTae Power and Sample-Size Design</td>
+<td>Significance threshold and power</td>
+<td>The threshold (<code>alpha</code>) sets the nominal chance of a
+false positive when there is no association. Power is the chance of
+crossing the threshold <strong>when the assumed association
+exists</strong>.</td>
+</tr>
+<tr class="odd">
+<td>Locus heterogeneity</td>
+<td>Different genetic locations can contribute to the same diagnosis in
+different people. A marker may distinguish only some of the cases from
+controls.</td>
+</tr>
+<tr class="even">
+<td>Misclassification</td>
+<td>A measured category differs from the true one: for example,
+recording Aa as AA (genotype error) or a truly affected person as a
+control (phenotype error).</td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="section level2">
-<h2 id="why-bioconductor">Why Bioconductor?<a class="anchor" aria-label="anchor" href="#why-bioconductor"></a>
+<h2 id="plan-a-case-control-study-from-pilot-frequencies">Plan a case-control study from pilot frequencies<a class="anchor" aria-label="anchor" href="#plan-a-case-control-study-from-pilot-frequencies"></a>
 </h2>
-<p><code>paweh</code> is being prepared for Bioconductor because it
-provides prospective study-design infrastructure for genetic and genomic
-association research, including sequencing-based designs. These
-calculations complement downstream genomic analysis by examining
-operating characteristics before data generation or collection. The
-package does not currently claim sequencing-file, genomic-range, or
-<code>SummarizedExperiment</code> integration.</p>
+<p>Imagine that earlier work gives the following proportions for our
+candidate variant. Among <strong>cases</strong>, 25% have zero copies of
+A, 50% have one, and 25% have two. Among <strong>controls</strong>, the
+corresponding proportions are 36%, 48% and 16%. Each row sums to one
+because every person in that group has exactly one of the three
+genotypes. If your pilot gives counts, divide each count by the number
+genotyped <strong>within its own group</strong>. Dividing by the whole
+pilot size answers a different question.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">g_case</span>    <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.50</span>, <span class="fl">0.25</span><span class="op">)</span>  <span class="co"># aa, Aa, AA among cases</span></span>
+<span><span class="va">g_control</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.36</span>, <span class="fl">0.48</span>, <span class="fl">0.16</span><span class="op">)</span>  <span class="co"># aa, Aa, AA among controls</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="with-a-fixed-budget-what-could-we-detect">With a fixed budget, what could we detect?<a class="anchor" aria-label="anchor" href="#with-a-fixed-budget-what-could-we-detect"></a>
+</h3>
+<p>The frequencies describe the difference we expect in the
+<strong>new</strong> study. The 500 cases in the next call are people we
+plan to recruit, not the number of people who supplied the pilot
+frequencies. We assume unrelated participants, comparable source
+populations, and correct genotype and disease classification.</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>Argument</th>
+<th>Why use it here?</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>input_mode = "model_free"</code></td>
+<td>We can specify genotype frequencies separately for each group rather
+than deriving them from a disease model.</td>
+</tr>
+<tr class="even">
+<td>
+<code>g1</code>, <code>g0</code>
+</td>
+<td>Supply the full three-element vectors for cases and controls,
+respectively. The 1 in <code>g1</code> labels disease status; it does
+not mean one copy of A.</td>
+</tr>
+<tr class="odd">
+<td>
+<code>N_case = 500</code>, <code>k = 1</code>
+</td>
+<td>Fix the case count and the number of controls per case. Our plan has
+500 controls and 1,000 participants in total.</td>
+</tr>
+<tr class="even">
+<td><code>alpha = 0.05</code></td>
+<td>Use 5% for a single prespecified candidate-variant test. A scan of
+many variants needs a more stringent threshold to control false
+positives across tests.</td>
+</tr>
+<tr class="odd">
+<td><code>verbose = FALSE</code></td>
+<td>Return the results quietly so we can display just the quantities
+needed for recruitment.</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fixed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cc_power.html">cc_power</a></span><span class="op">(</span></span>
+<span>  N_case <span class="op">=</span> <span class="fl">500</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, k <span class="op">=</span> <span class="fl">1</span>, input_mode <span class="op">=</span> <span class="st">"model_free"</span>,</span>
+<span>  g1 <span class="op">=</span> <span class="va">g_case</span>, g0 <span class="op">=</span> <span class="va">g_control</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>genotype <span class="op">=</span> <span class="va">fixed</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">genotypes</span><span class="op">$</span><span class="va">power</span>, trend <span class="op">=</span> <span class="va">fixed</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">trend</span><span class="op">$</span><span class="va">power</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##  genotype     trend </span></span>
+<span><span class="co">## 0.9852151 0.9940005</span></span></code></pre>
+<p>The <strong>genotype test</strong> compares the whole distribution
+across the three categories. At these frequencies its power is
+<strong>98.5%</strong>. The <strong>trend test</strong> compares mean
+allele-copy scores (0, 1, 2) between groups; its power is
+<strong>99.4%</strong>. Here cases tend to have more copies, so the
+targeted trend test uses the contrast efficiently. In a different
+disease, one-copy carriers might stand out while both zero- and two-copy
+carriers have similar risks. A difference like that can be missed by a
+trend test. Choose the primary test for the scientific contrast before
+looking at study results.</p>
+</div>
+<div class="section level3">
+<h3 id="if-the-target-is-80-power-how-many-people-are-needed">If the target is 80% power, how many people are needed?<a class="anchor" aria-label="anchor" href="#if-the-target-is-80-power-how-many-people-are-needed"></a>
+</h3>
+<p>Keep the same group frequencies, threshold and allocation. Replace
+the fixed case count with <code>power = 0.80</code>. Each row below is a
+separate plan, depending on which test you intend to use.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">needed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cc_mssn.html">cc_mssn</a></span><span class="op">(</span></span>
+<span>  power <span class="op">=</span> <span class="fl">0.80</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, k <span class="op">=</span> <span class="fl">1</span>, input_mode <span class="op">=</span> <span class="st">"model_free"</span>,</span>
+<span>  g1 <span class="op">=</span> <span class="va">g_case</span>, g0 <span class="op">=</span> <span class="va">g_control</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="va">needed</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">genotypes</span></span>
+<span><span class="va">t_plan</span> <span class="op">&lt;-</span> <span class="va">needed</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">trend</span></span>
+<span><span class="va">recruitment</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  test <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Genotype"</span>, <span class="st">"Trend"</span><span class="op">)</span>,</span>
+<span>  cases <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">MSSN_case</span>, <span class="va">t_plan</span><span class="op">$</span><span class="va">MSSN_case</span><span class="op">)</span>,</span>
+<span>  controls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">MSSN_ctrl</span>, <span class="va">t_plan</span><span class="op">$</span><span class="va">MSSN_ctrl</span><span class="op">)</span>,</span>
+<span>  total <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">MSSN_total</span>, <span class="va">t_plan</span><span class="op">$</span><span class="va">MSSN_total</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">recruitment</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">test</th>
+<th align="right">cases</th>
+<th align="right">controls</th>
+<th align="right">total</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Genotype</td>
+<td align="right">241</td>
+<td align="right">241</td>
+<td align="right">482</td>
+</tr>
+<tr class="even">
+<td align="left">Trend</td>
+<td align="right">197</td>
+<td align="right">197</td>
+<td align="right">394</td>
+</tr>
+</tbody>
+</table>
+<p>For the genotype test, plan for <strong>241 cases and 241
+controls</strong> (482 people). For a prespecified trend test, the
+target is <strong>197 cases and 197 controls</strong> (394 people). Both
+fit the original budget. The required counts are rounded up to whole
+people, so achieved power need not be exactly 80%. These targets treat
+the pilot proportions as the future frequencies. If the pilot was small,
+repeat both calls with plausible smaller differences to see whether the
+budget still suffices.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="published-validation-philosophy">Published validation philosophy<a class="anchor" aria-label="anchor" href="#published-validation-philosophy"></a>
+<h2 id="what-if-you-do-not-have-pilot-frequencies">What if you do not have pilot frequencies?<a class="anchor" aria-label="anchor" href="#what-if-you-do-not-have-pilot-frequencies"></a>
 </h2>
-<p>The remaining vignettes distinguish three uses of literature:</p>
+<p>Choose inputs based on the evidence available <strong>before</strong>
+recruitment:</p>
 <ul>
 <li>
-<strong>Published-example reproduction:</strong> a reported analytic
-result is evaluated with a matching <code>paweh</code> design.</li>
+<strong>Case-control, model-based:</strong> If prior studies give
+population prevalence (<code>prev</code>), disease-allele frequency
+(<code>pd</code>), and disease risk for two copies relative to zero
+(<code>R2</code>), supply those and the mode of inheritance
+(<code>MOI</code>). The model starts with Hardy–Weinberg proportions
+(genotype frequencies expected when allele copies pair at random) in the
+source population. It uses the disease risks to derive separate
+frequencies in cases and controls. With <code>MOI = "M"</code>, one copy
+has relative risk <code>sqrt(R2)</code>.</li>
 <li>
-<strong>Published methodological context:</strong> a paper explains
-an important risk or method, but its exact analysis is not claimed to be
-reproduced.</li>
+<strong>Case-control, model-free:</strong> If a comparable pilot or
+publication gives the group-specific distributions, supply
+<code>g1</code> and <code>g0</code> as above. No inheritance rule is
+required for this baseline calculation. You still assume the same allele
+coding, suitable sampling and a plausible contrast in the planned
+population. Some extensions require extra inputs; disease
+misclassification, for instance, also needs prevalence.</li>
 <li>
-<strong>Motivating published application:</strong> an application
-motivates a design question while using a different statistical
-procedure.</li>
+<strong>Affected-child trios:</strong> The transmission
+disequilibrium test (TDT) compares alleles passed on by parents with
+those not passed on. Its model-free inputs are expected transmission and
+non-transmission <strong>counts</strong> (<code>ET</code>,
+<code>ENT</code>), not case-control genotype frequencies. Counts have a
+scale: for power at a fixed sample size they refer to the proposed
+number of trios; for MSSN, supply the number of trios underlying the
+counts separately as <code>n_trios</code>. The recruitment answer is in
+complete families, not people.</li>
 </ul>
-<p>The study-design vignettes reproduce validated examples across
-case-control, TDT, and multivariate quantitative-trait settings and then
-extend those fixed designs with sensitivity calculations.</p>
 </div>
 <div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+<h2 id="choose-the-next-calculation">Choose the next calculation<a class="anchor" aria-label="anchor" href="#choose-the-next-calculation"></a>
 </h2>
-<p>Once <code>paweh</code> is available through Bioconductor, the
-standard installation path will be:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"BiocManager"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"paweh"</span><span class="op">)</span></span></code></pre></div>
-<p>No installation is performed while this vignette is built.</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>If your planning question is…</th>
+<th>Read next</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>What if only some cases carry the expected association, or genotypes
+or diagnoses are recorded incorrectly?</td>
+<td>
+<a href="paweh-02-case-control-study-design.html">Case-control
+design</a> compares each requested departure separately with the same
+baseline. Different calling errors in cases and controls can inflate
+false positives; a larger nominal power then need not mean a better
+design.</td>
+</tr>
+<tr class="even">
+<td>How many families with an affected child and both parents do we
+need?</td>
+<td>
+<a href="paweh-03-tdt-study-design.html">TDT design</a> explains
+transmission counts and which family-based error and heterogeneity
+scenarios can be modeled.</td>
+</tr>
+<tr class="odd">
+<td>Our outcome is a measurement rather than a diagnosis. Should we
+measure everyone or sample extremes?</td>
+<td>
+<a href="paweh-04-quantitative-trait-study-design.html">Quantitative-trait
+design</a> compares group means, selection from trait extremes, and
+designs involving several traits.</td>
+</tr>
+<tr class="even">
+<td>Could we explore the same assumptions without writing each
+call?</td>
+<td>The <a href="paweh-05-interactive-dashboard.html">dashboard
+walkthrough</a> connects interactive case-control, trio and
+quantitative-trait plans to reproducible R calls.</td>
+</tr>
+<tr class="odd">
+<td>How does the number of reads at a variant affect recruitment?</td>
+<td>
+<a href="paweh-06-sequencing-study-design.html">Sequencing
+design</a> distinguishes case-control genotype calls from the trio
+method based on reads. These are fixed-depth planning models; no
+sequence files are needed.</td>
+</tr>
+<tr class="even">
+<td>Can we afford to verify diagnoses or genotypes in just part of the
+study?</td>
+<td>
+<a href="paweh-07-lrtae-study-design.html">LRTae validation
+design</a> allocates people according to which measurements receive a
+gold-standard check, and calculates power or required recruitment for
+that plan.</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level2">
-<h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
+<h2 id="further-reading">Further reading<a class="anchor" aria-label="anchor" href="#further-reading"></a>
 </h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
-<span><span class="co">#&gt; Platform: aarch64-apple-darwin23</span></span>
-<span><span class="co">#&gt; Running under: macOS Tahoe 26.6.2</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Matrix products: default</span></span>
-<span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRblas.0.dylib </span></span>
-<span><span class="co">#&gt; LAPACK: /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; locale:</span></span>
-<span><span class="co">#&gt; [1] C.UTF-8/C.UTF-8/C.UTF-8/C/C.UTF-8/C.UTF-8</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; time zone: America/New_York</span></span>
-<span><span class="co">#&gt; tzcode source: internal</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; attached base packages:</span></span>
-<span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] paweh_0.99.0     BiocStyle_2.40.0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;  [1] gtable_0.3.6        jsonlite_2.0.0      dplyr_1.2.1        </span></span>
-<span><span class="co">#&gt;  [4] compiler_4.6.1      BiocManager_1.30.27 tidyselect_1.2.1   </span></span>
-<span><span class="co">#&gt;  [7] dichromat_2.0-1     jquerylib_0.1.4     systemfonts_1.3.2  </span></span>
-<span><span class="co">#&gt; [10] scales_1.4.0        textshaping_1.0.5   yaml_2.3.12        </span></span>
-<span><span class="co">#&gt; [13] fastmap_1.2.0       ggplot2_4.0.3       R6_2.6.1           </span></span>
-<span><span class="co">#&gt; [16] generics_0.1.4      knitr_1.51          htmlwidgets_1.6.4  </span></span>
-<span><span class="co">#&gt; [19] tibble_3.3.1        bookdown_0.47       desc_1.4.3         </span></span>
-<span><span class="co">#&gt; [22] bslib_0.12.0        pillar_1.11.1       RColorBrewer_1.1-3 </span></span>
-<span><span class="co">#&gt; [25] rlang_1.3.0         cachem_1.1.0        xfun_0.60          </span></span>
-<span><span class="co">#&gt; [28] fs_2.1.0            sass_0.4.10         S7_0.2.2           </span></span>
-<span><span class="co">#&gt; [31] otel_0.2.0          cli_3.6.6           pkgdown_2.2.1      </span></span>
-<span><span class="co">#&gt; [34] magrittr_2.0.5      digest_0.6.39       grid_4.6.1         </span></span>
-<span><span class="co">#&gt; [37] mvtnorm_1.4-2       lifecycle_1.0.5     vctrs_0.7.3        </span></span>
-<span><span class="co">#&gt; [40] evaluate_1.0.5      glue_1.8.1          farver_2.1.2       </span></span>
-<span><span class="co">#&gt; [43] ragg_1.5.2          rmarkdown_2.31      pkgconfig_2.0.3    </span></span>
-<span><span class="co">#&gt; [46] tools_4.6.1         htmltools_0.5.9</span></span></code></pre></div>
+<p>Gordon D, Finch SJ, Kim W. <a href="https://doi.org/10.1007/978-3-030-61121-7" class="external-link"><em>Heterogeneity in
+Statistical Genetics: How to Assess, Address, and Account for Mixtures
+in Association Studies</em></a>. Springer; 2020. This book provides
+background on why mixtures matter. For the case-control error models,
+see <a href="https://doi.org/10.1159/000066696" class="external-link">Gordon et al. (2002) on
+genotype errors</a> and <a href="https://doi.org/10.1186/1471-2156-6-18" class="external-link">Edwards et al. (2005) on
+phenotype errors</a>. Consult the article for your design for its
+specific method and assumptions. Use <code>citation("paweh")</code> for
+the software citation.</p>
+<p>For other planning questions, <a href="https://keck.usc.edu/biostatistics/software/" class="external-link">Quanto</a> includes
+gene–gene and gene–environment interaction designs. Michigan’s <a href="https://csg.sph.umich.edu/abecasis/cats/" class="external-link">CaTS</a> supports large
+association studies including two-stage designs, and its <a href="https://csg.sph.umich.edu/abecasis/cats/gas_power_calculator/" class="external-link">GAS
+calculator</a> provides a related one-stage power calculation.</p>
 </div>
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-
-      </div>
-
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by Akil Anthony, Derek Gordon.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by Akil Anthony, Derek Gordon.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
-
 
 
 
