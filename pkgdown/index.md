@@ -54,6 +54,10 @@
 <p>Plan how many people to recruit when only some receive a reference diagnosis or a confirmatory genotype assay.</p>
 </li>
 <li>
+<h3><a href="articles/paweh-09-hwe-diagnostics.html">Hardy–Weinberg Equilibrium</a></h3>
+<p>Check genotype counts for departures from equilibrium and plan how many individuals you need to detect a specified departure.</p>
+</li>
+<li>
 <h3><a href="articles/paweh-05-interactive-dashboard.html">Interactive Dashboard</a></h3>
 <p>Explore case-control, trio, and quantitative-trait designs in a Shiny interface.</p>
 </li>
@@ -65,7 +69,7 @@
 <h2 id="install">Install and get started</h2>
 <p>paweh is currently available from GitHub. The package has yet to be released on CRAN. Install the stable <code>main</code> branch with the command below.</p>
 <pre><code>remotes::install_github("akilanthony/paweh", ref = "main")</code></pre>
-<p>Install <code>remotes</code> first if needed. For the current development package and all eight tutorials, see the <code>develop</code> installation in <a href="articles/paweh-01-getting-started.html">Getting Started</a>.</p>
+<p>Install <code>remotes</code> first if needed. For the current development package and all nine articles, see the <code>develop</code> installation in <a href="articles/paweh-01-getting-started.html">Getting Started</a>.</p>
 </section>
 
 <section class="paweh-section" aria-labelledby="methodological-foundation">

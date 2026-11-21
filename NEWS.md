@@ -8,5 +8,8 @@
   LRTae study designs.
 * Supports selected forms of locus heterogeneity and genotype and phenotype
   misclassification.
+* Adds Hardy-Weinberg equilibrium diagnostics for observed genotypes, with
+  exact and Pearson tests, plus asymptotic power and minimum sample size
+  for specified genotype distributions and call-error scenarios.
 * Includes static visualization functions and an optional interactive Shiny
   dashboard.

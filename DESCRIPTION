@@ -21,7 +21,9 @@ Description: Provides prospective power and minimum sample size necessary
     (MSSN) calculations for genetic and genomic association study design.
     Supported designs include case-control studies, transmission disequilibrium
     tests with affected-child trios, and single- and multivariate
-    quantitative-trait studies. The package emphasizes selected departures from
+    quantitative-trait studies. It also provides Hardy-Weinberg equilibrium
+    diagnostics and prospective power and sample size for detecting departures
+    from equilibrium. The package emphasizes selected departures from
     idealized assumptions, including locus heterogeneity and supported forms of
     genotype and phenotype misclassification. These factors can materially
     affect power and sample-size requirements but can be difficult to

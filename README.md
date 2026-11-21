@@ -114,6 +114,7 @@ committing to a recruitment target.
 | [Quantitative traits](vignettes/paweh-04-quantitative-trait-study-design.Rmd) | How many people are needed to detect a difference in a measurement, such as height, across genotypes? The guide also covers sampling the extremes and studying multiple traits. | `qtl_anova_power()`, `qtl_anova_mssn()` |
 | [Sequencing](vignettes/paweh-06-sequencing-study-design.Rmd) | At a specified read depth and error rate, how many cases and controls or complete trios are needed? | `cc_ngs_power()`, `cc_ngs_mssn()`; `tdt_ngs_power()`, `tdt_ngs_mssn()` |
 | [Validation and measurement error (LRTae)](vignettes/paweh-07-lrtae-study-design.Rmd) | What power can a case-control study achieve when a subset receives gold-standard measurements? | `lrtae_power()`, `lrtae_mssn()` |
+| [Hardy–Weinberg equilibrium](vignettes/paweh-09-hwe-diagnostics.Rmd) | Do observed genotype counts depart from equilibrium? How many individuals would detect a specified departure? | `hwe_test()`, `hwe_power()`, `hwe_mssn()` |
 
 Prefer to explore assumptions interactively? The [dashboard guide](vignettes/paweh-05-interactive-dashboard.Rmd)
 covers case-control, trio and quantitative-trait studies. Launch it with

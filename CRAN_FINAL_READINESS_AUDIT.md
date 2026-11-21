@@ -208,3 +208,107 @@ Recommend **1.0.0** for the initial CRAN release once the reviewed API and assum
 
 - `CRAN_FINAL_READINESS_AUDIT.md`, `.Rbuildignore`, `.github/workflows/pkgdown.yaml`, and `pkgdown/README.md` add the audit and ensure it remains a repository document.
 - `R/tdt_conditional.R` and `R/tdt_functions.R` correct roxygen prose. `man/tdt_expected_nontransmission_probability.Rd`, `man/tdt_expected_transmission_counts.Rd`, `man/tdt_expected_transmission_probability.Rd`, `man/tdt_power.Rd`, `man/tdt_power_from_expected_counts.Rd`, and `man/tdt_power_from_model.Rd` are regenerated help.
+
+## HWE module follow-up
+
+The HWE work adds `hwe_test()`, `hwe_power()`, and `hwe_mssn()` for one
+biallelic autosomal locus in independently sampled diploid individuals. It
+adds the ninth article, an original plot of the genotype residuals,
+reference entries, and seven focused test cases. The feature leaves the
+LRTae minimum search (S12), rounded ANOVA (S7), and cover rights (L1) open
+for their existing release decisions.
+
+### Scientific review
+
+**Observed-count inference.** Fit `p = (n1 + 2*n2)/(2*N)` and expected
+proportions `h = ((1-p)^2, 2*p*(1-p), p^2)`. Pearson's uncorrected test has
+one degree of freedom after fixing the total and estimating one frequency.
+A fully specified external distribution would leave two degrees of freedom
+when all three probabilities are positive. The exact two-sided conditional
+test instead fixes the allele total. Cancelling factors common to all
+tables gives weights proportional to `2^n1 / (n0! * n1! * n2!)`. The
+implementation compares log weights, includes ties, and normalizes across
+all feasible tables. It uses a separately implemented recurrence derived
+from the published distribution. Exact enumeration stops at one million
+conditional tables. A monomorphic sample is uninformative, with exact
+conditional p-value 1 and undefined Pearson inference. [Wigginton et al.](https://doi.org/10.1086/429864),
+[Rohlfs and Weir](https://doi.org/10.1534/genetics.108.088005)
+
+**Prospective planning.** Fit the null frequency to the assumed **observed**
+alternative. The fitted null shares the allele frequency and the total
+probability with that alternative, so each homozygote residual is minus
+half the heterozygote residual. Thus the Pearson sum per person is
+`F^2`, where `F = 1 - observed_heterozygotes / expected_heterozygotes`
+on the proportion scale. Compute `lambda = N * F^2` and the noncentral
+chi-square upper tail at the central cutoff. The positive integer search
+uses the monotone power function and reports power at the immediately
+smaller size. Zero departure has asymptotic power alpha at all sizes.
+Sparse fitted counts can undermine this planning approximation, and
+monomorphic observed alternatives have no regular Pearson planning model.
+The calculation does not estimate error rates or forecast exact-test
+power. [Rohlfs and Weir](https://doi.org/10.1534/genetics.108.088005)
+
+**Notebook cross-check.** R's column-major `matrix()` construction in the
+supplied notebook yields a row-stochastic matrix whose rows are true
+genotypes, in 0/1/2-copy order. It assigns 0.010 to homozygote-to-heterozygote
+calls, 0.005 to calls of the opposite homozygote, and 0.001 to each
+heterozygote-to-homozygote call. The accompanying written array can be read
+as the transpose, and the planning notes use the pre-error frequency in
+the Pearson denominator. The vignette writes the executable orientation
+explicitly by rows and refits the null. Independent postmultiplication
+starting at `p=.40` gives `(.35588,.48424,.15988)`, fitted `p=.402`,
+expected probabilities `(.357604,.480792,.161604)`, and noncentrality per
+person `0.0000514304173811`. Direct noncentral chi-square evaluation gives
+`0.0559122398` at `N=1000`; independent inversion gives 152611.254 before
+rounding. The minimum whole size is 152612, with power `0.8000019160`
+versus `0.7999993463` at 152611. Textbook §6.2.2, p. 332 supplies HWE
+proportions; §2.3, pp. 57–58 supplies genotype-error background; §1.6,
+pp. 19–21 supplies noncentral planning background. [Textbook](https://doi.org/10.1007/978-3-030-61121-7)
+
+**Independent software comparison.** For seven count vectors, matched
+HardyWeinberg 1.7.9 `HWChisq(cc = 0)` and `HWExact(pvaluetype = "selome")`.
+For `c(88,10,2)`, the exact p-value is 0.06544427 and the Pearson p-value
+is 0.02036748, in agreement with Table 2 of Rohlfs and Weir. `HWPower()`
+sums conditional finite-sample probabilities at a fixed allele count.
+At `N=100`, 14 counted alleles and `F=.2`, an independent sum gives
+0.5683693 for the Pearson rejection rule, matching `HWPower(test="chisq",
+cc=0)`. The noncentral approximation at those nominal inputs is
+0.5160053. These calculations answer different planning questions.
+HardyWeinberg was installed in a temporary reference library and was
+used only for validation. No external package or source-code license
+was added to paweh. [HardyWeinberg documentation](https://cran.r-project.org/package=HardyWeinberg)
+
+### HWE validation
+
+- `devtools::document()` regenerated the two HWE help pages and three
+  exports. The focused suite passed **100 assertions** and the standalone
+  full suite passed **10,424 assertions** with zero failures, warnings,
+  or skips. Tracked statistical source and regression tests from the
+  pre-HWE tree match `d69b2a9`.
+- The source archive built all nine articles and excluded this audit.
+  Its SHA-256 is
+  `814924b7526e8ca7aa6125d652029bd321eebf63f85e12526dd179760b5d3a75`.
+  Staged installation and a matching-version R 4.6.2 load passed with
+  61 exports and the expected HWE sample size. An earlier smoke test
+  from R 4.6.1 issued the expected newer-build-version warning.
+- On macOS Tahoe 26.6.2 (Apple silicon), R 4.6.2
+  `R CMD check --as-cran` completed with **0 errors, 0 warnings, and one
+  note**, `New submission`. Examples, all 10,424 assertions in the
+  check-run suite, all nine vignette rebuilds, the PDF manual, and HTML
+  manual validation with Tidy 5.8.0 passed. Full CRAN-mode checks were
+  performed locally on macOS for this change.
+- The final local pkgdown build verified all nine article links, 61
+  function references, and navigation to the HWE tutorial and Methods &
+  Sources section. A sandboxed trial hit a cache write restriction and
+  a NEWS timeline DNS error; the retry used a writable temporary cache
+  and network access. The trial also reported that the numbered vignette
+  index entries differ from display titles in articles 01, 08, and 09.
+- Preliminary package builds prompted correction of two Rd math markup
+  warnings and replacement of two DOI URLs with Rd `\doi{}` references.
+  The final source includes those corrections.
+
+The feature changes `R/hwe_diagnostic.R`, `tests/testthat/test-hwe-diagnostic.R`,
+`NAMESPACE`, `man/hwe_test.Rd`, `man/hwe_power.Rd`, `DESCRIPTION`, `NEWS.md`,
+`README.md`, `_pkgdown.yml`, `pkgdown/index.md`, `pkgdown/README.md`,
+`vignettes/paweh-08-methods-and-sources.Rmd`,
+`vignettes/paweh-09-hwe-diagnostics.Rmd`, and this report.

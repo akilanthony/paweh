@@ -44,6 +44,8 @@ navbar:
       - text: Validation-Based / LRTae Studies
         href: articles/paweh-07-lrtae-study-design.html
       - text: "-------"
+      - text: Hardy–Weinberg Equilibrium
+        href: articles/paweh-09-hwe-diagnostics.html
       - text: Interactive Dashboard
         href: articles/paweh-05-interactive-dashboard.html
     methods:
@@ -66,6 +68,8 @@ articles:
   - paweh-04-quantitative-trait-study-design
   - paweh-06-sequencing-study-design
   - paweh-07-lrtae-study-design
+- title: Genotype diagnostics
+  contents: paweh-09-hwe-diagnostics
 - title: Interactive workflow
   contents: paweh-05-interactive-dashboard
 - title: Scientific foundations
@@ -134,6 +138,12 @@ reference:
   - lrtae_mssn
   - lrtae_ncp
   - lrtae_power
+- title: "Hardy–Weinberg Equilibrium"
+  desc: "Test observed counts or plan a study to detect a specified departure from equilibrium."
+- contents:
+  - hwe_test
+  - hwe_power
+  - hwe_mssn
 - title: "Plotting and Visualization"
   desc: "Show design sensitivity, power, recruitment or genotype distributions."
 - contents:

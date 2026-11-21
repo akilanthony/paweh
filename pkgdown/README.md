@@ -5,7 +5,7 @@ and the stylesheet in `extra.css`. Navigation and topic groups are defined in
 the repository’s `_pkgdown.yml`.
 
 For a clean preview, work from a temporary copy of the package source that
-includes `pkgdown/`, `man/figures/`, `_pkgdown.yml` and all eight vignettes.
+includes `pkgdown/`, `man/figures/`, `_pkgdown.yml` and all nine vignettes.
 Exclude `AGENTS.md`, `CRAN_PREPARATION_AUDIT.md`, and
 `CRAN_FINAL_READINESS_AUDIT.md` from the copy because pkgdown renders
 top-level Markdown pages. With pkgdown and the package
