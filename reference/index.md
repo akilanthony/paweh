@@ -119,6 +119,17 @@ participants.
 - [`lrtae_power()`](https://akilanthony.github.io/paweh/reference/lrtae_power.md)
   : Prospective Power for an LRTae Design
 
+## Hardy–Weinberg Equilibrium
+
+Test observed counts or plan a study to detect a specified departure
+from equilibrium.
+
+- [`hwe_test()`](https://akilanthony.github.io/paweh/reference/hwe_test.md)
+  : Test observed genotype counts for Hardy-Weinberg equilibrium
+- [`hwe_power()`](https://akilanthony.github.io/paweh/reference/hwe_power.md)
+  [`hwe_mssn()`](https://akilanthony.github.io/paweh/reference/hwe_power.md)
+  : Plan power and sample size for a Pearson HWE test
+
 ## Plotting and Visualization
 
 Show design sensitivity, power, recruitment or genotype distributions.

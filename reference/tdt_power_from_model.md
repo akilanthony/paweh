@@ -63,25 +63,29 @@ tdt_power_from_model(
 
 A list containing:
 
-- lambda:
+- `"Non-Centrality Parameter (lambda)"`:
 
   Non-centrality parameter.
 
-- power:
+- `Power`:
 
-  Computed power at the given significance level.
+  Computed power.
 
-- ET:
+- `"Expected Transmissions (ET)"`:
 
   Expected transmissions.
 
-- ENT:
+- `"Expected Non-Transmissions (ENT)"`:
 
   Expected non-transmissions.
 
 - Penetrances:
 
-  Vector of computed penetrances (f0, f1, f2).
+  Vector of penetrances (f0, f1, f2).
+
+- C, Delta:
+
+  Penetrance contrast and linkage disequilibrium coefficient.
 
 ## Details
 

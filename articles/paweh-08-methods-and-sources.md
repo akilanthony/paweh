@@ -25,6 +25,7 @@ association in patient data.
 | An affected child and both parents, with called genotypes | [Transmission designs](#tdt); the unit is a complete trio. |
 | One or more continuous traits | [Quantitative traits](#qtl); distinguish people screened from people selected for genotyping. |
 | Sequence reads at specified depth | [Sequencing](#sequencing); cases and controls are called first, whereas the trio method uses read counts directly. |
+| Genotype counts at one biallelic autosomal locus | [Hardy–Weinberg equilibrium](#hwe) tests observed counts or plans for a specified departure. |
 | Routine measurements plus reference assessments for a subset | [LRTae](#lrtae); the four validation groups together make up the total enrollment. |
 
 ## A reading guide to the textbook
@@ -247,6 +248,29 @@ independently given the true categories. If the information matrix is
 singular the design cannot identify the necessary contrasts. The package
 does not estimate error rates, fit the observed-data LRTae, or perform
 the distinct LTTae trend test (§4.2.2).
+
+## Hardy–Weinberg equilibrium
+
+The [HWE
+tutorial](https://akilanthony.github.io/paweh/articles/paweh-09-hwe-diagnostics.md)
+introduces allele frequencies, genotype proportions, and their use in
+quality control. It derives the one-degree-of-freedom statistic by
+fitting one allele frequency after fixing the sample total. The null
+concerns genotype proportions in the sampled population. A departure can
+have several explanations, including ascertainment and errors in
+genotype calls.
+
+| Function | Method and source |
+|:---|:---|
+| [`hwe_test()`](https://akilanthony.github.io/paweh/reference/hwe_test.md) | Uncorrected Pearson statistic with a fitted allele frequency, or a two-sided exact p-value obtained by conditioning on the allele count and summing tables at least as unlikely as observed. [Wigginton et al. (2005)](https://doi.org/10.1086/429864) describe exact enumeration. [Rohlfs and Weir (2008)](https://doi.org/10.1534/genetics.108.088005) give both statistics and the sparse-count example in Table 2. |
+| [`hwe_power()`](https://akilanthony.github.io/paweh/reference/hwe_power.md), [`hwe_mssn()`](https://akilanthony.github.io/paweh/reference/hwe_power.md) | Pearson planning approximation with one degree of freedom and noncentrality $`N F^2`$, from [Rohlfs and Weir (2008)](https://doi.org/10.1534/genetics.108.088005). Fit the null at the observed alternative’s allele frequency. For call-error scenarios, obtain the observed alternative by postmultiplying true HWE proportions by a true-to-observed genotype matrix. |
+
+The [textbook](https://doi.org/10.1007/978-3-030-61121-7) supplies
+background on HWE proportions (§6.2.2, p. 332), genotype-call errors
+(§2.3, pp. 57–58), and noncentral chi-square planning (§1.6, pp. 19–21).
+The notebook-based call-error example illustrates this package’s HWE
+planning model. Exact inference for observed counts and prospective
+Pearson power use different reference distributions.
 
 ## Plots, dashboard and related software
 

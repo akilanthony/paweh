@@ -35,6 +35,7 @@ Heterogeneity in Statistical Genetics."></head><body>
     <li><a class="dropdown-item" href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Studies</a></li>
     <li><a class="dropdown-item" href="../articles/paweh-07-lrtae-study-design.html">Validation-Based / LRTae Studies</a></li>
     <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/paweh-09-hwe-diagnostics.html">Hardy–Weinberg Equilibrium</a></li>
     <li><a class="dropdown-item" href="../articles/paweh-05-interactive-dashboard.html">Interactive Dashboard</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../articles/paweh-08-methods-and-sources.html">Methods &amp; Sources</a></li>
@@ -107,7 +108,10 @@ Implements Equation 5.25 from <em>Gordon et al.</em> (2020),
 
 
 <dt id="arg-theta-">theta1<a class="anchor" aria-label="anchor" href="#arg-theta-"></a></dt>
-<dd><p>Numeric. Population allele frequency (defaults to <code>pd</code> if <code>NULL</code>).</p></dd>
+<dd><p>Numeric. Recombination fraction between the marker and
+disease loci (from 0 to 0.5). When <code>NULL</code>, this helper uses its
+historical default <code>pd</code>. Supply <code>theta1 = 0</code> to match the canonical
+linked component, keeping the other model inputs the same.</p></dd>
 
 
 <dt id="arg-digits">digits<a class="anchor" aria-label="anchor" href="#arg-digits"></a></dt>

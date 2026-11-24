@@ -43,6 +43,7 @@
     <li><a class="dropdown-item" href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Studies</a></li>
     <li><a class="dropdown-item" href="../articles/paweh-07-lrtae-study-design.html">Validation-Based / LRTae Studies</a></li>
     <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/paweh-09-hwe-diagnostics.html">Hardy–Weinberg Equilibrium</a></li>
     <li><a class="dropdown-item" href="../articles/paweh-05-interactive-dashboard.html">Interactive Dashboard</a></li>
   </ul>
 </li>
@@ -139,6 +140,12 @@ controls are called first, whereas the trio method uses read counts
 directly.</td>
 </tr>
 <tr class="odd">
+<td align="left">Genotype counts at one biallelic autosomal locus</td>
+<td align="left">
+<a href="#hwe">Hardy–Weinberg equilibrium</a> tests
+observed counts or plans for a specified departure.</td>
+</tr>
+<tr class="even">
 <td align="left">Routine measurements plus reference assessments for a
 subset</td>
 <td align="left">
@@ -643,6 +650,57 @@ information matrix is singular the design cannot identify the necessary
 contrasts. The package does not estimate error rates, fit the
 observed-data LRTae, or perform the distinct LTTae trend test
 (§4.2.2).</p>
+</div>
+<div class="section level2">
+<h2 id="hwe">Hardy–Weinberg equilibrium<a class="anchor" aria-label="anchor" href="#hwe"></a>
+</h2>
+<p>The <a href="paweh-09-hwe-diagnostics.html">HWE tutorial</a>
+introduces allele frequencies, genotype proportions, and their use in
+quality control. It derives the one-degree-of-freedom statistic by
+fitting one allele frequency after fixing the sample total. The null
+concerns genotype proportions in the sampled population. A departure can
+have several explanations, including ascertainment and errors in
+genotype calls.</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Function</th>
+<th align="left">Method and source</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code><a href="../reference/hwe_test.html">hwe_test()</a></code></td>
+<td align="left">Uncorrected Pearson statistic with a fitted allele
+frequency, or a two-sided exact p-value obtained by conditioning on the
+allele count and summing tables at least as unlikely as observed. <a href="https://doi.org/10.1086/429864" class="external-link">Wigginton et al. (2005)</a>
+describe exact enumeration. <a href="https://doi.org/10.1534/genetics.108.088005" class="external-link">Rohlfs and Weir
+(2008)</a> give both statistics and the sparse-count example in Table
+2.</td>
+</tr>
+<tr class="even">
+<td align="left">
+<code><a href="../reference/hwe_power.html">hwe_power()</a></code>, <code><a href="../reference/hwe_power.html">hwe_mssn()</a></code>
+</td>
+<td align="left">Pearson planning approximation with one degree of
+freedom and noncentrality
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><msup><mi>F</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">N F^2</annotation></semantics></math>,
+from <a href="https://doi.org/10.1534/genetics.108.088005" class="external-link">Rohlfs and
+Weir (2008)</a>. Fit the null at the observed alternative’s allele
+frequency. For call-error scenarios, obtain the observed alternative by
+postmultiplying true HWE proportions by a true-to-observed genotype
+matrix.</td>
+</tr>
+</tbody>
+</table>
+<p>The <a href="https://doi.org/10.1007/978-3-030-61121-7" class="external-link">textbook</a>
+supplies background on HWE proportions (§6.2.2, p. 332), genotype-call
+errors (§2.3, pp. 57–58), and noncentral chi-square planning (§1.6,
+pp. 19–21). The notebook-based call-error example illustrates this
+package’s HWE planning model. Exact inference for observed counts and
+prospective Pearson power use different reference distributions.</p>
 </div>
 <div class="section level2">
 <h2 id="plots-dashboard-and-related-software">Plots, dashboard and related software<a class="anchor" aria-label="anchor" href="#plots-dashboard-and-related-software"></a>

@@ -35,6 +35,7 @@ penetrance construction in Eqs. 1.6–1.7 (p. 13) and TDT Eq. 1.25
     <li><a class="dropdown-item" href="../articles/paweh-06-sequencing-study-design.html">Sequencing-Based Studies</a></li>
     <li><a class="dropdown-item" href="../articles/paweh-07-lrtae-study-design.html">Validation-Based / LRTae Studies</a></li>
     <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/paweh-09-hwe-diagnostics.html">Hardy–Weinberg Equilibrium</a></li>
     <li><a class="dropdown-item" href="../articles/paweh-05-interactive-dashboard.html">Interactive Dashboard</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../articles/paweh-08-methods-and-sources.html">Methods &amp; Sources</a></li>
@@ -119,20 +120,23 @@ If not provided, they are computed internally using <code>prev</code>, <code>R1<
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list containing:</p>
-<dl><dt>lambda</dt>
+<dl><dt><code>"Non-Centrality Parameter (lambda)"</code></dt>
 <dd><p>Non-centrality parameter.</p></dd>
 
-<dt>power</dt>
-<dd><p>Computed power at the given significance level.</p></dd>
+<dt><code>Power</code></dt>
+<dd><p>Computed power.</p></dd>
 
-<dt>ET</dt>
+<dt><code>"Expected Transmissions (ET)"</code></dt>
 <dd><p>Expected transmissions.</p></dd>
 
-<dt>ENT</dt>
+<dt><code>"Expected Non-Transmissions (ENT)"</code></dt>
 <dd><p>Expected non-transmissions.</p></dd>
 
 <dt>Penetrances</dt>
-<dd><p>Vector of computed penetrances (f0, f1, f2).</p></dd>
+<dd><p>Vector of penetrances (f0, f1, f2).</p></dd>
+
+<dt>C, Delta</dt>
+<dd><p>Penetrance contrast and linkage disequilibrium coefficient.</p></dd>
 
 </dl></div>
     <div class="section level2">

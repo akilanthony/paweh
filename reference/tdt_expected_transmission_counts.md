@@ -57,7 +57,10 @@ tdt_expected_transmission_counts(
 
 - theta1:
 
-  Numeric. Population allele frequency (defaults to `pd` if `NULL`).
+  Numeric. Recombination fraction between the marker and disease loci
+  (from 0 to 0.5). When `NULL`, this helper uses its historical default
+  `pd`. Supply `theta1 = 0` to match the canonical linked component,
+  keeping the other model inputs the same.
 
 - digits:
 

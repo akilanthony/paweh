@@ -65,6 +65,11 @@ collect.
   Plan how many people to recruit when only some receive a reference
   diagnosis or a confirmatory genotype assay.
 
+- ### [Hardy–Weinberg Equilibrium](https://akilanthony.github.io/paweh/articles/paweh-09-hwe-diagnostics.md)
+
+  Check genotype counts for departures from equilibrium and plan how
+  many individuals you need to detect a specified departure.
+
 - ### [Interactive Dashboard](https://akilanthony.github.io/paweh/articles/paweh-05-interactive-dashboard.md)
 
   Explore case-control, trio, and quantitative-trait designs in a Shiny
@@ -82,7 +87,7 @@ below.
     remotes::install_github("akilanthony/paweh", ref = "main")
 
 Install `remotes` first if needed. For the current development package
-and all eight tutorials, see the `develop` installation in [Getting
+and all nine articles, see the `develop` installation in [Getting
 Started](https://akilanthony.github.io/paweh/articles/paweh-01-getting-started.md).
 
 ## Methodological foundation

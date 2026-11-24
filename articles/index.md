@@ -18,6 +18,11 @@
 - [7. LRTae Power and Sample-Size
   Design](https://akilanthony.github.io/paweh/articles/paweh-07-lrtae-study-design.md):
 
+### Genotype diagnostics
+
+- [Hardy–Weinberg Equilibrium: Diagnostics, Power, and Sample
+  Size](https://akilanthony.github.io/paweh/articles/paweh-09-hwe-diagnostics.md):
+
 ### Interactive workflow
 
 - [5. Interactive Study Design with the paweh
