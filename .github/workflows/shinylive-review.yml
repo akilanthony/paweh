@@ -81,13 +81,15 @@ jobs:
             -v "$PWD/review/provenance:/workspace/output" \
             --entrypoint /opt/R/current/bin/Rscript "$image" -e '
               desc <- packageDescription("rwasm")
+              stopifnot(identical(desc$Version, "0.3.0.9000"))
               print(desc$Version)
               writeLines(c(paste("rwasm", desc$Version), paste("rwasm revision", desc$RemoteSha),
                            R.version.string), "/workspace/output/wasm-toolchain.txt")
               options(repos = c(CRAN = Sys.getenv("R_REPOSITORY")))
-              rwasm::build("local::/workspace/paweh.tar.gz", out_dir = "/workspace/output", dependencies = FALSE)
+              # The pinned source is already resolved. Bypass pkgdepends URL resolution.
+              rwasm:::wasm_build("paweh", "/workspace/paweh.tar.gz", "/workspace/output", compress = TRUE)
             '
-          python3 shinylive-preview/phase2/repack-wasm.py review/provenance "$PAWEH_SOURCE"
+          python3 shinylive-preview/phase3/pack-wasm.py review/provenance "$PAWEH_SOURCE"
           (cd review/provenance && sha256sum paweh_*.tgz paweh-library.tar.gz > wasm-artifacts.sha256)
           printf '%s\n' "$image" >> review/provenance/wasm-toolchain.txt
 
