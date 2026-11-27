@@ -66,7 +66,9 @@ jobs:
           Rscript -e 'pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)'
           test -f docs/.nojekyll
           cd ..
-          mv ci-source/docs review/site
+          python3 shinylive-preview/phase3/verify.py ci-source/docs review/provenance/pkgdown-rebuilt.json
+          mkdir review/site
+          git archive "$PAGES_BASELINE" | tar -xf - -C review/site
           python3 shinylive-preview/phase3/verify.py review/site review/provenance/pkgdown.json
           Rscript -e 'write.csv(installed.packages()[,c("Package","Version","Built")], "review/provenance/build-r-packages.csv", row.names=FALSE)'
 
@@ -76,10 +78,11 @@ jobs:
           image=$(jq -er .webr_build_image "$lock")
           mkdir -p "$RUNNER_TEMP/wasm-source"
           git archive "$PAWEH_SOURCE" --prefix=paweh/ | tar -xf - -C "$RUNNER_TEMP/wasm-source"
-          tar --format=ustar --owner=0 --group=0 -C "$RUNNER_TEMP/wasm-source" -czf "$RUNNER_TEMP/paweh.tar.gz" paweh
+          tar --format=ustar --sort=name --owner=0 --group=0 --numeric-owner \
+            -C "$RUNNER_TEMP/wasm-source" -czf "$RUNNER_TEMP/paweh.tar.gz" paweh
           sha256sum "$RUNNER_TEMP/paweh.tar.gz" | cut -d' ' -f1 > review/provenance/compiler-source.sha256
           docker run --rm --platform linux/amd64 \
-            -e R_REPOSITORY -e TZ \
+            -e R_REPOSITORY -e TZ -e "WEBR_IMAGE=$image" \
             -v "$RUNNER_TEMP/paweh.tar.gz:/workspace/paweh.tar.gz:ro" \
             -v "$PWD/review/provenance:/workspace/output" \
             --entrypoint /opt/R/current/bin/Rscript "$image" -e '
@@ -87,7 +90,7 @@ jobs:
               stopifnot(identical(desc$Version, "0.3.0.9000"))
               print(desc$Version)
               writeLines(c(paste("rwasm", desc$Version), paste("rwasm revision", desc$RemoteSha),
-                           R.version.string), "/workspace/output/wasm-toolchain.txt")
+                           R.version.string, Sys.getenv("WEBR_IMAGE")), "/workspace/output/wasm-toolchain.txt")
               options(repos = c(CRAN = Sys.getenv("R_REPOSITORY")))
               deps <- c("bslib", "ggplot2", "mvtnorm", "rlang", "shiny", "withr")
               pak::pkg_install(deps, ask = FALSE)
@@ -96,7 +99,6 @@ jobs:
             '
           python3 shinylive-preview/phase3/pack-wasm.py review/provenance "$PAWEH_SOURCE"
           (cd review/provenance && sha256sum paweh_*.tgz paweh-library.tar.gz > wasm-artifacts.sha256)
-          printf '%s\n' "$image" >> review/provenance/wasm-toolchain.txt
 
       - name: Export and verify the combined artifact
         run: |
