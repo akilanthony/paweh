@@ -1,0 +1,112 @@
+name: Shinylive review build
+
+"on":
+  push:
+    branches: [develop]
+    paths:
+      - .github/workflows/shinylive-review.yml
+      - shinylive-preview/app.R
+      - shinylive-preview/phase2/**
+      - shinylive-preview/phase3/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      PAWEH_SOURCE: 9f24dfa3cc3c4afced1e8aa9d404cbe6311b40a2
+      PAGES_BASELINE: 51009bfb81bff9a2a680204f5970a9f709d4b19b
+      R_REPOSITORY: https://packagemanager.posit.co/cran/__linux__/noble/2026-11-24
+      TZ: UTC
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Extract the validated PAWEH source
+        run: |
+          test "$(jq -r .source_commit shinylive-preview/phase2/lock.json)" = "$PAWEH_SOURCE"
+          git cat-file -e "$PAGES_BASELINE^{commit}"
+          mkdir -p ci-source review/provenance
+          git archive "$PAWEH_SOURCE" | tar -xf - -C ci-source
+          git archive "$PAWEH_SOURCE" | sha256sum | cut -d' ' -f1 > review/provenance/source-archive.sha256
+
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          r-version: '4.6.1'
+          use-public-rspm: false
+          cran: ${{ env.R_REPOSITORY }}
+
+      - uses: r-lib/actions/setup-pandoc@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          pandoc-version: '3.8.3'
+
+      - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          working-directory: ci-source
+          needs: website
+          extra-packages: |
+            local::.
+            any::pkgdown@2.2.1
+            any::shinylive@0.5.0
+            any::openssl
+            any::jsonlite
+
+      - name: Build and inventory pkgdown before adding the app
+        run: |
+          cd ci-source
+          test ! -e docs
+          mv AGENTS.md CRAN_PREPARATION_AUDIT.md CRAN_FINAL_READINESS_AUDIT.md "$RUNNER_TEMP/"
+          Rscript -e 'pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)'
+          test -f docs/.nojekyll
+          cd ..
+          mv ci-source/docs review/site
+          python3 shinylive-preview/phase3/verify.py review/site review/provenance/pkgdown.json
+          Rscript -e 'write.csv(installed.packages()[,c("Package","Version","Built")], "review/provenance/build-r-packages.csv", row.names=FALSE)'
+
+      - name: Build the Wasm package with the official pinned toolchain
+        run: |
+          lock=shinylive-preview/phase2/lock.json
+          image=$(jq -er .webr_build_image "$lock")
+          git archive "$PAWEH_SOURCE" --prefix=paweh/ -o "$RUNNER_TEMP/paweh.tar.gz"
+          docker run --rm --platform linux/amd64 \
+            -e R_REPOSITORY -e TZ \
+            -v "$RUNNER_TEMP/paweh.tar.gz:/workspace/paweh.tar.gz:ro" \
+            -v "$PWD/review/provenance:/workspace/output" \
+            --entrypoint /opt/R/current/bin/Rscript "$image" -e '
+              desc <- packageDescription("rwasm")
+              print(desc$Version)
+              writeLines(c(paste("rwasm", desc$Version), paste("rwasm revision", desc$RemoteSha),
+                           R.version.string), "/workspace/output/wasm-toolchain.txt")
+              options(repos = c(CRAN = Sys.getenv("R_REPOSITORY")))
+              rwasm::build("local::/workspace/paweh.tar.gz", out_dir = "/workspace/output", dependencies = FALSE)
+            '
+          python3 shinylive-preview/phase2/repack-wasm.py review/provenance "$PAWEH_SOURCE"
+          (cd review/provenance && sha256sum paweh_*.tgz paweh-library.tar.gz > wasm-artifacts.sha256)
+          printf '%s\n' "$image" >> review/provenance/wasm-toolchain.txt
+
+      - name: Export and verify the combined artifact
+        run: |
+          Rscript shinylive-preview/phase2/export-locked.R \
+            review/provenance/paweh-library.tar.gz review/site/app "$RUNNER_TEMP/wasm-inputs" \
+            review/provenance/provenance.json
+          python3 shinylive-preview/phase3/assemble.py review/site/app "$PAWEH_SOURCE"
+          node --check review/site/app/shinylive-sw.js
+          node --check review/site/app/shell.js
+          python3 shinylive-preview/phase3/verify.py review/site "$PAGES_BASELINE" ci-source \
+            review/provenance/site-manifest.json review/provenance/pkgdown.json
+          cp shinylive-preview/phase2/lock.json review/provenance/runtime-lock.json
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: paweh-shinylive-review
+          path: review/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
