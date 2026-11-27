@@ -26,7 +26,9 @@ def assemble(app, commit):
             budget -= size
 
     worker = app / "shinylive-sw.js"
-    original = worker.read_text()
+    original = replace_once(worker.read_text(),
+        "Promise.all([self.skipWaiting(), caches.open(version + cacheName)])",
+        "self.skipWaiting()")
     worker.write_text("const PAWEH_SMALL_ASSETS = new Set(" + json.dumps(cacheable) + ");\n"
         + replace_once(
             replace_once(original, "pawehCachePrefix + PAWEH_ASSET_REVISION;",

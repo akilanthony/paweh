@@ -74,7 +74,10 @@ jobs:
         run: |
           lock=shinylive-preview/phase2/lock.json
           image=$(jq -er .webr_build_image "$lock")
-          git archive "$PAWEH_SOURCE" --prefix=paweh/ -o "$RUNNER_TEMP/paweh.tar.gz"
+          mkdir -p "$RUNNER_TEMP/wasm-source"
+          git archive "$PAWEH_SOURCE" --prefix=paweh/ | tar -xf - -C "$RUNNER_TEMP/wasm-source"
+          tar --format=ustar --owner=0 --group=0 -C "$RUNNER_TEMP/wasm-source" -czf "$RUNNER_TEMP/paweh.tar.gz" paweh
+          sha256sum "$RUNNER_TEMP/paweh.tar.gz" | cut -d' ' -f1 > review/provenance/compiler-source.sha256
           docker run --rm --platform linux/amd64 \
             -e R_REPOSITORY -e TZ \
             -v "$RUNNER_TEMP/paweh.tar.gz:/workspace/paweh.tar.gz:ro" \
@@ -86,6 +89,8 @@ jobs:
               writeLines(c(paste("rwasm", desc$Version), paste("rwasm revision", desc$RemoteSha),
                            R.version.string), "/workspace/output/wasm-toolchain.txt")
               options(repos = c(CRAN = Sys.getenv("R_REPOSITORY")))
+              deps <- c("bslib", "ggplot2", "mvtnorm", "rlang", "shiny", "withr")
+              pak::pkg_install(deps, ask = FALSE)
               # The pinned source is already resolved. Bypass pkgdepends URL resolution.
               rwasm:::wasm_build("paweh", "/workspace/paweh.tar.gz", "/workspace/output", compress = TRUE)
             '
