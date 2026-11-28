@@ -1,0 +1,24 @@
+body { margin: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+#paweh-build {
+  background: #edf3f3; color: #22394a; border-bottom: 1px solid #cedcde;
+  padding: .4rem .8rem; font: 500 .85rem/1.35 system-ui, sans-serif;
+  display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+}
+#paweh-build a { color: #145761; font-family: ui-monospace, monospace; }
+#root { position: relative; flex: 1; min-height: 0; width: 100%; }
+#paweh-loading {
+  position: absolute; z-index: 2; inset: 0; display: grid; place-content: center;
+  background: #f5f8fa; color: #1d3041; padding: 1.4rem;
+  font: 1rem/1.5 system-ui, sans-serif;
+}
+#paweh-loading[hidden] { display: none; }
+#paweh-loading section {
+  border-radius: .7rem; border: 1px solid #cedcde; background: white;
+  max-width: 34rem; padding: 1.5rem 1.8rem;
+}
+#paweh-loading h1 { font-size: 1.45rem; margin: 0 0 .6rem; }
+#paweh-loading p { margin: .5rem 0; }
+#paweh-loading small { display: block; color: #455965; }
+
+#paweh-loading { top: var(--paweh-banner-height, 3rem); }
+#paweh-retry { font: inherit; color: #145761; background: #fff; padding: .45rem .65rem; border: 1px solid currentColor; border-radius: .35rem; }

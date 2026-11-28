@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PAWEH browser dashboard — Beta</title>
+    <script
+      src="./shinylive/load-shinylive-sw.js"
+      type="module"
+    ></script>
+    <script type="module">
+      import { runExportedApp } from "./shinylive/shinylive.js";
+      runExportedApp({
+        id: "root",
+        appEngine: "r",
+        relPath: "",
+      });
+    </script>
+    <link rel="stylesheet" href="./shinylive/style-resets.css" />
+    <link rel="stylesheet" href="./shinylive/shinylive.css" />
+    
+  <link rel="stylesheet" href="./shell.css" />
+<script src="./shell.js" defer></script>
+</head>
+  <body>
+    
+    <header id="paweh-build"><strong>PAWEH browser dashboard — Beta</strong> <strong>paweh 0.99.0</strong> <a href="https://github.com/akilanthony/paweh/commit/9f24dfa3cc3c4afced1e8aa9d404cbe6311b40a2">Source 9f24dfa</a> <span>Chrome and Edge are recommended on desktop. Firefox support is experimental. Safari and physical mobile devices have not been verified.</span></header>
+<div id="paweh-loading"><section aria-labelledby="paweh-status"><h1 id="paweh-status" role="status">Preparing the R runtime…</h1><p>PAWEH runs R inside your browser.</p><small id="paweh-requirements">The first visit downloads about 83 MB and can take several minutes on slower connections. The interactive 3D view requires WebGL.</small><p><button id="paweh-retry" type="button" hidden>Retry loading</button></p><noscript>Enable JavaScript to run the dashboard.</noscript></section></div>
+<div id="root" aria-busy="true"></div>
+    
+  </body>
+</html>
